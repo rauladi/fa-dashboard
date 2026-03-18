@@ -1,0 +1,13 @@
+{
+  "generated": "2026-03-18T05:26:04.034227+00:00",
+  "years": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "latestYear": 2025,
+  "_note": "Initial placeholder. Run GitHub Actions workflow to populate real data.",
+  "stocks": {}
+}
