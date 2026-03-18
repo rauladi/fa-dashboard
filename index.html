@@ -689,7 +689,7 @@ function calcM(symbol){
     divPayout: isOK(ep[i])&&ep[i]>0&&isOK(dp[i]) ? dp[i]/ep[i]*100 : null,
     valLow:  isOK(dp[i]) ? dp[i]*10  : null,
     valHigh: isOK(dp[i]) ? dp[i]*20  : null,
-    retEps:  isOK(ep[i])&&isOK(dp[i]) ? ep[i]-dp[i] : null,
+    retEps:  null,  // calculated below after Buffett test
   }));
 
   const av={
@@ -699,10 +699,40 @@ function calcM(symbol){
     divPayout:avg(Y.map(y=>y.divPayout)),
   };
   const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep)};
-  const epArr=ep.filter(isOK);
-  const epsInc=epArr.length>=2?epArr[epArr.length-1]-epArr[0]:null;
-  const totRet=Y.reduce((s,y)=>isOK(y.retEps)?s+y.retEps:s,0)||null;
-  const buff=isOK(totRet)&&totRet>0&&isOK(epsInc)?epsInc/totRet*100:null;
+
+  // ── Buffett $1 Test ──────────────────────────────────────────────
+  // Use COMPLETED years only (indices 0–4, i.e. exclude current-year estimate at index 5).
+  // retEps = EPS − DPS per year. If DPS is null/unknown, treat as 0 (full retention).
+  // totRet = sum of all yearly retEps over the completed period.
+  // epsInc = EPS at end of completed period minus EPS at start.
+  const N_COMPLETED = N_YEARS - 1;  // 5 completed years, index 0–4
+  const epCompleted = ep.slice(0, N_COMPLETED);
+  const dpCompleted = dp.slice(0, N_COMPLETED);
+
+  const retEpsCompleted = epCompleted.map((e, i) => {
+    if (!isOK(e)) return null;
+    const d = isOK(dpCompleted[i]) ? dpCompleted[i] : 0;  // null DPS → 0 (full retention)
+    return e - d;
+  });
+
+  const retEpsVals = retEpsCompleted.filter(isOK);
+  const totRet = retEpsVals.length > 0 ? retEpsVals.reduce((s,v) => s+v, 0) : null;
+
+  const epCompletedOK = epCompleted.filter(isOK);
+  const epsInc = epCompletedOK.length >= 2
+    ? epCompletedOK[epCompletedOK.length-1] - epCompletedOK[0]
+    : null;
+
+  const buff = isOK(totRet) && Math.abs(totRet) > 0.001 && isOK(epsInc)
+    ? epsInc / totRet * 100
+    : null;
+
+  // For display cards — also expose retEps on Y rows (all years including current)
+  Y.forEach((y, i) => {
+    if (!isOK(y.eps)) { y.retEps = null; return; }
+    const d = isOK(y.dps) ? y.dps : 0;
+    y.retEps = y.eps - d;
+  });
 
   return{Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp},
     rm:{cashToAsset:av.cashToAsset,debtToEquity:av.debtToEquity,revenueCagr:cg.rev,
