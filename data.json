@@ -1,13 +1,1044 @@
 {
-  "generated": "2026-03-18T05:26:04.034227+00:00",
+  "generated": "2026-03-18T12:01:00.970187+00:00",
   "years": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025,
+    2026
+  ],
+  "completedYears": [
     2021,
     2022,
     2023,
     2024,
     2025
   ],
+  "currentYear": 2026,
   "latestYear": 2025,
-  "_note": "Initial placeholder. Run GitHub Actions workflow to populate real data.",
-  "stocks": {}
+  "annualisation": {
+    "BHP": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "WDS": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "BBRI": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "ADRO": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "SMSM": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "UNTR": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "ITMG": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "POWR": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "MPMX": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "BTPS": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "DMAS": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "SPTO": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    }
+  },
+  "stocks": {
+    "BHP": {
+      "name": "BHP Group",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "BHP.AX",
+      "source": "yfinance",
+      "totalAsset": [
+        54.2,
+        95.166,
+        101.296,
+        102.362,
+        108.79,
+        null
+      ],
+      "cash": [
+        14.9,
+        17.236,
+        12.333,
+        12.389,
+        11.769,
+        null
+      ],
+      "totalDebt": [
+        14.5,
+        16.428,
+        22.345,
+        20.718,
+        24.496,
+        null
+      ],
+      "totalEquity": [
+        26.4,
+        43.516,
+        43.055,
+        43.374,
+        46.228,
+        null
+      ],
+      "revenue": [
+        60.8,
+        65.098,
+        53.817,
+        55.658,
+        51.262,
+        null
+      ],
+      "grossProfit": [
+        36.2,
+        50.184,
+        37.904,
+        40.545,
+        36.731,
+        null
+      ],
+      "netProfit": [
+        11.3,
+        30.9,
+        12.921,
+        7.897,
+        9.019,
+        null
+      ],
+      "eps": [
+        2.21,
+        6.106,
+        2.552,
+        1.558,
+        1.778,
+        null
+      ],
+      "dps": [
+        3.01,
+        3.5272,
+        2.6201,
+        1.5144,
+        1.2622,
+        null
+      ]
+    },
+    "WDS": {
+      "name": "Woodside Energy",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "WDS.AX",
+      "source": "yfinance",
+      "totalAsset": [
+        40.3,
+        59.321,
+        55.361,
+        61.264,
+        66.501,
+        null
+      ],
+      "cash": [
+        2.8,
+        6.189,
+        1.74,
+        3.923,
+        5.712,
+        null
+      ],
+      "totalDebt": [
+        7.9,
+        6.772,
+        6.498,
+        11.62,
+        13.722,
+        null
+      ],
+      "totalEquity": [
+        18.2,
+        36.336,
+        34.399,
+        35.399,
+        35.914,
+        null
+      ],
+      "revenue": [
+        10.0,
+        16.817,
+        13.994,
+        13.179,
+        12.984,
+        null
+      ],
+      "grossProfit": [
+        5.8,
+        10.277,
+        6.475,
+        5.678,
+        4.536,
+        null
+      ],
+      "netProfit": [
+        2.5,
+        6.498,
+        1.66,
+        3.573,
+        2.718,
+        null
+      ],
+      "eps": [
+        0.8,
+        4.3,
+        0.875,
+        1.885,
+        1.434,
+        null
+      ],
+      "dps": [
+        0.55,
+        1.6926,
+        2.2426,
+        1.2919,
+        1.0615,
+        null
+      ]
+    },
+    "BBRI": {
+      "name": "Bank Rakyat Indonesia",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "BBRI.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        1635,
+        1865.639,
+        1965.007,
+        1992.9834,
+        2135.3711,
+        null
+      ],
+      "cash": [
+        163,
+        270.2124,
+        225.0064,
+        198.2814,
+        126.3922,
+        null
+      ],
+      "totalDebt": [
+        1380,
+        143.4849,
+        149.8492,
+        161.5214,
+        170.8976,
+        null
+      ],
+      "totalEquity": [
+        255,
+        299.294,
+        311.3636,
+        317.0938,
+        324.0339,
+        null
+      ],
+      "revenue": [
+        135,
+        153.7832,
+        166.453,
+        172.9964,
+        186.8766,
+        null
+      ],
+      "grossProfit": [
+        85,
+        95,
+        104,
+        118,
+        null,
+        null
+      ],
+      "netProfit": [
+        25,
+        51.1703,
+        60.0999,
+        59.9446,
+        56.6524,
+        null
+      ],
+      "eps": [
+        238.0,
+        338.0,
+        398.0,
+        398.0,
+        null,
+        null
+      ],
+      "dps": [
+        460,
+        174.4318,
+        288.272,
+        319.1209,
+        null,
+        null
+      ]
+    },
+    "ADRO": {
+      "name": "Adaro Energy",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "ADRO.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        80,
+        0.0108,
+        0.0105,
+        0.0067,
+        0.0068,
+        null
+      ],
+      "cash": [
+        10,
+        0.0041,
+        0.0033,
+        0.0014,
+        0.001,
+        null
+      ],
+      "totalDebt": [
+        18,
+        0.0016,
+        0.0014,
+        0.0006,
+        0.0008,
+        null
+      ],
+      "totalEquity": [
+        58,
+        0.006,
+        0.0068,
+        0.0049,
+        0.0045,
+        null
+      ],
+      "revenue": [
+        65,
+        0.0081,
+        0.0021,
+        0.0021,
+        0.0019,
+        null
+      ],
+      "grossProfit": [
+        24,
+        0.0047,
+        0.0009,
+        0.0009,
+        0.0006,
+        null
+      ],
+      "netProfit": [
+        8,
+        0.0025,
+        0.0016,
+        0.0014,
+        0.0004,
+        null
+      ],
+      "eps": [
+        0.0293,
+        0.0803,
+        0.0531,
+        0.0449,
+        null,
+        null
+      ],
+      "dps": [
+        130,
+        0.0209,
+        0.0323,
+        0.1116,
+        null,
+        null
+      ]
+    },
+    "SMSM": {
+      "name": "Selamat Sempurna",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "SMSM.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        3.8689,
+        4.3931,
+        4.5888,
+        4.9639,
+        null,
+        null
+      ],
+      "cash": [
+        0.6614,
+        0.9856,
+        1.1303,
+        1.1135,
+        null,
+        null
+      ],
+      "totalDebt": [
+        0.2824,
+        0.3514,
+        0.296,
+        0.2235,
+        null,
+        null
+      ],
+      "totalEquity": [
+        2.5208,
+        2.9076,
+        3.2271,
+        3.4725,
+        null,
+        null
+      ],
+      "revenue": [
+        4.1629,
+        4.8942,
+        5.1084,
+        5.165,
+        null,
+        null
+      ],
+      "grossProfit": [
+        1.3374,
+        1.6049,
+        1.8369,
+        1.914,
+        null,
+        null
+      ],
+      "netProfit": [
+        0.662,
+        0.8483,
+        0.9459,
+        1.0242,
+        null,
+        null
+      ],
+      "eps": [
+        115.0,
+        147.0,
+        164.0,
+        178.0,
+        null,
+        null
+      ],
+      "dps": [
+        70.0001,
+        84.9421,
+        105.0,
+        135.0,
+        null,
+        null
+      ]
+    },
+    "UNTR": {
+      "name": "United Tractors",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "UNTR.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        118,
+        140.4782,
+        153.7539,
+        169.4806,
+        177.6373,
+        null
+      ],
+      "cash": [
+        16,
+        38.2815,
+        16.938,
+        22.9681,
+        24.8638,
+        null
+      ],
+      "totalDebt": [
+        23,
+        3.0022,
+        18.8748,
+        20.1663,
+        18.917,
+        null
+      ],
+      "totalEquity": [
+        78,
+        84.6981,
+        79.2506,
+        92.9474,
+        97.7736,
+        null
+      ],
+      "revenue": [
+        108,
+        123.6075,
+        128.5833,
+        134.427,
+        131.3008,
+        null
+      ],
+      "grossProfit": [
+        25,
+        34.7587,
+        35.7862,
+        33.8316,
+        29.7035,
+        null
+      ],
+      "netProfit": [
+        13,
+        21.0051,
+        20.6118,
+        19.5312,
+        14.8104,
+        null
+      ],
+      "eps": [
+        3510,
+        5679.0,
+        5675.0,
+        5378.0,
+        4082.0,
+        null
+      ],
+      "dps": [
+        1580,
+        1721.0961,
+        6883.9675,
+        2235.2737,
+        2050.1202,
+        null
+      ]
+    },
+    "ITMG": {
+      "name": "Indo Tambangraya Megah",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "ITMG.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        19,
+        0.0026,
+        0.0022,
+        0.0024,
+        0.0024,
+        null
+      ],
+      "cash": [
+        6,
+        0.0014,
+        0.0009,
+        0.001,
+        0.0008,
+        null
+      ],
+      "totalDebt": [
+        0.8,
+        0.0,
+        0.0001,
+        0.0001,
+        0.0001,
+        null
+      ],
+      "totalEquity": [
+        16,
+        0.002,
+        0.0018,
+        0.0019,
+        0.0019,
+        null
+      ],
+      "revenue": [
+        36,
+        0.0036,
+        0.0024,
+        0.0023,
+        0.0019,
+        null
+      ],
+      "grossProfit": [
+        10,
+        0.0019,
+        0.0007,
+        0.0007,
+        0.0005,
+        null
+      ],
+      "netProfit": [
+        5,
+        0.0012,
+        0.0005,
+        0.0004,
+        0.0002,
+        null
+      ],
+      "eps": [
+        4530,
+        1.07,
+        0.44,
+        0.33,
+        0.17,
+        null
+      ],
+      "dps": [
+        4000,
+        0.4791,
+        0.5964,
+        0.1912,
+        0.1798,
+        null
+      ]
+    },
+    "POWR": {
+      "name": "Cikarang Listrindo",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "POWR.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        9.5,
+        0.0014,
+        0.0013,
+        0.0013,
+        0.0012,
+        null
+      ],
+      "cash": [
+        1.3,
+        0.0003,
+        0.0002,
+        0.0002,
+        0.0002,
+        null
+      ],
+      "totalDebt": [
+        2.0,
+        0.0005,
+        0.0005,
+        0.0005,
+        0.0003,
+        null
+      ],
+      "totalEquity": [
+        5.8,
+        0.0007,
+        0.0007,
+        0.0007,
+        0.0007,
+        null
+      ],
+      "revenue": [
+        5.0,
+        0.0006,
+        0.0005,
+        0.0005,
+        0.0006,
+        null
+      ],
+      "grossProfit": [
+        2.0,
+        0.0003,
+        0.0003,
+        0.0003,
+        0.0002,
+        null
+      ],
+      "netProfit": [
+        0.95,
+        0.0001,
+        0.0001,
+        0.0001,
+        0.0001,
+        null
+      ],
+      "eps": [
+        0.0057,
+        0.0046,
+        0.0049,
+        0.0048,
+        null,
+        null
+      ],
+      "dps": [
+        57,
+        0.0043,
+        0.0047,
+        0.0045,
+        null,
+        null
+      ]
+    },
+    "MPMX": {
+      "name": "Mitra Pinasthika Mustika",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "MPMX.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        9.8697,
+        8.8898,
+        8.599,
+        8.8722,
+        null,
+        null
+      ],
+      "cash": [
+        1.8484,
+        1.999,
+        1.7121,
+        1.8679,
+        null,
+        null
+      ],
+      "totalDebt": [
+        0.9933,
+        0.0145,
+        0.0157,
+        0.0135,
+        null,
+        null
+      ],
+      "totalEquity": [
+        6.2589,
+        6.1872,
+        6.1119,
+        6.2065,
+        null,
+        null
+      ],
+      "revenue": [
+        11.9134,
+        12.7429,
+        13.8591,
+        15.7764,
+        null,
+        null
+      ],
+      "grossProfit": [
+        0.9599,
+        1.0874,
+        1.2152,
+        1.3655,
+        null,
+        null
+      ],
+      "netProfit": [
+        0.4117,
+        0.6617,
+        0.5256,
+        0.5825,
+        null,
+        null
+      ],
+      "eps": [
+        95.0,
+        152.0,
+        120.0,
+        133.0,
+        null,
+        null
+      ],
+      "dps": [
+        115.015,
+        180.4234,
+        135.0447,
+        115.0252,
+        null,
+        null
+      ]
+    },
+    "BTPS": {
+      "name": "Bank BTPN Syariah",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "BTPS.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        24,
+        21.162,
+        21.4354,
+        21.7476,
+        22.7511,
+        null
+      ],
+      "cash": [
+        2.4,
+        1.7123,
+        1.5143,
+        2.523,
+        2.3796,
+        null
+      ],
+      "totalDebt": [
+        19,
+        0.1677,
+        0.0538,
+        0.2253,
+        0.0295,
+        null
+      ],
+      "totalEquity": [
+        5.0,
+        8.405,
+        8.774,
+        9.3136,
+        9.959,
+        null
+      ],
+      "revenue": [
+        7.0,
+        5.0436,
+        5.2647,
+        4.906,
+        4.7358,
+        null
+      ],
+      "grossProfit": [
+        4.2,
+        4.8,
+        5.4,
+        5.7,
+        null,
+        null
+      ],
+      "netProfit": [
+        1.2,
+        1.7795,
+        1.0805,
+        1.0613,
+        1.2012,
+        null
+      ],
+      "eps": [
+        190.0,
+        231.0,
+        140.0,
+        138.0,
+        null,
+        null
+      ],
+      "dps": [
+        124,
+        58.6122,
+        88.4262,
+        68.1814,
+        null,
+        null
+      ]
+    },
+    "DMAS": {
+      "name": "Puradelta Lestari",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "DMAS.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        7.0,
+        6.6234,
+        6.7185,
+        8.2547,
+        7.1219,
+        null
+      ],
+      "cash": [
+        1.8,
+        0.7632,
+        1.0267,
+        1.7595,
+        0.377,
+        null
+      ],
+      "totalDebt": [
+        1.0,
+        0.0,
+        0.0011,
+        0.5006,
+        0.0,
+        null
+      ],
+      "totalEquity": [
+        5.5,
+        5.7215,
+        5.8771,
+        7.2107,
+        6.6098,
+        null
+      ],
+      "revenue": [
+        1.8,
+        1.9324,
+        1.9214,
+        2.0327,
+        1.3091,
+        null
+      ],
+      "grossProfit": [
+        1.2,
+        1.3751,
+        1.3258,
+        1.4155,
+        0.8673,
+        null
+      ],
+      "netProfit": [
+        0.7,
+        1.2173,
+        1.2098,
+        1.3337,
+        0.8003,
+        null
+      ],
+      "eps": [
+        14.83,
+        25.26,
+        25.1,
+        27.67,
+        null,
+        null
+      ],
+      "dps": [
+        18.5,
+        17.5,
+        22.0,
+        35,
+        null,
+        null
+      ]
+    },
+    "SPTO": {
+      "name": "Surya Toto Indonesia",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "SPTO.JK",
+      "source": "yfinance",
+      "totalAsset": [
+        3.1435,
+        3.1162,
+        3.2377,
+        3.4156,
+        null,
+        null
+      ],
+      "cash": [
+        0.4231,
+        0.1886,
+        0.1689,
+        0.2429,
+        null,
+        null
+      ],
+      "totalDebt": [
+        0.4035,
+        0.3443,
+        0.3245,
+        0.2747,
+        null,
+        null
+      ],
+      "totalEquity": [
+        1.3167,
+        1.3882,
+        1.5075,
+        1.634,
+        null,
+        null
+      ],
+      "revenue": [
+        2.2385,
+        2.5056,
+        2.6055,
+        2.9152,
+        null,
+        null
+      ],
+      "grossProfit": [
+        0.6373,
+        0.687,
+        0.7472,
+        0.8439,
+        null,
+        null
+      ],
+      "netProfit": [
+        0.197,
+        0.2067,
+        0.2547,
+        0.2873,
+        null,
+        null
+      ],
+      "eps": [
+        72.97,
+        76.55,
+        94.33,
+        106.39,
+        null,
+        null
+      ],
+      "dps": [
+        35.0,
+        50.0,
+        50.0,
+        60.0,
+        null,
+        null
+      ]
+    }
+  }
 }
