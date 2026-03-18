@@ -13,21 +13,36 @@ LATEST_YEAR  = CURRENT_YEAR - 1
 COMPLETED    = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))
 ALL_YEARS    = COMPLETED + [CURRENT_YEAR]
 
+# ── Stock definitions ───────────────────────────────────────────────────
+# Yahoo Finance reports ALL financials in THOUSANDS of the reporting currency.
+# So the divisors below convert thousands → display units:
+#   ASX stocks: Yahoo = USD thousands  → display = AUD billions
+#               div = 1_000_000  (thousands → billions)   then × USD_to_AUD fx
+#   IDX stocks: Yahoo = IDR thousands  → display = IDR trillions
+#               div = 1_000_000_000    (thousands → trillions)  fx = 1.0
+#
+# EPS/DPS: Yahoo reports EPS in reporting currency per share (NOT thousands).
+#   ASX EPS/DPS: USD per share  → multiply by USD_to_AUD fx  (no div)
+#   IDX EPS/DPS: IDR per share  → no conversion needed
+#
+# Format: sym: (name, exchange, yf_ticker, display_currency, div, report_cur)
+
 STOCKS = {
-    "BHP":  ("BHP Group",               "ASX", "BHP.AX",  "B AUD", 1e9),
-    "WDS":  ("Woodside Energy",          "ASX", "WDS.AX",  "B AUD", 1e9),
-    "BBRI": ("Bank Rakyat Indonesia",    "IDX", "BBRI.JK", "T IDR", 1e12),
-    "ADRO": ("Adaro Energy",             "IDX", "ADRO.JK", "T IDR", 1e12),
-    "SMSM": ("Selamat Sempurna",         "IDX", "SMSM.JK", "T IDR", 1e12),
-    "UNTR": ("United Tractors",          "IDX", "UNTR.JK", "T IDR", 1e12),
-    "ITMG": ("Indo Tambangraya Megah",   "IDX", "ITMG.JK", "T IDR", 1e12),
-    "POWR": ("Cikarang Listrindo",       "IDX", "POWR.JK", "T IDR", 1e12),
-    "MPMX": ("Mitra Pinasthika Mustika", "IDX", "MPMX.JK", "T IDR", 1e12),
-    "BTPS": ("Bank BTPN Syariah",        "IDX", "BTPS.JK", "T IDR", 1e12),
-    "DMAS": ("Puradelta Lestari",        "IDX", "DMAS.JK", "T IDR", 1e12),
-    "SPTO": ("Surya Toto Indonesia",     "IDX", "SPTO.JK", "T IDR", 1e12),
+    "BHP":  ("BHP Group",               "ASX", "BHP.AX",  "B AUD", 1_000_000,     "USD"),
+    "WDS":  ("Woodside Energy",          "ASX", "WDS.AX",  "B AUD", 1_000_000,     "USD"),
+    "BBRI": ("Bank Rakyat Indonesia",    "IDX", "BBRI.JK", "T IDR", 1_000_000_000, "IDR"),
+    "ADRO": ("Adaro Energy",             "IDX", "ADRO.JK", "T IDR", 1_000_000_000, "IDR"),
+    "SMSM": ("Selamat Sempurna",         "IDX", "SMSM.JK", "T IDR", 1_000_000_000, "IDR"),
+    "UNTR": ("United Tractors",          "IDX", "UNTR.JK", "T IDR", 1_000_000_000, "IDR"),
+    "ITMG": ("Indo Tambangraya Megah",   "IDX", "ITMG.JK", "T IDR", 1_000_000_000, "IDR"),
+    "POWR": ("Cikarang Listrindo",       "IDX", "POWR.JK", "T IDR", 1_000_000_000, "IDR"),
+    "MPMX": ("Mitra Pinasthika Mustika", "IDX", "MPMX.JK", "T IDR", 1_000_000_000, "IDR"),
+    "BTPS": ("Bank BTPN Syariah",        "IDX", "BTPS.JK", "T IDR", 1_000_000_000, "IDR"),
+    "DMAS": ("Puradelta Lestari",        "IDX", "DMAS.JK", "T IDR", 1_000_000_000, "IDR"),
+    "SPTO": ("Surya Toto Indonesia",     "IDX", "SPTO.JK", "T IDR", 1_000_000_000, "IDR"),
 }
 
+# ── Fallback data (display units: B AUD or T IDR) ──────────────────────
 FALLBACK = {
     "BHP":  {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,None,None]},
     "WDS":  {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,None,None]},
@@ -45,11 +60,32 @@ FALLBACK = {
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-def safe(val, div=1):
+# ── Live USD→AUD exchange rate ──────────────────────────────────────────
+def get_usd_to_aud():
+    """Fetch live USD→AUD rate. Fallback to 1.58 if unavailable."""
+    fallback = 1.58
+    try:
+        tk = yf.Ticker("AUDUSD=X")
+        hist = tk.history(period="2d")
+        if not hist.empty:
+            audusd = float(hist["Close"].iloc[-1])
+            if 0.50 < audusd < 0.90:
+                rate = round(1.0 / audusd, 6)
+                print(f"  Live rate: 1 AUD = {audusd:.4f} USD  →  1 USD = {rate:.4f} AUD", flush=True)
+                return rate
+    except Exception as e:
+        print(f"  Rate fetch error: {e}", flush=True)
+    print(f"  Using fallback rate: 1 USD = {fallback} AUD", flush=True)
+    return fallback
+
+# ── Core helpers ────────────────────────────────────────────────────────
+def safe(val, div=1, fx=1.0):
+    """Convert raw Yahoo value to display units. div and fx both default to identity."""
     if val is None: return None
     try:
         f = float(val)
-        return None if (math.isnan(f) or math.isinf(f)) else round(f/div, 4)
+        if math.isnan(f) or math.isinf(f): return None
+        return round(f / div * fx, 4)
     except Exception: return None
 
 def find_row(df, *names):
@@ -61,155 +97,274 @@ def col_yr(df, yr):
     if df is None or df.empty: return None
     for c in df.columns:
         try:
-            if hasattr(c,"year") and c.year==yr: return c
+            if hasattr(c, "year") and c.year == yr: return c
         except Exception: pass
     return None
 
 def cols_yr(df, yr):
     if df is None or df.empty: return []
-    out=[]
-    for c in df.columns:
-        try:
-            if hasattr(c,"year") and c.year==yr: out.append(c)
-        except Exception: pass
+    out = [c for c in df.columns if hasattr(c, "year") and c.year == yr]
     return sorted(out)
 
 def sum_q(series, cols):
     if series is None: return None
-    total=0.0; found=False
+    total = 0.0; found = False
     for c in cols:
-        v=safe(series[c])
-        if v is not None: total+=v; found=True
+        v = safe(series[c])
+        if v is not None: total += v; found = True
     return total if found else None
 
-def annual_row(inc, bs, cf, yr, div):
-    row={}
-    ic=col_yr(inc,yr); bc=col_yr(bs,yr); cc=col_yr(cf,yr)
+# ── Build one annual year row ───────────────────────────────────────────
+def annual_row(inc, bs, cf, yr, div, fx):
+    """
+    div  = divisor for financial statement values (flow + balance sheet)
+           ASX: 1_000_000  (USD thousands → USD billions, then fx converts to AUD)
+           IDX: 1_000_000_000 (IDR thousands → IDR trillions)
+    fx   = currency multiplier applied AFTER dividing
+           ASX: USD_to_AUD rate
+           IDX: 1.0
+    EPS/DPS: Yahoo reports per-share in reporting currency (not thousands).
+           Apply fx only (no div).
+    DPS derived from cash flow: dividendsPaid is in THOUSANDS, shares in THOUSANDS.
+           So div cancels: dps = (|div_paid_thousands| / shares_thousands) × fx
+    """
+    row = {}
+    ic = col_yr(inc, yr); bc = col_yr(bs, yr); cc = col_yr(cf, yr)
+
     if ic is not None:
-        rv=find_row(inc,"Total Revenue","TotalRevenue")
-        gp=find_row(inc,"Gross Profit","GrossProfit")
-        ni=find_row(inc,"Net Income","NetIncome","Net Income Common Stockholders","Net Income Including Noncontrolling Interests")
-        ep=find_row(inc,"Basic EPS","BasicEPS","Diluted EPS","EPS Diluted")
-        sh=find_row(inc,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
-        row["revenue"]=safe(rv[ic] if rv is not None else None,div)
-        row["grossProfit"]=safe(gp[ic] if gp is not None else None,div)
-        row["netProfit"]=safe(ni[ic] if ni is not None else None,div)
-        row["eps"]=safe(ep[ic] if ep is not None else None)
-        row["_sh"]=safe(sh[ic] if sh is not None else None)
+        rv = find_row(inc, "Total Revenue", "TotalRevenue")
+        gp = find_row(inc, "Gross Profit", "GrossProfit")
+        ni = find_row(inc, "Net Income", "NetIncome",
+                      "Net Income Common Stockholders",
+                      "Net Income Including Noncontrolling Interests")
+        ep = find_row(inc, "Basic EPS", "BasicEPS", "Diluted EPS", "EPS Diluted")
+        sh = find_row(inc, "Basic Average Shares", "BasicAverageShares",
+                      "Diluted Average Shares", "Average Dilution Earnings")
+        # Flow items: thousands → display units (÷div, ×fx)
+        row["revenue"]     = safe(rv[ic] if rv is not None else None, div, fx)
+        row["grossProfit"] = safe(gp[ic] if gp is not None else None, div, fx)
+        row["netProfit"]   = safe(ni[ic] if ni is not None else None, div, fx)
+        # EPS: already per share in report currency → apply fx only
+        row["eps"]  = safe(ep[ic] if ep is not None else None, 1, fx)
+        # Shares: in thousands — store raw thousands value for DPS calc
+        row["_sh_k"] = safe(sh[ic] if sh is not None else None)  # in thousands
     else:
-        row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None)
+        row.update(revenue=None, grossProfit=None, netProfit=None, eps=None, _sh_k=None)
+
     if bc is not None:
-        ta=find_row(bs,"Total Assets","TotalAssets")
-        ca=find_row(bs,"Cash And Cash Equivalents","Cash","CashAndCashEquivalents","Cash And Short Term Investments")
-        td=find_row(bs,"Total Debt","TotalDebt","Long Term Debt And Capital Lease Obligation","Long Term Debt")
-        te=find_row(bs,"Stockholders Equity","Total Stockholder Equity","Common Stock Equity","Total Equity Gross Minority Interest")
-        row["totalAsset"]=safe(ta[bc] if ta is not None else None,div)
-        row["cash"]=safe(ca[bc] if ca is not None else None,div)
-        row["totalDebt"]=safe(td[bc] if td is not None else None,div)
-        row["totalEquity"]=safe(te[bc] if te is not None else None,div)
+        ta = find_row(bs, "Total Assets", "TotalAssets")
+        ca = find_row(bs, "Cash And Cash Equivalents", "Cash",
+                      "CashAndCashEquivalents", "Cash And Short Term Investments")
+        td = find_row(bs, "Total Debt", "TotalDebt",
+                      "Long Term Debt And Capital Lease Obligation", "Long Term Debt")
+        te = find_row(bs, "Stockholders Equity", "Total Stockholder Equity",
+                      "Common Stock Equity", "Total Equity Gross Minority Interest")
+        row["totalAsset"]  = safe(ta[bc] if ta is not None else None, div, fx)
+        row["cash"]        = safe(ca[bc] if ca is not None else None, div, fx)
+        row["totalDebt"]   = safe(td[bc] if td is not None else None, div, fx)
+        row["totalEquity"] = safe(te[bc] if te is not None else None, div, fx)
     else:
-        row.update(totalAsset=None,cash=None,totalDebt=None,totalEquity=None)
-    if cc is not None and row.get("_sh"):
-        dp=find_row(cf,"Cash Dividends Paid","Dividends Paid","Common Stock Dividend Paid","Payment Of Dividends")
-        dv=safe(dp[cc] if dp is not None else None)
-        sh=row["_sh"]
-        row["dps"]=round(abs(dv)/sh,4) if dv and sh and sh>0 else None
-    else: row["dps"]=None
+        row.update(totalAsset=None, cash=None, totalDebt=None, totalEquity=None)
+
+    # DPS: both dividendsPaid and shares from financials are in thousands
+    # So: DPS = |div_paid_thousands| / shares_thousands  × fx
+    # (the "thousands" units cancel, giving per-share in reporting currency, then ×fx)
+    if cc is not None and row.get("_sh_k"):
+        dp = find_row(cf, "Cash Dividends Paid", "Dividends Paid",
+                      "Common Stock Dividend Paid", "Payment Of Dividends")
+        dv_k = safe(dp[cc] if dp is not None else None)  # in thousands
+        sh_k = row["_sh_k"]                               # in thousands
+        row["dps"] = round(abs(dv_k) / sh_k * fx, 4) if dv_k and sh_k and sh_k > 0 else None
+    else:
+        row["dps"] = None
     return row
 
-def current_year_row(tk, yr, div):
-    ann={"method":"none","label":None,"quarters":0,"asOf":None}
-    row={f:None for f in FIELDS}
+# ── Current year from quarterly data ───────────────────────────────────
+def current_year_row(tk, yr, div, fx):
+    ann = {"method": "none", "label": None, "quarters": 0, "asOf": None}
+    row = {f: None for f in FIELDS}
     try:
-        ai=tk.financials; ab=tk.balance_sheet; ac=tk.cashflow
-        if ai is not None and not ai.empty and col_yr(ai,yr) is not None:
-            r=annual_row(ai,ab,ac,yr,div); r.pop("_sh",None)
-            ic=col_yr(ai,yr)
-            return r,{"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
-        qi=tk.quarterly_financials; qb=tk.quarterly_balance_sheet; qc=tk.quarterly_cashflow
-        if qi is None or qi.empty: return row,ann
-        qtrs=cols_yr(qi,yr)
-        if not qtrs: return row,ann
-        n=len(qtrs); months=n*3; factor=12.0/months
-        lq=qtrs[-1]
-        label="FY" if months>=12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
-        rv=find_row(qi,"Total Revenue","TotalRevenue")
-        gp=find_row(qi,"Gross Profit","GrossProfit")
-        ni=find_row(qi,"Net Income","NetIncome","Net Income Common Stockholders","Net Income Including Noncontrolling Interests")
-        ep=find_row(qi,"Basic EPS","BasicEPS","Diluted EPS","EPS Diluted")
-        sh=find_row(qi,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
-        af=lambda s: round(sum_q(s,qtrs)/div*factor,4) if sum_q(s,qtrs) is not None else None
-        ae=lambda s: round(sum_q(s,qtrs)*factor,4) if sum_q(s,qtrs) is not None else None
-        row["revenue"]=af(rv); row["grossProfit"]=af(gp); row["netProfit"]=af(ni); row["eps"]=ae(ep)
-        sh_val=safe(sh[lq]) if sh is not None else None
-        qbc=col_yr(qb,yr) if qb is not None and not qb.empty else None
-        if qbc is not None:
-            ta=find_row(qb,"Total Assets","TotalAssets")
-            ca=find_row(qb,"Cash And Cash Equivalents","Cash","CashAndCashEquivalents","Cash And Short Term Investments")
-            td=find_row(qb,"Total Debt","TotalDebt","Long Term Debt And Capital Lease Obligation","Long Term Debt")
-            te=find_row(qb,"Stockholders Equity","Total Stockholder Equity","Common Stock Equity","Total Equity Gross Minority Interest")
-            row["totalAsset"]=safe(ta[qbc] if ta is not None else None,div)
-            row["cash"]=safe(ca[qbc] if ca is not None else None,div)
-            row["totalDebt"]=safe(td[qbc] if td is not None else None,div)
-            row["totalEquity"]=safe(te[qbc] if te is not None else None,div)
-        if qc is not None and not qc.empty and sh_val:
-            cq=cols_yr(qc,yr)
-            dp=find_row(qc,"Cash Dividends Paid","Dividends Paid","Common Stock Dividend Paid","Payment Of Dividends")
-            ytd=sum_q(dp,cq)
-            row["dps"]=round(abs(ytd)/sh_val*factor,4) if ytd is not None and sh_val>0 else None
-        ann={"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
-        print(f"      CY{yr}: {n}Q -> {label} as of {lq.date()}",flush=True)
-    except Exception as e:
-        print(f"      CY{yr} error: {e}",flush=True)
-    return row,ann
+        # Check if full annual already exists for this year
+        ai = tk.financials; ab = tk.balance_sheet; ac = tk.cashflow
+        if ai is not None and not ai.empty and col_yr(ai, yr) is not None:
+            r = annual_row(ai, ab, ac, yr, div, fx)
+            r.pop("_sh_k", None)
+            ic = col_yr(ai, yr)
+            return r, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
-def fetch_one(sym, ticker_str, div):
-    print(f"  [{sym}] {ticker_str}",flush=True)
-    try:
-        tk=yf.Ticker(ticker_str)
-        inc=tk.financials; bs=tk.balance_sheet; cf=tk.cashflow
-        if inc is None or inc.empty: raise ValueError("no annual data")
-        yd={}
-        for yr in COMPLETED:
-            r=annual_row(inc,bs,cf,yr,div); r.pop("_sh",None); yd[yr]=r
-        cy,ann=current_year_row(tk,CURRENT_YEAR,div)
-        yd[CURRENT_YEAR]=cy
-        live=[y for y in COMPLETED if yd[y].get("revenue") is not None]
-        print(f"    got: {live}",flush=True)
-        return yd,ann
+        # Use quarterly data
+        qi = tk.quarterly_financials
+        qb = tk.quarterly_balance_sheet
+        qc = tk.quarterly_cashflow
+        if qi is None or qi.empty: return row, ann
+
+        qtrs = cols_yr(qi, yr)
+        if not qtrs: return row, ann
+
+        n = len(qtrs); months = n * 3; factor = 12.0 / months; lq = qtrs[-1]
+        label = "FY" if months >= 12 else \
+                f"{months}M x{int(factor) if factor == int(factor) else round(factor, 3)}"
+
+        rv = find_row(qi, "Total Revenue", "TotalRevenue")
+        gp = find_row(qi, "Gross Profit", "GrossProfit")
+        ni = find_row(qi, "Net Income", "NetIncome",
+                      "Net Income Common Stockholders",
+                      "Net Income Including Noncontrolling Interests")
+        ep = find_row(qi, "Basic EPS", "BasicEPS", "Diluted EPS", "EPS Diluted")
+        sh = find_row(qi, "Basic Average Shares", "BasicAverageShares",
+                      "Diluted Average Shares", "Average Dilution Earnings")
+
+        # Flow: sum YTD quarters (each in thousands) → display units → annualise
+        def ann_flow(s):
+            ytd = sum_q(s, qtrs)  # sum of thousands values
+            return round(ytd / div * fx * factor, 4) if ytd is not None else None
+        # EPS: per share, sum YTD quarters → annualise
+        def ann_eps(s):
+            ytd = sum_q(s, qtrs)
+            return round(ytd * fx * factor, 4) if ytd is not None else None
+
+        row["revenue"]     = ann_flow(rv)
+        row["grossProfit"] = ann_flow(gp)
+        row["netProfit"]   = ann_flow(ni)
+        row["eps"]         = ann_eps(ep)
+        sh_k = safe(sh[lq]) if sh is not None else None  # shares in thousands
+
+        # Balance sheet: point-in-time latest quarter (no annualisation)
+        qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
+        if qbc is not None:
+            ta = find_row(qb, "Total Assets", "TotalAssets")
+            ca = find_row(qb, "Cash And Cash Equivalents", "Cash",
+                          "CashAndCashEquivalents", "Cash And Short Term Investments")
+            td = find_row(qb, "Total Debt", "TotalDebt",
+                          "Long Term Debt And Capital Lease Obligation", "Long Term Debt")
+            te = find_row(qb, "Stockholders Equity", "Total Stockholder Equity",
+                          "Common Stock Equity", "Total Equity Gross Minority Interest")
+            row["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
+            row["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
+            row["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
+            row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+
+        # DPS: annualise YTD dividends paid (in thousands) / shares (in thousands) × fx
+        if qc is not None and not qc.empty and sh_k:
+            cq = cols_yr(qc, yr)
+            dp = find_row(qc, "Cash Dividends Paid", "Dividends Paid",
+                          "Common Stock Dividend Paid", "Payment Of Dividends")
+            ytd_dv = sum_q(dp, cq)  # sum of thousands values
+            row["dps"] = round(abs(ytd_dv) / sh_k * fx * factor, 4) \
+                         if ytd_dv is not None and sh_k and sh_k > 0 else None
+
+        ann = {"method":"annualised","label":label,"quarters":n,
+               "months":months,"factor":round(factor,4),"asOf":str(lq.date())}
+        print(f"      CY{yr}: {n}Q → {label} (as of {lq.date()})", flush=True)
+
     except Exception as e:
-        print(f"    FAIL: {e}",flush=True)
-        return None,{"method":"none","label":None}
+        print(f"      CY{yr} error: {e}", flush=True)
+    return row, ann
+
+# ── Per-stock fetch ─────────────────────────────────────────────────────
+def fetch_one(sym, ticker_str, div, report_cur, usd_to_aud):
+    print(f"\n  [{sym}] {ticker_str}", flush=True)
+    # fx: for USD stocks convert to AUD; for IDR stocks no conversion
+    fx = usd_to_aud if report_cur == "USD" else 1.0
+    print(f"    Scale: Yahoo={report_cur} thousands  div={div:,.0f}  fx={fx}", flush=True)
+    try:
+        tk = yf.Ticker(ticker_str)
+        inc = tk.financials; bs = tk.balance_sheet; cf = tk.cashflow
+        if inc is None or inc.empty: raise ValueError("no annual data")
+
+        yd = {}
+        for yr in COMPLETED:
+            r = annual_row(inc, bs, cf, yr, div, fx)
+            r.pop("_sh_k", None)
+            yd[yr] = r
+
+        # Print verification for last 2 completed years
+        for yr in COMPLETED[-2:]:
+            ta = yd[yr].get("totalAsset")
+            rv = yd[yr].get("revenue")
+            ep = yd[yr].get("eps")
+            dp = yd[yr].get("dps")
+            if ta: print(f"      {yr}: asset={ta:.2f}  rev={rv}  eps={ep}  dps={dp}", flush=True)
+
+        cy, ann = current_year_row(tk, CURRENT_YEAR, div, fx)
+        yd[CURRENT_YEAR] = cy
+        live = [y for y in COMPLETED if yd[y].get("revenue") is not None]
+        print(f"    ✓ Completed years with data: {live}", flush=True)
+        return yd, ann
+
+    except Exception as e:
+        print(f"    FAIL: {e}", flush=True)
+        return None, {"method":"none","label":None}
 
 def build_arrays(yd, fb):
-    out={}
+    out = {}
     for f in FIELDS:
-        arr=[]
-        for i,yr in enumerate(ALL_YEARS):
-            lv=yd[yr].get(f) if yd and yr in yd else None
-            fv=fb[f][i] if fb and i<len(fb.get(f,[])) else None
+        arr = []
+        for i, yr in enumerate(ALL_YEARS):
+            lv = yd[yr].get(f) if yd and yr in yd else None
+            fv = fb[f][i] if fb and i < len(fb.get(f, [])) else None
             arr.append(lv if lv is not None else fv)
-        out[f]=arr
+        out[f] = arr
     return out
 
 def main():
-    print(f"\n{'='*50}\nFA Dashboard  {NOW.strftime('%Y-%m-%d %H:%M UTC')}")
-    print(f"Years: {ALL_YEARS}\n{'='*50}")
-    out={"generated":NOW.isoformat(),"years":ALL_YEARS,"completedYears":COMPLETED,
-         "currentYear":CURRENT_YEAR,"latestYear":LATEST_YEAR,"annualisation":{},"stocks":{}}
-    ok=0
-    for sym,(name,exchange,ticker_str,currency,div) in STOCKS.items():
-        print(f"\n{'─'*35}",flush=True)
-        yd,ann=fetch_one(sym,ticker_str,div)
-        fb=FALLBACK.get(sym,{})
-        arrs=build_arrays(yd,fb)
-        src="yfinance" if yd else "fallback"
-        if yd: ok+=1
-        out["stocks"][sym]={"name":name,"exchange":exchange,"currency":currency,"ticker":ticker_str,"source":src}
-        out["stocks"][sym].update(arrs)
-        out["annualisation"][sym]=ann
-    path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","data.json"))
-    with open(path,"w") as f: json.dump(out,f,indent=2)
-    print(f"\nWrote: {path}\nLive: {ok}/{len(STOCKS)}  Fallback: {len(STOCKS)-ok}/{len(STOCKS)}\n")
+    print(f"\n{'='*60}")
+    print(f"FA Dashboard Data Fetch")
+    print(f"Run: {NOW.strftime('%Y-%m-%d %H:%M UTC')}")
+    print(f"Years: {ALL_YEARS}")
+    print(f"{'='*60}")
+    print(f"\n[Conversion logic]")
+    print(f"  ASX: Yahoo USD thousands ÷ 1,000,000 × USD→AUD rate = B AUD")
+    print(f"  IDX: Yahoo IDR thousands ÷ 1,000,000,000            = T IDR")
+    print(f"  EPS: per share in report currency × fx = display currency per share")
+    print(f"  DPS: (div_paid_thou / shares_thou) × fx = display currency per share\n")
 
-if __name__=="__main__": main()
+    # Get exchange rate once
+    usd_to_aud = get_usd_to_aud()
+    print(f"  USD→AUD: {usd_to_aud:.4f}\n")
+
+    out = {
+        "generated":      NOW.isoformat(),
+        "years":          ALL_YEARS,
+        "completedYears": COMPLETED,
+        "currentYear":    CURRENT_YEAR,
+        "latestYear":     LATEST_YEAR,
+        "usdToAud":       usd_to_aud,
+        "annualisation":  {},
+        "stocks":         {},
+    }
+
+    ok = 0
+    for sym, (name, exchange, ticker_str, currency, div, report_cur) in STOCKS.items():
+        yd, ann = fetch_one(sym, ticker_str, div, report_cur, usd_to_aud)
+        fb   = FALLBACK.get(sym, {})
+        arrs = build_arrays(yd, fb)
+        src  = "yfinance" if yd else "fallback"
+        if yd: ok += 1
+        out["stocks"][sym] = {
+            "name": name, "exchange": exchange, "currency": currency,
+            "ticker": ticker_str, "source": src,
+        }
+        out["stocks"][sym].update(arrs)
+        out["annualisation"][sym] = ann
+
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data.json"))
+    with open(path, "w") as f:
+        json.dump(out, f, indent=2)
+
+    print(f"\n{'='*60}")
+    print(f"Written: {path}")
+    print(f"Live: {ok}/{len(STOCKS)}  Fallback: {len(STOCKS)-ok}/{len(STOCKS)}")
+    print(f"\n--- Spot check (last 2 completed years) ---")
+    for sym in list(STOCKS.keys()):
+        s = out["stocks"].get(sym, {})
+        ta = s.get("totalAsset", [])
+        rv = s.get("revenue", [])
+        ep = s.get("eps", [])
+        cur = s.get("currency", "")
+        # show last 2 completed year values (indices -3 and -2 in 6-slot array)
+        print(f"  {sym:6s} ({cur}): asset {ta[-3]}/{ta[-2]}  rev {rv[-3]}/{rv[-2]}  eps {ep[-3]}/{ep[-2]}")
+    print(f"{'='*60}\n")
+
+if __name__ == "__main__":
+    main()
