@@ -170,8 +170,14 @@ def annual_row(inc, bs, cf, yr, div, fx, eps_f):
     ic = col_yr(inc, yr); bc = col_yr(bs, yr); cc = col_yr(cf, yr)
 
     if ic is not None:
-        rv = find_row(inc, "Total Revenue", "TotalRevenue")
-        gp = find_row(inc, "Gross Profit", "GrossProfit")
+        rv = find_row(inc, "Total Revenue", "TotalRevenue",
+                      "Interest Income", "InterestIncome",
+                      "Total Interest Income", "TotalInterestIncome")
+        # Banks use Net Interest Income instead of Gross Profit — include both
+        gp = find_row(inc, "Gross Profit", "GrossProfit",
+                      "Net Interest Income", "NetInterestIncome",
+                      "Interest Income After Provision For Loan Loss",
+                      "Total Interest And Dividend Income")
         ni = find_row(inc, "Net Income", "NetIncome",
                       "Net Income Common Stockholders",
                       "Net Income Including Noncontrolling Interests")
@@ -234,8 +240,13 @@ def current_year_row(tk, yr, div, fx, eps_f):
         label = "FY" if months >= 12 else \
                 f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
 
-        rv = find_row(qi,"Total Revenue","TotalRevenue")
-        gp = find_row(qi,"Gross Profit","GrossProfit")
+        rv = find_row(qi,"Total Revenue","TotalRevenue",
+                      "Interest Income","InterestIncome",
+                      "Total Interest Income","TotalInterestIncome")
+        gp = find_row(qi,"Gross Profit","GrossProfit",
+                      "Net Interest Income","NetInterestIncome",
+                      "Interest Income After Provision For Loan Loss",
+                      "Total Interest And Dividend Income")
         ni = find_row(qi,"Net Income","NetIncome","Net Income Common Stockholders","Net Income Including Noncontrolling Interests")
         ep = find_row(qi,"Basic EPS","BasicEPS","Diluted EPS","EPS Diluted")
         sh = find_row(qi,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
