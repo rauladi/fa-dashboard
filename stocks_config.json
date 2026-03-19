@@ -1,0 +1,22 @@
+{
+  "_comment": "Add custom stocks here. Run the GitHub Actions workflow after saving to fetch their data.",
+  "_format": "symbol, name, exchange (ASX/IDX/NYSE/NASDAQ), display currency, yfinance ticker, hint_cur (USD/AUD/IDR/TWD etc)",
+  "custom_stocks": [
+    {
+      "symbol": "CBA",
+      "name": "Commonwealth Bank of Australia",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "CBA.AX",
+      "hint_cur": "AUD"
+    },
+    {
+      "symbol": "TSM",
+      "name": "Taiwan Semiconductor Manufacturing",
+      "exchange": "NYSE",
+      "currency": "B USD",
+      "ticker": "TSM",
+      "hint_cur": "USD"
+    }
+  ]
+}
