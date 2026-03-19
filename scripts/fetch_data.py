@@ -24,7 +24,7 @@ STOCKS = {
     "CBA":  ("Commonwealth Bank",        "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
     "NAB":  ("National Australia Bank",  "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
     "DXS":  ("Dexus",                    "ASX",    "DXS.AX",  "B AUD", 1e9,  "AUD"),
-    "CSL":  ("CSL Limited",              "ASX",    "CSL.AX",  "B AUD", 1e9,  "USD"),
+    "CSL":  ("CSL Limited",              "ASX",    "CSL.AX",  "B AUD", 1e9,  "AUD"),
     # ── Built-in IDX ────────────────────────────────────────────────
     "BBRI": ("Bank Rakyat Indonesia",    "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
     "ADRO": ("Adaro Energy",             "IDX",    "ADRO.JK", "T IDR", 1e12, "USD"),
@@ -37,8 +37,8 @@ STOCKS = {
     "DMAS": ("Puradelta Lestari",        "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
     "SPTO": ("Surya Toto Indonesia",     "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
     # ── Custom NYSE ─────────────────────────────────────────────────
-    # TSM reports financials in TWD — auto-detected and converted to USD
-    "TSM":  ("Taiwan Semiconductor",    "NYSE",   "TSM",     "B USD", 1e9,  "TWD"),
+    # TSM trades on NYSE and reports financials in USD
+    "TSM":  ("Taiwan Semiconductor",    "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
     "V":    ("Visa Inc.",               "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",         "NYSE",   "MA",      "B USD", 1e9,  "USD"),
     # ── Custom NASDAQ ───────────────────────────────────────────────
