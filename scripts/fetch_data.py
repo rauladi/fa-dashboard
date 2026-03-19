@@ -333,6 +333,46 @@ def build_arrays(yd, fb):
         out[f] = arr
     return out
 
+
+def load_custom_stocks(script_dir):
+    """
+    Read stocks_config.json from repo root and return extra stocks to fetch.
+    Format per entry: {symbol, name, exchange, currency, ticker, hint_cur}
+    Returns dict in same format as STOCKS: {sym: (name, exchange, ticker, currency, div, hint_cur)}
+    """
+    config_path = os.path.abspath(os.path.join(script_dir, "..", "stocks_config.json"))
+    if not os.path.exists(config_path):
+        print("  [stocks_config.json not found — skipping custom stocks]", flush=True)
+        return {}
+
+    try:
+        with open(config_path) as f:
+            cfg = json.load(f)
+        custom = {}
+        for s in cfg.get("custom_stocks", []):
+            sym      = s["symbol"].upper().strip()
+            name     = s.get("name", sym)
+            exchange = s.get("exchange", "NYSE").upper()
+            currency = s.get("currency", "B USD")
+            ticker   = s.get("ticker", sym)
+            hint_cur = s.get("hint_cur", "USD").upper()
+            # Determine divisor based on exchange / currency
+            if exchange == "IDX":
+                div = 1e12
+            else:
+                div = 1e9  # ASX, NYSE, NASDAQ, etc.
+            # Skip if already in built-in STOCKS
+            if sym in STOCKS:
+                print(f"  [stocks_config] {sym} already in built-in stocks, skipping", flush=True)
+                continue
+            custom[sym] = (name, exchange, ticker, currency, div, hint_cur)
+            print(f"  [stocks_config] Added custom stock: {sym} ({exchange}, {ticker})", flush=True)
+        return custom
+    except Exception as e:
+        print(f"  [stocks_config] Error reading config: {e}", flush=True)
+        return {}
+
+
 def main():
     print(f"\n{'='*60}")
     print(f"FA Dashboard Data Fetch  {NOW.strftime('%Y-%m-%d %H:%M UTC')}")
@@ -341,6 +381,14 @@ def main():
 
     usd_to_aud, usd_to_idr = get_rates()
     print(f"\n  Rates: 1 USD = {usd_to_aud:.4f} AUD | 1 USD = {usd_to_idr:.0f} IDR\n")
+
+    # Merge built-in + custom stocks from stocks_config.json
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    print(f"\n[Loading custom stocks from stocks_config.json]", flush=True)
+    custom_stocks = load_custom_stocks(script_dir)
+    all_stocks = {**STOCKS, **custom_stocks}
+    print(f"\n  Total stocks to fetch: {len(all_stocks)} "
+          f"({len(STOCKS)} built-in + {len(custom_stocks)} custom)\n", flush=True)
 
     out = {
         "generated":NOW.isoformat(),"years":ALL_YEARS,
@@ -351,7 +399,7 @@ def main():
     }
 
     ok = 0
-    for sym,(name,exchange,ticker_str,currency,div,hint_cur) in STOCKS.items():
+    for sym,(name,exchange,ticker_str,currency,div,hint_cur) in all_stocks.items():
         yd, ann = fetch_one(sym, exchange, ticker_str, hint_cur, usd_to_aud, usd_to_idr)
         fb   = FALLBACK.get(sym, {})
         arrs = build_arrays(yd, fb)
@@ -362,13 +410,13 @@ def main():
         out["stocks"][sym].update(arrs)
         out["annualisation"][sym] = ann
 
-    path = os.path.abspath(os.path.join(os.path.dirname(__file__),"..","data.json"))
+    path = os.path.abspath(os.path.join(script_dir,"..","data.json"))
     with open(path,"w") as f: json.dump(out,f,indent=2)
 
     print(f"\n{'='*60}")
-    print(f"Written: {path}  |  Live: {ok}/{len(STOCKS)}")
+    print(f"Written: {path}  |  Live: {ok}/{len(all_stocks)}")
     print(f"\n--- Spot check (2nd-last and last completed year) ---")
-    for sym in list(STOCKS.keys()):
+    for sym in list(all_stocks.keys()):
         s=out["stocks"].get(sym,{}); ta=s.get("totalAsset",[]); rv=s.get("revenue",[])
         ep=s.get("eps",[]); cur=s.get("currency","")
         print(f"  {sym:6s}({cur}): asset {ta[-3]}/{ta[-2]}  rev {rv[-3]}/{rv[-2]}  eps {ep[-3]}/{ep[-2]}")
