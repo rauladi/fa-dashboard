@@ -13,32 +13,77 @@ LATEST_YEAR  = CURRENT_YEAR - 1
 COMPLETED    = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))
 ALL_YEARS    = COMPLETED + [CURRENT_YEAR]
 
-# ── Stock definitions ─────────────────────────────────────────────────
-# display_div : divisor to reach display units FROM the reporting currency
-#   ASX (reports USD) : ÷1e9  → B USD → ×USD_AUD → B AUD
-#   IDX (reports IDR) : ÷1e12 → T IDR (fx=1)
-#   IDX (reports USD) : ÷1e12 → but we multiply by USD_IDR first so result is T IDR
-#                        effectively fx = USD_IDR,  div = 1e12
-#
-# report_cur is DETECTED live from yfinance — the value here is just a fallback hint.
-# Format: sym: (name, exchange, yf_ticker, display_currency, display_divisor, hint_cur)
+print(f"FA Dashboard fetch  {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
+print(f"Years: {ALL_YEARS}", flush=True)
+
+# ── All stocks ──────────────────────────────────────────────────────────
+# Format: symbol: (name, exchange, yf_ticker, display_currency, divisor, hint_cur)
+# Divisor converts raw yfinance numbers to display units:
+#   ASX/NYSE/NASDAQ : div=1e9  (raw → billions)
+#   IDX             : div=1e12 (raw → trillions)
+# hint_cur is a fallback; actual currency is auto-detected from yfinance
 
 STOCKS = {
+    # ── Built-in ASX ────────────────────────────────────────────────
     "BHP":  ("BHP Group",               "ASX", "BHP.AX",  "B AUD", 1e9,  "USD"),
     "WDS":  ("Woodside Energy",          "ASX", "WDS.AX",  "B AUD", 1e9,  "USD"),
+    # ── Custom ASX ──────────────────────────────────────────────────
+    "CBA":  ("Commonwealth Bank",        "ASX", "CBA.AX",  "B AUD", 1e9,  "AUD"),
+    "NAB":  ("National Australia Bank",  "ASX", "NAB.AX",  "B AUD", 1e9,  "AUD"),
+    "DXS":  ("Dexus",                    "ASX", "DXS.AX",  "B AUD", 1e9,  "AUD"),
+    "CSL":  ("CSL Limited",              "ASX", "CSL.AX",  "B AUD", 1e9,  "USD"),
+    # ── Built-in IDX ────────────────────────────────────────────────
     "BBRI": ("Bank Rakyat Indonesia",    "IDX", "BBRI.JK", "T IDR", 1e12, "IDR"),
-    "ADRO": ("Adaro Energy",             "IDX", "ADRO.JK", "T IDR", 1e12, "USD"),  # reports USD
+    "ADRO": ("Adaro Energy",             "IDX", "ADRO.JK", "T IDR", 1e12, "USD"),
     "SMSM": ("Selamat Sempurna",         "IDX", "SMSM.JK", "T IDR", 1e12, "IDR"),
     "UNTR": ("United Tractors",          "IDX", "UNTR.JK", "T IDR", 1e12, "IDR"),
-    "ITMG": ("Indo Tambangraya Megah",   "IDX", "ITMG.JK", "T IDR", 1e12, "USD"),  # reports USD
-    "POWR": ("Cikarang Listrindo",       "IDX", "POWR.JK", "T IDR", 1e12, "USD"),  # reports USD
+    "ITMG": ("Indo Tambangraya Megah",   "IDX", "ITMG.JK", "T IDR", 1e12, "USD"),
+    "POWR": ("Cikarang Listrindo",       "IDX", "POWR.JK", "T IDR", 1e12, "USD"),
     "MPMX": ("Mitra Pinasthika Mustika", "IDX", "MPMX.JK", "T IDR", 1e12, "IDR"),
     "BTPS": ("Bank BTPN Syariah",        "IDX", "BTPS.JK", "T IDR", 1e12, "IDR"),
     "DMAS": ("Puradelta Lestari",        "IDX", "DMAS.JK", "T IDR", 1e12, "IDR"),
     "SPTO": ("Surya Toto Indonesia",     "IDX", "SPTO.JK", "T IDR", 1e12, "IDR"),
+    # ── Custom NYSE ─────────────────────────────────────────────────
+    "TSM":  ("Taiwan Semiconductor",     "NYSE",   "TSM",  "B USD", 1e9,  "USD"),
+    "V":    ("Visa Inc.",                "NYSE",   "V",    "B USD", 1e9,  "USD"),
+    "MA":   ("Mastercard Inc.",          "NYSE",   "MA",   "B USD", 1e9,  "USD"),
+    # ── Custom NASDAQ ───────────────────────────────────────────────
+    "MSFT": ("Microsoft Corp.",          "NASDAQ", "MSFT", "B USD", 1e9,  "USD"),
+    "AMZN": ("Amazon.com Inc.",          "NASDAQ", "AMZN", "B USD", 1e9,  "USD"),
+    "AAPL": ("Apple Inc.",               "NASDAQ", "AAPL", "B USD", 1e9,  "USD"),
+    "META": ("Meta Platforms Inc.",      "NASDAQ", "META", "B USD", 1e9,  "USD"),
+    "NVDA": ("NVIDIA Corporation",       "NASDAQ", "NVDA", "B USD", 1e9,  "USD"),
 }
 
-# ── Fallback (display units) ──────────────────────────────────────────
+# ── Also load any stocks_config.json (for future additions without editing this file)
+def load_config_stocks():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(script_dir, "..", "stocks_config.json")
+    path = os.path.abspath(path)
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path) as f:
+            cfg = json.load(f)
+        extra = {}
+        for s in cfg.get("custom_stocks", []):
+            sym = s["symbol"].upper().strip()
+            if sym in STOCKS:
+                continue  # already hardcoded above
+            name     = s.get("name", sym)
+            exchange = s.get("exchange", "NYSE").upper()
+            currency = s.get("currency", "B USD")
+            ticker   = s.get("ticker", sym)
+            hint_cur = s.get("hint_cur", "USD").upper()
+            div      = 1e12 if exchange == "IDX" else 1e9
+            extra[sym] = (name, exchange, ticker, currency, div, hint_cur)
+            print(f"  [config] Extra stock: {sym} ({exchange}, {ticker})", flush=True)
+        return extra
+    except Exception as e:
+        print(f"  [config] Error: {e}", flush=True)
+        return {}
+
+# ── Fallback data (display units) ──────────────────────────────────────
 FALLBACK = {
     "BHP":  {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,None,None]},
     "WDS":  {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,None,None]},
@@ -56,38 +101,28 @@ FALLBACK = {
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-# ── Exchange rates ────────────────────────────────────────────────────
+# ── Exchange rates ──────────────────────────────────────────────────────
 def get_rates():
-    """Fetch USDAUD and USDIDR rates. Returns (usd_to_aud, usd_to_idr)."""
-    usd_to_aud = 1.58   # fallback
-    usd_to_idr = 16300  # fallback
-
-    # USD→AUD
+    usd_aud, usd_idr = 1.58, 16300
     try:
-        hist = yf.Ticker("AUDUSD=X").history(period="2d")
-        if not hist.empty:
-            audusd = float(hist["Close"].iloc[-1])
-            if 0.50 < audusd < 0.90:
-                usd_to_aud = round(1.0 / audusd, 6)
-                print(f"  USD→AUD: 1 USD = {usd_to_aud:.4f} AUD (AUDUSD={audusd:.4f})", flush=True)
+        h = yf.Ticker("AUDUSD=X").history(period="2d")
+        if not h.empty:
+            v = float(h["Close"].iloc[-1])
+            if 0.50 < v < 0.90: usd_aud = round(1.0/v, 6)
+        print(f"  USD→AUD: {usd_aud:.4f}", flush=True)
     except Exception as e:
-        print(f"  USD→AUD fetch failed ({e}), using fallback {usd_to_aud}", flush=True)
-
-    # USD→IDR
+        print(f"  USD→AUD fallback ({e})", flush=True)
     try:
-        hist = yf.Ticker("IDR=X").history(period="2d")
-        if not hist.empty:
-            rate = float(hist["Close"].iloc[-1])
-            if 10000 < rate < 25000:
-                usd_to_idr = round(rate, 2)
-                print(f"  USD→IDR: 1 USD = {usd_to_idr:.0f} IDR", flush=True)
+        h = yf.Ticker("IDR=X").history(period="2d")
+        if not h.empty:
+            v = float(h["Close"].iloc[-1])
+            if 10000 < v < 25000: usd_idr = round(v, 0)
+        print(f"  USD→IDR: {usd_idr:.0f}", flush=True)
     except Exception as e:
-        print(f"  USD→IDR fetch failed ({e}), using fallback {usd_to_idr}", flush=True)
+        print(f"  USD→IDR fallback ({e})", flush=True)
+    return usd_aud, usd_idr
 
-    return usd_to_aud, usd_to_idr
-
-def detect_fin_currency(tk, hint):
-    """Detect what currency Yahoo actually uses for this ticker's financials."""
+def detect_cur(tk, hint):
     try:
         info = tk.info
         fc = (info.get("financialCurrency") or info.get("currency") or hint).upper()
@@ -95,35 +130,26 @@ def detect_fin_currency(tk, hint):
     except Exception:
         return hint.upper()
 
-def compute_fx(exchange, fin_cur, usd_to_aud, usd_to_idr):
-    """
-    Compute (div, fx) so that:  raw_value / div * fx = display_value
-
-    ASX target: B AUD
-      fin_cur=USD: div=1e9,  fx=usd_to_aud  → B USD × usd_to_aud = B AUD
-      fin_cur=AUD: div=1e9,  fx=1.0          → B AUD
-
-    IDX target: T IDR
-      fin_cur=IDR: div=1e12, fx=1.0           → T IDR
-      fin_cur=USD: div=1e12, fx=usd_to_idr    → raw_USD/1e12 × usd_to_idr = T IDR
-                   (because 1B USD × usd_to_idr / 1000 = T IDR,
-                    but raw is full USD so raw/1e12 × usd_to_idr works correctly)
-    """
+def get_fx(exchange, fin_cur, usd_aud, usd_idr):
     if exchange == "ASX":
-        div = 1e9
-        fx  = usd_to_aud if fin_cur == "USD" else 1.0
-    else:  # IDX or others
-        div = 1e12
-        fx  = usd_to_idr if fin_cur == "USD" else 1.0
-    return div, fx
+        return 1e9, (usd_aud if fin_cur=="USD" else 1.0)
+    else:  # IDX, NYSE, NASDAQ
+        if exchange == "IDX":
+            return 1e12, (usd_idr if fin_cur=="USD" else 1.0)
+        else:  # NYSE/NASDAQ always USD
+            return 1e9, 1.0
 
-# ── Core helpers ──────────────────────────────────────────────────────
+def eps_fx(exchange, fin_cur, usd_aud, usd_idr):
+    if exchange == "ASX": return usd_aud if fin_cur=="USD" else 1.0
+    if exchange == "IDX": return usd_idr if fin_cur=="USD" else 1.0
+    return 1.0  # NYSE/NASDAQ USD
+
 def safe(val, div=1, fx=1.0):
     if val is None: return None
     try:
         f = float(val)
         if math.isnan(f) or math.isinf(f): return None
-        return round(f / div * fx, 4)
+        return round(f/div*fx, 4)
     except Exception: return None
 
 def find_row(df, *names):
@@ -135,291 +161,158 @@ def col_yr(df, yr):
     if df is None or df.empty: return None
     for c in df.columns:
         try:
-            if hasattr(c, "year") and c.year == yr: return c
+            if hasattr(c,"year") and c.year==yr: return c
         except Exception: pass
     return None
 
 def cols_yr(df, yr):
     if df is None or df.empty: return []
-    return sorted([c for c in df.columns if hasattr(c, "year") and c.year == yr])
+    return sorted([c for c in df.columns if hasattr(c,"year") and c.year==yr])
 
 def sum_q(series, cols):
     if series is None: return None
-    total = 0.0; found = False
+    total=0.0; found=False
     for c in cols:
-        v = safe(series[c])
-        if v is not None: total += v; found = True
+        v=safe(series[c])
+        if v is not None: total+=v; found=True
     return total if found else None
 
-# ── EPS/DPS fx ────────────────────────────────────────────────────────
-def eps_fx(exchange, fin_cur, usd_to_aud, usd_to_idr):
-    """
-    EPS is already per-share in fin_cur — just convert currency, no div.
-    ASX: USD/share × usd_to_aud = AUD/share
-    IDX: IDR/share × 1           = IDR/share
-    IDX reporting USD: USD/share × usd_to_idr = IDR/share
-    """
-    if exchange == "ASX":
-        return usd_to_aud if fin_cur == "USD" else 1.0
-    else:
-        return usd_to_idr if fin_cur == "USD" else 1.0
-
-# ── Build one annual year's row ───────────────────────────────────────
-def annual_row(inc, bs, cf, yr, div, fx, eps_f):
-    row = {}
-    ic = col_yr(inc, yr); bc = col_yr(bs, yr); cc = col_yr(cf, yr)
-
+def annual_row(inc, bs, cf, yr, div, fx, epsfx):
+    row={}
+    ic=col_yr(inc,yr); bc=col_yr(bs,yr); cc=col_yr(cf,yr)
     if ic is not None:
-        rv = find_row(inc, "Total Revenue", "TotalRevenue",
-                      "Interest Income", "InterestIncome",
-                      "Total Interest Income", "TotalInterestIncome")
-        # Banks use Net Interest Income instead of Gross Profit — include both
-        gp = find_row(inc, "Gross Profit", "GrossProfit",
-                      "Net Interest Income", "NetInterestIncome",
-                      "Interest Income After Provision For Loan Loss",
-                      "Total Interest And Dividend Income")
-        ni = find_row(inc, "Net Income", "NetIncome",
-                      "Net Income Common Stockholders",
-                      "Net Income Including Noncontrolling Interests")
-        ep = find_row(inc, "Basic EPS", "BasicEPS", "Diluted EPS", "EPS Diluted")
-        sh = find_row(inc, "Basic Average Shares", "BasicAverageShares",
-                      "Diluted Average Shares", "Average Dilution Earnings")
-        row["revenue"]     = safe(rv[ic] if rv is not None else None, div, fx)
-        row["grossProfit"] = safe(gp[ic] if gp is not None else None, div, fx)
-        row["netProfit"]   = safe(ni[ic] if ni is not None else None, div, fx)
-        row["eps"]         = safe(ep[ic] if ep is not None else None, 1, eps_f)
-        row["_sh"]         = safe(sh[ic] if sh is not None else None)  # raw shares
+        rv =find_row(inc,"Total Revenue","TotalRevenue","Interest Income","InterestIncome","Total Interest Income")
+        gp =find_row(inc,"Gross Profit","GrossProfit","Net Interest Income","NetInterestIncome","Interest Income After Provision For Loan Loss")
+        ni =find_row(inc,"Net Income","NetIncome","Net Income Common Stockholders","Net Income Including Noncontrolling Interests")
+        ep =find_row(inc,"Basic EPS","BasicEPS","Diluted EPS","EPS Diluted")
+        sh =find_row(inc,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
+        row["revenue"]    =safe(rv[ic] if rv is not None else None,div,fx)
+        row["grossProfit"]=safe(gp[ic] if gp is not None else None,div,fx)
+        row["netProfit"]  =safe(ni[ic] if ni is not None else None,div,fx)
+        row["eps"]        =safe(ep[ic] if ep is not None else None,1,epsfx)
+        row["_sh"]        =safe(sh[ic] if sh is not None else None)
     else:
-        row.update(revenue=None, grossProfit=None, netProfit=None, eps=None, _sh=None)
-
+        row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None)
     if bc is not None:
-        ta = find_row(bs, "Total Assets", "TotalAssets")
-        ca = find_row(bs, "Cash And Cash Equivalents", "Cash",
-                      "CashAndCashEquivalents", "Cash And Short Term Investments")
-        td = find_row(bs, "Total Debt", "TotalDebt",
-                      "Long Term Debt And Capital Lease Obligation", "Long Term Debt")
-        te = find_row(bs, "Stockholders Equity", "Total Stockholder Equity",
-                      "Common Stock Equity", "Total Equity Gross Minority Interest")
-        row["totalAsset"]  = safe(ta[bc] if ta is not None else None, div, fx)
-        row["cash"]        = safe(ca[bc] if ca is not None else None, div, fx)
-        row["totalDebt"]   = safe(td[bc] if td is not None else None, div, fx)
-        row["totalEquity"] = safe(te[bc] if te is not None else None, div, fx)
+        ta=find_row(bs,"Total Assets","TotalAssets")
+        ca=find_row(bs,"Cash And Cash Equivalents","Cash","CashAndCashEquivalents","Cash And Short Term Investments")
+        td=find_row(bs,"Total Debt","TotalDebt","Long Term Debt And Capital Lease Obligation","Long Term Debt")
+        te=find_row(bs,"Stockholders Equity","Total Stockholder Equity","Common Stock Equity","Total Equity Gross Minority Interest")
+        row["totalAsset"] =safe(ta[bc] if ta is not None else None,div,fx)
+        row["cash"]       =safe(ca[bc] if ca is not None else None,div,fx)
+        row["totalDebt"]  =safe(td[bc] if td is not None else None,div,fx)
+        row["totalEquity"]=safe(te[bc] if te is not None else None,div,fx)
     else:
-        row.update(totalAsset=None, cash=None, totalDebt=None, totalEquity=None)
-
-    # DPS = |divPaid_raw| / shares_raw × eps_f
+        row.update(totalAsset=None,cash=None,totalDebt=None,totalEquity=None)
     if cc is not None and row.get("_sh"):
-        dp = find_row(cf, "Cash Dividends Paid", "Dividends Paid",
-                      "Common Stock Dividend Paid", "Payment Of Dividends")
-        dv = safe(dp[cc] if dp is not None else None)
-        sh = row["_sh"]
-        row["dps"] = round(abs(dv) / sh * eps_f, 4) if dv and sh and sh > 0 else None
+        dp=find_row(cf,"Cash Dividends Paid","Dividends Paid","Common Stock Dividend Paid","Payment Of Dividends")
+        dv=safe(dp[cc] if dp is not None else None)
+        sh=row["_sh"]
+        row["dps"]=round(abs(dv)/sh*epsfx,4) if dv and sh and sh>0 else None
     else:
-        row["dps"] = None
+        row["dps"]=None
     return row
 
-# ── Current year quarterly ────────────────────────────────────────────
-def current_year_row(tk, yr, div, fx, eps_f):
-    ann = {"method":"none","label":None,"quarters":0,"asOf":None}
-    row = {f: None for f in FIELDS}
+def current_year_row(tk, yr, div, fx, epsfx):
+    ann={"method":"none","label":None,"quarters":0,"asOf":None}
+    row={f:None for f in FIELDS}
     try:
-        ai = tk.financials; ab = tk.balance_sheet; ac = tk.cashflow
-        if ai is not None and not ai.empty and col_yr(ai, yr) is not None:
-            r = annual_row(ai, ab, ac, yr, div, fx, eps_f); r.pop("_sh", None)
-            ic = col_yr(ai, yr)
-            return r, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
-
-        qi = tk.quarterly_financials
-        qb = tk.quarterly_balance_sheet
-        qc = tk.quarterly_cashflow
-        if qi is None or qi.empty: return row, ann
-        qtrs = cols_yr(qi, yr)
-        if not qtrs: return row, ann
-
-        n = len(qtrs); months = n * 3; factor = 12.0 / months; lq = qtrs[-1]
-        label = "FY" if months >= 12 else \
-                f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
-
-        rv = find_row(qi,"Total Revenue","TotalRevenue",
-                      "Interest Income","InterestIncome",
-                      "Total Interest Income","TotalInterestIncome")
-        gp = find_row(qi,"Gross Profit","GrossProfit",
-                      "Net Interest Income","NetInterestIncome",
-                      "Interest Income After Provision For Loan Loss",
-                      "Total Interest And Dividend Income")
-        ni = find_row(qi,"Net Income","NetIncome","Net Income Common Stockholders","Net Income Including Noncontrolling Interests")
-        ep = find_row(qi,"Basic EPS","BasicEPS","Diluted EPS","EPS Diluted")
-        sh = find_row(qi,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
-
-        def ann_flow(s):
-            ytd = sum_q(s, qtrs)
-            return round(ytd / div * fx * factor, 4) if ytd is not None else None
-        def ann_eps(s):
-            ytd = sum_q(s, qtrs)
-            return round(ytd * eps_f * factor, 4) if ytd is not None else None
-
-        row["revenue"] = ann_flow(rv); row["grossProfit"] = ann_flow(gp)
-        row["netProfit"] = ann_flow(ni); row["eps"] = ann_eps(ep)
-        sh_val = safe(sh[lq]) if sh is not None else None
-
-        qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
+        ai=tk.financials; ab=tk.balance_sheet; ac=tk.cashflow
+        if ai is not None and not ai.empty and col_yr(ai,yr) is not None:
+            r=annual_row(ai,ab,ac,yr,div,fx,epsfx); r.pop("_sh",None)
+            ic=col_yr(ai,yr)
+            return r,{"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
+        qi=tk.quarterly_financials; qb=tk.quarterly_balance_sheet; qc=tk.quarterly_cashflow
+        if qi is None or qi.empty: return row,ann
+        qtrs=cols_yr(qi,yr)
+        if not qtrs: return row,ann
+        n=len(qtrs); months=n*3; factor=12.0/months; lq=qtrs[-1]
+        label="FY" if months>=12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
+        rv=find_row(qi,"Total Revenue","TotalRevenue","Interest Income","InterestIncome")
+        gp=find_row(qi,"Gross Profit","GrossProfit","Net Interest Income","NetInterestIncome")
+        ni=find_row(qi,"Net Income","NetIncome","Net Income Common Stockholders","Net Income Including Noncontrolling Interests")
+        ep=find_row(qi,"Basic EPS","BasicEPS","Diluted EPS","EPS Diluted")
+        sh=find_row(qi,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
+        af=lambda s: round(sum_q(s,qtrs)/div*fx*factor,4) if sum_q(s,qtrs) is not None else None
+        ae=lambda s: round(sum_q(s,qtrs)*epsfx*factor,4) if sum_q(s,qtrs) is not None else None
+        row["revenue"]=af(rv); row["grossProfit"]=af(gp); row["netProfit"]=af(ni); row["eps"]=ae(ep)
+        sh_val=safe(sh[lq]) if sh is not None else None
+        qbc=col_yr(qb,yr) if qb is not None and not qb.empty else None
         if qbc is not None:
-            ta=find_row(qb,"Total Assets","TotalAssets")
-            ca=find_row(qb,"Cash And Cash Equivalents","Cash","CashAndCashEquivalents","Cash And Short Term Investments")
-            td=find_row(qb,"Total Debt","TotalDebt","Long Term Debt And Capital Lease Obligation","Long Term Debt")
-            te=find_row(qb,"Stockholders Equity","Total Stockholder Equity","Common Stock Equity","Total Equity Gross Minority Interest")
-            row["totalAsset"] =safe(ta[qbc] if ta is not None else None,div,fx)
-            row["cash"]       =safe(ca[qbc] if ca is not None else None,div,fx)
-            row["totalDebt"]  =safe(td[qbc] if td is not None else None,div,fx)
-            row["totalEquity"]=safe(te[qbc] if te is not None else None,div,fx)
-
+            ta=find_row(qb,"Total Assets","TotalAssets"); ca=find_row(qb,"Cash And Cash Equivalents","Cash","CashAndCashEquivalents","Cash And Short Term Investments")
+            td=find_row(qb,"Total Debt","TotalDebt","Long Term Debt And Capital Lease Obligation","Long Term Debt"); te=find_row(qb,"Stockholders Equity","Total Stockholder Equity","Common Stock Equity","Total Equity Gross Minority Interest")
+            row["totalAsset"]=safe(ta[qbc] if ta is not None else None,div,fx); row["cash"]=safe(ca[qbc] if ca is not None else None,div,fx)
+            row["totalDebt"]=safe(td[qbc] if td is not None else None,div,fx); row["totalEquity"]=safe(te[qbc] if te is not None else None,div,fx)
         if qc is not None and not qc.empty and sh_val:
-            cq = cols_yr(qc, yr)
-            dp = find_row(qc,"Cash Dividends Paid","Dividends Paid","Common Stock Dividend Paid","Payment Of Dividends")
-            ytd = sum_q(dp, cq)
-            row["dps"] = round(abs(ytd)/sh_val*eps_f*factor,4) if ytd and sh_val>0 else None
-
-        ann = {"method":"annualised","label":label,"quarters":n,"months":months,
-               "factor":round(factor,4),"asOf":str(lq.date())}
-        print(f"      CY{yr}: {n}Q → {label} (as of {lq.date()})", flush=True)
+            cq=cols_yr(qc,yr); dp=find_row(qc,"Cash Dividends Paid","Dividends Paid","Common Stock Dividend Paid","Payment Of Dividends")
+            ytd=sum_q(dp,cq)
+            row["dps"]=round(abs(ytd)/sh_val*epsfx*factor,4) if ytd and sh_val>0 else None
+        ann={"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
+        print(f"      CY{yr}: {n}Q → {label} as of {lq.date()}",flush=True)
     except Exception as e:
-        print(f"      CY{yr} error: {e}", flush=True)
-    return row, ann
+        print(f"      CY{yr} error: {e}",flush=True)
+    return row,ann
 
-# ── Per-stock fetch ───────────────────────────────────────────────────
-def fetch_one(sym, exchange, ticker_str, hint_cur, usd_to_aud, usd_to_idr):
-    print(f"\n  [{sym}] {ticker_str}", flush=True)
+def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr):
+    print(f"\n[{sym}] {ticker_str}",flush=True)
     try:
-        tk = yf.Ticker(ticker_str)
-        fin_cur = detect_fin_currency(tk, hint_cur)
-        div, fx = compute_fx(exchange, fin_cur, usd_to_aud, usd_to_idr)
-        eps_f   = eps_fx(exchange, fin_cur, usd_to_aud, usd_to_idr)
-
-        print(f"    Detected currency: {fin_cur}  div=1e{int(math.log10(div))}  fx={fx:.4f}  eps_fx={eps_f:.4f}", flush=True)
-
-        inc = tk.financials; bs = tk.balance_sheet; cf = tk.cashflow
+        tk=yf.Ticker(ticker_str)
+        fin_cur=detect_cur(tk,hint_cur)
+        div,fx=get_fx(exchange,fin_cur,usd_aud,usd_idr)
+        epsfx=eps_fx(exchange,fin_cur,usd_aud,usd_idr)
+        print(f"  cur={fin_cur} div=1e{int(math.log10(div))} fx={fx:.4f} epsfx={epsfx:.4f}",flush=True)
+        inc=tk.financials; bs=tk.balance_sheet; cf=tk.cashflow
         if inc is None or inc.empty: raise ValueError("no annual data")
-
-        yd = {}
+        yd={}
         for yr in COMPLETED:
-            r = annual_row(inc, bs, cf, yr, div, fx, eps_f)
-            r.pop("_sh", None)
-            yd[yr] = r
-
-        # Spot-check
+            r=annual_row(inc,bs,cf,yr,div,fx,epsfx); r.pop("_sh",None); yd[yr]=r
         for yr in COMPLETED[-2:]:
             ta=yd[yr].get("totalAsset"); rv=yd[yr].get("revenue")
-            ep=yd[yr].get("eps"); dp=yd[yr].get("dps")
-            if ta: print(f"      {yr}: asset={ta:.2f}  rev={rv}  eps={ep}  dps={dp}", flush=True)
-
-        cy, ann = current_year_row(tk, CURRENT_YEAR, div, fx, eps_f)
-        yd[CURRENT_YEAR] = cy
-        live = [y for y in COMPLETED if yd[y].get("revenue") is not None]
-        print(f"    ✓ Got: {live}", flush=True)
-        return yd, ann
-
+            if ta: print(f"  {yr}: asset={ta:.2f} rev={rv}",flush=True)
+        cy,ann=current_year_row(tk,CURRENT_YEAR,div,fx,epsfx)
+        yd[CURRENT_YEAR]=cy
+        live=[y for y in COMPLETED if yd[y].get("revenue") is not None]
+        print(f"  ✓ {live}",flush=True)
+        return yd,ann
     except Exception as e:
-        print(f"    FAIL: {e}", flush=True)
-        return None, {"method":"none","label":None}
+        print(f"  FAIL: {e}",flush=True)
+        return None,{"method":"none","label":None}
 
 def build_arrays(yd, fb):
-    out = {}
+    out={}
     for f in FIELDS:
-        arr = []
-        for i, yr in enumerate(ALL_YEARS):
-            lv = yd[yr].get(f) if yd and yr in yd else None
-            fv = fb[f][i] if fb and i < len(fb.get(f,[])) else None
+        arr=[]
+        for i,yr in enumerate(ALL_YEARS):
+            lv=yd[yr].get(f) if yd and yr in yd else None
+            fv=fb[f][i] if fb and i<len(fb.get(f,[])) else None
             arr.append(lv if lv is not None else fv)
-        out[f] = arr
+        out[f]=arr
     return out
 
-
-def load_custom_stocks(script_dir):
-    """
-    Read stocks_config.json from repo root and return extra stocks to fetch.
-    Format per entry: {symbol, name, exchange, currency, ticker, hint_cur}
-    Returns dict in same format as STOCKS: {sym: (name, exchange, ticker, currency, div, hint_cur)}
-    """
-    config_path = os.path.abspath(os.path.join(script_dir, "..", "stocks_config.json"))
-    if not os.path.exists(config_path):
-        print("  [stocks_config.json not found — skipping custom stocks]", flush=True)
-        return {}
-
-    try:
-        with open(config_path) as f:
-            cfg = json.load(f)
-        custom = {}
-        for s in cfg.get("custom_stocks", []):
-            sym      = s["symbol"].upper().strip()
-            name     = s.get("name", sym)
-            exchange = s.get("exchange", "NYSE").upper()
-            currency = s.get("currency", "B USD")
-            ticker   = s.get("ticker", sym)
-            hint_cur = s.get("hint_cur", "USD").upper()
-            # Determine divisor based on exchange / currency
-            if exchange == "IDX":
-                div = 1e12
-            else:
-                div = 1e9  # ASX, NYSE, NASDAQ, etc.
-            # Skip if already in built-in STOCKS
-            if sym in STOCKS:
-                print(f"  [stocks_config] {sym} already in built-in stocks, skipping", flush=True)
-                continue
-            custom[sym] = (name, exchange, ticker, currency, div, hint_cur)
-            print(f"  [stocks_config] Added custom stock: {sym} ({exchange}, {ticker})", flush=True)
-        return custom
-    except Exception as e:
-        print(f"  [stocks_config] Error reading config: {e}", flush=True)
-        return {}
-
-
 def main():
-    print(f"\n{'='*60}")
-    print(f"FA Dashboard Data Fetch  {NOW.strftime('%Y-%m-%d %H:%M UTC')}")
-    print(f"Years: {ALL_YEARS}")
-    print(f"{'='*60}")
+    usd_aud,usd_idr=get_rates()
 
-    usd_to_aud, usd_to_idr = get_rates()
-    print(f"\n  Rates: 1 USD = {usd_to_aud:.4f} AUD | 1 USD = {usd_to_idr:.0f} IDR\n")
+    # Merge hardcoded + any extra from stocks_config.json
+    all_stocks={**STOCKS,**load_config_stocks()}
+    print(f"\nTotal stocks: {len(all_stocks)}\n{'='*50}",flush=True)
 
-    # Merge built-in + custom stocks from stocks_config.json
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    print(f"\n[Loading custom stocks from stocks_config.json]", flush=True)
-    custom_stocks = load_custom_stocks(script_dir)
-    all_stocks = {**STOCKS, **custom_stocks}
-    print(f"\n  Total stocks to fetch: {len(all_stocks)} "
-          f"({len(STOCKS)} built-in + {len(custom_stocks)} custom)\n", flush=True)
-
-    out = {
-        "generated":NOW.isoformat(),"years":ALL_YEARS,
-        "completedYears":COMPLETED,"currentYear":CURRENT_YEAR,
-        "latestYear":LATEST_YEAR,
-        "rates":{"usdToAud":usd_to_aud,"usdToIdr":usd_to_idr},
-        "annualisation":{},"stocks":{},
-    }
-
-    ok = 0
-    for sym,(name,exchange,ticker_str,currency,div,hint_cur) in all_stocks.items():
-        yd, ann = fetch_one(sym, exchange, ticker_str, hint_cur, usd_to_aud, usd_to_idr)
-        fb   = FALLBACK.get(sym, {})
-        arrs = build_arrays(yd, fb)
-        src  = "yfinance" if yd else "fallback"
-        if yd: ok += 1
-        out["stocks"][sym] = {"name":name,"exchange":exchange,"currency":currency,
-                              "ticker":ticker_str,"source":src}
+    out={"generated":NOW.isoformat(),"years":ALL_YEARS,"completedYears":COMPLETED,
+         "currentYear":CURRENT_YEAR,"latestYear":LATEST_YEAR,
+         "rates":{"usdToAud":usd_aud,"usdToIdr":usd_idr},
+         "annualisation":{},"stocks":{}}
+    ok=0
+    for sym,(name,exchange,ticker_str,currency,_div,hint_cur) in all_stocks.items():
+        yd,ann=fetch_one(sym,exchange,ticker_str,hint_cur,usd_aud,usd_idr)
+        fb=FALLBACK.get(sym,{})
+        arrs=build_arrays(yd,fb)
+        src="yfinance" if yd else "fallback"
+        if yd: ok+=1
+        out["stocks"][sym]={"name":name,"exchange":exchange,"currency":currency,"ticker":ticker_str,"source":src}
         out["stocks"][sym].update(arrs)
-        out["annualisation"][sym] = ann
+        out["annualisation"][sym]=ann
 
-    path = os.path.abspath(os.path.join(script_dir,"..","data.json"))
+    path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","data.json"))
     with open(path,"w") as f: json.dump(out,f,indent=2)
-
-    print(f"\n{'='*60}")
-    print(f"Written: {path}  |  Live: {ok}/{len(all_stocks)}")
-    print(f"\n--- Spot check (2nd-last and last completed year) ---")
-    for sym in list(all_stocks.keys()):
-        s=out["stocks"].get(sym,{}); ta=s.get("totalAsset",[]); rv=s.get("revenue",[])
-        ep=s.get("eps",[]); cur=s.get("currency","")
-        print(f"  {sym:6s}({cur}): asset {ta[-3]}/{ta[-2]}  rev {rv[-3]}/{rv[-2]}  eps {ep[-3]}/{ep[-2]}")
-    print(f"{'='*60}\n")
+    print(f"\n{'='*50}\nWritten: {path}\nLive: {ok}/{len(all_stocks)} stocks\n{'='*50}",flush=True)
 
 if __name__=="__main__": main()
