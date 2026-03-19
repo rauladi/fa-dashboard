@@ -47,6 +47,7 @@ STOCKS = {
     "AAPL": ("Apple Inc.",              "NASDAQ", "AAPL",    "B USD", 1e9,  "USD"),
     "META": ("Meta Platforms Inc.",     "NASDAQ", "META",    "B USD", 1e9,  "USD"),
     "NVDA": ("NVIDIA Corporation",      "NASDAQ", "NVDA",    "B USD", 1e9,  "USD"),
+    "BKNG": ("Booking Holding Inc.",    "NASDAQ", "BKNG",    "B USD", 1e9,  "USD"),
 }
 
 # ── Also load any stocks_config.json (for future additions without editing this file)
