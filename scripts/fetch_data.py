@@ -22,9 +22,6 @@ STOCKS = {
     "WDS":  ("Woodside Energy",          "ASX",    "WDS.AX",  "B AUD", 1e9,  "USD"),
     # ── Custom ASX ──────────────────────────────────────────────────
     "CBA":  ("Commonwealth Bank",        "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
-    "NAB":  ("National Australia Bank",  "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
-    "DXS":  ("Dexus",                    "ASX",    "DXS.AX",  "B AUD", 1e9,  "AUD"),
-    "CSL":  ("CSL Limited",              "ASX",    "CSL.AX",  "B AUD", 1e9,  "AUD"),
     # ── Built-in IDX ────────────────────────────────────────────────
     "BBRI": ("Bank Rakyat Indonesia",    "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
     "ADRO": ("Adaro Energy",             "IDX",    "ADRO.JK", "T IDR", 1e12, "USD"),
@@ -45,6 +42,7 @@ STOCKS = {
     "MSFT": ("Microsoft Corp.",         "NASDAQ", "MSFT",    "B USD", 1e9,  "USD"),
     "AMZN": ("Amazon.com Inc.",         "NASDAQ", "AMZN",    "B USD", 1e9,  "USD"),
     "AAPL": ("Apple Inc.",              "NASDAQ", "AAPL",    "B USD", 1e9,  "USD"),
+    "GOOG": ("Alphabet Inc (Google)",   "NASDAQ", "AAPL",    "B USD", 1e9,  "USD"),
     "META": ("Meta Platforms Inc.",     "NASDAQ", "META",    "B USD", 1e9,  "USD"),
     "NVDA": ("NVIDIA Corporation",      "NASDAQ", "NVDA",    "B USD", 1e9,  "USD"),
     "BKNG": ("Booking Holding Inc.",    "NASDAQ", "BKNG",    "B USD", 1e9,  "USD"),
