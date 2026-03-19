@@ -1,4 +1,4 @@
-import json, os, math
+import json, os, math, time
 from datetime import datetime, timezone
 
 try:
@@ -16,43 +16,37 @@ ALL_YEARS    = COMPLETED + [CURRENT_YEAR]
 print(f"FA Dashboard fetch  {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
 
-# ── All stocks ──────────────────────────────────────────────────────────
-# Format: symbol: (name, exchange, yf_ticker, display_currency, divisor, hint_cur)
-# Divisor converts raw yfinance numbers to display units:
-#   ASX/NYSE/NASDAQ : div=1e9  (raw → billions)
-#   IDX             : div=1e12 (raw → trillions)
-# hint_cur is a fallback; actual currency is auto-detected from yfinance
-
 STOCKS = {
     # ── Built-in ASX ────────────────────────────────────────────────
-    "BHP":  ("BHP Group",               "ASX", "BHP.AX",  "B AUD", 1e9,  "USD"),
-    "WDS":  ("Woodside Energy",          "ASX", "WDS.AX",  "B AUD", 1e9,  "USD"),
+    "BHP":  ("BHP Group",               "ASX",    "BHP.AX",  "B AUD", 1e9,  "USD"),
+    "WDS":  ("Woodside Energy",          "ASX",    "WDS.AX",  "B AUD", 1e9,  "USD"),
     # ── Custom ASX ──────────────────────────────────────────────────
-    "CBA":  ("Commonwealth Bank",        "ASX", "CBA.AX",  "B AUD", 1e9,  "AUD"),
-    "NAB":  ("National Australia Bank",  "ASX", "NAB.AX",  "B AUD", 1e9,  "AUD"),
-    "DXS":  ("Dexus",                    "ASX", "DXS.AX",  "B AUD", 1e9,  "AUD"),
-    "CSL":  ("CSL Limited",              "ASX", "CSL.AX",  "B AUD", 1e9,  "USD"),
+    "CBA":  ("Commonwealth Bank",        "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
+    "NAB":  ("National Australia Bank",  "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
+    "DXS":  ("Dexus",                    "ASX",    "DXS.AX",  "B AUD", 1e9,  "AUD"),
+    "CSL":  ("CSL Limited",              "ASX",    "CSL.AX",  "B AUD", 1e9,  "USD"),
     # ── Built-in IDX ────────────────────────────────────────────────
-    "BBRI": ("Bank Rakyat Indonesia",    "IDX", "BBRI.JK", "T IDR", 1e12, "IDR"),
-    "ADRO": ("Adaro Energy",             "IDX", "ADRO.JK", "T IDR", 1e12, "USD"),
-    "SMSM": ("Selamat Sempurna",         "IDX", "SMSM.JK", "T IDR", 1e12, "IDR"),
-    "UNTR": ("United Tractors",          "IDX", "UNTR.JK", "T IDR", 1e12, "IDR"),
-    "ITMG": ("Indo Tambangraya Megah",   "IDX", "ITMG.JK", "T IDR", 1e12, "USD"),
-    "POWR": ("Cikarang Listrindo",       "IDX", "POWR.JK", "T IDR", 1e12, "USD"),
-    "MPMX": ("Mitra Pinasthika Mustika", "IDX", "MPMX.JK", "T IDR", 1e12, "IDR"),
-    "BTPS": ("Bank BTPN Syariah",        "IDX", "BTPS.JK", "T IDR", 1e12, "IDR"),
-    "DMAS": ("Puradelta Lestari",        "IDX", "DMAS.JK", "T IDR", 1e12, "IDR"),
-    "SPTO": ("Surya Toto Indonesia",     "IDX", "SPTO.JK", "T IDR", 1e12, "IDR"),
+    "BBRI": ("Bank Rakyat Indonesia",    "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
+    "ADRO": ("Adaro Energy",             "IDX",    "ADRO.JK", "T IDR", 1e12, "USD"),
+    "SMSM": ("Selamat Sempurna",         "IDX",    "SMSM.JK", "T IDR", 1e12, "IDR"),
+    "UNTR": ("United Tractors",          "IDX",    "UNTR.JK", "T IDR", 1e12, "IDR"),
+    "ITMG": ("Indo Tambangraya Megah",   "IDX",    "ITMG.JK", "T IDR", 1e12, "USD"),
+    "POWR": ("Cikarang Listrindo",       "IDX",    "POWR.JK", "T IDR", 1e12, "USD"),
+    "MPMX": ("Mitra Pinasthika Mustika", "IDX",    "MPMX.JK", "T IDR", 1e12, "IDR"),
+    "BTPS": ("Bank BTPN Syariah",        "IDX",    "BTPS.JK", "T IDR", 1e12, "IDR"),
+    "DMAS": ("Puradelta Lestari",        "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
+    "SPTO": ("Surya Toto Indonesia",     "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
     # ── Custom NYSE ─────────────────────────────────────────────────
-    "TSM":  ("Taiwan Semiconductor",     "NYSE",   "TSM",  "B USD", 1e9,  "USD"),
-    "V":    ("Visa Inc.",                "NYSE",   "V",    "B USD", 1e9,  "USD"),
-    "MA":   ("Mastercard Inc.",          "NYSE",   "MA",   "B USD", 1e9,  "USD"),
+    # TSM reports financials in TWD — auto-detected and converted to USD
+    "TSM":  ("Taiwan Semiconductor",    "NYSE",   "TSM",     "B USD", 1e9,  "TWD"),
+    "V":    ("Visa Inc.",               "NYSE",   "V",       "B USD", 1e9,  "USD"),
+    "MA":   ("Mastercard Inc.",         "NYSE",   "MA",      "B USD", 1e9,  "USD"),
     # ── Custom NASDAQ ───────────────────────────────────────────────
-    "MSFT": ("Microsoft Corp.",          "NASDAQ", "MSFT", "B USD", 1e9,  "USD"),
-    "AMZN": ("Amazon.com Inc.",          "NASDAQ", "AMZN", "B USD", 1e9,  "USD"),
-    "AAPL": ("Apple Inc.",               "NASDAQ", "AAPL", "B USD", 1e9,  "USD"),
-    "META": ("Meta Platforms Inc.",      "NASDAQ", "META", "B USD", 1e9,  "USD"),
-    "NVDA": ("NVIDIA Corporation",       "NASDAQ", "NVDA", "B USD", 1e9,  "USD"),
+    "MSFT": ("Microsoft Corp.",         "NASDAQ", "MSFT",    "B USD", 1e9,  "USD"),
+    "AMZN": ("Amazon.com Inc.",         "NASDAQ", "AMZN",    "B USD", 1e9,  "USD"),
+    "AAPL": ("Apple Inc.",              "NASDAQ", "AAPL",    "B USD", 1e9,  "USD"),
+    "META": ("Meta Platforms Inc.",     "NASDAQ", "META",    "B USD", 1e9,  "USD"),
+    "NVDA": ("NVIDIA Corporation",      "NASDAQ", "NVDA",    "B USD", 1e9,  "USD"),
 }
 
 # ── Also load any stocks_config.json (for future additions without editing this file)
@@ -103,7 +97,7 @@ FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit",
 
 # ── Exchange rates ──────────────────────────────────────────────────────
 def get_rates():
-    usd_aud, usd_idr = 1.58, 16300
+    usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031  # fallbacks
     try:
         h = yf.Ticker("AUDUSD=X").history(period="2d")
         if not h.empty:
@@ -120,7 +114,16 @@ def get_rates():
         print(f"  USD→IDR: {usd_idr:.0f}", flush=True)
     except Exception as e:
         print(f"  USD→IDR fallback ({e})", flush=True)
-    return usd_aud, usd_idr
+    try:
+        # TWDUSD=X: how many USD per 1 TWD
+        h = yf.Ticker("TWDUSD=X").history(period="2d")
+        if not h.empty:
+            v = float(h["Close"].iloc[-1])
+            if 0.01 < v < 0.10: twd_usd = round(v, 6)
+        print(f"  TWD→USD: {twd_usd:.5f}  (1 TWD = {twd_usd:.5f} USD)", flush=True)
+    except Exception as e:
+        print(f"  TWD→USD fallback ({e})", flush=True)
+    return usd_aud, usd_idr, twd_usd
 
 def detect_cur(tk, hint):
     try:
@@ -130,19 +133,34 @@ def detect_cur(tk, hint):
     except Exception:
         return hint.upper()
 
-def get_fx(exchange, fin_cur, usd_aud, usd_idr):
+def get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd):
+    """Return (divisor, fx_multiplier) to convert raw yfinance → display units."""
     if exchange == "ASX":
-        return 1e9, (usd_aud if fin_cur=="USD" else 1.0)
-    else:  # IDX, NYSE, NASDAQ
-        if exchange == "IDX":
-            return 1e12, (usd_idr if fin_cur=="USD" else 1.0)
-        else:  # NYSE/NASDAQ always USD
-            return 1e9, 1.0
+        div = 1e9
+        fx  = usd_aud if fin_cur == "USD" else 1.0
+    elif exchange == "IDX":
+        div = 1e12
+        fx  = usd_idr if fin_cur == "USD" else 1.0
+    else:  # NYSE / NASDAQ — display in B USD
+        div = 1e9
+        if fin_cur == "TWD":
+            fx = twd_usd   # raw TWD / 1e9 × twd_usd = B USD
+        elif fin_cur == "USD":
+            fx = 1.0
+        else:
+            fx = 1.0       # unknown — leave as-is
+    return div, fx
 
-def eps_fx(exchange, fin_cur, usd_aud, usd_idr):
-    if exchange == "ASX": return usd_aud if fin_cur=="USD" else 1.0
-    if exchange == "IDX": return usd_idr if fin_cur=="USD" else 1.0
-    return 1.0  # NYSE/NASDAQ USD
+def eps_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd):
+    """FX for per-share values (no divisor, just currency conversion)."""
+    if exchange == "ASX":
+        return usd_aud if fin_cur == "USD" else 1.0
+    if exchange == "IDX":
+        return usd_idr if fin_cur == "USD" else 1.0
+    # NYSE/NASDAQ
+    if fin_cur == "TWD":
+        return twd_usd
+    return 1.0
 
 def safe(val, div=1, fx=1.0):
     if val is None: return None
@@ -253,30 +271,35 @@ def current_year_row(tk, yr, div, fx, epsfx):
         print(f"      CY{yr} error: {e}",flush=True)
     return row,ann
 
-def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr):
-    print(f"\n[{sym}] {ticker_str}",flush=True)
-    try:
-        tk=yf.Ticker(ticker_str)
-        fin_cur=detect_cur(tk,hint_cur)
-        div,fx=get_fx(exchange,fin_cur,usd_aud,usd_idr)
-        epsfx=eps_fx(exchange,fin_cur,usd_aud,usd_idr)
-        print(f"  cur={fin_cur} div=1e{int(math.log10(div))} fx={fx:.4f} epsfx={epsfx:.4f}",flush=True)
-        inc=tk.financials; bs=tk.balance_sheet; cf=tk.cashflow
-        if inc is None or inc.empty: raise ValueError("no annual data")
-        yd={}
-        for yr in COMPLETED:
-            r=annual_row(inc,bs,cf,yr,div,fx,epsfx); r.pop("_sh",None); yd[yr]=r
-        for yr in COMPLETED[-2:]:
-            ta=yd[yr].get("totalAsset"); rv=yd[yr].get("revenue")
-            if ta: print(f"  {yr}: asset={ta:.2f} rev={rv}",flush=True)
-        cy,ann=current_year_row(tk,CURRENT_YEAR,div,fx,epsfx)
-        yd[CURRENT_YEAR]=cy
-        live=[y for y in COMPLETED if yd[y].get("revenue") is not None]
-        print(f"  ✓ {live}",flush=True)
-        return yd,ann
-    except Exception as e:
-        print(f"  FAIL: {e}",flush=True)
-        return None,{"method":"none","label":None}
+def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
+    print(f"\n[{sym}] {ticker_str}", flush=True)
+    for attempt in range(2):  # retry once on failure
+        try:
+            if attempt > 0:
+                print(f"  Retry {attempt}...", flush=True)
+                time.sleep(5)
+            tk = yf.Ticker(ticker_str)
+            fin_cur = detect_cur(tk, hint_cur)
+            div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
+            epsfx   = eps_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
+            print(f"  cur={fin_cur} div=1e{int(math.log10(div))} fx={fx:.6f} epsfx={epsfx:.6f}", flush=True)
+            inc = tk.financials; bs = tk.balance_sheet; cf = tk.cashflow
+            if inc is None or inc.empty: raise ValueError("no annual data")
+            yd = {}
+            for yr in COMPLETED:
+                r = annual_row(inc, bs, cf, yr, div, fx, epsfx)
+                r.pop("_sh", None); yd[yr] = r
+            for yr in COMPLETED[-2:]:
+                ta = yd[yr].get("totalAsset"); rv = yd[yr].get("revenue")
+                if ta: print(f"  {yr}: asset={ta:.2f} rev={rv}", flush=True)
+            cy, ann = current_year_row(tk, CURRENT_YEAR, div, fx, epsfx)
+            yd[CURRENT_YEAR] = cy
+            live = [y for y in COMPLETED if yd[y].get("revenue") is not None]
+            print(f"  ✓ {live}", flush=True)
+            return yd, ann
+        except Exception as e:
+            print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
+    return None, {"method":"none","label":None}
 
 def build_arrays(yd, fb):
     out={}
@@ -290,29 +313,33 @@ def build_arrays(yd, fb):
     return out
 
 def main():
-    usd_aud,usd_idr=get_rates()
+    usd_aud, usd_idr, twd_usd = get_rates()
 
     # Merge hardcoded + any extra from stocks_config.json
-    all_stocks={**STOCKS,**load_config_stocks()}
-    print(f"\nTotal stocks: {len(all_stocks)}\n{'='*50}",flush=True)
+    all_stocks = {**STOCKS, **load_config_stocks()}
+    print(f"\nTotal stocks: {len(all_stocks)}\n{'='*50}", flush=True)
 
-    out={"generated":NOW.isoformat(),"years":ALL_YEARS,"completedYears":COMPLETED,
-         "currentYear":CURRENT_YEAR,"latestYear":LATEST_YEAR,
-         "rates":{"usdToAud":usd_aud,"usdToIdr":usd_idr},
-         "annualisation":{},"stocks":{}}
-    ok=0
-    for sym,(name,exchange,ticker_str,currency,_div,hint_cur) in all_stocks.items():
-        yd,ann=fetch_one(sym,exchange,ticker_str,hint_cur,usd_aud,usd_idr)
-        fb=FALLBACK.get(sym,{})
-        arrs=build_arrays(yd,fb)
-        src="yfinance" if yd else "fallback"
-        if yd: ok+=1
-        out["stocks"][sym]={"name":name,"exchange":exchange,"currency":currency,"ticker":ticker_str,"source":src}
+    out = {"generated":NOW.isoformat(),"years":ALL_YEARS,"completedYears":COMPLETED,
+           "currentYear":CURRENT_YEAR,"latestYear":LATEST_YEAR,
+           "rates":{"usdToAud":usd_aud,"usdToIdr":usd_idr,"twdToUsd":twd_usd},
+           "annualisation":{},"stocks":{}}
+    ok = 0
+    for i, (sym, (name, exchange, ticker_str, currency, _div, hint_cur)) in enumerate(all_stocks.items()):
+        if i > 0:
+            time.sleep(1)  # 1s pause between stocks to avoid Yahoo rate limiting
+        yd, ann = fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
+        fb   = FALLBACK.get(sym, {})
+        arrs = build_arrays(yd, fb)
+        src  = "yfinance" if yd else "fallback"
+        if yd: ok += 1
+        out["stocks"][sym] = {"name":name,"exchange":exchange,"currency":currency,
+                              "ticker":ticker_str,"source":src}
         out["stocks"][sym].update(arrs)
-        out["annualisation"][sym]=ann
+        out["annualisation"][sym] = ann
 
-    path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","data.json"))
-    with open(path,"w") as f: json.dump(out,f,indent=2)
-    print(f"\n{'='*50}\nWritten: {path}\nLive: {ok}/{len(all_stocks)} stocks\n{'='*50}",flush=True)
+    path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data.json"))
+    with open(path, "w") as f:
+        json.dump(out, f, indent=2)
+    print(f"\n{'='*50}\nWritten: {path}\nLive: {ok}/{len(all_stocks)} stocks\n{'='*50}", flush=True)
 
-if __name__=="__main__": main()
+if __name__ == "__main__": main()
