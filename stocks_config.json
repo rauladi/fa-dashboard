@@ -11,30 +11,6 @@
       "hint_cur": "AUD"
     }
     {
-      "symbol": "NAB",
-      "name": "National Australia Bank Ltd",
-      "exchange": "ASX",
-      "currency": "B AUD",
-      "ticker": "NAB.AX",
-      "hint_cur": "AUD"
-    }
-    {
-      "symbol": "DXS",
-      "name": "Dexus",
-      "exchange": "ASX",
-      "currency": "B AUD",
-      "ticker": "DXS.AX",
-      "hint_cur": "AUD"
-    }
-    {
-      "symbol": "CSL",
-      "name": "CSL Limited",
-      "exchange": "ASX",
-      "currency": "B AUD",
-      "ticker": "CSL.AX",
-      "hint_cur": "AUD"
-    }
-    {
       "symbol": "TSM",
       "name": "Taiwan Semiconductor Manufacturing",
       "exchange": "NYSE",
@@ -81,6 +57,14 @@
       "exchange": "NASDAQ",
       "currency": "B USD",
       "ticker": "AAPL",
+      "hint_cur": "USD"
+    }
+    {
+      "symbol": "GOOG",
+      "name": "AlphabetInc (Google)",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "GOOG",
       "hint_cur": "USD"
     }
     {
