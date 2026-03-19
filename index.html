@@ -317,6 +317,7 @@ const MKEYS=[
 let S={
   stocks:{...BASE_STOCKS},
   custom:{},
+  deleted:{},
   data:{},
   status:{},
   errmsg:{},
@@ -332,7 +333,7 @@ function saveLS(){
   try{
     localStorage.setItem(LS_KEY,JSON.stringify({
       custom:S.custom, wts:S.wts, sel:S.sel,
-      data:S.data, status:S.status
+      data:S.data, status:S.status, deleted:S.deleted||{}
     }));
   }catch(e){}
 }
@@ -352,6 +353,7 @@ function applyImport(d,quiet){
   if(d.wts) S.wts={...DEF_WTS,...d.wts};
   if(d.sel&&S.stocks[d.sel]) S.sel=d.sel;
   if(d.data)   S.data={...d.data};
+  if(d.deleted) S.deleted={...d.deleted};
   if(d.status){Object.keys(d.status).forEach(k=>{S.status[k]=d.status[k]==='ok'?'ok':'idle';});}
   if(!quiet) saveLS();
 }
@@ -1385,16 +1387,27 @@ function submitManualData(){
 }
 
 function delStock(k){
-  const isBuiltIn = !!{BHP:1,WDS:1,BBRI:1,ADRO:1,SMSM:1,UNTR:1,ITMG:1,POWR:1,MPMX:1,BTPS:1,DMAS:1,SPTO:1}[k];
-  const msg = isBuiltIn
-    ? `Remove ${k} from the dashboard view?\n\nNote: built-in stocks will reappear on the next data refresh unless removed from fetch_data.py.`
-    : `Remove ${k} from the dashboard?\n\nRemember to also remove it from stocks_config.json on GitHub so it won't be re-added on the next data refresh.`;
+  const isBuiltIn = !!BASE_STOCKS[k];
+  const isConfigStock = !S.custom[k] && !isBuiltIn; // came from stocks_config.json via data.json
+  let msg;
+  if(isBuiltIn){
+    msg=`Remove ${k} from the dashboard view?\n\nNote: it will reappear on next page refresh since it's built-in. To permanently remove it you'd need to edit fetch_data.py.`;
+  } else if(isConfigStock){
+    msg=`Remove ${k} from the dashboard?\n\nIMPORTANT: Also remove it from stocks_config.json on GitHub, then run the workflow — otherwise it will reappear next time the page loads from data.json.`;
+  } else {
+    msg=`Remove ${k} from the dashboard?`;
+  }
   if(!confirm(msg)) return;
+
+  // Track explicitly deleted stocks so boot() doesn't re-add them
+  if(!S.deleted) S.deleted={};
+  S.deleted[k]=true;
+
   delete S.custom[k]; delete S.stocks[k]; delete S.data[k]; delete S.status[k];
-  S.sel = Object.keys(S.stocks)[0] || 'BHP';
+  if(S.sel===k) S.sel = Object.keys(S.stocks)[0] || 'BHP';
   saveLS();
   render();
-  showToast(`${k} removed from dashboard`,'cyan');
+  showToast(`${k} removed`,'cyan');
 }
 
 // ═══════════════════════════════════
@@ -1477,7 +1490,8 @@ async function boot() {
       const r = await fetch('./data.json?_=' + Date.now());
       if (r.ok) {
         liveData = await r.json();
-        console.log('Loaded data.json — generated:', liveData.generated);
+        console.log('Loaded data.json — generated:', liveData.generated,
+                    '— stocks:', Object.keys(liveData.stocks||{}).length);
       }
     } catch(e) {
       console.log('data.json not available, using built-in data');
@@ -1485,11 +1499,30 @@ async function boot() {
   }
 
   if (liveData && liveData.stocks) {
-    // Load annualisation metadata
     ANNUALISATION = liveData.annualisation || {};
-
     const ts = Date.now();
+
     Object.entries(liveData.stocks).forEach(([sym, sd]) => {
+      // Skip stocks the user explicitly deleted
+      if (S.deleted && S.deleted[sym]) return;
+
+      // ── REGISTER stock if not already known ──────────────────────
+      // This is the key fix: stocks from stocks_config.json arrive here
+      // via data.json but aren't in BASE_STOCKS. We register them now.
+      if (!S.stocks[sym]) {
+        S.stocks[sym] = {
+          name:     sd.name     || sym,
+          exchange: sd.exchange || 'NYSE',
+          currency: sd.currency || 'B USD',
+        };
+      } else {
+        // Update metadata from live data (e.g. currency may have been auto-detected)
+        S.stocks[sym].name     = sd.name     || S.stocks[sym].name;
+        S.stocks[sym].exchange = sd.exchange || S.stocks[sym].exchange;
+        S.stocks[sym].currency = sd.currency || S.stocks[sym].currency;
+      }
+
+      // ── LOAD data — don't overwrite user-edited custom stock data ─
       if (!S.custom[sym]) {
         S.data[sym] = {
           totalAsset:  sd.totalAsset,
@@ -1507,21 +1540,37 @@ async function boot() {
           generated:   liveData.generated,
         };
         S.status[sym] = 'ok';
-        if (BASE_STOCKS[sym]) {
-          BASE_STOCKS[sym].currency = sd.currency;
-          S.stocks[sym].currency    = sd.currency;
-        }
       }
     });
+
+    // ── REMOVE stocks deleted from stocks_config.json ─────────────
+    // Any non-built-in stock NOT in data.json AND NOT user-custom → remove
+    const liveSyms = new Set(Object.keys(liveData.stocks));
+    Object.keys(S.stocks).forEach(sym => {
+      if (!BASE_STOCKS[sym] && !S.custom[sym] && !liveSyms.has(sym)) {
+        delete S.stocks[sym];
+        delete S.data[sym];
+        delete S.status[sym];
+        console.log('Removed stale stock:', sym);
+      }
+    });
+
     const genDate = new Date(liveData.generated).toLocaleDateString();
+    const n = Object.keys(liveData.stocks).length;
     if (_hSub) _hSub.textContent =
-      `ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${YEARS[0]}–${YEARS[N_YEARS-1]}`;
+      `ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]}`;
+
+    // Select first stock if current selection no longer exists
+    if (!S.stocks[S.sel]) S.sel = Object.keys(S.stocks)[0] || 'BHP';
+
   } else {
+    // No data.json (local file or first run) — use embedded fallback
     initPreloadedData();
     if (_hSub) _hSub.textContent =
       `ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · Host on GitHub Pages for auto-refresh`;
   }
 
+  // Set status for any remaining untracked stocks
   Object.keys(S.stocks).forEach(k => {
     if (!S.status[k]) S.status[k] = S.data[k] ? 'ok' : 'idle';
   });
