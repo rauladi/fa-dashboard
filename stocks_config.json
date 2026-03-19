@@ -9,7 +9,31 @@
       "currency": "B AUD",
       "ticker": "CBA.AX",
       "hint_cur": "AUD"
-    },
+    }
+    {
+      "symbol": "NAB",
+      "name": "National Australia Bank Ltd",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "NAB.AX",
+      "hint_cur": "AUD"
+    }
+    {
+      "symbol": "DXS",
+      "name": "Dexus",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "DXS.AX",
+      "hint_cur": "AUD"
+    }
+    {
+      "symbol": "CSL",
+      "name": "CSL Limited",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "CSL.AX",
+      "hint_cur": "AUD"
+    }
     {
       "symbol": "TSM",
       "name": "Taiwan Semiconductor Manufacturing",
@@ -18,5 +42,69 @@
       "ticker": "TSM",
       "hint_cur": "USD"
     }
-  ]
+  {
+      "symbol": "V",
+      "name": "Visa Inc.",
+      "exchange": "NYSE",
+      "currency": "B USD",
+      "ticker": "V",
+      "hint_cur": "USD"
+    }
+    {
+      "symbol": "MA",
+      "name": "Mastercard Incorporated",
+      "exchange": "NYSE",
+      "currency": "B USD",
+      "ticker": "MA",
+      "hint_cur": "USD"
+    }
+    {
+      "symbol": "MSFT",
+      "name": "Microsoft Corp.",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "MSFT",
+      "hint_cur": "USD"
+    }
+
+    {
+      "symbol": "AMZN",
+      "name": "Amazon.com, Inc.",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "AMZN",
+      "hint_cur": "USD"
+    }
+    {
+      "symbol": "AAPL",
+      "name": "Apple, Inc.",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "AAPL",
+      "hint_cur": "USD"
+    }
+    {
+    "symbol": "META",
+      "name": "Meta Platform, Inc.",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "META",
+      "hint_cur": "USD"
+    }
+    {
+    "symbol": "NVDA",
+      "name": "NVIDIA Corporation",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "NVDA",
+      "hint_cur": "USD"
+    }
+    {
+    "symbol": "BKNG",
+      "name": "Booking Holdings Inc.",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "BKNG",
+      "hint_cur": "USD"
+    }
 }
