@@ -864,19 +864,35 @@ function stateBox(st,sym,stock){
     return`<div class="state-box">
       <div class="spinner"></div>
       <div class="state-title">Refreshing ${sym} from Yahoo Finance…</div>
-      <div class="state-sub">Attempting live refresh for <em>${stock.name}</em> · Ticker: <code style="background:rgba(0,0,0,.3);padding:1px 7px;border-radius:4px">${ticker}</code><br>Built-in data remains active if refresh fails.</div>
+      <div class="state-sub">Attempting live refresh for <em>${stock.name}</em><br>
+        Ticker: <code style="background:rgba(0,0,0,.3);padding:1px 7px;border-radius:4px">${ticker}</code><br>
+        Built-in data remains active if refresh fails.</div>
       <span class="data-badge db-ld">⏳ Trying Yahoo Finance…</span>
     </div>`;
   }
-  // idle or error for custom stocks with no data
+  // idle or no-data for custom stocks
+  const isCustom=!!S.custom[sym];
   return`<div class="state-box">
     <div style="font-size:36px;margin-bottom:12px">📋</div>
     <div class="state-title">No data for ${sym}</div>
-    <div class="state-sub">This custom stock has no data yet.<br>Enter data manually or try a Yahoo Finance refresh.</div>
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
-      <button class="btn btn-cyan" onclick="showManual('${sym}')">✏ Enter Manually</button>
-      <button class="btn btn-ghost btn-sm" onclick="fetchStock('${sym}')">↻ Try Yahoo Refresh</button>
+    <div class="state-sub" style="max-width:500px;margin:0 auto 16px">
+      ${isCustom
+        ? `<strong>${stock.name}</strong> was added but data hasn't been fetched yet.<br><br>
+           To fetch automatically:<br>
+           1. Make sure <code style="background:rgba(0,0,0,.2);padding:1px 6px;border-radius:3px">${sym}</code> is in your <strong>stocks_config.json</strong> on GitHub<br>
+           2. Go to <strong>Actions → Refresh Financial Data → Run workflow</strong><br>
+           3. Refresh this page after the workflow completes (~1 min)`
+        : `This stock has no data yet.`
+      }
     </div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+      <button class="btn btn-cyan" onclick="showManual('${sym}')">✏ Enter Data Manually</button>
+      ${isCustom?`<button class="btn btn-red btn-sm" onclick="delStock('${sym}')">🗑 Remove ${sym}</button>`:''}
+    </div>
+    ${isCustom?`<div style="margin-top:12px">
+      <a href="https://github.com/rauladi/fa-dashboard/actions" target="_blank"
+        class="btn btn-ghost btn-sm" style="text-decoration:none">🚀 Open GitHub Actions</a>
+    </div>`:''}
   </div>`;
 }
 
@@ -1166,48 +1182,140 @@ function tabRankings(){
 // ═══════════════════════════════════
 // ADD STOCK MODAL
 // ═══════════════════════════════════
-let AF={sym:'',name:'',exch:'IDX',cur:'T IDR'};
+let AF={sym:'',name:'',exch:'ASX',cur:'B AUD',ticker:'',hintCur:'AUD'};
 
 function showAdd(){
-  AF={sym:'',name:'',exch:'IDX',cur:'T IDR'};
-  document.getElementById('addBody').innerHTML=`
-    <div class="notice"><strong>Two ways to add:</strong> Auto-fetch will search for real data automatically.
-    Manual entry lets you input data yourself if auto-fetch fails or for unlisted companies.</div>
-    <div class="fg">
-      <div class="fld"><label>Ticker Symbol *</label>
-        <input id="aSym" placeholder="e.g. AAPL" oninput="AF.sym=this.value.toUpperCase();this.value=AF.sym"/></div>
-      <div class="fld"><label>Company Name *</label>
-        <input id="aName" placeholder="e.g. Apple Inc" oninput="AF.name=this.value"/></div>
-      <div class="fld"><label>Exchange</label>
-        <select id="aExch" onchange="AF.exch=this.value;updateCurDefault()">
-          ${['IDX','ASX','NYSE','NASDAQ'].map(e=>`<option>${e}</option>`).join('')}
-        </select></div>
-      <div class="fld"><label>Currency / Unit</label>
-        <input id="aCur" placeholder="e.g. T IDR" value="T IDR" oninput="AF.cur=this.value"/></div>
-    </div>
-    <div id="aErr" class="err" style="display:none"></div>
-    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
-      <button class="btn btn-ghost" onclick="hideAdd()">Cancel</button>
-      <button class="btn btn-ghost" onclick="submitManualShell()">✏ Add & Enter Manually</button>
-      <button class="btn btn-cyan"  onclick="submitAutoFetch()">⬇ Add & Auto-Fetch</button>
-    </div>`;
+  AF={sym:'',name:'',exch:'ASX',cur:'B AUD',ticker:'',hintCur:'AUD'};
+  renderAddForm();
   document.getElementById('addModal').style.display='flex';
 }
 function hideAdd(){document.getElementById('addModal').style.display='none';}
+
+function renderAddForm(){
+  document.getElementById('addBody').innerHTML=`
+    <div class="notice" style="margin-bottom:14px">
+      <strong>How adding a stock works:</strong><br>
+      1. Fill in the stock details below<br>
+      2. Copy the generated <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">stocks_config.json</code> entry<br>
+      3. Add it to <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">stocks_config.json</code> in your GitHub repo<br>
+      4. Go to <strong>Actions → Refresh Financial Data → Run workflow</strong><br>
+      Data will be fetched automatically and your dashboard will update.
+    </div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <div class="fld"><label>Ticker Symbol *</label>
+        <input id="aSym" placeholder="e.g. CBA, TSM, TLKM"
+          oninput="AF.sym=this.value.toUpperCase();this.value=AF.sym;updateTickerDefault();updateConfigPreview()"/></div>
+      <div class="fld"><label>Company Name *</label>
+        <input id="aName" placeholder="e.g. Commonwealth Bank"
+          oninput="AF.name=this.value;updateConfigPreview()"/></div>
+      <div class="fld"><label>Exchange</label>
+        <select id="aExch" onchange="AF.exch=this.value;updateCurDefault();updateTickerDefault();updateConfigPreview()">
+          ${['ASX','IDX','NYSE','NASDAQ'].map(e=>`<option${e===AF.exch?' selected':''}>${e}</option>`).join('')}
+        </select></div>
+      <div class="fld"><label>Display Currency</label>
+        <input id="aCur" value="${AF.cur}" oninput="AF.cur=this.value;updateConfigPreview()"/></div>
+      <div class="fld"><label>Yahoo Finance Ticker</label>
+        <input id="aTicker" placeholder="e.g. CBA.AX"
+          oninput="AF.ticker=this.value;updateConfigPreview()"/></div>
+    </div>
+
+    <div style="background:var(--bg);border:1px solid var(--bdr);border-radius:9px;padding:12px;margin-bottom:12px">
+      <div style="font-size:10px;color:var(--cyan);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">
+        📋 Copy this into <code>stocks_config.json</code> in your GitHub repo → "custom_stocks" array:
+      </div>
+      <pre id="cfgPreview" style="font-size:11px;color:var(--muted2);line-height:1.6;white-space:pre;overflow-x:auto;margin:0"></pre>
+      <button class="btn btn-ghost btn-xs" style="margin-top:8px" onclick="copyCfgEntry()">📋 Copy to clipboard</button>
+      <span id="cfgCopyMsg" style="font-size:10px;color:var(--green);display:none;margin-left:8px">✓ Copied!</span>
+    </div>
+
+    <div id="aErr" class="err" style="display:none;margin-bottom:10px"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px">
+      <a href="https://github.com/rauladi/fa-dashboard/blob/main/stocks_config.json"
+        target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">
+        📂 Open stocks_config.json on GitHub
+      </a>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-ghost" onclick="hideAdd()">Cancel</button>
+        <button class="btn btn-ghost btn-sm" onclick="submitManualShell()">✏ Enter Data Manually</button>
+        <button class="btn btn-cyan" onclick="submitAddStock()">＋ Add to Dashboard</button>
+      </div>
+    </div>`;
+
+  updateTickerDefault();
+  updateConfigPreview();
+}
+
 function updateCurDefault(){
   const m={IDX:'T IDR',ASX:'B AUD',NYSE:'B USD',NASDAQ:'B USD'};
   const v=m[AF.exch]||'B USD';
-  document.getElementById('aCur').value=v;AF.cur=v;
+  const el=document.getElementById('aCur');
+  if(el){el.value=v;AF.cur=v;}
 }
+
+function updateTickerDefault(){
+  const sym=AF.sym;
+  if(!sym) return;
+  let ticker=sym;
+  if(AF.exch==='ASX') ticker=sym+'.AX';
+  else if(AF.exch==='IDX') ticker=sym+'.JK';
+  AF.ticker=ticker;
+  const el=document.getElementById('aTicker');
+  if(el) el.value=ticker;
+  // hint_cur default
+  AF.hintCur = (AF.exch==='IDX') ? 'IDR' : 'USD';
+  if(AF.exch==='ASX') AF.hintCur='AUD'; // many ASX stocks report AUD
+}
+
+function updateConfigPreview(){
+  const sym=(document.getElementById('aSym')?.value||'').toUpperCase()||'SYMBOL';
+  const name=document.getElementById('aName')?.value||'Company Name';
+  const exch=document.getElementById('aExch')?.value||'ASX';
+  const cur=document.getElementById('aCur')?.value||'B AUD';
+  const ticker=document.getElementById('aTicker')?.value||(sym+(exch==='ASX'?'.AX':exch==='IDX'?'.JK':''));
+  const hintCur=exch==='IDX'?'IDR':exch==='ASX'?'AUD':'USD';
+
+  const entry=`    {\n      "symbol": "${sym}",\n      "name": "${name}",\n      "exchange": "${exch}",\n      "currency": "${cur}",\n      "ticker": "${ticker}",\n      "hint_cur": "${hintCur}"\n    }`;
+  const pre=document.getElementById('cfgPreview');
+  if(pre) pre.textContent=entry;
+}
+
+function copyCfgEntry(){
+  const pre=document.getElementById('cfgPreview');
+  if(!pre) return;
+  navigator.clipboard.writeText(pre.textContent)
+    .then(()=>{
+      const m=document.getElementById('cfgCopyMsg');
+      if(m){m.style.display='inline';setTimeout(()=>m.style.display='none',2500);}
+    })
+    .catch(()=>{
+      const r=document.createRange();r.selectNode(pre);
+      window.getSelection().removeAllRanges();window.getSelection().addRange(r);
+      document.execCommand('copy');
+    });
+}
+
 function validateAddForm(){
-  const sym=(document.getElementById('aSym').value||'').trim().toUpperCase();
-  const name=(document.getElementById('aName').value||'').trim();
-  const exch=document.getElementById('aExch').value;
-  const cur=document.getElementById('aCur').value||'';
+  const sym=(document.getElementById('aSym')?.value||'').trim().toUpperCase();
+  const name=(document.getElementById('aName')?.value||'').trim();
+  const exch=document.getElementById('aExch')?.value;
+  const cur=document.getElementById('aCur')?.value||'';
   if(!sym||!name){showAErr('Ticker symbol and company name are required.');return null;}
   return{sym,name,exch,cur};
 }
 function showAErr(m){const e=document.getElementById('aErr');if(e){e.textContent='⚠ '+m;e.style.display='block';}}
+
+function submitAddStock(){
+  const f=validateAddForm();if(!f)return;
+  const sd={name:f.name,exchange:f.exch,currency:f.cur};
+  S.custom[f.sym]=sd;S.stocks[f.sym]=sd;S.sel=f.sym;S.tab='data';
+  S.status[f.sym]='idle';
+  saveLS();
+  hideAdd();
+  render();
+  showToast(`✓ ${f.sym} added. Add it to stocks_config.json and run the GitHub Actions workflow to fetch data.`,'cyan');
+}
 
 function submitAutoFetch(){
   const f=validateAddForm();if(!f)return;
@@ -1277,10 +1385,16 @@ function submitManualData(){
 }
 
 function delStock(k){
-  if(!confirm(`Remove ${k} from portfolio?`))return;
-  delete S.custom[k];delete S.stocks[k];delete S.data[k];delete S.status[k];
-  S.sel=Object.keys(S.stocks)[0]||'BHP';
+  const isBuiltIn = !!{BHP:1,WDS:1,BBRI:1,ADRO:1,SMSM:1,UNTR:1,ITMG:1,POWR:1,MPMX:1,BTPS:1,DMAS:1,SPTO:1}[k];
+  const msg = isBuiltIn
+    ? `Remove ${k} from the dashboard view?\n\nNote: built-in stocks will reappear on the next data refresh unless removed from fetch_data.py.`
+    : `Remove ${k} from the dashboard?\n\nRemember to also remove it from stocks_config.json on GitHub so it won't be re-added on the next data refresh.`;
+  if(!confirm(msg)) return;
+  delete S.custom[k]; delete S.stocks[k]; delete S.data[k]; delete S.status[k];
+  S.sel = Object.keys(S.stocks)[0] || 'BHP';
+  saveLS();
   render();
+  showToast(`${k} removed from dashboard`,'cyan');
 }
 
 // ═══════════════════════════════════
