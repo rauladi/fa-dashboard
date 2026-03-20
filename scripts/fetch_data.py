@@ -38,7 +38,7 @@ STOCKS = {
     "TSM":  ("Taiwan Semiconductor",    "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
     "V":    ("Visa Inc.",               "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",         "NYSE",   "MA",      "B USD", 1e9,  "USD"),
-    "BRK":   ("Berkshire Hathaway Inc Class B.",  "NYSE",    "BRK.B",  "B USD", 1e9,  "USD"),
+    "BRK":  ("Berkshire Hathaway Inc.", "NYSE",   "BRK",     "B USD", 1e9,  "USD"),
     # ── Custom NASDAQ ───────────────────────────────────────────────
     "MSFT": ("Microsoft Corp.",         "NASDAQ", "MSFT",    "B USD", 1e9,  "USD"),
     "AMZN": ("Amazon.com Inc.",         "NASDAQ", "AMZN",    "B USD", 1e9,  "USD"),
