@@ -36,10 +36,10 @@
     }
     {
     "symbol": "BRK",
-      "name": "Berkshire Hathaway Inc. Class B",
+      "name": "Berkshire Hathaway Inc.",
       "exchange": "NYSE",
       "currency": "B USD",
-      "ticker": "BRK.B",
+      "ticker": "BRK",
       "hint_cur": "USD"
     }
     {
