@@ -35,14 +35,6 @@
       "hint_cur": "USD"
     }
     {
-    "symbol": "BRK",
-      "name": "Berkshire Hathaway Inc.",
-      "exchange": "NYSE",
-      "currency": "B USD",
-      "ticker": "BRK-B",
-      "hint_cur": "USD"
-    }
-    {
       "symbol": "MSFT",
       "name": "Microsoft Corp.",
       "exchange": "NASDAQ",
