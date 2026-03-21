@@ -1506,7 +1506,17 @@ async function boot() {
     const ts = Date.now();
 
     Object.entries(liveData.stocks).forEach(([sym, sd]) => {
-      // Skip stocks the user explicitly deleted
+      // If data.json has real fetched data for this stock, clear any
+      // stale deleted/custom flags — workflow data always wins
+      const hasRealData = Array.isArray(sd.revenue) &&
+                          sd.revenue.some(v => v !== null);
+
+      if (hasRealData && S.deleted && S.deleted[sym]) {
+        delete S.deleted[sym];
+        console.log('Cleared stale deleted flag for', sym);
+      }
+
+      // Skip stocks the user explicitly deleted AND that have no real data
       if (S.deleted && S.deleted[sym]) return;
 
       // ── REGISTER stock if not already known ──────────────────────
@@ -1523,10 +1533,6 @@ async function boot() {
       }
 
       // ── LOAD data from data.json ──────────────────────────────────
-      // Always load from data.json unless the user manually edited this
-      // stock's data themselves. data.json is always the authoritative source.
-      const hasRealData = Array.isArray(sd.revenue) &&
-                          sd.revenue.some(v => v !== null);
       const isUserEdited = S.custom[sym] && S.data[sym] &&
                            S.data[sym].source === 'user-edited';
 
