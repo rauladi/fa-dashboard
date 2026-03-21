@@ -22,7 +22,10 @@ STOCKS = {
     "WDS":  ("Woodside Energy",          "ASX",    "WDS.AX",  "B AUD", 1e9,  "USD"),
     # ── Custom ASX ──────────────────────────────────────────────────
     "CBA":  ("Commonwealth Bank",        "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
-        # ── Built-in IDX ────────────────────────────────────────────────
+    "NAB":  ("National Australia Bank",  "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
+    "DXS":  ("Dexus",                    "ASX",    "DXS.AX",  "B AUD", 1e9,  "AUD"),
+    "CSL":  ("CSL Limited",              "ASX",    "CSL.AX",  "B AUD", 1e9,  "AUD"),
+    # ── Built-in IDX ────────────────────────────────────────────────
     "BBRI": ("Bank Rakyat Indonesia",    "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
     "ADRO": ("Adaro Energy",             "IDX",    "ADRO.JK", "T IDR", 1e12, "USD"),
     "SMSM": ("Selamat Sempurna",         "IDX",    "SMSM.JK", "T IDR", 1e12, "IDR"),
@@ -222,12 +225,14 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx):
         rev_val = safe(rv[ic] if rv is not None else None, div, fx)
         eps_val = safe(ep[ic] if ep is not None else None, 1, epsfx)
 
-        # ── Completeness guard ───────────────────────────────────────
-        # If revenue exists but EPS is null, the annual report data is
-        # incomplete/TTM (e.g. yfinance TTM column, or preliminary filing
-        # without per-share data). Treat the whole year as unpublished.
-        if rev_val is not None and eps_val is None:
-            print(f"    ⚠ yr={yr}: revenue present but EPS null → treating as incomplete/TTM, returning nulls", flush=True)
+        # ── Completeness guard (LATEST YEAR ONLY) ───────────────────
+        # For the most recently completed year only: if revenue exists
+        # but EPS is null, yfinance is likely returning a TTM/incomplete
+        # column rather than an actual published annual report.
+        # For historical years we accept whatever data is available.
+        if yr == LATEST_YEAR and rev_val is not None and eps_val is None:
+            print(f"    ⚠ yr={yr} (latest): revenue present but EPS null "
+                  f"→ TTM/incomplete, skipping", flush=True)
             row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None,
                        totalAsset=None,cash=None,totalDebt=None,totalEquity=None,dps=None)
             return row
