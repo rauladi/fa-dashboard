@@ -1523,19 +1523,14 @@ async function boot() {
       }
 
       // ── LOAD data from data.json ──────────────────────────────────
-      // Always use data.json if it has real yfinance data — even if
-      // the stock was previously added as "custom" via the Add button.
-      // This fixes the case where user added CBA/TSM manually before
-      // the workflow fetched them.
-      const hasRealData = sd.source === 'yfinance' &&
-                          Array.isArray(sd.revenue) &&
+      // Always load from data.json unless the user manually edited this
+      // stock's data themselves. data.json is always the authoritative source.
+      const hasRealData = Array.isArray(sd.revenue) &&
                           sd.revenue.some(v => v !== null);
       const isUserEdited = S.custom[sym] && S.data[sym] &&
                            S.data[sym].source === 'user-edited';
 
       if (!isUserEdited) {
-        // Load from data.json (covers both base stocks and custom stocks
-        // that now have fetched data)
         S.data[sym] = {
           totalAsset:  sd.totalAsset,
           cash:        sd.cash,
@@ -1553,9 +1548,9 @@ async function boot() {
         };
         S.status[sym] = hasRealData ? 'ok' : 'idle';
 
-        // If this stock was in S.custom but now has real data, it no
-        // longer needs to be tracked as custom (workflow handles it)
-        if (S.custom[sym] && hasRealData) {
+        // Always clear custom flag if data.json has data for this stock —
+        // the workflow is now the authoritative source for all these stocks
+        if (S.custom[sym]) {
           delete S.custom[sym];
         }
       }
@@ -1564,6 +1559,11 @@ async function boot() {
     // ── REMOVE stocks deleted from stocks_config.json ─────────────
     // Any non-built-in stock NOT in data.json AND NOT user-custom → remove
     const liveSyms = new Set(Object.keys(liveData.stocks));
+    // Also clear deleted/custom flags for stocks no longer in data.json
+    ['NAB','DXS','CSL','BRK'].forEach(sym => {
+      delete S.deleted[sym]; delete S.custom[sym];
+      delete S.stocks[sym];  delete S.data[sym]; delete S.status[sym];
+    });
     Object.keys(S.stocks).forEach(sym => {
       if (!BASE_STOCKS[sym] && !S.custom[sym] && !liveSyms.has(sym)) {
         delete S.stocks[sym];
