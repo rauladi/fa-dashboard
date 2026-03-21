@@ -271,7 +271,7 @@ const N_YEARS      = YEARS.length; // 6
 // annualisation metadata loaded from data.json: {SYM: {label:"9M×1.333", quarters:3, asOf:"2026-09-30"}}
 let ANNUALISATION  = {};
 
-const LS_KEY='fa_v4';
+const LS_KEY='fa_v5';
 const CACHE_TTL=7*24*60*60*1000; // 7 days
 
 const BASE_STOCKS={
@@ -1505,78 +1505,40 @@ async function boot() {
     ANNUALISATION = liveData.annualisation || {};
     const ts = Date.now();
 
+    // ── Clean slate: reset stocks to only what data.json provides ──
+    // Since LS_KEY bumped to v5, S.custom/deleted/status are all fresh.
+    // data.json is the single source of truth for all stocks.
+    S.stocks  = {...BASE_STOCKS};
+    S.custom  = {};
+    S.deleted = {};
+
     Object.entries(liveData.stocks).forEach(([sym, sd]) => {
-      // If data.json has real fetched data for this stock, clear any
-      // stale deleted/custom flags — workflow data always wins
-      const hasRealData = Array.isArray(sd.revenue) &&
-                          sd.revenue.some(v => v !== null);
+      const hasData = Array.isArray(sd.revenue) && sd.revenue.some(v => v !== null);
 
-      if (hasRealData && S.deleted && S.deleted[sym]) {
-        delete S.deleted[sym];
-        console.log('Cleared stale deleted flag for', sym);
-      }
+      // Register stock (adds custom/NYSE/NASDAQ stocks not in BASE_STOCKS)
+      S.stocks[sym] = {
+        name:     sd.name     || sym,
+        exchange: sd.exchange || 'NYSE',
+        currency: sd.currency || 'B USD',
+      };
 
-      // Skip stocks the user explicitly deleted AND that have no real data
-      if (S.deleted && S.deleted[sym]) return;
-
-      // ── REGISTER stock if not already known ──────────────────────
-      if (!S.stocks[sym]) {
-        S.stocks[sym] = {
-          name:     sd.name     || sym,
-          exchange: sd.exchange || 'NYSE',
-          currency: sd.currency || 'B USD',
-        };
-      } else {
-        S.stocks[sym].name     = sd.name     || S.stocks[sym].name;
-        S.stocks[sym].exchange = sd.exchange || S.stocks[sym].exchange;
-        S.stocks[sym].currency = sd.currency || S.stocks[sym].currency;
-      }
-
-      // ── LOAD data from data.json ──────────────────────────────────
-      const isUserEdited = S.custom[sym] && S.data[sym] &&
-                           S.data[sym].source === 'user-edited';
-
-      if (!isUserEdited) {
-        S.data[sym] = {
-          totalAsset:  sd.totalAsset,
-          cash:        sd.cash,
-          totalDebt:   sd.totalDebt,
-          totalEquity: sd.totalEquity,
-          revenue:     sd.revenue,
-          grossProfit: sd.grossProfit,
-          netProfit:   sd.netProfit,
-          eps:         sd.eps,
-          dps:         sd.dps,
-          fetchedAt:   ts,
-          source:      sd.source === 'yfinance' ? 'yfinance' : 'built-in',
-          ticker:      sd.ticker,
-          generated:   liveData.generated,
-        };
-        S.status[sym] = hasRealData ? 'ok' : 'idle';
-
-        // Always clear custom flag if data.json has data for this stock —
-        // the workflow is now the authoritative source for all these stocks
-        if (S.custom[sym]) {
-          delete S.custom[sym];
-        }
-      }
-    });
-
-    // ── REMOVE stocks deleted from stocks_config.json ─────────────
-    // Any non-built-in stock NOT in data.json AND NOT user-custom → remove
-    const liveSyms = new Set(Object.keys(liveData.stocks));
-    // Also clear deleted/custom flags for stocks no longer in data.json
-    ['NAB','DXS','CSL','BRK'].forEach(sym => {
-      delete S.deleted[sym]; delete S.custom[sym];
-      delete S.stocks[sym];  delete S.data[sym]; delete S.status[sym];
-    });
-    Object.keys(S.stocks).forEach(sym => {
-      if (!BASE_STOCKS[sym] && !S.custom[sym] && !liveSyms.has(sym)) {
-        delete S.stocks[sym];
-        delete S.data[sym];
-        delete S.status[sym];
-        console.log('Removed stale stock:', sym);
-      }
+      // Load data unconditionally — data.json is always authoritative
+      S.data[sym] = {
+        totalAsset:  sd.totalAsset,
+        cash:        sd.cash,
+        totalDebt:   sd.totalDebt,
+        totalEquity: sd.totalEquity,
+        revenue:     sd.revenue,
+        grossProfit: sd.grossProfit,
+        netProfit:   sd.netProfit,
+        eps:         sd.eps,
+        dps:         sd.dps,
+        fetchedAt:   ts,
+        source:      sd.source === 'yfinance' ? 'yfinance' : 'built-in',
+        ticker:      sd.ticker,
+        generated:   liveData.generated,
+      };
+      S.status[sym] = hasData ? 'ok' : 'idle';
     });
 
     const genDate = new Date(liveData.generated).toLocaleDateString();
@@ -1584,7 +1546,6 @@ async function boot() {
     if (_hSub) _hSub.textContent =
       `ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]}`;
 
-    // Select first stock if current selection no longer exists
     if (!S.stocks[S.sel]) S.sel = Object.keys(S.stocks)[0] || 'BHP';
 
   } else {
