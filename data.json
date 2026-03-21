@@ -1,5 +1,5 @@
 {
-  "generated": "2026-03-21T11:56:03.731964+00:00",
+  "generated": "2026-03-21T12:07:20.852991+00:00",
   "years": [
     2021,
     2022,
@@ -36,6 +36,24 @@
       "asOf": null
     },
     "CBA": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "NAB": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "DXS": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "CSL": {
       "method": "none",
       "label": null,
       "quarters": 0,
@@ -322,6 +340,243 @@
       "exchange": "ASX",
       "currency": "B AUD",
       "ticker": "CBA.AX",
+      "source": "yfinance",
+      "totalAsset": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "cash": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "totalDebt": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "totalEquity": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "revenue": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "grossProfit": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "netProfit": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eps": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "dps": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "NAB": {
+      "name": "National Australia Bank",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "NAB.AX",
+      "source": "yfinance",
+      "totalAsset": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "cash": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "totalDebt": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "totalEquity": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "revenue": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "grossProfit": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "netProfit": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eps": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "dps": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "DXS": {
+      "name": "Dexus",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "DXS.AX",
+      "source": "yfinance",
+      "totalAsset": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "cash": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "totalDebt": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "totalEquity": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "revenue": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "grossProfit": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "netProfit": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "eps": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "dps": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    "CSL": {
+      "name": "CSL Limited",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "CSL.AX",
       "source": "yfinance",
       "totalAsset": [
         null,
