@@ -1520,7 +1520,10 @@ const AI_CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
 async function callClaude(prompt) {
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
+    headers: {
+      "Content-Type": "application/json",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
     body: JSON.stringify({
       model: "claude-sonnet-4-20250514",
       max_tokens: 1000,
@@ -1528,7 +1531,10 @@ async function callClaude(prompt) {
       messages: [{ role: "user", content: prompt }]
     })
   });
-  if (!resp.ok) throw new Error(`API error ${resp.status}`);
+  if (!resp.ok) {
+    const errText = await resp.text().catch(()=>'');
+    throw new Error(`API error ${resp.status}: ${errText.slice(0,120)}`);
+  }
   const data = await resp.json();
   return data.content
     .filter(b => b.type === "text")
