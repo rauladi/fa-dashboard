@@ -221,10 +221,25 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx):
         ni =find_row(inc,"Net Income","NetIncome","Net Income Common Stockholders","Net Income Including Noncontrolling Interests")
         ep =find_row(inc,"Basic EPS","BasicEPS","Diluted EPS","EPS Diluted")
         sh =find_row(inc,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
-        row["revenue"]    =safe(rv[ic] if rv is not None else None,div,fx)
+
+        rev_val = safe(rv[ic] if rv is not None else None, div, fx)
+        eps_val = safe(ep[ic] if ep is not None else None, 1, epsfx)
+
+        # ── Completeness guard ───────────────────────────────────────
+        # If revenue exists but EPS is null, the annual report data is
+        # incomplete/TTM (e.g. yfinance TTM column, or preliminary filing
+        # without per-share data). Treat the whole year as unpublished.
+        if rev_val is not None and eps_val is None:
+            print(f"    ⚠ yr={yr}: revenue present but EPS null → treating as incomplete/TTM, returning nulls", flush=True)
+            row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None,
+                       totalAsset=None,cash=None,totalDebt=None,totalEquity=None,dps=None)
+            return row
+        # ────────────────────────────────────────────────────────────
+
+        row["revenue"]    = rev_val
         row["grossProfit"]=safe(gp[ic] if gp is not None else None,div,fx)
         row["netProfit"]  =safe(ni[ic] if ni is not None else None,div,fx)
-        row["eps"]        =safe(ep[ic] if ep is not None else None,1,epsfx)
+        row["eps"]        = eps_val
         row["_sh"]        =safe(sh[ic] if sh is not None else None)
     else:
         row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None)
