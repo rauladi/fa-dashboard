@@ -1,5 +1,5 @@
 {
-  "generated": "2026-03-21T12:07:20.852991+00:00",
+  "generated": "2026-03-21T12:15:10.077671+00:00",
   "years": [
     2021,
     2022,
@@ -36,24 +36,6 @@
       "asOf": null
     },
     "CBA": {
-      "method": "none",
-      "label": null,
-      "quarters": 0,
-      "asOf": null
-    },
-    "NAB": {
-      "method": "none",
-      "label": null,
-      "quarters": 0,
-      "asOf": null
-    },
-    "DXS": {
-      "method": "none",
-      "label": null,
-      "quarters": 0,
-      "asOf": null
-    },
-    "CSL": {
       "method": "none",
       "label": null,
       "quarters": 0,
@@ -125,12 +107,6 @@
       "quarters": 0,
       "asOf": null
     },
-    "BRK": {
-      "method": "none",
-      "label": null,
-      "quarters": 0,
-      "asOf": null
-    },
     "V": {
       "method": "none",
       "label": null,
@@ -174,6 +150,18 @@
       "months": 3,
       "factor": 4.0,
       "asOf": "2026-01-31"
+    },
+    "GOOG": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
+    },
+    "BKNG": {
+      "method": "none",
+      "label": null,
+      "quarters": 0,
+      "asOf": null
     }
   },
   "stocks": {
@@ -340,243 +328,6 @@
       "exchange": "ASX",
       "currency": "B AUD",
       "ticker": "CBA.AX",
-      "source": "yfinance",
-      "totalAsset": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "cash": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "totalDebt": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "totalEquity": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "revenue": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "grossProfit": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "netProfit": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "eps": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "dps": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ]
-    },
-    "NAB": {
-      "name": "National Australia Bank",
-      "exchange": "ASX",
-      "currency": "B AUD",
-      "ticker": "NAB.AX",
-      "source": "yfinance",
-      "totalAsset": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "cash": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "totalDebt": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "totalEquity": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "revenue": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "grossProfit": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "netProfit": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "eps": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "dps": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ]
-    },
-    "DXS": {
-      "name": "Dexus",
-      "exchange": "ASX",
-      "currency": "B AUD",
-      "ticker": "DXS.AX",
-      "source": "yfinance",
-      "totalAsset": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "cash": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "totalDebt": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "totalEquity": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "revenue": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "grossProfit": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "netProfit": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "eps": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ],
-      "dps": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ]
-    },
-    "CSL": {
-      "name": "CSL Limited",
-      "exchange": "ASX",
-      "currency": "B AUD",
-      "ticker": "CSL.AX",
       "source": "yfinance",
       "totalAsset": [
         null,
@@ -1520,85 +1271,6 @@
         null
       ]
     },
-    "BRK": {
-      "name": "Berkshire Hathaway B",
-      "exchange": "NYSE",
-      "currency": "B USD",
-      "ticker": "BRK-B",
-      "source": "yfinance",
-      "totalAsset": [
-        null,
-        948.465,
-        1069.978,
-        1153.881,
-        null,
-        null
-      ],
-      "cash": [
-        null,
-        35.811,
-        38.022,
-        47.729,
-        null,
-        null
-      ],
-      "totalDebt": [
-        null,
-        122.744,
-        128.271,
-        124.762,
-        null,
-        null
-      ],
-      "totalEquity": [
-        null,
-        473.424,
-        561.273,
-        649.368,
-        null,
-        null
-      ],
-      "revenue": [
-        null,
-        234.121,
-        439.337,
-        424.232,
-        null,
-        null
-      ],
-      "grossProfit": [
-        null,
-        -4.352,
-        -5.003,
-        -5.2,
-        null,
-        null
-      ],
-      "netProfit": [
-        null,
-        -22.759,
-        96.223,
-        88.995,
-        null,
-        null
-      ],
-      "eps": [
-        39.7027,
-        -10.3293,
-        44.2747,
-        41.2667,
-        null,
-        null
-      ],
-      "dps": [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null
-      ]
-    },
     "V": {
       "name": "Visa Inc.",
       "exchange": "NYSE",
@@ -2150,6 +1822,164 @@
         0.034,
         0.04,
         0.0398
+      ]
+    },
+    "GOOG": {
+      "name": "Alphabet Inc (Google)",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "GOOG",
+      "source": "yfinance",
+      "totalAsset": [
+        null,
+        365.264,
+        402.392,
+        450.256,
+        595.281,
+        null
+      ],
+      "cash": [
+        null,
+        21.879,
+        24.048,
+        23.466,
+        30.708,
+        null
+      ],
+      "totalDebt": [
+        null,
+        29.679,
+        27.121,
+        22.574,
+        59.291,
+        null
+      ],
+      "totalEquity": [
+        null,
+        256.144,
+        283.379,
+        325.084,
+        415.265,
+        null
+      ],
+      "revenue": [
+        null,
+        282.836,
+        307.394,
+        350.018,
+        402.836,
+        null
+      ],
+      "grossProfit": [
+        null,
+        156.633,
+        174.062,
+        203.712,
+        240.301,
+        null
+      ],
+      "netProfit": [
+        null,
+        59.972,
+        73.795,
+        100.118,
+        132.17,
+        null
+      ],
+      "eps": [
+        null,
+        4.59,
+        5.84,
+        8.13,
+        10.91,
+        null
+      ],
+      "dps": [
+        null,
+        null,
+        null,
+        0.5977,
+        0.8294,
+        null
+      ]
+    },
+    "BKNG": {
+      "name": "Booking Holdings Inc",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "BKNG",
+      "source": "yfinance",
+      "totalAsset": [
+        null,
+        25.361,
+        24.342,
+        27.708,
+        29.264,
+        null
+      ],
+      "cash": [
+        null,
+        12.221,
+        12.107,
+        16.164,
+        17.203,
+        null
+      ],
+      "totalDebt": [
+        null,
+        13.037,
+        14.783,
+        17.081,
+        19.293,
+        null
+      ],
+      "totalEquity": [
+        null,
+        2.782,
+        -2.744,
+        -4.02,
+        -5.578,
+        null
+      ],
+      "revenue": [
+        null,
+        17.09,
+        21.365,
+        23.739,
+        26.917,
+        null
+      ],
+      "grossProfit": [
+        null,
+        -0.172,
+        0.123,
+        -0.181,
+        -0.696,
+        null
+      ],
+      "netProfit": [
+        null,
+        3.058,
+        4.289,
+        5.882,
+        5.404,
+        null
+      ],
+      "eps": [
+        null,
+        76.7,
+        118.67,
+        174.96,
+        166.52,
+        null
+      ],
+      "dps": [
+        null,
+        null,
+        null,
+        34.9176,
+        38.4568,
+        null
       ]
     }
   }
