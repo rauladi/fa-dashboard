@@ -1518,10 +1518,14 @@ const AI_CACHE = {};
 const AI_CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
 
 async function callClaude(prompt) {
+  const apiKey = localStorage.getItem('fa_apikey') || localStorage.getItem('fa_anthropic_key') || '';
+  if (!apiKey) throw new Error('NO_KEY');
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
       "anthropic-dangerous-direct-browser-access": "true"
     },
     body: JSON.stringify({
@@ -1533,13 +1537,48 @@ async function callClaude(prompt) {
   });
   if (!resp.ok) {
     const errText = await resp.text().catch(()=>'');
-    throw new Error(`API error ${resp.status}: ${errText.slice(0,120)}`);
+    throw new Error(`API error ${resp.status}: ${errText.slice(0,200)}`);
   }
   const data = await resp.json();
   return data.content
     .filter(b => b.type === "text")
     .map(b => b.text)
     .join("\n");
+}
+
+function apiKeyPromptHTML(tab) {
+  return `<div class="ai-panel">
+    <div style="background:var(--surf);border:1px solid var(--bdr2);border-radius:12px;padding:24px;max-width:520px;margin:0 auto">
+      <div style="font-size:20px;margin-bottom:8px">🔑 Anthropic API Key Required</div>
+      <p style="font-size:12px;color:var(--muted2);line-height:1.7;margin-bottom:16px">
+        The Profile and News tabs use Claude AI with live web search.<br>
+        You need your own Anthropic API key to use this feature.<br><br>
+        <strong>Get a free key:</strong> <a href="https://console.anthropic.com" target="_blank"
+          style="color:var(--cyan)">console.anthropic.com</a> → API Keys → Create Key<br>
+        <span style="font-size:10px;color:var(--muted)">If you've already set this in your FOLIO dashboard, it should work automatically — both apps share the same key storage.</span>
+      </p>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input id="apiKeyInput" type="password" placeholder="sk-ant-api03-..."
+          style="flex:1;background:var(--bg);border:1px solid var(--bdr2);border-radius:8px;
+            padding:9px 12px;color:var(--txt);font-size:12px;font-family:var(--font)"/>
+        <button class="btn btn-cyan" onclick="saveApiKey('${tab}')">Save & Continue</button>
+      </div>
+      <p style="font-size:10px;color:var(--muted)">
+        🔒 Stored only in your browser's localStorage. Never sent to any server except directly to Anthropic.
+      </p>
+    </div>
+  </div>`;
+}
+
+function saveApiKey(tab) {
+  const key = document.getElementById('apiKeyInput')?.value?.trim();
+  if (!key || !key.startsWith('sk-ant')) {
+    alert('Please enter a valid Anthropic API key (starts with sk-ant...)');
+    return;
+  }
+  localStorage.setItem('fa_apikey', key);          // same key as FOLIO
+  localStorage.setItem('fa_anthropic_key', key);   // backward compat
+  setTab(tab);
 }
 
 function mdToHtml(md) {
@@ -1574,7 +1613,9 @@ async function tabProfile(sym, st, cont) {
     cont.innerHTML = profileHTML(sym, st, cache.content, cache.ts, false);
     return;
   }
-
+  if (!localStorage.getItem('fa_anthropic_key')) {
+    cont.innerHTML = apiKeyPromptHTML('profile'); return;
+  }
   cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Researching ${st.name}…`)}</div>`;
 
   const ticker = S.data[sym]?.ticker || sym;
@@ -1606,8 +1647,10 @@ Keep the response factual, concise and focused on fundamentals relevant to long-
     AI_CACHE[sym].profile = { content, ts: now };
     cont.innerHTML = profileHTML(sym, st, content, now, false);
   } catch(e) {
+    if (e.message === 'NO_KEY') { cont.innerHTML = apiKeyPromptHTML('profile'); return; }
     cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
       <button class="btn btn-ghost" onclick="AI_CACHE['${sym}']&&delete AI_CACHE['${sym}'].profile;setTab('profile')">↻ Retry</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_anthropic_key');setTab('profile')">🔑 Change API Key</button>
     </div>`;
   }
 }
@@ -1640,7 +1683,9 @@ async function tabNews(sym, st, cont) {
     cont.innerHTML = newsHTML(sym, st, cache.content, cache.ts);
     return;
   }
-
+  if (!localStorage.getItem('fa_anthropic_key')) {
+    cont.innerHTML = apiKeyPromptHTML('news'); return;
+  }
   cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Searching latest news for ${st.name}…`)}</div>`;
 
   const ticker = S.data[sym]?.ticker || sym;
@@ -1669,8 +1714,10 @@ Focus only on genuine fundamental business news. Skip purely technical/price mov
     AI_CACHE[sym].news = { content, ts: now };
     cont.innerHTML = newsHTML(sym, st, content, now);
   } catch(e) {
+    if (e.message === 'NO_KEY') { cont.innerHTML = apiKeyPromptHTML('news'); return; }
     cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
       <button class="btn btn-ghost" onclick="AI_CACHE['${sym}']&&delete AI_CACHE['${sym}'].news;setTab('news')">↻ Retry</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_anthropic_key');setTab('news')">🔑 Change API Key</button>
     </div>`;
   }
 }
