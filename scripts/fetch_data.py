@@ -22,10 +22,7 @@ STOCKS = {
     "WDS":  ("Woodside Energy",          "ASX",    "WDS.AX",  "B AUD", 1e9,  "USD"),
     # ── Custom ASX ──────────────────────────────────────────────────
     "CBA":  ("Commonwealth Bank",        "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
-    "NAB":  ("National Australia Bank",  "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
-    "DXS":  ("Dexus",                    "ASX",    "DXS.AX",  "B AUD", 1e9,  "AUD"),
-    "CSL":  ("CSL Limited",              "ASX",    "CSL.AX",  "B AUD", 1e9,  "AUD"),
-    # ── Built-in IDX ────────────────────────────────────────────────
+        # ── Built-in IDX ────────────────────────────────────────────────
     "BBRI": ("Bank Rakyat Indonesia",    "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
     "ADRO": ("Adaro Energy",             "IDX",    "ADRO.JK", "T IDR", 1e12, "USD"),
     "SMSM": ("Selamat Sempurna",         "IDX",    "SMSM.JK", "T IDR", 1e12, "IDR"),
