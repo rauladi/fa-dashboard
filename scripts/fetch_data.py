@@ -22,6 +22,9 @@ STOCKS = {
     "WDS":  ("Woodside Energy",          "ASX",    "WDS.AX",  "B AUD", 1e9,  "USD"),
     # ── Custom ASX ──────────────────────────────────────────────────
     "CBA":  ("Commonwealth Bank",        "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
+    "NAB":  ("National Australia Bank",  "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
+    "DXS":  ("Dexus",                    "ASX",    "DXS.AX",  "B AUD", 1e9,  "AUD"),
+    "CSL":  ("CSL Limited",              "ASX",    "CSL.AX",  "B AUD", 1e9,  "AUD"),
     # ── Built-in IDX ────────────────────────────────────────────────
     "BBRI": ("Bank Rakyat Indonesia",    "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
     "ADRO": ("Adaro Energy",             "IDX",    "ADRO.JK", "T IDR", 1e12, "USD"),
@@ -36,16 +39,15 @@ STOCKS = {
     # ── Custom NYSE ─────────────────────────────────────────────────
     # TSM trades on NYSE and reports financials in USD
     "TSM":  ("Taiwan Semiconductor",    "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
+    "BRK":  ("Berkshire Hathaway B",    "NYSE",   "BRK-B",   "B USD", 1e9,  "USD"),
     "V":    ("Visa Inc.",               "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",         "NYSE",   "MA",      "B USD", 1e9,  "USD"),
     # ── Custom NASDAQ ───────────────────────────────────────────────
     "MSFT": ("Microsoft Corp.",         "NASDAQ", "MSFT",    "B USD", 1e9,  "USD"),
     "AMZN": ("Amazon.com Inc.",         "NASDAQ", "AMZN",    "B USD", 1e9,  "USD"),
     "AAPL": ("Apple Inc.",              "NASDAQ", "AAPL",    "B USD", 1e9,  "USD"),
-    "GOOG": ("Alphabet Inc (Google)",   "NASDAQ", "AAPL",    "B USD", 1e9,  "USD"),
     "META": ("Meta Platforms Inc.",     "NASDAQ", "META",    "B USD", 1e9,  "USD"),
     "NVDA": ("NVIDIA Corporation",      "NASDAQ", "NVDA",    "B USD", 1e9,  "USD"),
-    "BKNG": ("Booking Holding Inc.",    "NASDAQ", "BKNG",    "B USD", 1e9,  "USD"),
 }
 
 # ── Also load any stocks_config.json (for future additions without editing this file)
@@ -175,12 +177,28 @@ def find_row(df, *names):
     return None
 
 def col_yr(df, yr):
+    """
+    Return the column for fiscal year `yr` from an ANNUAL statement DataFrame.
+    Only accepts dates that plausibly represent a full-year result:
+      - Month 10-12 of year `yr`  (Q4 end: e.g. Dec 31, Sep 30 for Sep FY end)
+      - Month 1-4  of year `yr+1` (delayed filing or Jan-Mar FY end)
+    This rejects interim/quarterly columns (e.g. Sep 30 of same year = Q3 only)
+    that yfinance sometimes includes in the annual financials DataFrame.
+    """
     if df is None or df.empty: return None
+    best = None
     for c in df.columns:
         try:
-            if hasattr(c,"year") and c.year==yr: return c
-        except Exception: pass
-    return None
+            if not hasattr(c, "year"): continue
+            cy, cm = c.year, c.month
+            # Full year for yr: Q4 of yr OR Q1 of yr+1
+            if (cy == yr     and cm >= 10) or \
+               (cy == yr + 1 and cm <= 4):
+                if best is None or c > best:
+                    best = c
+        except Exception:
+            pass
+    return best
 
 def cols_yr(df, yr):
     if df is None or df.empty: return []
