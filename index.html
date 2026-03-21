@@ -138,7 +138,41 @@ td.num{font-size:12px;font-weight:500}
 .tw-ok{background:rgba(0,217,126,.15);color:var(--green)}
 .tw-bad{background:rgba(255,64,96,.15);color:var(--red)}
 
-/* ── RANK CIRCLES ── */
+/* ── AI TABS (Profile & News) ── */
+.ai-panel{padding:18px 20px;max-width:900px;margin:0 auto}
+.ai-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:220px;gap:14px;color:var(--muted2)}
+.ai-loading .spinner{width:32px;height:32px;border-width:3px}
+.ai-content{font-size:13px;line-height:1.75;color:var(--txt)}
+.ai-content h2{font-size:15px;font-weight:700;color:var(--cyan);margin:18px 0 8px;
+  border-bottom:1px solid var(--bdr);padding-bottom:6px}
+.ai-content h3{font-size:13px;font-weight:700;color:var(--muted2);margin:14px 0 5px}
+.ai-content p{margin-bottom:10px;color:var(--muted2)}
+.ai-content ul{margin:6px 0 12px 18px;color:var(--muted2)}
+.ai-content li{margin-bottom:4px}
+.ai-content strong{color:var(--txt)}
+.ai-content .tag{display:inline-block;background:var(--surf2);border:1px solid var(--bdr2);
+  border-radius:5px;padding:2px 8px;font-size:10px;color:var(--cyan);margin:2px}
+.ai-error{background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.3);
+  border-radius:10px;padding:14px 18px;color:#ff9aaa;font-size:12px;margin:16px 0}
+.news-card{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;
+  padding:14px 16px;margin-bottom:12px}
+.news-card:hover{border-color:var(--bdr2);background:var(--surf2)}
+.news-card .nc-title{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:5px;line-height:1.4}
+.news-card .nc-meta{font-size:10px;color:var(--muted);margin-bottom:7px}
+.news-card .nc-body{font-size:12px;color:var(--muted2);line-height:1.6}
+.news-card .nc-tag{font-size:9px;padding:2px 6px;border-radius:4px;margin-left:6px;
+  background:rgba(0,196,224,.12);color:var(--cyan);border:1px solid rgba(0,196,224,.2)}
+.sh-row{display:flex;align-items:center;gap:10px;padding:9px 12px;
+  background:var(--surf);border:1px solid var(--bdr);border-radius:8px;margin-bottom:7px}
+.sh-rank{width:24px;height:24px;border-radius:50%;background:var(--surf2);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;
+  color:var(--cyan);flex-shrink:0}
+.sh-name{flex:1;font-size:12px;font-weight:600;color:var(--txt)}
+.sh-pct{font-size:12px;font-weight:700;color:var(--yellow)}
+.sh-type{font-size:10px;color:var(--muted);margin-left:auto}
+.ai-cache-note{font-size:10px;color:var(--muted);text-align:right;margin-top:8px}
+.ai-refresh-btn{font-size:10px;padding:3px 10px;margin-left:8px}
 .rc{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
   border-radius:50%;font-size:10px;font-weight:700}
 .rc1{background:rgba(255,208,96,.25);color:#ffd060;box-shadow:0 0 6px rgba(255,208,96,.5)}
@@ -234,6 +268,8 @@ td.num{font-size:12px;font-weight:500}
   <button class="t-btn"    id="t-ratios"   onclick="setTab('ratios')">📐 Ratios</button>
   <button class="t-btn"    id="t-chart"    onclick="setTab('chart')">📈 Chart</button>
   <button class="t-btn"    id="t-rankings" onclick="setTab('rankings')">🏆 Rankings</button>
+  <button class="t-btn"    id="t-profile"  onclick="setTab('profile')">🏢 Profile</button>
+  <button class="t-btn"    id="t-news"     onclick="setTab('news')">📰 News</button>
 </div>
 
 <div id="cont"></div>
@@ -826,7 +862,7 @@ function render(){
 }
 
 function renderTabBtns(){
-  ['data','ratios','chart','rankings'].forEach(t=>{
+  ['data','ratios','chart','rankings','profile','news'].forEach(t=>{
     const e=document.getElementById('t-'+t);
     if(e) e.className='t-btn'+(S.tab===t?' on':'');
   });
@@ -848,13 +884,16 @@ function renderSBar(){
 function renderMain(){
   const cont=document.getElementById('cont');
   if(S.tab==='rankings'){cont.innerHTML=tabRankings();return;}
+  if(S.tab==='profile'||S.tab==='news'){
+    const st=S.stocks[S.sel];
+    if(S.tab==='profile') tabProfile(S.sel,st,cont);
+    else tabNews(S.sel,st,cont);
+    return;
+  }
   const st=S.stocks[S.sel];
   const stat=S.status[S.sel]||'idle';
-  // Show spinner only when loading (Yahoo refresh in progress)
   if(stat==='loading'){cont.innerHTML=stateBox('loading',S.sel,st);return;}
-  // Show placeholder only for custom stocks with no data at all
   if(!S.data[S.sel]){cont.innerHTML=stateBox('none',S.sel,st);return;}
-  // Render tabs
   if(S.tab==='data')    cont.innerHTML=tabData(S.sel,st);
   else if(S.tab==='ratios') cont.innerHTML=tabRatios(S.sel,st);
   else if(S.tab==='chart'){
@@ -1471,8 +1510,206 @@ function copyLink(){
 }
 
 // ═══════════════════════════════════
-// ACTIONS
+// PROFILE & NEWS TABS (AI-powered)
 // ═══════════════════════════════════
+
+// Cache: {sym: {profile:{content,ts}, news:{content,ts}}}
+const AI_CACHE = {};
+const AI_CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
+
+async function callClaude(prompt) {
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 1000,
+      tools: [{ type: "web_search_20250305", name: "web_search" }],
+      messages: [{ role: "user", content: prompt }]
+    })
+  });
+  if (!resp.ok) throw new Error(`API error ${resp.status}`);
+  const data = await resp.json();
+  return data.content
+    .filter(b => b.type === "text")
+    .map(b => b.text)
+    .join("\n");
+}
+
+function mdToHtml(md) {
+  return md
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/gs, m => `<ul>${m}</ul>`)
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hul])(.+)$/gm, '<p>$1</p>')
+    .replace(/<p><\/p>/g, '')
+    .replace(/<p>(<[hul])/g, '$1')
+    .replace(/(<\/[hul][^>]*>)<\/p>/g, '$1');
+}
+
+function aiLoadingHTML(msg) {
+  return `<div class="ai-loading"><div class="spinner"></div><div>${msg}</div></div>`;
+}
+
+function aiErrorHTML(err) {
+  return `<div class="ai-error">⚠ ${err}<br><small>Check your internet connection and try again.</small></div>`;
+}
+
+// ── PROFILE TAB ──────────────────────────────────────────────────────
+async function tabProfile(sym, st, cont) {
+  const cache = AI_CACHE[sym]?.profile;
+  const now = Date.now();
+
+  if (cache && (now - cache.ts) < AI_CACHE_TTL) {
+    cont.innerHTML = profileHTML(sym, st, cache.content, cache.ts, false);
+    return;
+  }
+
+  cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Researching ${st.name}…`)}</div>`;
+
+  const ticker = S.data[sym]?.ticker || sym;
+  const prompt = `Research ${st.name} (ticker: ${ticker}, exchange: ${st.exchange}).
+
+Provide a comprehensive company profile in this exact structure using markdown:
+
+## Company Overview
+Brief description of what the company does, its history, headquarters, founding year, and business model.
+
+## Business Segments
+Main business divisions and what percentage of revenue each contributes.
+
+## Competitive Position
+Key competitive advantages, market position, and moat.
+
+## Top 5 Shareholders
+List the top 5 institutional/major shareholders with their approximate percentage ownership. Format each as:
+- **[Rank]. [Shareholder Name]** — [X.X]% — [Type: e.g. Institutional, Founder, Government]
+
+## Key Risks
+3-4 main fundamental risks investors should be aware of.
+
+Keep the response factual, concise and focused on fundamentals relevant to long-term investors. Use current data where available.`;
+
+  try {
+    const content = await callClaude(prompt);
+    if (!AI_CACHE[sym]) AI_CACHE[sym] = {};
+    AI_CACHE[sym].profile = { content, ts: now };
+    cont.innerHTML = profileHTML(sym, st, content, now, false);
+  } catch(e) {
+    cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
+      <button class="btn btn-ghost" onclick="AI_CACHE['${sym}']&&delete AI_CACHE['${sym}'].profile;setTab('profile')">↻ Retry</button>
+    </div>`;
+  }
+}
+
+function profileHTML(sym, st, content, ts, loading) {
+  const age = Math.round((Date.now() - ts) / 3600000);
+  const ageStr = age < 1 ? 'just now' : age < 24 ? `${age}h ago` : `${Math.round(age/24)}d ago`;
+  return `<div class="ai-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:16px;font-weight:700">${st.name} — Company Profile</div>
+        <div style="font-size:10px;color:var(--muted)">${sym} · ${st.exchange} · ${st.currency}</div>
+      </div>
+      <button class="btn btn-ghost ai-refresh-btn"
+        onclick="delete AI_CACHE['${sym}'].profile;setTab('profile')">↻ Refresh</button>
+    </div>
+    <div class="ai-content">${mdToHtml(content)}</div>
+    <div class="ai-cache-note">AI-generated via Claude + web search · Updated ${ageStr} · Data may not be fully current</div>
+  </div>`;
+}
+
+// ── NEWS TAB ─────────────────────────────────────────────────────────
+async function tabNews(sym, st, cont) {
+  const cache = AI_CACHE[sym]?.news;
+  const now = Date.now();
+  // News cache is shorter — 4 hours
+  const NEWS_TTL = 4 * 60 * 60 * 1000;
+
+  if (cache && (now - cache.ts) < NEWS_TTL) {
+    cont.innerHTML = newsHTML(sym, st, cache.content, cache.ts);
+    return;
+  }
+
+  cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Searching latest news for ${st.name}…`)}</div>`;
+
+  const ticker = S.data[sym]?.ticker || sym;
+  const today = new Date().toISOString().slice(0,10);
+  const prompt = `Search for the latest fundamental business news about ${st.name} (ticker: ${ticker}).
+
+Today's date is ${today}. Find the 5 most recent and relevant news items from the past 3 months that matter to long-term fundamental investors — things like:
+- Earnings results and guidance
+- Revenue or profit changes
+- Major business deals, acquisitions, partnerships
+- Management changes
+- Regulatory or legal developments
+- Dividend announcements
+- Strategic direction changes
+
+For each news item provide:
+## [News Headline]
+**Date:** [date]  **Relevance:** [Bullish/Bearish/Neutral]
+[2-3 sentence summary of what happened and why it matters fundamentally]
+
+Focus only on genuine fundamental business news. Skip purely technical/price movement news.`;
+
+  try {
+    const content = await callClaude(prompt);
+    if (!AI_CACHE[sym]) AI_CACHE[sym] = {};
+    AI_CACHE[sym].news = { content, ts: now };
+    cont.innerHTML = newsHTML(sym, st, content, now);
+  } catch(e) {
+    cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
+      <button class="btn btn-ghost" onclick="AI_CACHE['${sym}']&&delete AI_CACHE['${sym}'].news;setTab('news')">↻ Retry</button>
+    </div>`;
+  }
+}
+
+function newsHTML(sym, st, content, ts) {
+  const age = Math.round((Date.now() - ts) / 60000);
+  const ageStr = age < 60 ? `${age}m ago` : `${Math.round(age/60)}h ago`;
+  // Parse ## headlines into cards
+  const sections = content.split(/^## /m).filter(Boolean);
+  const cards = sections.map(s => {
+    const lines = s.trim().split('\n');
+    const title = lines[0].trim();
+    const body = lines.slice(1).join('\n').trim();
+    const dateMatch = body.match(/\*\*Date:\*\*\s*([^\n*]+)/);
+    const relMatch  = body.match(/\*\*Relevance:\*\*\s*([^\n*]+)/);
+    const date = dateMatch ? dateMatch[1].trim() : '';
+    const rel  = relMatch  ? relMatch[1].trim()  : '';
+    const relColor = rel.toLowerCase().includes('bull') ? 'var(--green)'
+                   : rel.toLowerCase().includes('bear') ? 'var(--red)'
+                   : 'var(--muted)';
+    const cleanBody = body
+      .replace(/\*\*Date:\*\*[^\n]*/,'')
+      .replace(/\*\*Relevance:\*\*[^\n]*/,'')
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .trim();
+    return `<div class="news-card">
+      <div class="nc-title">${title}${rel?`<span class="nc-tag" style="color:${relColor};border-color:${relColor}20;background:${relColor}15">${rel}</span>`:''}</div>
+      ${date?`<div class="nc-meta">📅 ${date}</div>`:''}
+      <div class="nc-body">${cleanBody}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="ai-panel">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div>
+        <div style="font-size:16px;font-weight:700">${st.name} — Latest News</div>
+        <div style="font-size:10px;color:var(--muted)">${sym} · ${st.exchange} · Fundamental news only</div>
+      </div>
+      <button class="btn btn-ghost ai-refresh-btn"
+        onclick="delete AI_CACHE['${sym}'].news;setTab('news')">↻ Refresh</button>
+    </div>
+    <div>${cards || `<div class="ai-content">${mdToHtml(content)}</div>`}</div>
+    <div class="ai-cache-note">AI-generated via Claude + web search · Updated ${ageStr} · Refreshes every 4 hours</div>
+  </div>`;
+}
 function selStock(k){
   S.sel=k;
   render();
