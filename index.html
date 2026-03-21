@@ -141,9 +141,11 @@ td.num{font-size:12px;font-weight:500}
 /* ── RANK CIRCLES ── */
 .rc{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
   border-radius:50%;font-size:10px;font-weight:700}
-.rc1{background:rgba(255,208,96,.25);color:#ffd060}
-.rc2{background:rgba(180,190,210,.15);color:#b0c4d8}
-.rc3{background:rgba(255,140,64,.2);color:#ffa060}
+.rc1{background:rgba(255,208,96,.25);color:#ffd060;box-shadow:0 0 6px rgba(255,208,96,.5)}
+.rc2{background:rgba(180,190,210,.15);color:#b0c4d8;box-shadow:0 0 5px rgba(180,190,210,.4)}
+.rc3{background:rgba(255,140,64,.2);color:#ffa060;box-shadow:0 0 5px rgba(255,140,64,.4)}
+.rc4{background:rgba(0,217,126,.12);color:#00d97e;box-shadow:0 0 4px rgba(0,217,126,.3)}
+.rc5{background:rgba(77,160,255,.12);color:#4da0ff;box-shadow:0 0 4px rgba(77,160,255,.3)}
 .rc-g{color:var(--green)}.rc-m{color:var(--muted)}
 
 /* ── RANK ROW COLORS ── */
@@ -288,7 +290,7 @@ const BASE_STOCKS={
 };
 
 const DEF_WTS={cashToAsset:10,debtToEquity:5,revenueCagr:5,gpmAvg:0,
-  netProfitCagr:5,npmAvg:30,epsCagr:5,roeAvg:25,dividendPayout:0,buffettTest:15};
+  netProfitCagr:5,npmAvg:30,epsCagr:5,dpsCagr:0,roeAvg:25,dividendPayout:0,buffettTest:15};
 
 const CRITERIA=[
   {key:"cashToAsset",  wKey:"cashToAsset",   label:"Cash/Asset", hi:true},
@@ -298,6 +300,7 @@ const CRITERIA=[
   {key:"netProfitCagr",wKey:"netProfitCagr", label:"NP CAGR",    hi:true},
   {key:"npmAvg",       wKey:"npmAvg",        label:"NP Margin",  hi:true},
   {key:"epsCagr",      wKey:"epsCagr",       label:"EPS CAGR",   hi:true},
+  {key:"dpsCagr",      wKey:"dpsCagr",       label:"DPS CAGR",   hi:true},
   {key:"roeAvg",       wKey:"roeAvg",        label:"ROE",        hi:true},
   {key:"dividendPayout",wKey:"dividendPayout",label:"Div Payout",hi:true},
   {key:"buffettTest",  wKey:"buffettTest",   label:"Buffett $1", hi:true},
@@ -700,7 +703,7 @@ function calcM(symbol){
     roa:avg(Y.map(y=>y.roa)), roe:avg(Y.map(y=>y.roe)),
     divPayout:avg(Y.map(y=>y.divPayout)),
   };
-  const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep)};
+  const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep),dps:cagr(dp)};
 
   // ── Buffett $1 Test ──────────────────────────────────────────────
   // Use COMPLETED years only (indices 0–4, i.e. exclude current-year estimate at index 5).
@@ -738,7 +741,7 @@ function calcM(symbol){
 
   return{Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp},
     rm:{cashToAsset:av.cashToAsset,debtToEquity:av.debtToEquity,revenueCagr:cg.rev,
-      gpmAvg:av.gpm,netProfitCagr:cg.np,npmAvg:av.npm,epsCagr:cg.eps,
+      gpmAvg:av.gpm,netProfitCagr:cg.np,npmAvg:av.npm,epsCagr:cg.eps,dpsCagr:cg.dps,
       roeAvg:av.roe,dividendPayout:av.divPayout,buffettTest:buff}};
 }
 
@@ -1036,7 +1039,7 @@ function tabRankings(){
      keys:['cashToAsset','debtToEquity']},
     {id:'profgrow',label:'📈 Profitability & Growth',
      color:'var(--green)', bg:'rgba(0,217,126,.06)',   border:'rgba(0,217,126,.25)',
-     keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr']},
+     keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr','dpsCagr']},
     {id:'mgmt',    label:'🎯 Management Effectiveness',
      color:'var(--purple)',bg:'rgba(180,157,255,.06)', border:'rgba(180,157,255,.25)',
      keys:['roeAvg','dividendPayout','buffettTest']},
@@ -1112,7 +1115,7 @@ function tabRankings(){
     const rcells=CRITERIA.map(c=>{
       const rk=ranks[k][c.key]||'?';
       const mv=scores[k]?.m?.rm[c.key];
-      const cls=rk===1?'rc1':rk===2?'rc2':rk===3?'rc3':rk<=Math.ceil(rankedKs.length/3)?'rc-g':'rc-m';
+      const cls=rk===1?'rc1':rk===2?'rc2':rk===3?'rc3':rk===4?'rc4':rk===5?'rc5':rk<=Math.ceil(rankedKs.length/3)?'rc-g':'rc-m';
       return`<td class="tc" style="padding:5px 3px">
         <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
           <span class="rc ${cls}">${rk}</span>
@@ -1130,7 +1133,7 @@ function tabRankings(){
   }).join('');
 
   // Unranked (no data yet)
-  const uRows=unrankedKs.length?`<tr><td colspan="13" style="padding:10px 14px;font-size:11px;color:var(--muted)">
+  const uRows=unrankedKs.length?`<tr><td colspan="14" style="padding:10px 14px;font-size:11px;color:var(--muted)">
     Not yet ranked (data not loaded): ${unrankedKs.map(k=>`<button class="btn btn-ghost btn-xs" onclick="selStock('${k}');setTab('data')" style="margin:0 2px">${k}</button>`).join('')}
   </td></tr>`:'';
 
