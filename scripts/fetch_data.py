@@ -17,36 +17,33 @@ print(f"FA Dashboard fetch  {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
 
 STOCKS = {
-    # ── Built-in ASX ────────────────────────────────────────────────
+    # ── ASX ─────────────────────────────────────────────────────────
     "BHP":  ("BHP Group",               "ASX",    "BHP.AX",  "B AUD", 1e9,  "USD"),
-    "WDS":  ("Woodside Energy",          "ASX",    "WDS.AX",  "B AUD", 1e9,  "USD"),
-    # ── Custom ASX ──────────────────────────────────────────────────
-    "CBA":  ("Commonwealth Bank",        "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
-        # ── Built-in IDX ────────────────────────────────────────────────
-    "BBRI": ("Bank Rakyat Indonesia",    "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
-    "ADRO": ("Adaro Energy",             "IDX",    "ADRO.JK", "T IDR", 1e12, "USD"),
-    "SMSM": ("Selamat Sempurna",         "IDX",    "SMSM.JK", "T IDR", 1e12, "IDR"),
-    "UNTR": ("United Tractors",          "IDX",    "UNTR.JK", "T IDR", 1e12, "IDR"),
-    "ITMG": ("Indo Tambangraya Megah",   "IDX",    "ITMG.JK", "T IDR", 1e12, "USD"),
-    "POWR": ("Cikarang Listrindo",       "IDX",    "POWR.JK", "T IDR", 1e12, "USD"),
-    "MPMX": ("Mitra Pinasthika Mustika", "IDX",    "MPMX.JK", "T IDR", 1e12, "IDR"),
-    "BTPS": ("Bank BTPN Syariah",        "IDX",    "BTPS.JK", "T IDR", 1e12, "IDR"),
-    "DMAS": ("Puradelta Lestari",        "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
-    "SPTO": ("Surya Toto Indonesia",     "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
-    # ── Custom NYSE ─────────────────────────────────────────────────
-    # TSM trades on NYSE and reports financials in USD
-    "TSM":  ("Taiwan Semiconductor",    "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
-    "V":    ("Visa Inc.",               "NYSE",   "V",       "B USD", 1e9,  "USD"),
-    "MA":   ("Mastercard Inc.",         "NYSE",   "MA",      "B USD", 1e9,  "USD"),
-    # ── Custom NASDAQ ───────────────────────────────────────────────
-    "MSFT": ("Microsoft Corp.",         "NASDAQ", "MSFT",    "B USD", 1e9,  "USD"),
-    "AMZN": ("Amazon.com Inc.",         "NASDAQ", "AMZN",    "B USD", 1e9,  "USD"),
-    "AAPL": ("Apple Inc.",              "NASDAQ", "AAPL",    "B USD", 1e9,  "USD"),
-    "META": ("Meta Platforms Inc.",     "NASDAQ", "META",    "B USD", 1e9,  "USD"),
-    "NVDA": ("NVIDIA Corporation",      "NASDAQ", "NVDA",    "B USD", 1e9,  "USD"),
-    "GOOG": ("Alphabet Inc (Google)",   "NASDAQ", "GOOG",    "B USD", 1e9,  "USD"),
+    "WDS":  ("Woodside Energy",         "ASX",    "WDS.AX",  "B AUD", 1e9,  "USD"),
+    "CBA":  ("Commonwealth Bank",       "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
+    # ── IDX ─────────────────────────────────────────────────────────
+    "BBRI": ("Bank Rakyat Indonesia",   "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
+    "ADRO": ("Adaro Energy",            "IDX",    "ADRO.JK", "T IDR", 1e12, "USD"),
+    "SMSM": ("Selamat Sempurna",        "IDX",    "SMSM.JK", "T IDR", 1e12, "IDR"),
+    "UNTR": ("United Tractors",         "IDX",    "UNTR.JK", "T IDR", 1e12, "IDR"),
+    "ITMG": ("Indo Tambangraya Megah",  "IDX",    "ITMG.JK", "T IDR", 1e12, "USD"),
+    "POWR": ("Cikarang Listrindo",      "IDX",    "POWR.JK", "T IDR", 1e12, "USD"),
+    "MPMX": ("Mitra Pinasthika Mustika","IDX",    "MPMX.JK", "T IDR", 1e12, "IDR"),
+    "BTPS": ("Bank BTPN Syariah",       "IDX",    "BTPS.JK", "T IDR", 1e12, "IDR"),
+    "DMAS": ("Puradelta Lestari",       "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
+    "SPTO": ("Surya Toto Indonesia",    "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
+    # ── NYSE ────────────────────────────────────────────────────────
+    "TSM":  ("Taiwan Semiconductor",   "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
+    "V":    ("Visa Inc.",              "NYSE",   "V",       "B USD", 1e9,  "USD"),
+    "MA":   ("Mastercard Inc.",        "NYSE",   "MA",      "B USD", 1e9,  "USD"),
+    # ── NASDAQ ──────────────────────────────────────────────────────
+    "MSFT": ("Microsoft Corp.",        "NASDAQ", "MSFT",    "B USD", 1e9,  "USD"),
+    "AMZN": ("Amazon.com Inc.",        "NASDAQ", "AMZN",    "B USD", 1e9,  "USD"),
+    "AAPL": ("Apple Inc.",             "NASDAQ", "AAPL",    "B USD", 1e9,  "USD"),
+    "META": ("Meta Platforms Inc.",    "NASDAQ", "META",    "B USD", 1e9,  "USD"),
+    "NVDA": ("NVIDIA Corporation",     "NASDAQ", "NVDA",    "B USD", 1e9,  "USD"),
+    "GOOG": ("Alphabet Inc (Google)",  "NASDAQ", "GOOG",    "B USD", 1e9,  "USD"),
     "BKNG": ("Booking Holdings Inc",   "NASDAQ", "BKNG",    "B USD", 1e9,  "USD"),
-
 }
 
 # ── Also load any stocks_config.json (for future additions without editing this file)
