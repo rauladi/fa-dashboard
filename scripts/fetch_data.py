@@ -22,10 +22,7 @@ STOCKS = {
     "WDS":  ("Woodside Energy",          "ASX",    "WDS.AX",  "B AUD", 1e9,  "USD"),
     # ── Custom ASX ──────────────────────────────────────────────────
     "CBA":  ("Commonwealth Bank",        "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
-    "NAB":  ("National Australia Bank",  "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
-    "DXS":  ("Dexus",                    "ASX",    "DXS.AX",  "B AUD", 1e9,  "AUD"),
-    "CSL":  ("CSL Limited",              "ASX",    "CSL.AX",  "B AUD", 1e9,  "AUD"),
-    # ── Built-in IDX ────────────────────────────────────────────────
+        # ── Built-in IDX ────────────────────────────────────────────────
     "BBRI": ("Bank Rakyat Indonesia",    "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
     "ADRO": ("Adaro Energy",             "IDX",    "ADRO.JK", "T IDR", 1e12, "USD"),
     "SMSM": ("Selamat Sempurna",         "IDX",    "SMSM.JK", "T IDR", 1e12, "IDR"),
@@ -39,7 +36,6 @@ STOCKS = {
     # ── Custom NYSE ─────────────────────────────────────────────────
     # TSM trades on NYSE and reports financials in USD
     "TSM":  ("Taiwan Semiconductor",    "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
-    "BRK":  ("Berkshire Hathaway B",    "NYSE",   "BRK-B",   "B USD", 1e9,  "USD"),
     "V":    ("Visa Inc.",               "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",         "NYSE",   "MA",      "B USD", 1e9,  "USD"),
     # ── Custom NASDAQ ───────────────────────────────────────────────
@@ -48,6 +44,9 @@ STOCKS = {
     "AAPL": ("Apple Inc.",              "NASDAQ", "AAPL",    "B USD", 1e9,  "USD"),
     "META": ("Meta Platforms Inc.",     "NASDAQ", "META",    "B USD", 1e9,  "USD"),
     "NVDA": ("NVIDIA Corporation",      "NASDAQ", "NVDA",    "B USD", 1e9,  "USD"),
+    "GOOG": ("Alphabet Inc (Google)",   "NASDAQ", "GOOG",    "B USD", 1e9,  "USD"),
+    "BKNG": ("Booking Holdings Inc",   "NASDAQ", "BKNG",    "B USD", 1e9,  "USD"),
+
 }
 
 # ── Also load any stocks_config.json (for future additions without editing this file)
