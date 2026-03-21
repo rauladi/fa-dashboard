@@ -173,23 +173,12 @@ def find_row(df, *names):
     return None
 
 def col_yr(df, yr):
-    """
-    Return the column for fiscal year `yr` from an ANNUAL statement DataFrame.
-    Only accepts dates that plausibly represent a full-year result:
-      - Month 10-12 of year `yr`  (Q4 end: e.g. Dec 31, Sep 30 for Sep FY end)
-      - Month 1-4  of year `yr+1` (delayed filing or Jan-Mar FY end)
-    This rejects interim/quarterly columns (e.g. Sep 30 of same year = Q3 only)
-    that yfinance sometimes includes in the annual financials DataFrame.
-    """
+    """Return the most recent column for fiscal year `yr`."""
     if df is None or df.empty: return None
     best = None
     for c in df.columns:
         try:
-            if not hasattr(c, "year"): continue
-            cy, cm = c.year, c.month
-            # Full year for yr: Q4 of yr OR Q1 of yr+1
-            if (cy == yr     and cm >= 10) or \
-               (cy == yr + 1 and cm <= 4):
+            if hasattr(c, "year") and c.year == yr:
                 if best is None or c > best:
                     best = c
         except Exception:
@@ -222,16 +211,22 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx):
         eps_val = safe(ep[ic] if ep is not None else None, 1, epsfx)
 
         # ── Completeness guard (LATEST YEAR ONLY) ───────────────────
-        # For the most recently completed year only: if revenue exists
-        # but EPS is null, yfinance is likely returning a TTM/incomplete
-        # column rather than an actual published annual report.
-        # For historical years we accept whatever data is available.
-        if yr == LATEST_YEAR and rev_val is not None and eps_val is None:
-            print(f"    ⚠ yr={yr} (latest): revenue present but EPS null "
-                  f"→ TTM/incomplete, skipping", flush=True)
-            row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None,
-                       totalAsset=None,cash=None,totalDebt=None,totalEquity=None,dps=None)
-            return row
+        # For the most recently completed year: reject if the column date
+        # suggests this is an interim/TTM report rather than a full-year result.
+        # We check TWO signals — either one is enough to reject:
+        #   1. Revenue exists but EPS is null (TTM often lacks EPS)
+        #   2. Column date is in Jan-Aug of LATEST_YEAR (can't be full-year end)
+        #      Note: Sep/Oct/Nov/Dec are all valid FY-end months for various companies
+        if yr == LATEST_YEAR and ic is not None:
+            col_month = ic.month
+            is_interim_month = (col_month < 9)   # Jan–Aug = definitely not a FY end
+            is_eps_missing   = (rev_val is not None and eps_val is None)
+            if is_interim_month or is_eps_missing:
+                print(f"    ⚠ yr={yr}: col={ic.date()} month={col_month} "
+                      f"eps_missing={is_eps_missing} → interim/TTM, skipping", flush=True)
+                row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None,
+                           totalAsset=None,cash=None,totalDebt=None,totalEquity=None,dps=None)
+                return row
         # ────────────────────────────────────────────────────────────
 
         row["revenue"]    = rev_val
