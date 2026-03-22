@@ -1518,7 +1518,7 @@ const AI_CACHE = {};
 const AI_CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
 
 async function callClaude(prompt) {
-  const apiKey = localStorage.getItem('fa_apikey') || localStorage.getItem('fa_anthropic_key') || '';
+  const apiKey = getAnthropicKey();
   if (!apiKey) throw new Error('NO_KEY');
   const resp = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
@@ -1544,6 +1544,21 @@ async function callClaude(prompt) {
     .filter(b => b.type === "text")
     .map(b => b.text)
     .join("\n");
+}
+
+// Find Anthropic key from any localStorage entry
+function getAnthropicKey() {
+  const known = ['fa_apikey','fa_anthropic_key','anthropic_key','apiKey'];
+  for (const k of known) {
+    const v = localStorage.getItem(k);
+    if (v && v.startsWith('sk-ant-')) return v;
+  }
+  // Scan all keys
+  for (let i = 0; i < localStorage.length; i++) {
+    const v = localStorage.getItem(localStorage.key(i)) || '';
+    if (v.startsWith('sk-ant-')) return v;
+  }
+  return '';
 }
 
 function apiKeyPromptHTML(tab) {
@@ -1613,7 +1628,7 @@ async function tabProfile(sym, st, cont) {
     cont.innerHTML = profileHTML(sym, st, cache.content, cache.ts, false);
     return;
   }
-  if (!(localStorage.getItem('fa_apikey') || localStorage.getItem('fa_anthropic_key'))) {
+  if (!getAnthropicKey()) {
     cont.innerHTML = apiKeyPromptHTML('profile'); return;
   }
   cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Researching ${st.name}…`)}</div>`;
@@ -1683,7 +1698,7 @@ async function tabNews(sym, st, cont) {
     cont.innerHTML = newsHTML(sym, st, cache.content, cache.ts);
     return;
   }
-  if (!(localStorage.getItem('fa_apikey') || localStorage.getItem('fa_anthropic_key'))) {
+  if (!getAnthropicKey()) {
     cont.innerHTML = apiKeyPromptHTML('news'); return;
   }
   cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Searching latest news for ${st.name}…`)}</div>`;
