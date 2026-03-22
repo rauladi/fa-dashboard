@@ -1613,7 +1613,7 @@ async function tabProfile(sym, st, cont) {
     cont.innerHTML = profileHTML(sym, st, cache.content, cache.ts, false);
     return;
   }
-  if (!localStorage.getItem('fa_anthropic_key')) {
+  if (!(localStorage.getItem('fa_apikey') || localStorage.getItem('fa_anthropic_key'))) {
     cont.innerHTML = apiKeyPromptHTML('profile'); return;
   }
   cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Researching ${st.name}…`)}</div>`;
@@ -1650,7 +1650,7 @@ Keep the response factual, concise and focused on fundamentals relevant to long-
     if (e.message === 'NO_KEY') { cont.innerHTML = apiKeyPromptHTML('profile'); return; }
     cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
       <button class="btn btn-ghost" onclick="AI_CACHE['${sym}']&&delete AI_CACHE['${sym}'].profile;setTab('profile')">↻ Retry</button>
-      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_anthropic_key');setTab('profile')">🔑 Change API Key</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_apikey');localStorage.removeItem('fa_anthropic_key');setTab('profile')">🔑 Change API Key</button>
     </div>`;
   }
 }
@@ -1683,7 +1683,7 @@ async function tabNews(sym, st, cont) {
     cont.innerHTML = newsHTML(sym, st, cache.content, cache.ts);
     return;
   }
-  if (!localStorage.getItem('fa_anthropic_key')) {
+  if (!(localStorage.getItem('fa_apikey') || localStorage.getItem('fa_anthropic_key'))) {
     cont.innerHTML = apiKeyPromptHTML('news'); return;
   }
   cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Searching latest news for ${st.name}…`)}</div>`;
@@ -1717,7 +1717,7 @@ Focus only on genuine fundamental business news. Skip purely technical/price mov
     if (e.message === 'NO_KEY') { cont.innerHTML = apiKeyPromptHTML('news'); return; }
     cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
       <button class="btn btn-ghost" onclick="AI_CACHE['${sym}']&&delete AI_CACHE['${sym}'].news;setTab('news')">↻ Retry</button>
-      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_anthropic_key');setTab('news')">🔑 Change API Key</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_apikey');localStorage.removeItem('fa_anthropic_key');setTab('news')">🔑 Change API Key</button>
     </div>`;
   }
 }
