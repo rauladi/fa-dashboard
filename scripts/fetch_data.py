@@ -33,6 +33,7 @@ STOCKS = {
     "DMAS": ("Puradelta Lestari",       "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
     "SPTO": ("Surya Toto Indonesia",    "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
     # ── NYSE ────────────────────────────────────────────────────────
+    "PBR-A":  ("Petroleo Brasileiro S.A. ADR",   "NYSE",   "PBR-A",     "B USD", 1e9,  "USD"),
     "TSM":  ("Taiwan Semiconductor",   "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
     "V":    ("Visa Inc.",              "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",        "NYSE",   "MA",      "B USD", 1e9,  "USD"),
