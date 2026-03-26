@@ -44,7 +44,7 @@ STOCKS = {
     "DMAS": ("Puradelta Lestari",       "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
     "SPTO": ("Surya Toto Indonesia",    "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
     # ── NYSE ────────────────────────────────────────────────────────
-    "PBR-A":  ("Petroleo Brasileiro S.A. ADR",   "NYSE",   "PBR-A",     "B USD", 1e9,  "USD"),
+    "PBR-A":  ("Petroleo Brasileiro S.A. ADR",   "NYSE",   "PBR-A",     "B USD", 1e9,  "USD"),    
     "TSM":  ("Taiwan Semiconductor",   "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
     "V":    ("Visa Inc.",              "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",        "NYSE",   "MA",      "B USD", 1e9,  "USD"),
@@ -79,8 +79,13 @@ def load_config_stocks():
 
 # ── Fallback data (display units) ─────────────────────────────────────────
 FALLBACK = {
+    # ── ASX (B AUD) ─────────────────────────────────────────────────────────
     "BHP":  {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,None,None],"fcf":[None,None,None,None,None,None]},
     "WDS":  {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,None,None],"fcf":[None,None,None,None,None,None]},
+    # CBA: Jun FY, 2021=FY ended Jun-2021. All values B AUD.
+    "CBA":  {"totalAsset":[1088,1141,1186,1217,None,None],"cash":[69,72,75,78,None,None],"totalDebt":[918,965,1002,1030,None,None],"totalEquity":[66,70,73,77,None,None],"revenue":[22.5,23.8,24.9,26.4,None,None],"grossProfit":[14.0,14.8,15.6,16.5,None,None],"netProfit":[8.8,9.6,10.2,10.0,None,None],"eps":[4.93,5.40,5.73,5.68,None,None],"dps":[2.00,3.85,4.50,4.65,None,None],"fcf":[None,None,None,None,None,None]},
+
+    # ── IDX (T IDR) ─────────────────────────────────────────────────────────
     "BBRI": {"totalAsset":[1635,1865,1965,2073,None,None],"cash":[163,186,196,207,None,None],"totalDebt":[1380,1570,1650,1730,None,None],"totalEquity":[255,295,315,343,None,None],"revenue":[135,150,165,187,None,None],"grossProfit":[85,95,104,118,None,None],"netProfit":[25,43,51,60,None,None],"eps":[1019,1753,2086,2443,None,None],"dps":[460,791,940,1100,None,None],"fcf":[None,None,None,None,None,None]},
     "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],"eps":[256,960,480,510,None,None],"dps":[130,480,240,255,None,None],"fcf":[None,None,None,None,None,None]},
     "SMSM": {"totalAsset":[2.6,2.8,3.0,3.2,None,None],"cash":[0.9,1.0,1.1,1.2,None,None],"totalDebt":[0.35,0.30,0.30,0.25,None,None],"totalEquity":[2.0,2.2,2.4,2.6,None,None],"revenue":[2.5,2.8,3.2,3.4,None,None],"grossProfit":[0.82,0.92,1.05,1.12,None,None],"netProfit":[0.43,0.51,0.58,0.62,None,None],"eps":[183,217,247,264,None,None],"dps":[138,164,186,198,None,None],"fcf":[None,None,None,None,None,None]},
@@ -91,6 +96,31 @@ FALLBACK = {
     "BTPS": {"totalAsset":[24,27,30,32,None,None],"cash":[2.4,2.7,3.0,3.2,None,None],"totalDebt":[19,21,23.5,25,None,None],"totalEquity":[5.0,6.0,6.5,7.0,None,None],"revenue":[7.0,8.0,9.0,9.5,None,None],"grossProfit":[4.2,4.8,5.4,5.7,None,None],"netProfit":[1.2,1.8,2.0,2.1,None,None],"eps":[413,557,618,650,None,None],"dps":[124,167,185,195,None,None],"fcf":[None,None,None,None,None,None]},
     "DMAS": {"totalAsset":[7.0,7.5,8.0,8.5,None,None],"cash":[1.8,2.0,2.2,2.4,None,None],"totalDebt":[1.0,0.9,0.8,0.7,None,None],"totalEquity":[5.5,6.0,6.5,7.0,None,None],"revenue":[1.8,2.2,2.8,2.5,None,None],"grossProfit":[1.2,1.6,2.0,1.8,None,None],"netProfit":[0.7,0.9,1.1,1.0,None,None],"eps":[35,45,55,50,None,None],"dps":[24,32,38,35,None,None],"fcf":[None,None,None,None,None,None]},
     "SPTO": {"totalAsset":[2.6,2.7,2.8,2.9,None,None],"cash":[0.32,0.35,0.38,0.40,None,None],"totalDebt":[0.70,0.65,0.60,0.55,None,None],"totalEquity":[1.55,1.70,1.85,1.98,None,None],"revenue":[1.9,2.0,2.1,2.2,None,None],"grossProfit":[0.69,0.73,0.77,0.80,None,None],"netProfit":[0.25,0.27,0.30,0.32,None,None],"eps":[278,300,333,356,None,None],"dps":[139,150,167,178,None,None],"fcf":[None,None,None,None,None,None]},
+
+    # ── NYSE (B USD) ─────────────────────────────────────────────────────────
+    # TSM: Dec FY. 2021 values converted from TWD at ~28 TWD/USD.
+    "TSM":  {"totalAsset":[133,175,206,209,None,None],"cash":[40,52,54,57,None,None],"totalDebt":[20,30,38,40,None,None],"totalEquity":[71,92,107,134,None,None],"revenue":[57,76,70,91,None,None],"grossProfit":[30,41,38,51,None,None],"netProfit":[22,33,27,37,None,None],"eps":[4.18,6.35,5.18,7.09,None,None],"dps":[1.72,1.72,1.76,2.19,None,None],"fcf":[None,None,None,None,None,None]},
+    # V: Sep FY. 2021=FY ended Sep-2021.
+    "V":    {"totalAsset":[82.9,85.5,90.5,94.5,92.6,None],"cash":[15.7,16.3,11.9,11.6,17.2,None],"totalDebt":[22.4,20.5,20.5,20.8,25.2,None],"totalEquity":[35.6,38.7,38.3,38.0,32.9,None],"revenue":[24.1,29.3,32.7,35.9,40.0,None],"grossProfit":[20.1,24.9,28.1,31.4,35.1,None],"netProfit":[12.3,15.0,17.3,19.7,20.1,None],"eps":[5.74,7.12,8.23,9.74,10.22,None],"dps":[1.28,1.50,1.80,2.08,2.34,None],"fcf":[None,None,None,None,None,None]},
+    # MA: Dec FY.
+    "MA":   {"totalAsset":[43.0,46.4,46.8,46.5,None,None],"cash":[8.0,7.8,7.4,8.0,None,None],"totalDebt":[14.2,15.7,15.8,16.6,None,None],"totalEquity":[6.0,5.5,5.3,5.0,None,None],"revenue":[18.9,22.2,25.1,28.2,None,None],"grossProfit":[13.3,16.0,18.4,21.1,None,None],"netProfit":[8.7,10.5,11.2,12.9,None,None],"eps":[8.76,10.61,11.44,13.89,None,None],"dps":[1.76,2.00,2.28,2.64,None,None],"fcf":[None,None,None,None,None,None]},
+
+    # ── NASDAQ (B USD) ───────────────────────────────────────────────────────
+    # MSFT: Jun FY. 2021=FY ended Jun-2021.
+    "MSFT": {"totalAsset":[333.8,364.8,411.9,484.3,None,None],"cash":[130.3,104.8,111.3,80.0,None,None],"totalDebt":[67.8,61.3,69.9,97.9,None,None],"totalEquity":[141.9,166.5,166.5,233.0,None,None],"revenue":[168.1,198.3,211.9,245.1,None,None],"grossProfit":[115.9,135.6,146.1,171.0,None,None],"netProfit":[61.3,72.7,72.4,88.1,None,None],"eps":[8.12,9.65,9.72,11.45,None,None],"dps":[2.24,2.48,2.72,3.00,None,None],"fcf":[56.1,65.1,59.5,74.1,None,None]},
+    # AMZN: Dec FY.
+    "AMZN": {"totalAsset":[420.5,462.7,527.9,527.5,None,None],"cash":[96.1,70.0,73.9,86.8,None,None],"totalDebt":[116.4,155.6,161.5,164.8,None,None],"totalEquity":[138.2,146.0,143.3,171.3,None,None],"revenue":[469.8,514.0,524.9,637.0,None,None],"grossProfit":[197.5,226.2,240.6,283.0,None,None],"netProfit":[33.4,-2.7,20.1,59.2,None,None],"eps":[64.81,-5.36,3.99,11.53,None,None],"dps":[None,None,None,None,None,None],"fcf":[2.6,-19.3,6.3,38.0,None,None]},
+    # AAPL: Sep FY. 2021=FY ended Sep-2021.
+    "AAPL": {"totalAsset":[351.0,352.8,352.6,353.5,None,None],"cash":[69.0,48.3,55.2,65.2,None,None],"totalDebt":[136.5,132.5,123.9,128.5,None,None],"totalEquity":[63.1,50.7,62.1,74.2,None,None],"revenue":[365.8,394.3,383.3,391.0,None,None],"grossProfit":[152.8,170.8,169.1,180.7,None,None],"netProfit":[94.7,99.8,97.0,101.0,None,None],"eps":[5.61,6.11,6.13,6.43,None,None],"dps":[0.85,0.91,0.94,0.97,None,None],"fcf":[93.0,111.4,90.2,108.8,None,None]},
+    # META: Dec FY.
+    "META": {"totalAsset":[165.9,185.7,185.7,229.6,None,None],"cash":[47.9,40.7,31.8,49.3,None,None],"totalDebt":[10.2,27.5,18.4,28.8,None,None],"totalEquity":[124.9,125.1,128.3,153.2,None,None],"revenue":[117.9,116.6,134.9,185.0,None,None],"grossProfit":[100.1,97.3,113.0,156.9,None,None],"netProfit":[39.4,23.2,39.1,62.4,None,None],"eps":[13.77,8.59,14.87,23.86,None,None],"dps":[None,None,None,None,None,None],"fcf":[39.1,18.9,28.5,53.0,None,None]},
+    # NVDA: Jan FY. Index 0=FY2021(Jan2021), 1=FY2022(Jan2022), 2=FY2023(Jan2023)
+    #       3=FY2024(Jan2024), 4=FY2025(Jan2025), 5=FY2026(Jan2026 - current year)
+    "NVDA": {"totalAsset":[28.8,44.2,41.2,65.7,111.6,None],"cash":[11.6,19.3,13.3,25.0,43.2,None],"totalDebt":[6.9,11.7,11.0,10.0,8.5,None],"totalEquity":[16.9,26.1,26.1,42.6,65.7,None],"revenue":[16.7,26.9,27.0,60.9,130.5,None],"grossProfit":[10.4,17.5,15.4,42.0,97.9,None],"netProfit":[4.3,9.8,4.4,29.8,72.9,None],"eps":[1.73,3.85,1.74,11.93,29.24,None],"dps":[0.016,0.016,0.016,0.016,0.01,None],"fcf":[4.7,7.3,3.8,26.9,60.8,None]},
+    # GOOG: Dec FY.
+    "GOOG": {"totalAsset":[359.3,391.4,402.0,430.3,None,None],"cash":[142.0,139.6,115.0,108.1,None,None],"totalDebt":[14.8,15.1,14.7,14.7,None,None],"totalEquity":[251.6,256.1,272.3,314.1,None,None],"revenue":[257.6,282.8,307.4,350.0,None,None],"grossProfit":[146.7,156.6,174.1,208.1,None,None],"netProfit":[76.0,60.0,73.8,100.1,None,None],"eps":[5.61,4.56,5.80,7.79,None,None],"dps":[None,None,None,None,None,None],"fcf":[67.0,60.0,63.1,86.0,None,None]},
+    # BKNG: Dec FY.
+    "BKNG": {"totalAsset":[25.5,26.8,30.7,31.8,None,None],"cash":[11.2,12.4,15.1,16.8,None,None],"totalDebt":[15.4,13.8,14.0,12.0,None,None],"totalEquity":[0.5,1.4,4.0,7.0,None,None],"revenue":[11.0,17.1,21.4,23.7,None,None],"grossProfit":[9.7,15.2,19.0,21.2,None,None],"netProfit":[1.1,3.0,4.3,4.8,None,None],"eps":[25.0,72.0,110.0,130.0,None,None],"dps":[None,None,None,None,None,None],"fcf":[1.2,3.3,4.9,5.5,None,None]},
 }
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps","fcf"]
@@ -204,20 +234,37 @@ def sum_q(series, cols):
     return total if found else None
 
 def compute_fcf(cf, cc, div, fx):
-    """Compute Free Cash Flow = Operating Cash Flow + Capital Expenditure.
-    CapEx is stored as negative in yfinance, so addition gives FCF."""
+    """Free Cash Flow = Operating Cash Flow + Capital Expenditure.
+    CapEx is stored as a negative value in yfinance, so OCF + CapEx = FCF.
+    Try 'Free Cash Flow' directly first (yfinance sometimes provides it).
+    """
     if cf is None or cc is None: return None
-    op = find_row(cf, "Operating Cash Flow","Cash From Operations",
-                  "Total Cash From Operating Activities","Cash Flows From Operating Activities",
-                  "Net Cash Provided By Operating Activities")
-    cx = find_row(cf, "Capital Expenditure","Capital Expenditures",
-                  "Purchase Of Ppe","Purchases Of Property Plant And Equipment",
-                  "Capital Expenditures Reported")
-    op_val = safe(op[cc] if op is not None else None, div, fx)
-    cx_val = safe(cx[cc] if cx is not None else None, div, fx)
-    if op_val is not None and cx_val is not None:
-        return round(op_val + cx_val, 4)  # cx_val is negative → subtraction
-    return op_val  # Return OCF alone if CapEx unavailable
+    # Try direct FCF first
+    fcf_direct = find_row(cf, "Free Cash Flow", "FreeCashFlow")
+    if fcf_direct is not None:
+        v = safe(fcf_direct[cc] if cc in fcf_direct.index else None, div, fx)
+        if v is not None:
+            return v
+    # Build from OCF + CapEx
+    op = find_row(cf,
+        "Operating Cash Flow",
+        "Cash Flows From Operations",
+        "Total Cash From Operating Activities",
+        "Net Cash From Continuing Operating Activities",
+        "Net Cash Provided By Operating Activities",
+        "Cash Flow From Continuing Operating Activities")
+    cx = find_row(cf,
+        "Capital Expenditure",
+        "Capital Expenditures",
+        "Purchase Of Ppe",
+        "Purchases Of Property Plant And Equipment",
+        "Capital Expenditures Reported",
+        "Capital Expenditure Reported")
+    op_val = safe(op[cc] if op is not None and cc in op.index else None, div, fx)
+    cx_val = safe(cx[cc] if cx is not None and cc in cx.index else None, div, fx)
+    if op_val is not None:
+        return round(op_val + (cx_val or 0), 4)  # cx_val negative → subtraction
+    return None
 
 def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym=""):
     row = {}
