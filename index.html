@@ -326,7 +326,8 @@ const BASE_STOCKS={
 };
 
 const DEF_WTS={cashToAsset:10,debtToEquity:5,revenueCagr:5,gpmAvg:0,
-  netProfitCagr:5,npmAvg:30,epsCagr:5,dpsCagr:0,roeAvg:25,dividendPayout:0,buffettTest:15};
+  netProfitCagr:5,npmAvg:25,epsCagr:5,dpsCagr:0,fcfCagr:5,fcfMargin:5,
+  roeAvg:20,dividendPayout:0,buffettTest:15};
 
 const CRITERIA=[
   {key:"cashToAsset",  wKey:"cashToAsset",   label:"Cash/Asset", hi:true},
@@ -337,6 +338,8 @@ const CRITERIA=[
   {key:"npmAvg",       wKey:"npmAvg",        label:"NP Margin",  hi:true},
   {key:"epsCagr",      wKey:"epsCagr",       label:"EPS CAGR",   hi:true},
   {key:"dpsCagr",      wKey:"dpsCagr",       label:"DPS CAGR",   hi:true},
+  {key:"fcfCagr",      wKey:"fcfCagr",       label:"FCF CAGR",   hi:true},
+  {key:"fcfMargin",    wKey:"fcfMargin",      label:"FCF Margin", hi:true},
   {key:"roeAvg",       wKey:"roeAvg",        label:"ROE",        hi:true},
   {key:"dividendPayout",wKey:"dividendPayout",label:"Div Payout",hi:true},
   {key:"buffettTest",  wKey:"buffettTest",   label:"Buffett $1", hi:true},
@@ -347,7 +350,7 @@ const MKEYS=[
   {k:"totalDebt",l:"Total Debt"},      {k:"totalEquity",l:"Total Equity"},
   {k:"revenue",l:"Total Revenue"},     {k:"grossProfit",l:"Gross Profit"},
   {k:"netProfit",l:"Net Profit"},      {k:"eps",l:"EPS"},
-  {k:"dps",l:"DPS"},
+  {k:"dps",l:"DPS"},                   {k:"fcf",l:"Free Cash Flow"},
 ];
 
 // ═══════════════════════════════════
@@ -716,18 +719,20 @@ function calcM(symbol){
   const sl=k=>(data[k]||Array(N_YEARS).fill(null)).slice(0,N_YEARS);
   const ta=sl('totalAsset'),ca=sl('cash'),td=sl('totalDebt'),te=sl('totalEquity');
   const rv2=sl('revenue'),gp=sl('grossProfit'),np=sl('netProfit'),ep=sl('eps'),dp=sl('dps');
+  const fc=sl('fcf');
 
   const Y=YEARS.map((yr,i)=>({
     year:yr,
     totalAsset:ta[i],cash:ca[i],totalDebt:td[i],totalEquity:te[i],
-    revenue:rv2[i],grossProfit:gp[i],netProfit:np[i],eps:ep[i],dps:dp[i],
+    revenue:rv2[i],grossProfit:gp[i],netProfit:np[i],eps:ep[i],dps:dp[i],fcf:fc[i],
     cashToAsset: isOK(ta[i])&&ta[i]>0&&isOK(ca[i]) ? ca[i]/ta[i]*100 : null,
     debtToEquity: isOK(te[i])&&te[i]!==0&&isOK(td[i]) ? td[i]/te[i]*100 : null,
-    gpm:  isOK(rv2[i])&&rv2[i]>0&&isOK(gp[i]) ? gp[i]/rv2[i]*100 : null,
-    npm:  isOK(rv2[i])&&rv2[i]>0&&isOK(np[i]) ? np[i]/rv2[i]*100 : null,
-    roa:  isOK(ta[i])&&ta[i]>0&&isOK(np[i])   ? np[i]/ta[i]*100  : null,
-    roe:  isOK(te[i])&&te[i]!==0&&isOK(np[i]) ? np[i]/te[i]*100  : null,
-    divPayout: isOK(ep[i])&&ep[i]>0&&isOK(dp[i]) ? dp[i]/ep[i]*100 : null,
+    gpm:     isOK(rv2[i])&&rv2[i]>0&&isOK(gp[i])  ? gp[i]/rv2[i]*100  : null,
+    npm:     isOK(rv2[i])&&rv2[i]>0&&isOK(np[i])  ? np[i]/rv2[i]*100  : null,
+    fcmarg:  isOK(rv2[i])&&rv2[i]>0&&isOK(fc[i])  ? fc[i]/rv2[i]*100  : null,
+    roa:     isOK(ta[i])&&ta[i]>0&&isOK(np[i])    ? np[i]/ta[i]*100   : null,
+    roe:     isOK(te[i])&&te[i]!==0&&isOK(np[i])  ? np[i]/te[i]*100   : null,
+    divPayout: isOK(ep[i])&&ep[i]>0&&isOK(dp[i])  ? dp[i]/ep[i]*100   : null,
     valLow:  isOK(dp[i]) ? dp[i]*10  : null,
     valHigh: isOK(dp[i]) ? dp[i]*20  : null,
     retEps:  null,  // calculated below after Buffett test
@@ -736,10 +741,11 @@ function calcM(symbol){
   const av={
     cashToAsset:avg(Y.map(y=>y.cashToAsset)), debtToEquity:avg(Y.map(y=>y.debtToEquity)),
     gpm:avg(Y.map(y=>y.gpm)), npm:avg(Y.map(y=>y.npm)),
+    fcmarg:avg(Y.map(y=>y.fcmarg)),
     roa:avg(Y.map(y=>y.roa)), roe:avg(Y.map(y=>y.roe)),
     divPayout:avg(Y.map(y=>y.divPayout)),
   };
-  const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep),dps:cagr(dp)};
+  const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep),dps:cagr(dp),fcf:cagr(fc)};
 
   // ── Buffett $1 Test ──────────────────────────────────────────────
   // Use COMPLETED years only (indices 0–4, i.e. exclude current-year estimate at index 5).
@@ -775,9 +781,10 @@ function calcM(symbol){
     y.retEps = y.eps - d;
   });
 
-  return{Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp},
+  return{Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp,fc},
     rm:{cashToAsset:av.cashToAsset,debtToEquity:av.debtToEquity,revenueCagr:cg.rev,
       gpmAvg:av.gpm,netProfitCagr:cg.np,npmAvg:av.npm,epsCagr:cg.eps,dpsCagr:cg.dps,
+      fcfCagr:cg.fcf,fcfMargin:av.fcmarg,
       roeAvg:av.roe,dividendPayout:av.divPayout,buffettTest:buff}};
 }
 
@@ -1023,6 +1030,7 @@ function tabRatios(sym,st){
     {k:'roa',l:'Return on Asset %',p:true},{k:'roe',l:'Return on Equity %',p:true},
     {k:'divPayout',l:'Dividend Payout %',p:true},{k:'valLow',l:'Valuation Low (DPS×10)',p:false},
     {k:'valHigh',l:'Valuation High (DPS×20)',p:false},{k:'retEps',l:'Retained EPS (EPS−DPS)',p:false},
+    {k:'fcmarg',l:'FCF Margin % (FCF/Revenue)',p:true},
   ];
   const rows=rDefs.map((r,i)=>{
     const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${r.p?P1(v):N2(v,2)}</td>`;}).join('');
@@ -1078,7 +1086,7 @@ function tabRankings(){
      keys:['cashToAsset','debtToEquity']},
     {id:'profgrow',label:'📈 Profitability & Growth',
      color:'var(--green)', bg:'rgba(0,217,126,.06)',   border:'rgba(0,217,126,.25)',
-     keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr','dpsCagr']},
+     keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr','dpsCagr','fcfCagr','fcfMargin']},
     {id:'mgmt',    label:'🎯 Management Effectiveness',
      color:'var(--purple)',bg:'rgba(180,157,255,.06)', border:'rgba(180,157,255,.25)',
      keys:['roeAvg','dividendPayout','buffettTest']},
@@ -1172,7 +1180,7 @@ function tabRankings(){
   }).join('');
 
   // Unranked (no data yet)
-  const uRows=unrankedKs.length?`<tr><td colspan="14" style="padding:10px 14px;font-size:11px;color:var(--muted)">
+  const uRows=unrankedKs.length?`<tr><td colspan="17" style="padding:10px 14px;font-size:11px;color:var(--muted)">
     Not yet ranked (data not loaded): ${unrankedKs.map(k=>`<button class="btn btn-ghost btn-xs" onclick="selStock('${k}');setTab('data')" style="margin:0 2px">${k}</button>`).join('')}
   </td></tr>`:'';
 
@@ -1517,69 +1525,93 @@ function copyLink(){
 const AI_CACHE = {};
 const AI_CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
 
-async function callClaude(prompt) {
-  const apiKey = getAnthropicKey();
-  if (!apiKey) throw new Error('NO_KEY');
-  const resp = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true"
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 1000,
-      tools: [{ type: "web_search_20250305", name: "web_search" }],
-      messages: [{ role: "user", content: prompt }]
-    })
-  });
-  if (!resp.ok) {
-    const errText = await resp.text().catch(()=>'');
-    throw new Error(`API error ${resp.status}: ${errText.slice(0,200)}`);
-  }
-  const data = await resp.json();
-  return data.content
-    .filter(b => b.type === "text")
-    .map(b => b.text)
-    .join("\n");
-}
 
-// Find Anthropic key from any localStorage entry
-function getAnthropicKey() {
-  const known = ['fa_apikey','fa_anthropic_key','anthropic_key','apiKey'];
+// ── Detect which AI provider key is stored ───────────────────────────────
+function getApiKey() {
+  const known = ['fa_apikey','fa_anthropic_key','fa_gemini_key','gemini_api_key',
+                 'anthropic_key','google_api_key','apiKey'];
   for (const k of known) {
-    const v = localStorage.getItem(k);
-    if (v && v.startsWith('sk-ant-')) return v;
+    const v = localStorage.getItem(k)||'';
+    if (v.startsWith('sk-ant-')||v.startsWith('sk-')||v.startsWith('AIza')) return v;
   }
-  // Scan all keys
   for (let i = 0; i < localStorage.length; i++) {
-    const v = localStorage.getItem(localStorage.key(i)) || '';
-    if (v.startsWith('sk-ant-')) return v;
+    const v = localStorage.getItem(localStorage.key(i))||'';
+    if (v.startsWith('sk-ant-')||v.startsWith('AIza')) return v;
   }
   return '';
+}
+function isGeminiKey(k){ return k.startsWith('AIza'); }
+
+// ── Anthropic call ────────────────────────────────────────────────────────
+async function callAnthropic(prompt, apiKey) {
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json",
+      "x-api-key": apiKey,
+      "anthropic-version":"2023-06-01",
+      "anthropic-dangerous-direct-browser-access":"true"
+    },
+    body: JSON.stringify({
+      model:"claude-sonnet-4-20250514", max_tokens:1500,
+      tools:[{type:"web_search_20250305",name:"web_search"}],
+      messages:[{role:"user",content:prompt}]
+    })
+  });
+  if(!resp.ok){const e=await resp.text().catch(()=>'');throw new Error(`API ${resp.status}: ${e.slice(0,200)}`);}
+  const data=await resp.json();
+  return data.content.filter(b=>b.type==="text").map(b=>b.text).join("\n");
+}
+
+// ── Gemini call (supports Google Search grounding) ────────────────────────
+async function callGemini(prompt, apiKey) {
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({
+        contents:[{parts:[{text:prompt}]}],
+        tools:[{google_search:{}}]
+      })
+    }
+  );
+  if(!resp.ok){const e=await resp.text().catch(()=>'');throw new Error(`Gemini ${resp.status}: ${e.slice(0,200)}`);}
+  const data=await resp.json();
+  return (data.candidates?.[0]?.content?.parts||[])
+    .filter(p=>p.text).map(p=>p.text).join("\n");
+}
+
+// ── Unified AI call ───────────────────────────────────────────────────────
+async function callAI(prompt) {
+  const key = getApiKey();
+  if (!key) throw new Error('NO_KEY');
+  return isGeminiKey(key) ? callGemini(prompt, key) : callAnthropic(prompt, key);
 }
 
 function apiKeyPromptHTML(tab) {
   return `<div class="ai-panel">
     <div style="background:var(--surf);border:1px solid var(--bdr2);border-radius:12px;padding:24px;max-width:520px;margin:0 auto">
-      <div style="font-size:20px;margin-bottom:8px">🔑 Anthropic API Key Required</div>
+      <div style="font-size:20px;margin-bottom:8px">🔑 AI API Key Required</div>
       <p style="font-size:12px;color:var(--muted2);line-height:1.7;margin-bottom:16px">
-        The Profile and News tabs use Claude AI with live web search.<br>
-        You need your own Anthropic API key to use this feature.<br><br>
-        <strong>Get a free key:</strong> <a href="https://console.anthropic.com" target="_blank"
-          style="color:var(--cyan)">console.anthropic.com</a> → API Keys → Create Key<br>
-        <span style="font-size:10px;color:var(--muted)">If you've already set this in your FOLIO dashboard, it should work automatically — both apps share the same key storage.</span>
+        The Profile and News tabs use AI with live web search.<br>
+        <strong>Supported providers (both free tier available):</strong><br><br>
+        🟦 <strong>Google Gemini</strong> — Get free key at
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--cyan)">aistudio.google.com</a>
+        → Create API key (starts with <code>AIza...</code>)<br><br>
+        🟨 <strong>Anthropic Claude</strong> — Get key at
+        <a href="https://console.anthropic.com" target="_blank" style="color:var(--cyan)">console.anthropic.com</a>
+        → API Keys (starts with <code>sk-ant...</code>)<br><br>
+        <span style="font-size:10px;color:var(--muted)">If your FOLIO dashboard has an API key set, it should work automatically — both apps share the same browser storage.</span>
       </p>
       <div style="display:flex;gap:8px;margin-bottom:10px">
-        <input id="apiKeyInput" type="password" placeholder="sk-ant-api03-..."
+        <input id="apiKeyInput" type="password" placeholder="AIza... or sk-ant-..."
           style="flex:1;background:var(--bg);border:1px solid var(--bdr2);border-radius:8px;
             padding:9px 12px;color:var(--txt);font-size:12px;font-family:var(--font)"/>
         <button class="btn btn-cyan" onclick="saveApiKey('${tab}')">Save & Continue</button>
       </div>
       <p style="font-size:10px;color:var(--muted)">
-        🔒 Stored only in your browser's localStorage. Never sent to any server except directly to Anthropic.
+        🔒 Stored only in your browser's localStorage. Never sent anywhere except directly to the AI provider.
       </p>
     </div>
   </div>`;
@@ -1587,13 +1619,54 @@ function apiKeyPromptHTML(tab) {
 
 function saveApiKey(tab) {
   const key = document.getElementById('apiKeyInput')?.value?.trim();
-  if (!key || !key.startsWith('sk-ant')) {
-    alert('Please enter a valid Anthropic API key (starts with sk-ant...)');
+  if (!key || (!key.startsWith('sk-ant') && !key.startsWith('AIza') && !key.startsWith('sk-'))) {
+    alert('Please enter a valid API key (Gemini: AIza... or Anthropic: sk-ant...)');
     return;
   }
-  localStorage.setItem('fa_apikey', key);          // same key as FOLIO
-  localStorage.setItem('fa_anthropic_key', key);   // backward compat
+  localStorage.setItem('fa_apikey', key);
+  localStorage.setItem('fa_anthropic_key', key);
   setTab(tab);
+}
+
+// ── Tornado Chart SVG renderer ─────────────────────────────────────────────
+function renderTornadoChart(variables) {
+  // variables: [{name, low, high}] sorted by Math.abs(high-low) desc
+  if (!variables || !variables.length) return '';
+  const sorted = [...variables].sort((a,b)=>Math.abs(b.high-b.low)-Math.abs(a.high-a.low));
+  const maxAbs = Math.max(...sorted.flatMap(v=>[Math.abs(v.low),Math.abs(v.high)]));
+  const w=560, barH=28, gap=8, labelW=160, axisH=30;
+  const chartW=w-labelW-20, mid=chartW/2;
+  const scale=v=>(Math.abs(v)/maxAbs)*(mid*0.92);
+  const fmtN=v=>isOK(v)?(v>=0?'+':'')+v.toFixed(1)+'%':'?';
+  const bars=sorted.map((v,i)=>{
+    const y=i*(barH+gap);
+    const negW=scale(v.low); const posW=scale(v.high);
+    return `
+      <g transform="translate(0,${y})">
+        <rect x="${mid-negW}" y="0" width="${negW}" height="${barH}" fill="#4da0ff" rx="3" opacity="0.85"/>
+        <rect x="${mid}" y="0" width="${posW}" height="${barH}" fill="#ff4060" rx="3" opacity="0.85"/>
+        <text x="${mid-negW-4}" y="${barH/2+4}" fill="#4da0ff" font-size="9" text-anchor="end">${fmtN(v.low)}</text>
+        <text x="${mid+posW+4}" y="${barH/2+4}" fill="#ff4060" font-size="9" text-anchor="start">${fmtN(v.high)}</text>
+        <text x="${-4}" y="${barH/2+4}" fill="#7aa0be" font-size="10" text-anchor="end" font-weight="500">${v.name}</text>
+      </g>`;
+  }).join('');
+  const chartH=sorted.length*(barH+gap)+axisH;
+  // Axis ticks
+  const ticks=[-100,-50,0,50,100].filter(t=>Math.abs(t)<=maxAbs*1.1);
+  const axisTicks=ticks.map(t=>{
+    const x=mid+(t/maxAbs)*mid*0.92;
+    return `<line x1="${x}" y1="0" x2="${x}" y2="${chartH-axisH}" stroke="#1a3050" stroke-width="1"/>
+            <text x="${x}" y="${chartH-axisH+14}" fill="#4e7398" font-size="9" text-anchor="middle">${t>0?'+':''}${t}%</text>`;
+  }).join('');
+  return `<div style="margin:16px 0;overflow-x:auto">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;display:flex;gap:16px">
+      <span>◀ <span style="color:#4da0ff">■</span> Downside (Negative Impact)</span>
+      <span><span style="color:#ff4060">■</span> Upside (Positive Impact) ▶</span>
+    </div>
+    <svg viewBox="-${labelW} 0 ${w} ${chartH}" style="width:100%;max-width:${w}px;min-height:${chartH}px;font-family:var(--font)">
+      ${axisTicks}${bars}
+    </svg>
+  </div>`;
 }
 
 function mdToHtml(md) {
@@ -1628,7 +1701,7 @@ async function tabProfile(sym, st, cont) {
     cont.innerHTML = profileHTML(sym, st, cache.content, cache.ts, false);
     return;
   }
-  if (!getAnthropicKey()) {
+  if (!getApiKey()) {
     cont.innerHTML = apiKeyPromptHTML('profile'); return;
   }
   cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Researching ${st.name}…`)}</div>`;
@@ -1654,25 +1727,36 @@ List the top 5 institutional/major shareholders with their approximate percentag
 ## Key Risks
 3-4 main fundamental risks investors should be aware of.
 
-Keep the response factual, concise and focused on fundamentals relevant to long-term investors. Use current data where available.`;
+## TORNADO_DATA
+At the very end, output a JSON block showing sensitivity analysis — how each key risk factor could impact the company's net profit % (estimated percentage change from base case). Include 5-7 variables. Format EXACTLY like this with no extra text:
+\`\`\`json
+[
+  {"name":"Variable Name","low":-25,"high":10},
+  {"name":"Another Variable","low":-15,"high":20}
+]
+\`\`\`
 
-  try {
-    const content = await callClaude(prompt);
-    if (!AI_CACHE[sym]) AI_CACHE[sym] = {};
-    AI_CACHE[sym].profile = { content, ts: now };
-    cont.innerHTML = profileHTML(sym, st, content, now, false);
-  } catch(e) {
-    if (e.message === 'NO_KEY') { cont.innerHTML = apiKeyPromptHTML('profile'); return; }
-    cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
-      <button class="btn btn-ghost" onclick="AI_CACHE['${sym}']&&delete AI_CACHE['${sym}'].profile;setTab('profile')">↻ Retry</button>
-      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_apikey');localStorage.removeItem('fa_anthropic_key');setTab('profile')">🔑 Change API Key</button>
-    </div>`;
-  }
-}
+Keep all text factual, concise, focused on fundamentals. Use current data where available.`;
 
 function profileHTML(sym, st, content, ts, loading) {
   const age = Math.round((Date.now() - ts) / 3600000);
   const ageStr = age < 1 ? 'just now' : age < 24 ? `${age}h ago` : `${Math.round(age/24)}d ago`;
+
+  // Extract tornado JSON from content
+  let tornadoHtml = '';
+  let displayContent = content;
+  try {
+    const jsonMatch = content.match(/```json\s*(\[[\s\S]*?\])\s*```/);
+    if (jsonMatch) {
+      const vars = JSON.parse(jsonMatch[1]);
+      tornadoHtml = `
+        <h2>📊 Sensitivity Analysis — Key Risk Impact on Net Profit</h2>
+        <p style="font-size:11px;color:var(--muted)">Estimated % change in net profit from base case under each risk scenario.</p>
+        ${renderTornadoChart(vars)}`;
+      displayContent = content.replace(/##\s*TORNADO_DATA[\s\S]*$/, '').trim();
+    }
+  } catch(e) {}
+
   return `<div class="ai-panel">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
       <div>
@@ -1680,12 +1764,28 @@ function profileHTML(sym, st, content, ts, loading) {
         <div style="font-size:10px;color:var(--muted)">${sym} · ${st.exchange} · ${st.currency}</div>
       </div>
       <button class="btn btn-ghost ai-refresh-btn"
-        onclick="delete AI_CACHE['${sym}'].profile;setTab('profile')">↻ Refresh</button>
+        onclick="if(AI_CACHE['${sym}'])delete AI_CACHE['${sym}'].profile;setTab('profile')">↻ Refresh</button>
     </div>
-    <div class="ai-content">${mdToHtml(content)}</div>
-    <div class="ai-cache-note">AI-generated via Claude + web search · Updated ${ageStr} · Data may not be fully current</div>
+    <div class="ai-content">${mdToHtml(displayContent)}</div>
+    ${tornadoHtml}
+    <div class="ai-cache-note">AI-generated via ${isGeminiKey(getApiKey()||'') ? 'Gemini' : 'Claude'} + web search · Updated ${ageStr} · Data may not be fully current</div>
   </div>`;
 }
+
+  try {
+    const content = await callAI(prompt);
+    if (!AI_CACHE[sym]) AI_CACHE[sym] = {};
+    AI_CACHE[sym].profile = { content, ts: now };
+    cont.innerHTML = profileHTML(sym, st, content, now, false);
+  } catch(e) {
+    if (e.message === 'NO_KEY') { cont.innerHTML = apiKeyPromptHTML('profile'); return; }
+    cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
+      <button class="btn btn-ghost" onclick="delete AI_CACHE['${sym}']?.profile;setTab('profile')">↻ Retry</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_apikey');localStorage.removeItem('fa_anthropic_key');setTab('profile')">🔑 Change API Key</button>
+    </div>`;
+  }
+}
+
 
 // ── NEWS TAB ─────────────────────────────────────────────────────────
 async function tabNews(sym, st, cont) {
@@ -1698,7 +1798,7 @@ async function tabNews(sym, st, cont) {
     cont.innerHTML = newsHTML(sym, st, cache.content, cache.ts);
     return;
   }
-  if (!getAnthropicKey()) {
+  if (!getApiKey()) {
     cont.innerHTML = apiKeyPromptHTML('news'); return;
   }
   cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Searching latest news for ${st.name}…`)}</div>`;
@@ -1724,15 +1824,15 @@ For each news item provide:
 Focus only on genuine fundamental business news. Skip purely technical/price movement news.`;
 
   try {
-    const content = await callClaude(prompt);
+    const content = await callAI(prompt);
     if (!AI_CACHE[sym]) AI_CACHE[sym] = {};
     AI_CACHE[sym].news = { content, ts: now };
     cont.innerHTML = newsHTML(sym, st, content, now);
   } catch(e) {
     if (e.message === 'NO_KEY') { cont.innerHTML = apiKeyPromptHTML('news'); return; }
     cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
-      <button class="btn btn-ghost" onclick="AI_CACHE['${sym}']&&delete AI_CACHE['${sym}'].news;setTab('news')">↻ Retry</button>
-      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_apikey');localStorage.removeItem('fa_anthropic_key');setTab('news')">🔑 Change API Key</button>
+      <button class="btn btn-ghost" onclick="delete AI_CACHE['${sym}']?.news;setTab('news')">↻ Retry</button>
+      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_apikey');localStorage.removeItem('fa_anthropic_key');setTab('news')">🔑 Change Key</button>
     </div>`;
   }
 }
