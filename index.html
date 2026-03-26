@@ -1693,69 +1693,33 @@ function aiErrorHTML(err) {
 }
 
 // ── PROFILE TAB ──────────────────────────────────────────────────────
-async function tabProfile(sym, st, cont) {
-  const cache = AI_CACHE[sym]?.profile;
-  const now = Date.now();
-
-  if (cache && (now - cache.ts) < AI_CACHE_TTL) {
-    cont.innerHTML = profileHTML(sym, st, cache.content, cache.ts, false);
-    return;
-  }
-  if (!getApiKey()) {
-    cont.innerHTML = apiKeyPromptHTML('profile'); return;
-  }
-  cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Researching ${st.name}…`)}</div>`;
-
-  const ticker = S.data[sym]?.ticker || sym;
-  const prompt = `Research ${st.name} (ticker: ${ticker}, exchange: ${st.exchange}).
-
-Provide a comprehensive company profile in this exact structure using markdown:
-
-## Company Overview
-Brief description of what the company does, its history, headquarters, founding year, and business model.
-
-## Business Segments
-Main business divisions and what percentage of revenue each contributes.
-
-## Competitive Position
-Key competitive advantages, market position, and moat.
-
-## Top 5 Shareholders
-List the top 5 institutional/major shareholders with their approximate percentage ownership. Format each as:
-- **[Rank]. [Shareholder Name]** — [X.X]% — [Type: e.g. Institutional, Founder, Government]
-
-## Key Risks
-3-4 main fundamental risks investors should be aware of.
-
-## TORNADO_DATA
-At the very end, output a JSON block showing sensitivity analysis — how each key risk factor could impact the company's net profit % (estimated percentage change from base case). Include 5-7 variables. Format EXACTLY like this with no extra text:
-\`\`\`json
-[
-  {"name":"Variable Name","low":-25,"high":10},
-  {"name":"Another Variable","low":-15,"high":20}
-]
-\`\`\`
-
-Keep all text factual, concise, focused on fundamentals. Use current data where available.`;
-
-function profileHTML(sym, st, content, ts, loading) {
+// ── PROFILE HTML RENDERER (top-level, not inside tabProfile) ─────────────
+function profileHTML(sym, st, content, ts) {
   const age = Math.round((Date.now() - ts) / 3600000);
   const ageStr = age < 1 ? 'just now' : age < 24 ? `${age}h ago` : `${Math.round(age/24)}d ago`;
+  const provider = isGeminiKey(getApiKey()||'') ? 'Gemini' : 'Claude';
 
-  // Extract tornado JSON from content
+  // Strip tornado JSON from display content, render it as chart
   let tornadoHtml = '';
   let displayContent = content;
   try {
-    const jsonMatch = content.match(/```json\s*(\[[\s\S]*?\])\s*```/);
+    // Match ```json [...] ``` block
+    const jsonMatch = content.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/);
     if (jsonMatch) {
       const vars = JSON.parse(jsonMatch[1]);
-      tornadoHtml = `
-        <h2>📊 Sensitivity Analysis — Key Risk Impact on Net Profit</h2>
-        <p style="font-size:11px;color:var(--muted)">Estimated % change in net profit from base case under each risk scenario.</p>
-        ${renderTornadoChart(vars)}`;
+      if (Array.isArray(vars) && vars.length) {
+        tornadoHtml = `<div style="margin-top:8px">
+          <h2>📊 Sensitivity Analysis — Key Risk Impact on Net Profit</h2>
+          <p style="font-size:11px;color:var(--muted);margin-bottom:4px">
+            Estimated % change in net profit from base case. Blue = downside, Red = upside.
+          </p>
+          ${renderTornadoChart(vars)}
+        </div>`;
+      }
+      // Remove the TORNADO_DATA section entirely from display
       displayContent = content.replace(/##\s*TORNADO_DATA[\s\S]*$/, '').trim();
     }
-  } catch(e) {}
+  } catch(e) { /* JSON parse failed — show content as-is */ }
 
   return `<div class="ai-panel">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
@@ -1768,20 +1732,75 @@ function profileHTML(sym, st, content, ts, loading) {
     </div>
     <div class="ai-content">${mdToHtml(displayContent)}</div>
     ${tornadoHtml}
-    <div class="ai-cache-note">AI-generated via ${isGeminiKey(getApiKey()||'') ? 'Gemini' : 'Claude'} + web search · Updated ${ageStr} · Data may not be fully current</div>
+    <div class="ai-cache-note">AI-generated via ${provider} + web search · Updated ${ageStr} · Data may not be fully current</div>
   </div>`;
 }
+
+async function tabProfile(sym, st, cont) {
+  const cache = AI_CACHE[sym]?.profile;
+  const now = Date.now();
+
+  if (cache && (now - cache.ts) < AI_CACHE_TTL) {
+    cont.innerHTML = profileHTML(sym, st, cache.content, cache.ts);
+    return;
+  }
+  if (!getApiKey()) {
+    cont.innerHTML = apiKeyPromptHTML('profile'); return;
+  }
+  cont.innerHTML = `<div class="ai-panel">${aiLoadingHTML(`Researching ${st.name}…`)}</div>`;
+
+  const ticker = S.data[sym]?.ticker || sym;
+  const prompt = `Research ${st.name} (ticker: ${ticker}, exchange: ${st.exchange}).
+
+Provide a comprehensive company profile using markdown with these exact sections:
+
+## Company Overview
+What the company does, history, headquarters, founding year, business model.
+
+## Business Segments
+Main divisions and approximate % of revenue each contributes.
+
+## Competitive Position
+Key competitive advantages, market position, economic moat.
+
+## Top 5 Shareholders
+- **1. [Name]** — [X.X]% — [Type]
+- **2. [Name]** — [X.X]% — [Type]
+(list 5 total)
+
+## Key Risks
+3-4 main fundamental risks for long-term investors.
+
+## TORNADO_DATA
+Output ONLY a JSON array (no explanation) estimating how each key risk factor impacts net profit % vs base case:
+\`\`\`json
+[{"name":"Risk Factor","low":-20,"high":5},{"name":"Another Factor","low":-15,"high":10}]
+\`\`\`
+Include 5-7 variables. low = worst case % change, high = upside % change.`;
 
   try {
     const content = await callAI(prompt);
     if (!AI_CACHE[sym]) AI_CACHE[sym] = {};
     AI_CACHE[sym].profile = { content, ts: now };
-    cont.innerHTML = profileHTML(sym, st, content, now, false);
+    cont.innerHTML = profileHTML(sym, st, content, now);
   } catch(e) {
     if (e.message === 'NO_KEY') { cont.innerHTML = apiKeyPromptHTML('profile'); return; }
-    cont.innerHTML = `<div class="ai-panel">${aiErrorHTML(e.message)}
-      <button class="btn btn-ghost" onclick="delete AI_CACHE['${sym}']?.profile;setTab('profile')">↻ Retry</button>
-      <button class="btn btn-ghost btn-sm" style="margin-left:8px" onclick="localStorage.removeItem('fa_apikey');localStorage.removeItem('fa_anthropic_key');setTab('profile')">🔑 Change API Key</button>
+    const isGeminiErr = e.message.includes('403') || e.message.includes('not been used') || e.message.includes('disabled');
+    cont.innerHTML = `<div class="ai-panel">
+      ${aiErrorHTML(e.message)}
+      ${isGeminiErr ? `<div style="background:rgba(255,208,96,.1);border:1px solid rgba(255,208,96,.3);border-radius:8px;padding:12px;margin:12px 0;font-size:12px;color:var(--yellow)">
+        <strong>💡 Gemini API not enabled.</strong> Your Google API key needs the "Generative Language API" enabled.<br><br>
+        <strong>Quickest fix:</strong> Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:var(--cyan)">aistudio.google.com/app/apikey</a> → Create API key → paste below:
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <input id="quickKeyInput" type="password" placeholder="Paste new AIza... key here"
+            style="flex:1;background:var(--bg);border:1px solid var(--bdr2);border-radius:6px;padding:7px 10px;color:var(--txt);font-size:12px"/>
+          <button class="btn btn-cyan btn-sm" onclick="
+            const k=document.getElementById('quickKeyInput').value.trim();
+            if(k){localStorage.setItem('fa_apikey',k);localStorage.setItem('fa_anthropic_key',k);setTab('profile');}
+          ">Save & Retry</button>
+        </div>
+      </div>` : ''}
+      <button class="btn btn-ghost btn-sm" onclick="delete AI_CACHE['${sym}']?.profile;setTab('profile')">↻ Retry</button>
     </div>`;
   }
 }
