@@ -338,8 +338,8 @@ const BASE_STOCKS={
 };
 
 const DEF_WTS={cashToAsset:10,debtToEquity:5,revenueCagr:5,gpmAvg:0,
-  netProfitCagr:5,npmAvg:25,epsCagr:5,dpsCagr:0,fcfCagr:5,fcfMargin:5,
-  roeAvg:20,dividendPayout:0,buffettTest:15};
+  netProfitCagr:5,npmAvg:30,epsCagr:5,dpsCagr:0,
+  roeAvg:25,dividendPayout:0,buffettTest:15};
 
 const CRITERIA=[
   {key:"cashToAsset",  wKey:"cashToAsset",   label:"Cash/Asset", hi:true},
@@ -350,8 +350,6 @@ const CRITERIA=[
   {key:"npmAvg",       wKey:"npmAvg",        label:"NP Margin",  hi:true},
   {key:"epsCagr",      wKey:"epsCagr",       label:"EPS CAGR",   hi:true},
   {key:"dpsCagr",      wKey:"dpsCagr",       label:"DPS CAGR",   hi:true},
-  {key:"fcfCagr",      wKey:"fcfCagr",       label:"FCF CAGR",   hi:true},
-  {key:"fcfMargin",    wKey:"fcfMargin",      label:"FCF Margin", hi:true},
   {key:"roeAvg",       wKey:"roeAvg",        label:"ROE",        hi:true},
   {key:"dividendPayout",wKey:"dividendPayout",label:"Div Payout",hi:true},
   {key:"buffettTest",  wKey:"buffettTest",   label:"Buffett $1", hi:true},
@@ -362,7 +360,7 @@ const MKEYS=[
   {k:"totalDebt",l:"Total Debt"},      {k:"totalEquity",l:"Total Equity"},
   {k:"revenue",l:"Total Revenue"},     {k:"grossProfit",l:"Gross Profit"},
   {k:"netProfit",l:"Net Profit"},      {k:"eps",l:"EPS"},
-  {k:"dps",l:"DPS"},                   {k:"fcf",l:"Free Cash Flow"},
+  {k:"dps",l:"DPS"},
 ];
 
 // ═══════════════════════════════════
@@ -731,17 +729,15 @@ function calcM(symbol){
   const sl=k=>(data[k]||Array(N_YEARS).fill(null)).slice(0,N_YEARS);
   const ta=sl('totalAsset'),ca=sl('cash'),td=sl('totalDebt'),te=sl('totalEquity');
   const rv2=sl('revenue'),gp=sl('grossProfit'),np=sl('netProfit'),ep=sl('eps'),dp=sl('dps');
-  const fc=sl('fcf');
 
   const Y=YEARS.map((yr,i)=>({
     year:yr,
     totalAsset:ta[i],cash:ca[i],totalDebt:td[i],totalEquity:te[i],
-    revenue:rv2[i],grossProfit:gp[i],netProfit:np[i],eps:ep[i],dps:dp[i],fcf:fc[i],
+    revenue:rv2[i],grossProfit:gp[i],netProfit:np[i],eps:ep[i],dps:dp[i],
     cashToAsset: isOK(ta[i])&&ta[i]>0&&isOK(ca[i]) ? ca[i]/ta[i]*100 : null,
     debtToEquity: isOK(te[i])&&te[i]!==0&&isOK(td[i]) ? td[i]/te[i]*100 : null,
     gpm:     isOK(rv2[i])&&rv2[i]>0&&isOK(gp[i])  ? gp[i]/rv2[i]*100  : null,
     npm:     isOK(rv2[i])&&rv2[i]>0&&isOK(np[i])  ? np[i]/rv2[i]*100  : null,
-    fcmarg:  isOK(rv2[i])&&rv2[i]>0&&isOK(fc[i])  ? fc[i]/rv2[i]*100  : null,
     roa:     isOK(ta[i])&&ta[i]>0&&isOK(np[i])    ? np[i]/ta[i]*100   : null,
     roe:     isOK(te[i])&&te[i]!==0&&isOK(np[i])  ? np[i]/te[i]*100   : null,
     divPayout: isOK(ep[i])&&ep[i]>0&&isOK(dp[i])  ? dp[i]/ep[i]*100   : null,
@@ -753,11 +749,10 @@ function calcM(symbol){
   const av={
     cashToAsset:avg(Y.map(y=>y.cashToAsset)), debtToEquity:avg(Y.map(y=>y.debtToEquity)),
     gpm:avg(Y.map(y=>y.gpm)), npm:avg(Y.map(y=>y.npm)),
-    fcmarg:avg(Y.map(y=>y.fcmarg)),
     roa:avg(Y.map(y=>y.roa)), roe:avg(Y.map(y=>y.roe)),
     divPayout:avg(Y.map(y=>y.divPayout)),
   };
-  const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep),dps:cagr(dp),fcf:cagr(fc)};
+  const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep),dps:cagr(dp)};
 
   // ── Buffett $1 Test ──────────────────────────────────────────────
   // Use COMPLETED years only (indices 0–4, i.e. exclude current-year estimate at index 5).
@@ -796,7 +791,6 @@ function calcM(symbol){
   return{Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp,fc},
     rm:{cashToAsset:av.cashToAsset,debtToEquity:av.debtToEquity,revenueCagr:cg.rev,
       gpmAvg:av.gpm,netProfitCagr:cg.np,npmAvg:av.npm,epsCagr:cg.eps,dpsCagr:cg.dps,
-      fcfCagr:cg.fcf,fcfMargin:av.fcmarg,
       roeAvg:av.roe,dividendPayout:av.divPayout,buffettTest:buff}};
 }
 
@@ -1042,7 +1036,6 @@ function tabRatios(sym,st){
     {k:'roa',l:'Return on Asset %',p:true},{k:'roe',l:'Return on Equity %',p:true},
     {k:'divPayout',l:'Dividend Payout %',p:true},{k:'valLow',l:'Valuation Low (DPS×10)',p:false},
     {k:'valHigh',l:'Valuation High (DPS×20)',p:false},{k:'retEps',l:'Retained EPS (EPS−DPS)',p:false},
-    {k:'fcmarg',l:'FCF Margin % (FCF/Revenue)',p:true},
   ];
   const rows=rDefs.map((r,i)=>{
     const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${r.p?P1(v):N2(v,2)}</td>`;}).join('');
@@ -1098,7 +1091,7 @@ function tabRankings(){
      keys:['cashToAsset','debtToEquity']},
     {id:'profgrow',label:'📈 Profitability & Growth',
      color:'var(--green)', bg:'rgba(0,217,126,.06)',   border:'rgba(0,217,126,.25)',
-     keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr','dpsCagr','fcfCagr','fcfMargin']},
+     keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr','dpsCagr']},
     {id:'mgmt',    label:'🎯 Management Effectiveness',
      color:'var(--purple)',bg:'rgba(180,157,255,.06)', border:'rgba(180,157,255,.25)',
      keys:['roeAvg','dividendPayout','buffettTest']},
@@ -1591,11 +1584,9 @@ function generateProfile(sym, st) {
   const rev = d?.revenue?.filter(v=>v!=null)||[];
   const np  = d?.netProfit?.filter(v=>v!=null)||[];
   const ta  = d?.totalAsset?.filter(v=>v!=null)||[];
-  const fcfArr = d?.fcf?.filter(v=>v!=null)||[];
   const latestRev = rev.length ? rev[rev.length-1] : null;
   const latestNP  = np.length  ? np[np.length-1]  : null;
   const latestTA  = ta.length  ? ta[ta.length-1]  : null;
-  const latestFCF = fcfArr.length ? fcfArr[fcfArr.length-1] : null;
   const trend = m&&m.cg.rev>5?"growing":m&&m.cg.rev<-5?"contracting":"stable";
   const profitability = m&&m.av.npm>20?"highly profitable":m&&m.av.npm>10?"solidly profitable":m&&m.av.npm>0?"modestly profitable":"loss-making";
   const yrs = (S.years||[]).slice(0,-1);
@@ -1611,7 +1602,6 @@ ${info.sector} sector. Revenue and asset profile (latest year):
 - **Total Revenue** — ${N2(latestRev)} ${st.currency}
 - **Net Profit** — ${N2(latestNP)} ${st.currency} (${latestRev&&latestNP?P1(latestNP/latestRev*100):"N/A"} margin)
 - **Total Assets** — ${N2(latestTA)} ${st.currency}
-${latestFCF!=null?"- **Free Cash Flow** — "+N2(latestFCF)+" "+st.currency:""}
 
 ## Competitive Position
 ${info.moat}
@@ -1627,7 +1617,6 @@ Average Return on Equity: **${P1(m?.av.roe)}** — ${m&&m.av.roe>20?"excellent c
 | Avg ROE | ${P1(m?.av.roe)} |
 | EPS CAGR | ${P1(m?.cg.eps)} |
 | DPS CAGR | ${P1(m?.cg.dps)} |
-${m?.cg.fcf!=null?"| FCF CAGR | "+P1(m.cg.fcf)+" |":""}
 
 ## Key Risks
 See the sensitivity analysis chart below for quantified risk estimates specific to the ${info.sector} sector.`;
