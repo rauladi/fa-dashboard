@@ -405,27 +405,58 @@ For each use exactly:
 
 Focus on: earnings, revenue changes, strategy, acquisitions, dividends, regulations. Skip pure price news."""
 
+def call_gemini(prompt, api_key, max_tokens=1200):
+    """Call Gemini API (free tier, AIza... keys from Google AI Studio)."""
+    try:
+        import urllib.request, json as jsonlib
+        model = "gemini-2.0-flash"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+        body = jsonlib.dumps({
+            "contents": [{"parts": [{"text": prompt}]}],
+            "generationConfig": {"maxOutputTokens": max_tokens}
+        }).encode()
+        req = urllib.request.Request(url, data=body,
+            headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            data = jsonlib.loads(resp.read())
+            parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+            return "".join(p.get("text","") for p in parts) or None
+    except Exception as e:
+        print(f"  Gemini API error: {e}", flush=True)
+        return None
+
 def generate_ai_content(all_stocks, out, api_key):
-    """Generate profile and news for all stocks using Claude Haiku."""
+    """Generate profile and news for all stocks.
+    Supports both Anthropic (sk-ant-...) and Gemini (AIza...) keys.
+    Set ANTHROPIC_API_KEY secret in GitHub to either type of key.
+    """
     if not api_key:
-        print("\nNo ANTHROPIC_API_KEY — skipping AI content. Add to GitHub Secrets to enable.", flush=True)
+        print("\nNo API key found — skipping AI content.", flush=True)
+        print("Add ANTHROPIC_API_KEY secret in GitHub (accepts Anthropic sk-ant-... OR Gemini AIza... keys)", flush=True)
         return
-    print(f"\n{'='*50}\nGenerating AI profiles & news ({len(all_stocks)} stocks)...\n{'='*50}", flush=True)
+
+    is_gemini = api_key.startswith("AIza")
+    provider = "Gemini" if is_gemini else "Anthropic Claude Haiku"
+    call_fn = call_gemini if is_gemini else call_anthropic
+    print(f"\n{'='*50}\nGenerating AI profiles & news via {provider} ({len(all_stocks)} stocks)...\n{'='*50}", flush=True)
+
     for sym, (name, exchange, ticker, *_) in all_stocks.items():
         print(f"  [{sym}] profile...", flush=True)
-        profile = call_anthropic(PROFILE_PROMPT.format(name=name,ticker=ticker,exchange=exchange), api_key)
+        profile = call_fn(PROFILE_PROMPT.format(name=name,ticker=ticker,exchange=exchange), api_key)
         if profile:
             out["stocks"][sym]["profile"] = profile
             out["stocks"][sym]["profileDate"] = NOW.isoformat()
 
-        time.sleep(0.3)
+        time.sleep(0.5 if is_gemini else 0.3)
         print(f"  [{sym}] news...", flush=True)
-        news = call_anthropic(NEWS_PROMPT.format(name=name,ticker=ticker,exchange=exchange), api_key, max_tokens=900)
+        news = call_fn(NEWS_PROMPT.format(name=name,ticker=ticker,exchange=exchange), api_key,
+                       max_tokens=900)
         if news:
             out["stocks"][sym]["news"] = news
             out["stocks"][sym]["newsDate"] = NOW.isoformat()
-        time.sleep(0.3)
-    print("AI content generation complete.", flush=True)
+        time.sleep(0.5 if is_gemini else 0.3)
+
+    print(f"AI content generation complete via {provider}.", flush=True)
 
 def main():
     usd_aud, usd_idr, twd_usd = get_rates()
@@ -455,8 +486,9 @@ def main():
         out["stocks"][sym].update(arrs)
         out["annualisation"][sym]=ann
 
-    # Preserve existing profile/news from previous data.json (avoid regenerating if not needed)
-    api_key = os.environ.get("ANTHROPIC_API_KEY","")
+    # Read API key — accepts both Anthropic (sk-ant-...) and Gemini (AIza...) keys
+    # Set as ANTHROPIC_API_KEY secret in GitHub — works with either key type
+    api_key = os.environ.get("ANTHROPIC_API_KEY","").strip()
     if api_key:
         generate_ai_content(all_stocks, out, api_key)
     else:
