@@ -788,7 +788,7 @@ function calcM(symbol){
     y.retEps = y.eps - d;
   });
 
-  return{Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp,fc},
+  return{Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp},
     rm:{cashToAsset:av.cashToAsset,debtToEquity:av.debtToEquity,revenueCagr:cg.rev,
       gpmAvg:av.gpm,netProfitCagr:cg.np,npmAvg:av.npm,epsCagr:cg.eps,dpsCagr:cg.dps,
       roeAvg:av.roe,dividendPayout:av.divPayout,buffettTest:buff}};
