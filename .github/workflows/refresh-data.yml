@@ -2,8 +2,8 @@ name: Refresh FA Dashboard Data
 
 on:
   schedule:
-    - cron: '0 6 5 * *'   # 5th of every month at 06:00 UTC
-  workflow_dispatch:        # Manual trigger from Actions tab
+    - cron: '0 6 5 * *'
+  workflow_dispatch:
 
 jobs:
   refresh:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Commit and push data.json
         run: |
-          git config user.name  "github-actions[bot]"
+          git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
           git diff --cached --quiet || git commit -m "Auto-refresh data.json $(date -u +'%Y-%m-%d %H:%M UTC')"
