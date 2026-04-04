@@ -83,7 +83,7 @@ PRELOADED = {
     "BKNG": {"totalAsset":[25.5,26.8,30.7,31.8,33.0,None],"cash":[11.2,12.4,15.1,16.8,17.5,None],"totalDebt":[15.4,13.8,14.0,12.0,11.0,None],"totalEquity":[0.5,1.4,4.0,7.0,9.0,None],"revenue":[11.0,17.1,21.4,23.7,26.0,None],"grossProfit":[9.7,15.2,19.0,21.2,23.1,None],"netProfit":[1.1,3.0,4.3,4.8,6.0,None],"eps":[25.0,72.0,110.0,130.0,165.0,None],"dps":[None,None,None,None,None,None]},
 }
 
-# ---------- exchange rates ----------
+# ---------- exchange rates (unchanged) ----------
 def get_rates():
     usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031
     try:
@@ -310,15 +310,14 @@ def build_arrays(yd, fb, sym):
         arr=[]
         for i,yr in enumerate(ALL_YEARS):
             lv=yd[yr].get(f) if yd and yr in yd else None
-            fv=fb[f][i] if fb and f in fb and i<len(fb[f]) else None
-            # If yfinance gives None, fallback to PRELOADED for that year (especially 2021)
+            # fallback to PRELOADED if available
             if lv is None and sym in PRELOADED and f in PRELOADED[sym] and i < len(PRELOADED[sym][f]):
                 lv = PRELOADED[sym][f][i]
-            arr.append(lv if lv is not None else fv)
+            arr.append(lv)
         out[f]=arr
     return out
 
-# ---------- AI generation with metrics ----------
+# ---------- AI generation with Gemini ----------
 def call_gemini(prompt, api_key, max_tokens=2500):
     try:
         import urllib.request, json as jsonlib
@@ -416,16 +415,19 @@ def generate_ai_content(all_stocks, out, api_key, all_metrics):
         prompt = build_ai_prompt(sym, name, exchange, ticker, metrics)
         print(f"  [{sym}] generating analysis...", flush=True)
 
+        # Call Gemini once for the full analysis
         profile = call_gemini(prompt, api_key, max_tokens=3000)
         if profile:
             out["stocks"][sym]["profile"] = profile
             out["stocks"][sym]["profileDate"] = NOW.isoformat()
+            print(f"  [{sym}] profile generated ({len(profile)} chars)", flush=True)
         else:
             print(f"  [!] No profile for {sym}", flush=True)
 
-        time.sleep(random.uniform(1, 2))
+        # Wait to avoid rate limits
+        time.sleep(random.uniform(1.5, 3.0))
 
-        # Also generate a news summary
+        # News summary (shorter)
         news_prompt = f"""Summarize the 5 most recent important fundamental business developments for {name} ({ticker}, {exchange}).
 
 For each, use exactly:
@@ -439,10 +441,11 @@ Focus on: earnings, revenue changes, strategy, acquisitions, dividends, regulati
         if news:
             out["stocks"][sym]["news"] = news
             out["stocks"][sym]["newsDate"] = NOW.isoformat()
+            print(f"  [{sym}] news generated ({len(news)} chars)", flush=True)
         else:
             print(f"  [!] No news for {sym}", flush=True)
 
-        time.sleep(random.uniform(1, 2))
+        time.sleep(random.uniform(1.5, 3.0))
 
     print("AI content generation complete.", flush=True)
 
@@ -470,8 +473,7 @@ def main():
             time.sleep(1)
         yd, ann = fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
         # Use PRELOADED as fallback for missing data
-        fb = PRELOADED.get(sym, {})
-        arrs = build_arrays(yd, fb, sym)
+        arrs = build_arrays(yd, {}, sym)   # empty fb because we use PRELOADED directly inside build_arrays
         src = "yfinance" if yd else "fallback"
         if yd:
             ok += 1
@@ -482,7 +484,7 @@ def main():
         out["stocks"][sym].update(arrs)
         out["annualisation"][sym] = ann
 
-        # Compute metrics for AI prompt using the arrays (which now have fallback data)
+        # Compute metrics for AI prompt
         rev_arr = arrs["revenue"]
         np_arr = arrs["netProfit"]
         gp_arr = arrs["grossProfit"]
