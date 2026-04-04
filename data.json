@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-04T12:33:43.695786+00:00",
+  "generated": "2026-04-04T12:56:16.271569+00:00",
   "years": [
     2021,
     2022,
@@ -275,11 +275,7 @@
         2.1976,
         1.8316,
         null
-      ],
-      "profile": "Analysis for BHP Group could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for BHP Group could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "WDS": {
       "name": "Woodside Energy",
@@ -359,11 +355,7 @@
         1.8747,
         1.5404,
         null
-      ],
-      "profile": "Analysis for Woodside Energy could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Woodside Energy could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "CBA": {
       "name": "Commonwealth Bank",
@@ -443,11 +435,7 @@
         4.5565,
         4.7542,
         null
-      ],
-      "profile": "Analysis for Commonwealth Bank could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Commonwealth Bank could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "BBRI": {
       "name": "Bank Rakyat Indonesia",
@@ -527,11 +515,7 @@
         319.1209,
         null,
         null
-      ],
-      "profile": "Analysis for Bank Rakyat Indonesia could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Bank Rakyat Indonesia could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "ADRO": {
       "name": "Adaro Energy",
@@ -611,11 +595,7 @@
         1895.9606,
         null,
         null
-      ],
-      "profile": "Analysis for Adaro Energy could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Adaro Energy could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "SMSM": {
       "name": "Selamat Sempurna",
@@ -695,11 +675,7 @@
         135.0,
         null,
         null
-      ],
-      "profile": "Analysis for Selamat Sempurna could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Selamat Sempurna could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "UNTR": {
       "name": "United Tractors",
@@ -779,11 +755,7 @@
         2235.2737,
         2052.237,
         null
-      ],
-      "profile": "Analysis for United Tractors could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for United Tractors could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "ITMG": {
       "name": "Indo Tambangraya Megah",
@@ -863,11 +835,7 @@
         3247.7413,
         3055.5702,
         null
-      ],
-      "profile": "Analysis for Indo Tambangraya Megah could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Indo Tambangraya Megah could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "POWR": {
       "name": "Cikarang Listrindo",
@@ -947,11 +915,7 @@
         76.5521,
         null,
         null
-      ],
-      "profile": "Analysis for Cikarang Listrindo could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Cikarang Listrindo could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "MPMX": {
       "name": "Mitra Pinasthika Mustika",
@@ -1031,11 +995,7 @@
         115.0252,
         null,
         null
-      ],
-      "profile": "Analysis for Mitra Pinasthika Mustika could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Mitra Pinasthika Mustika could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "BTPS": {
       "name": "Bank BTPN Syariah",
@@ -1115,11 +1075,7 @@
         68.1814,
         null,
         null
-      ],
-      "profile": "Analysis for Bank BTPN Syariah could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Bank BTPN Syariah could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "DMAS": {
       "name": "Puradelta Lestari",
@@ -1199,11 +1155,7 @@
         35,
         null,
         null
-      ],
-      "profile": "Analysis for Puradelta Lestari could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Puradelta Lestari could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "SPTO": {
       "name": "Surya Toto Indonesia",
@@ -1283,11 +1235,7 @@
         60.0,
         null,
         null
-      ],
-      "profile": "Analysis for Surya Toto Indonesia could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Surya Toto Indonesia could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "TSM": {
       "name": "Taiwan Semiconductor",
@@ -1367,11 +1315,7 @@
         2.1894,
         2.8148,
         null
-      ],
-      "profile": "Analysis for Taiwan Semiconductor could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Taiwan Semiconductor could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "V": {
       "name": "Visa Inc.",
@@ -1451,11 +1395,7 @@
         2.118,
         2.3862,
         null
-      ],
-      "profile": "Analysis for Visa Inc. could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Visa Inc. could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "MA": {
       "name": "Mastercard Inc.",
@@ -1535,11 +1475,7 @@
         2.6465,
         3.0453,
         null
-      ],
-      "profile": "Analysis for Mastercard Inc. could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Mastercard Inc. could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "PBR-A": {
       "name": "Petrobras Pref ADR",
@@ -1619,11 +1555,7 @@
         2.5182,
         1.2802,
         null
-      ],
-      "profile": "Analysis for Petrobras Pref ADR could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Petrobras Pref ADR could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "MSFT": {
       "name": "Microsoft Corp.",
@@ -1703,11 +1635,7 @@
         2.9298,
         3.2399,
         null
-      ],
-      "profile": "Analysis for Microsoft Corp. could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Microsoft Corp. could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "AMZN": {
       "name": "Amazon.com Inc.",
@@ -1787,11 +1715,7 @@
         null,
         null,
         null
-      ],
-      "profile": "Analysis for Amazon.com Inc. could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Amazon.com Inc. could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "AAPL": {
       "name": "Apple Inc.",
@@ -1871,11 +1795,7 @@
         0.9928,
         1.0316,
         null
-      ],
-      "profile": "Analysis for Apple Inc. could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Apple Inc. could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "META": {
       "name": "Meta Platforms Inc.",
@@ -1955,11 +1875,7 @@
         2.0016,
         2.0,
         null
-      ],
-      "profile": "Analysis for Meta Platforms Inc. could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Meta Platforms Inc. could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "NVDA": {
       "name": "NVIDIA Corporation",
@@ -2039,11 +1955,7 @@
         0.016,
         0.034,
         0.04
-      ],
-      "profile": "Analysis for NVIDIA Corporation could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for NVIDIA Corporation could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "GOOG": {
       "name": "Alphabet Inc (Google)",
@@ -2123,11 +2035,7 @@
         0.5977,
         0.8294,
         null
-      ],
-      "profile": "Analysis for Alphabet Inc (Google) could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Alphabet Inc (Google) could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     },
     "BKNG": {
       "name": "Booking Holdings Inc",
@@ -2207,11 +2115,7 @@
         34.9176,
         38.4568,
         null
-      ],
-      "profile": "Analysis for Booking Holdings Inc could not be generated at this time. Please try again later.",
-      "profileDate": "2026-04-04T12:33:43.695786+00:00",
-      "news": "Recent news for Booking Holdings Inc could not be retrieved. Please check company announcements.",
-      "newsDate": "2026-04-04T12:33:43.695786+00:00"
+      ]
     }
   }
 }
