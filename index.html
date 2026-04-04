@@ -268,8 +268,7 @@ td.num{font-size:12px;font-weight:500}
   <button class="t-btn"    id="t-ratios"   onclick="setTab('ratios')">📐 Ratios</button>
   <button class="t-btn"    id="t-chart"    onclick="setTab('chart')">📈 Chart</button>
   <button class="t-btn"    id="t-rankings" onclick="setTab('rankings')">🏆 Rankings</button>
-  <button class="t-btn"    id="t-profile"  onclick="setTab('profile')">🏢 Profile</button>
-  <button class="t-btn"    id="t-news"     onclick="setTab('news')">📰 News</button>
+  <button class="t-btn"    id="t-insights" onclick="setTab('insights')">💡 Insights</button>
 </div>
 
 <div id="cont"></div>
@@ -294,21 +293,14 @@ td.num{font-size:12px;font-weight:500}
 // ═══════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════
-// ── DYNAMIC YEAR ROLLING ─────────────────────────────────────────
-// YEARS = 5 completed years + current year (annualised estimate)
-// Auto-rolls every year automatically.
 const CURRENT_YEAR = new Date().getFullYear();
-const LATEST_YEAR  = CURRENT_YEAR - 1;                              // last fully completed year
+const LATEST_YEAR  = CURRENT_YEAR - 1;
 const YEARS        = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
-// e.g. in 2026: YEARS=[2021,2022,2023,2024,2025,2026]
-//      in 2027: YEARS=[2022,2023,2024,2025,2026,2027] ← auto-rolls!
-const N_YEARS      = YEARS.length; // 6
-
-// annualisation metadata loaded from data.json: {SYM: {label:"9M×1.333", quarters:3, asOf:"2026-09-30"}}
+const N_YEARS      = YEARS.length;
 let ANNUALISATION  = {};
 
 const LS_KEY='fa_v5';
-const CACHE_TTL=7*24*60*60*1000; // 7 days
+const CACHE_TTL=7*24*60*60*1000;
 
 const BASE_STOCKS={
   BHP: {name:"BHP Group",               exchange:"ASX",    currency:"B AUD"},
@@ -459,7 +451,6 @@ function showToast(msg,col='cyan'){
 const PRELOADED = {
   // ── ASX ─────────────────────────────────────────────────────────────
   BHP:{
-    // FY ends 30 June. Values in Billion AUD.
     totalAsset: [54.2,  51.9,  55.7,  81.5,  null,  null],
     cash:       [14.9,  12.4,  13.9,  13.3,  null,  null],
     totalDebt:  [14.5,  12.4,  14.8,  26.7,  null,  null],
@@ -471,7 +462,6 @@ const PRELOADED = {
     dps:        [ 3.01,  5.43,  1.70,  1.09,  null,  null],
   },
   WDS:{
-    // FY ends 31 Dec. Values in Billion AUD. 2022 reflects BHP Petroleum merger.
     totalAsset: [40.3,  50.5,  48.3,  48.0,  null,  null],
     cash:       [ 2.8,   3.1,   2.5,   2.2,  null,  null],
     totalDebt:  [ 7.9,  15.2,  12.8,  12.0,  null,  null],
@@ -484,7 +474,6 @@ const PRELOADED = {
   },
   // ── IDX ─────────────────────────────────────────────────────────────
   BBRI:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [1635,  1865,  1965,  2073,  null,  null],
     cash:       [ 163,   186,   196,   207,  null,  null],
     totalDebt:  [1380,  1570,  1650,  1730,  null,  null],
@@ -496,7 +485,6 @@ const PRELOADED = {
     dps:        [ 460,   791,   940,  1100,  null,  null],
   },
   ADRO:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [  80,   100,    85,    92,  null,  null],
     cash:       [  10,    20,    15,    16,  null,  null],
     totalDebt:  [  18,    25,    18,    16,  null,  null],
@@ -508,7 +496,6 @@ const PRELOADED = {
     dps:        [ 130,   480,   240,   255,  null,  null],
   },
   SMSM:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [ 2.6,   2.8,   3.0,   3.2,  null,  null],
     cash:       [ 0.9,   1.0,   1.1,   1.2,  null,  null],
     totalDebt:  [0.35,  0.30,  0.30,  0.25,  null,  null],
@@ -520,7 +507,6 @@ const PRELOADED = {
     dps:        [ 138,   164,   186,   198,  null,  null],
   },
   UNTR:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [ 118,   130,   138,   145,  null,  null],
     cash:       [  16,    18,    20,    22,  null,  null],
     totalDebt:  [  23,    20,    18,    16,  null,  null],
@@ -532,7 +518,6 @@ const PRELOADED = {
     dps:        [1580,  1944,  2065,  2187,  null,  null],
   },
   ITMG:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [  19,    26,    20,    21,  null,  null],
     cash:       [   6,    12,     8,     7,  null,  null],
     totalDebt:  [ 0.8,   1.0,   0.8,   0.7,  null,  null],
@@ -544,7 +529,6 @@ const PRELOADED = {
     dps:        [4000, 13000,  6500,  5710,  null,  null],
   },
   POWR:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [ 9.5,  10.0,  10.5,  11.0,  null,  null],
     cash:       [ 1.3,   1.4,   1.5,   1.6,  null,  null],
     totalDebt:  [ 2.0,   1.8,   1.6,   1.4,  null,  null],
@@ -556,7 +540,6 @@ const PRELOADED = {
     dps:        [  57,    60,    66,    69,  null,  null],
   },
   MPMX:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [ 9.0,   9.5,  10.0,  10.5,  null,  null],
     cash:       [ 1.5,   1.6,   1.7,   1.8,  null,  null],
     totalDebt:  [ 2.4,   2.2,   2.0,   1.8,  null,  null],
@@ -568,7 +551,6 @@ const PRELOADED = {
     dps:        [  40,    45,    50,    55,  null,  null],
   },
   BTPS:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [  24,    27,    30,    32,  null,  null],
     cash:       [ 2.4,   2.7,   3.0,   3.2,  null,  null],
     totalDebt:  [  19,    21,  23.5,    25,  null,  null],
@@ -580,7 +562,6 @@ const PRELOADED = {
     dps:        [ 124,   167,   185,   195,  null,  null],
   },
   DMAS:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [ 7.0,   7.5,   8.0,   8.5,  null,  null],
     cash:       [ 1.8,   2.0,   2.2,   2.4,  null,  null],
     totalDebt:  [ 1.0,   0.9,   0.8,   0.7,  null,  null],
@@ -592,7 +573,6 @@ const PRELOADED = {
     dps:        [  24,    32,    38,    35,  null,  null],
   },
   SPTO:{
-    // FY ends 31 Dec. Values in Trillion IDR.
     totalAsset: [ 2.6,   2.7,   2.8,   2.9,  null,  null],
     cash:       [0.32,  0.35,  0.38,  0.40,  null,  null],
     totalDebt:  [0.70,  0.65,  0.60,  0.55,  null,  null],
@@ -690,7 +670,6 @@ async function fetchStock(symbol){
     S.status[symbol]='ok'; saveLS();
     showToast(`✓ ${symbol} refreshed from Yahoo Finance`,'green');
   }catch(err){
-    // Don't overwrite existing good data on refresh failure
     if(S.data[symbol]) S.status[symbol]='ok';
     else S.status[symbol]='error';
     S.errmsg[symbol]=err.message;
@@ -698,8 +677,6 @@ async function fetchStock(symbol){
   }
   render();
 }
-
-function needsFetch(){ return false; } // data pre-loaded, no auto-fetch needed
 
 function fetchAll(){
   const ks=Object.keys(S.stocks);
@@ -743,7 +720,7 @@ function calcM(symbol){
     divPayout: isOK(ep[i])&&ep[i]>0&&isOK(dp[i])  ? dp[i]/ep[i]*100   : null,
     valLow:  isOK(dp[i]) ? dp[i]*10  : null,
     valHigh: isOK(dp[i]) ? dp[i]*20  : null,
-    retEps:  null,  // calculated below after Buffett test
+    retEps:  null,
   }));
 
   const av={
@@ -754,34 +731,24 @@ function calcM(symbol){
   };
   const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep),dps:cagr(dp)};
 
-  // ── Buffett $1 Test ──────────────────────────────────────────────
-  // Use COMPLETED years only (indices 0–4, i.e. exclude current-year estimate at index 5).
-  // retEps = EPS − DPS per year. If DPS is null/unknown, treat as 0 (full retention).
-  // totRet = sum of all yearly retEps over the completed period.
-  // epsInc = EPS at end of completed period minus EPS at start.
-  const N_COMPLETED = N_YEARS - 1;  // 5 completed years, index 0–4
+  const N_COMPLETED = N_YEARS - 1;
   const epCompleted = ep.slice(0, N_COMPLETED);
   const dpCompleted = dp.slice(0, N_COMPLETED);
-
   const retEpsCompleted = epCompleted.map((e, i) => {
     if (!isOK(e)) return null;
-    const d = isOK(dpCompleted[i]) ? dpCompleted[i] : 0;  // null DPS → 0 (full retention)
+    const d = isOK(dpCompleted[i]) ? dpCompleted[i] : 0;
     return e - d;
   });
-
   const retEpsVals = retEpsCompleted.filter(isOK);
   const totRet = retEpsVals.length > 0 ? retEpsVals.reduce((s,v) => s+v, 0) : null;
-
   const epCompletedOK = epCompleted.filter(isOK);
   const epsInc = epCompletedOK.length >= 2
     ? epCompletedOK[epCompletedOK.length-1] - epCompletedOK[0]
     : null;
-
   const buff = isOK(totRet) && Math.abs(totRet) > 0.001 && isOK(epsInc)
     ? epsInc / totRet * 100
     : null;
 
-  // For display cards — also expose retEps on Y rows (all years including current)
   Y.forEach((y, i) => {
     if (!isOK(y.eps)) { y.retEps = null; return; }
     const d = isOK(y.dps) ? y.dps : 0;
@@ -875,7 +842,7 @@ function render(){
 }
 
 function renderTabBtns(){
-  ['data','ratios','chart','rankings','profile','news'].forEach(t=>{
+  ['data','ratios','chart','rankings','insights'].forEach(t=>{
     const e=document.getElementById('t-'+t);
     if(e) e.className='t-btn'+(S.tab===t?' on':'');
   });
@@ -897,10 +864,9 @@ function renderSBar(){
 function renderMain(){
   const cont=document.getElementById('cont');
   if(S.tab==='rankings'){cont.innerHTML=tabRankings();return;}
-  if(S.tab==='profile'||S.tab==='news'){
+  if(S.tab==='insights'){
     const st=S.stocks[S.sel];
-    if(S.tab==='profile') tabProfile(S.sel,st,cont);
-    else tabNews(S.sel,st,cont);
+    cont.innerHTML=tabInsights(S.sel, st);
     return;
   }
   const st=S.stocks[S.sel];
@@ -927,7 +893,6 @@ function stateBox(st,sym,stock){
       <span class="data-badge db-ld">⏳ Trying Yahoo Finance…</span>
     </div>`;
   }
-  // idle or no-data for custom stocks
   const isCustom=!!S.custom[sym];
   return`<div class="state-box">
     <div style="font-size:36px;margin-bottom:12px">📋</div>
@@ -990,7 +955,6 @@ function srcBar(sym,st){
   </div>`;
 }
 
-// ── Annualisation label for current year column header ──
 function yearColHeader(sym, yr) {
   if (yr !== CURRENT_YEAR) return `<th class="tc">${yr}</th>`;
   const ann = ANNUALISATION[sym];
@@ -998,7 +962,7 @@ function yearColHeader(sym, yr) {
     const tag = ann?.label === 'FY' ? 'FY' : 'Est.';
     return `<th class="tc" style="color:var(--yellow)">${yr}<br><span style="font-size:8px;color:var(--yellow);opacity:.85">${tag}</span></th>`;
   }
-  const asOf = ann.asOf ? ` ${ann.asOf.slice(5)}` : '';  // MM-DD
+  const asOf = ann.asOf ? ` ${ann.asOf.slice(5)}` : '';
   return `<th class="tc" style="color:var(--orange)">${yr}<br><span style="font-size:8px;color:var(--orange);opacity:.9">${ann.label}${asOf}</span></th>`;
 }
 
@@ -1041,7 +1005,7 @@ function tabRatios(sym,st){
     const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${r.p?P1(v):N2(v,2)}</td>`;}).join('');
     const a=avg(m.Y.map(y=>y[r.k]));
     return`<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}
-      <td class="tc num cya" style="background:rgba(0,196,224,.04);font-weight:600">${r.p?P1(a):N2(a,2)}</td></tr>`;
+      <td class="tc num cya" style="background:rgba(0,196,224,.04);font-weight:600">${r.p?P1(a):N2(a,2)}</td>`;
   }).join('');
 
   const bc=!isOK(m.buff)?'var(--muted)':m.buff>=100?'var(--yellow)':m.buff>=50?'var(--green)':'var(--red)';
@@ -1084,7 +1048,6 @@ function tabRankings(){
   const rankedKs=Object.keys(fr);
   const unrankedKs=Object.keys(S.stocks).filter(k=>!fr[k]);
 
-  // ── Weight groups ──────────────────────────────────
   const CAT_GROUPS=[
     {id:'risk',    label:'🛡 Risk',
      color:'var(--blue)',  bg:'rgba(77,160,255,.07)',  border:'rgba(77,160,255,.3)',
@@ -1124,7 +1087,6 @@ function tabRankings(){
     </div>`;
   }).join('');
 
-  // Category + total summary row
   const riskSub    = catSubtotal(CAT_GROUPS[0].keys);
   const profSub    = catSubtotal(CAT_GROUPS[1].keys);
   const mgmtSub    = catSubtotal(CAT_GROUPS[2].keys);
@@ -1154,13 +1116,12 @@ function tabRankings(){
     </div>
   </div>`;
 
-  const wCards=wCatBlocks; // used below in template
+  const wCards=wCatBlocks;
 
   const thCrit=CRITERIA.map(c=>`<th class="tc" style="min-width:50px;font-size:9px">${c.label}<br><span style="color:var(--cyan)">${S.wts[c.wKey]||0}%</span></th>`).join('');
 
   const rRows=rankedKs.map(k=>{
     const r=fr[k];
-    // Medals for rank 1-5
     const medal=r===1?'🥇':r===2?'🥈':r===3?'🥉':r===4?'🎖️':r===5?'🏅':r;
     const medalFontSize=r<=5?'18':'13';
     const rc=r===1?'fr1':r<=3?'fr2':r<=5?'fr4':r>Math.floor(rankedKs.length*0.65)?'frb':'';
@@ -1184,12 +1145,10 @@ function tabRankings(){
     </tr>`;
   }).join('');
 
-  // Unranked (no data yet)
   const uRows=unrankedKs.length?`<tr><td colspan="17" style="padding:10px 14px;font-size:11px;color:var(--muted)">
     Not yet ranked (data not loaded): ${unrankedKs.map(k=>`<button class="btn btn-ghost btn-xs" onclick="selStock('${k}');setTab('data')" style="margin:0 2px">${k}</button>`).join('')}
   </td></tr>`:'';
 
-  // Summary table
   const sumKs=Object.keys(S.stocks).filter(k=>S.status[k]==='ok');
   const sumRows=sumKs.map((k,i)=>{
     const m=calcM(k);if(!m)return'';
@@ -1320,9 +1279,8 @@ function updateTickerDefault(){
   AF.ticker=ticker;
   const el=document.getElementById('aTicker');
   if(el) el.value=ticker;
-  // hint_cur default
   AF.hintCur = (AF.exch==='IDX') ? 'IDR' : 'USD';
-  if(AF.exch==='ASX') AF.hintCur='AUD'; // many ASX stocks report AUD
+  if(AF.exch==='ASX') AF.hintCur='AUD';
 }
 
 function updateConfigPreview(){
@@ -1443,7 +1401,7 @@ function submitManualData(){
 
 function delStock(k){
   const isBuiltIn = !!BASE_STOCKS[k];
-  const isConfigStock = !S.custom[k] && !isBuiltIn; // came from stocks_config.json via data.json
+  const isConfigStock = !S.custom[k] && !isBuiltIn;
   let msg;
   if(isBuiltIn){
     msg=`Remove ${k} from the dashboard view?\n\nNote: it will reappear on next page refresh since it's built-in. To permanently remove it you'd need to edit fetch_data.py.`;
@@ -1454,7 +1412,6 @@ function delStock(k){
   }
   if(!confirm(msg)) return;
 
-  // Track explicitly deleted stocks so boot() doesn't re-add them
   if(!S.deleted) S.deleted={};
   S.deleted[k]=true;
 
@@ -1523,9 +1480,7 @@ function copyLink(){
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PROFILE & NEWS — Generated from financial data, NO API key needed
-// Profile and News always work. If ANTHROPIC_API_KEY is in GitHub Secrets,
-// AI-enhanced content is used instead.
+// INSIGHTS TAB – Business Model Canvas, SWOT, Tornado, Outlook, Bottom Line
 // ═══════════════════════════════════════════════════════════════
 
 const CO_INFO = {
@@ -1575,197 +1530,270 @@ const SECTOR_RISKS = {
   "Online Travel": [{name:"Travel Demand",low:-40,high:30},{name:"Hotel/Airline Supply",low:-15,high:15},{name:"Google Competition",low:-20,high:5},{name:"Recession Risk",low:-30,high:10},{name:"AI Booking Disruption",low:-15,high:10}],
 };
 
-function generateProfile(sym, st) {
-  const info = CO_INFO[sym] || {full:st.name,hq:"N/A",founded:"N/A",sector:"N/A",desc:st.name+" listed on "+st.exchange+".",moat:"See financial data."};
-  const d = S.data[sym];
-  const m = calcM(sym);
-  const N2 = v => v!=null?Number(v).toFixed(2):"N/A";
-  const P1 = v => v!=null?Number(v).toFixed(1)+"%":"N/A";
-  const rev = d?.revenue?.filter(v=>v!=null)||[];
-  const np  = d?.netProfit?.filter(v=>v!=null)||[];
-  const ta  = d?.totalAsset?.filter(v=>v!=null)||[];
-  const latestRev = rev.length ? rev[rev.length-1] : null;
-  const latestNP  = np.length  ? np[np.length-1]  : null;
-  const latestTA  = ta.length  ? ta[ta.length-1]  : null;
-  const trend = m&&m.cg.rev>5?"growing":m&&m.cg.rev<-5?"contracting":"stable";
-  const profitability = m&&m.av.npm>20?"highly profitable":m&&m.av.npm>10?"solidly profitable":m&&m.av.npm>0?"modestly profitable":"loss-making";
-  const yrs = (S.years||[]).slice(0,-1);
-  return `## Company Overview
-**${info.full}** (${sym} · ${st.exchange} · ${st.currency})
-
-${info.desc}
-
-Headquartered in **${info.hq}**, founded **${info.founded}**. Revenue is ${trend} at ${P1(m?.cg.rev)} CAGR. The business is ${profitability} with average net margin of ${P1(m?.av.npm)}.
-
-## Business Segments
-${info.sector} sector. Revenue and asset profile (latest year):
-- **Total Revenue** — ${N2(latestRev)} ${st.currency}
-- **Net Profit** — ${N2(latestNP)} ${st.currency} (${latestRev&&latestNP?P1(latestNP/latestRev*100):"N/A"} margin)
-- **Total Assets** — ${N2(latestTA)} ${st.currency}
-
-## Competitive Position
-${info.moat}
-
-Average Return on Equity: **${P1(m?.av.roe)}** — ${m&&m.av.roe>20?"excellent capital efficiency indicating a strong moat.":m&&m.av.roe>10?"solid returns reflecting competitive advantages.":"moderate returns — monitor for trends."}
-
-## Key Financial Metrics (${yrs[0]}–${yrs[yrs.length-1]})
-| Metric | Value |
-|--------|-------|
-| Revenue CAGR | ${P1(m?.cg.rev)} |
-| Net Profit CAGR | ${P1(m?.cg.np)} |
-| Avg Net Margin | ${P1(m?.av.npm)} |
-| Avg ROE | ${P1(m?.av.roe)} |
-| EPS CAGR | ${P1(m?.cg.eps)} |
-| DPS CAGR | ${P1(m?.cg.dps)} |
-
-## Key Risks
-See the sensitivity analysis chart below for quantified risk estimates specific to the ${info.sector} sector.`;
-}
-
-function generateTornado(sym, st) {
-  const info = CO_INFO[sym];
-  const sector = info?.sector||"Technology";
-  const risks = (SECTOR_RISKS[sector]||SECTOR_RISKS["Technology"]).map(r=>({...r}));
-  const m = calcM(sym);
-  if (m&&m.cg.rev!=null) {
-    const vol = Math.min(Math.abs(m.cg.rev)*0.8, 50);
-    risks[0] = {...risks[0], low:-Math.round(vol*1.2), high:Math.round(vol*0.8)};
-  }
-  return risks.slice(0,7);
-}
-
-function generateNews(sym, st) {
-  const d = S.data[sym];
-  const m = calcM(sym);
-  if (!d||!m) return [];
-  const yrs = (S.years||[]).slice(0,-1);
-  const li = yrs.length-1;
-  const pi = yrs.length-2;
-  const get = (f,i) => d[f]?.[i];
-  const pct = (a,b) => (a!=null&&b!=null&&b!==0)?((a-b)/Math.abs(b)*100).toFixed(1):null;
-  const items = [];
-  const r1=get("revenue",li), r0=get("revenue",pi);
-  const rChg=pct(r1,r0);
-  if (rChg!=null) {
-    const bull=parseFloat(rChg)>=0;
-    items.push({headline:`FY${yrs[li]} Revenue ${bull?"Growth":"Decline"}: ${rChg}% YoY`,date:`FY${yrs[li]} Annual Report`,rel:bull?"Bullish":"Bearish",body:`Revenue ${bull?"grew":"fell"} from ${Number(r0).toFixed(2)} to ${Number(r1).toFixed(2)} ${st.currency} (${rChg}% change). ${bull?"Positive revenue momentum supports the earnings outlook.":"Revenue contraction warrants monitoring of demand trends and cost management."}`});
-  }
-  const n1=get("netProfit",li), n0=get("netProfit",pi);
-  const nChg=pct(n1,n0);
-  if (nChg!=null) {
-    const bull=parseFloat(nChg)>=0;
-    items.push({headline:`Net Profit ${bull?"Up":"Down"} ${Math.abs(nChg)}% in FY${yrs[li]}`,date:`FY${yrs[li]} Annual Report`,rel:bull?"Bullish":"Bearish",body:`Net profit moved from ${Number(n0).toFixed(2)} to ${Number(n1).toFixed(2)} ${st.currency}. Net margin is ${r1?((n1/r1)*100).toFixed(1):"N/A"}%. ${parseFloat(nChg)>10?"Strong profit growth signals improving operating leverage.":parseFloat(nChg)<-10?"Profit pressure — investigate margin compression.":"Stable profitability maintained."}`});
-  }
-  const dps1=get("dps",li), dps0=get("dps",pi);
-  if (dps1!=null&&dps1>0) {
-    const dChg=pct(dps1,dps0); const bull=parseFloat(dChg||0)>=0;
-    items.push({headline:`Dividend ${bull?"Increased":"Reduced"} to ${Number(dps1).toFixed(3)} per Share`,date:`FY${yrs[li]} Dividend`,rel:bull?"Bullish":"Bearish",body:`DPS ${bull?"rose":"fell"} ${Math.abs(dChg||0).toFixed(1)}% year-on-year. Payout ratio: ${m.Y[li]?.divPayout?.toFixed(1)||"N/A"}%. ${bull?"Rising dividends reflect management confidence in earnings sustainability.":"Dividend reduction may signal balance sheet stress or higher reinvestment needs."}`});
-  }
-  if (m.cg.eps!=null) {
-    const bull=m.cg.eps>0;
-    items.push({headline:`EPS ${bull?"Growth":"Decline"} at ${m.cg.eps.toFixed(1)}% CAGR Over ${yrs.length} Years`,date:`${yrs[0]}–${yrs[li]}`,rel:m.cg.eps>10?"Bullish":m.cg.eps>0?"Neutral":"Bearish",body:`Earnings per share compounded at ${m.cg.eps.toFixed(1)}% annually over the period. ${m.cg.eps>15?"Double-digit EPS growth is a hallmark of high-quality compounders.":m.cg.eps>5?"Solid EPS growth supports long-term share price appreciation.":"Weak EPS growth warrants review of competitive position."}`});
-  }
-  if (m.buff!=null) {
-    const bull=m.buff>=100;
-    items.push({headline:`Capital Allocation: Buffett \$1 Test Score ${m.buff.toFixed(0)}%`,date:`${yrs[0]}–${yrs[li]}`,rel:bull?"Bullish":"Bearish",body:`For every $1 of earnings retained, the company generated $${(m.buff/100).toFixed(2)} of EPS growth. ${bull?"Passing the $1 test (>100%) means management creates more value than it retains — a strong capital allocation signal.":"Score below 100% suggests retained earnings are not being deployed with sufficient returns."}`});
-  }
-  return items.slice(0,5);
-}
+function fmtNum(v,d=2){return isOK(v)?Number(v).toFixed(d):'N/A';}
+function fmtPct(v,d=1){return isOK(v)?Number(v).toFixed(d)+'%':'N/A';}
 
 function renderTornadoChart(variables) {
-  if (!variables||!variables.length) return "";
-  const sorted=[...variables].sort((a,b)=>Math.abs(b.high-b.low)-Math.abs(a.high-a.low));
-  const maxAbs=Math.max(...sorted.flatMap(v=>[Math.abs(v.low||0),Math.abs(v.high||0)]),1);
-  const labelW=160,barH=28,gap=8,axisH=30,chartW=380,mid=chartW/2;
-  const scale=v=>(Math.abs(v)/maxAbs)*(mid*0.90);
-  const fmt=v=>v!=null?(v>=0?"+":"")+Number(v).toFixed(1)+"%":"?";
-  const bars=sorted.map((v,i)=>{const y=i*(barH+gap);const nw=scale(v.low||0),pw=scale(v.high||0);return `<g transform="translate(0,${y})"><rect x="${mid-nw}" y="0" width="${nw}" height="${barH}" fill="#4da0ff" rx="3" opacity="0.85"/><rect x="${mid}" y="0" width="${pw}" height="${barH}" fill="#ff4060" rx="3" opacity="0.85"/><text x="${mid-nw-4}" y="${barH/2+4}" fill="#4da0ff" font-size="9" text-anchor="end">${fmt(v.low)}</text><text x="${mid+pw+4}" y="${barH/2+4}" fill="#ff4060" font-size="9" text-anchor="start">${fmt(v.high)}</text><text x="-4" y="${barH/2+4}" fill="#7aa0be" font-size="10" text-anchor="end" font-weight="500">${v.name||""}</text></g>`;}).join("");
-  const h=sorted.length*(barH+gap)+axisH;
-  const ticks=[-75,-50,-25,0,25,50,75].filter(t=>Math.abs(t)<=maxAbs*1.05);
-  const axis=ticks.map(t=>{const x=mid+(t/maxAbs)*mid*0.90;return `<line x1="${x}" y1="0" x2="${x}" y2="${h-axisH}" stroke="#1a3050" stroke-width="1"/><text x="${x}" y="${h-axisH+13}" fill="#4e7398" font-size="8" text-anchor="middle">${t>0?"+":""}${t}%</text>`;}).join("");
-  return `<div style="overflow-x:auto;margin:12px 0"><div style="font-size:10px;color:var(--muted);margin-bottom:6px;display:flex;gap:14px"><span><span style="color:#4da0ff">■</span> Downside risk to net profit</span><span><span style="color:#ff4060">■</span> Upside potential</span></div><svg viewBox="-${labelW} 0 ${labelW+chartW+60} ${h}" style="width:100%;max-width:${labelW+chartW+60}px;height:${h}px;font-family:var(--font)">${axis}${bars}</svg></div>`;
-}
+  if (!variables || !variables.length) return "";
+  const sorted = [...variables].sort((a,b) => Math.abs(b.high - b.low) - Math.abs(a.high - a.low));
+  const maxAbs = Math.max(...sorted.flatMap(v => [Math.abs(v.low||0), Math.abs(v.high||0)]), 1);
+  const labelW = 160, barH = 28, gap = 8, axisH = 30, chartW = 380, mid = chartW/2;
+  const scale = v => (Math.abs(v)/maxAbs) * (mid * 0.90);
+  const fmt = v => v != null ? (v>=0 ? "+" : "") + Number(v).toFixed(1) + "%" : "?";
 
-function mdToHtml(md) {
-  if (!md) return "";
-  return md
-    .replace(/^## (.+)$/gm,"<h2>$1</h2>")
-    .replace(/^### (.+)$/gm,"<h3>$1</h3>")
-    .replace(/\|(.+?)\|/gm,"")
-    .replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g,"<em>$1</em>")
-    .replace(/^[-•] (.+)$/gm,"<li>$1</li>")
-    .replace(/(<li>[\s\S]*?<\/li>\n?)+/g,m=>`<ul>${m}</ul>`)
-    .replace(/\n{2,}/g,"</p><p>")
-    .replace(/^(?!<[hul])(.+)$/gm,"<p>$1</p>")
-    .replace(/<p><\/p>/g,"")
-    .replace(/<p>(<[hul])/g,"$1")
-    .replace(/(<\/[hul][^>]*>)<\/p>/g,"$1");
-}
+  const bars = sorted.map((v,i) => {
+    const y = i * (barH + gap);
+    const nw = scale(v.low||0);
+    const pw = scale(v.high||0);
+    return `<g transform="translate(0,${y})">
+      <rect x="${mid - nw}" y="0" width="${nw}" height="${barH}" fill="#ff4060" rx="3" opacity="0.85"/>
+      <rect x="${mid}" y="0" width="${pw}" height="${barH}" fill="#4da0ff" rx="3" opacity="0.85"/>
+      <text x="${mid - nw - 4}" y="${barH/2 + 4}" fill="#ff4060" font-size="9" text-anchor="end">${fmt(v.low)}</text>
+      <text x="${mid + pw + 4}" y="${barH/2 + 4}" fill="#4da0ff" font-size="9" text-anchor="start">${fmt(v.high)}</text>
+      <text x="-4" y="${barH/2 + 4}" fill="#7aa0be" font-size="10" text-anchor="end" font-weight="500">${v.name||""}</text>
+    </g>`;
+  }).join("");
 
-function profileHTML(sym, st, content, dateStr) {
-  const age=dateStr?Math.round((Date.now()-new Date(dateStr))/3600000):null;
-  const ageStr=age==null?"auto-generated":age<1?"just now":age<24?`${age}h ago`:`${Math.round(age/24)}d ago`;
-  let tornadoHtml="", displayContent=content||"";
-  try {
-    const mm=content.match(/```(?:json)?\s*([\[\s\S]*?\])\s*```/);
-    if (mm) {const vars=JSON.parse(mm[1]);if(Array.isArray(vars)&&vars.length){tornadoHtml=`<div class="ai-content" style="margin-top:4px"><h2>📊 Sensitivity Analysis — Net Profit Impact</h2><p style="font-size:11px;color:var(--muted)">Estimated % change in net profit under each risk scenario.</p>${renderTornadoChart(vars)}</div>`;} displayContent=content.replace(/##\s*TORNADO_DATA[\s\S]*$/,"").trim();}
-  }catch(e){}
-  return `<div class="ai-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px"><div><div style="font-size:16px;font-weight:700">${st.name} — Company Profile</div><div style="font-size:10px;color:var(--muted)">${sym} · ${st.exchange} · ${st.currency} · ${ageStr}</div></div></div><div class="ai-content">${mdToHtml(displayContent)}</div>${tornadoHtml}<div class="ai-cache-note">AI-generated via GitHub Actions · ${ageStr}</div></div>`;
-}
+  const h = sorted.length * (barH + gap) + axisH;
+  const ticks = [-75,-50,-25,0,25,50,75].filter(t => Math.abs(t) <= maxAbs * 1.05);
+  const axis = ticks.map(t => {
+    const x = mid + (t / maxAbs) * (mid * 0.90);
+    return `<line x1="${x}" y1="0" x2="${x}" y2="${h - axisH}" stroke="#1a3050" stroke-width="1"/>
+      <text x="${x}" y="${h - axisH + 13}" fill="#4e7398" font-size="8" text-anchor="middle">${t>0?"+":""}${t}%</text>`;
+  }).join("");
 
-function tabProfile(sym, st, cont) {
-  const sd=S.data[sym];
-  if (sd?.profile) { cont.innerHTML=profileHTML(sym,st,sd.profile,sd.profileDate); return; }
-  const content=generateProfile(sym,st);
-  const tornado=generateTornado(sym,st);
-  const sector=CO_INFO[sym]?.sector||st.exchange;
-  cont.innerHTML=`<div class="ai-panel">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div><div style="font-size:16px;font-weight:700">${st.name} — Company Profile</div>
-      <div style="font-size:10px;color:var(--muted)">${sym} · ${st.exchange} · ${st.currency}</div></div>
+  return `<div style="overflow-x:auto;margin:12px 0">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:6px;display:flex;gap:14px">
+      <span><span style="color:#ff4060">■</span> Downside risk to net profit</span>
+      <span><span style="color:#4da0ff">■</span> Upside potential</span>
     </div>
-    <div class="ai-content">${mdToHtml(content)}</div>
-    <div class="ai-content" style="margin-top:4px">
-      <h2>📊 Sensitivity Analysis — Net Profit Impact</h2>
-      <p style="font-size:11px;color:var(--muted)">Sector risk model for ${sector} industry. % change in net profit vs base case.</p>
-      ${renderTornadoChart(tornado)}
-    </div>
-    <div class="ai-cache-note">Auto-generated from financial data · No API key required · Tornado based on ${sector} sector risk model</div>
+    <svg viewBox="-${labelW} 0 ${labelW+chartW+60} ${h}" style="width:100%;max-width:${labelW+chartW+60}px;height:${h}px;font-family:var(--font)">
+      ${axis}
+      ${bars}
+    </svg>
   </div>`;
 }
 
-function tabNews(sym, st, cont) {
-  const sd=S.data[sym];
-  if (sd?.news) { cont.innerHTML=newsHTML(sym,st,sd.news,sd.newsDate); return; }
-  const items=generateNews(sym,st);
-  if (!items||!items.length) { cont.innerHTML=`<div class="ai-panel"><div class="ai-content"><p>Load financial data first to see trend analysis.</p></div></div>`; return; }
-  const cards=items.map(it=>{const rc=/bull/i.test(it.rel)?"var(--green)":/bear/i.test(it.rel)?"var(--red)":"var(--muted)";return `<div class="news-card"><div class="nc-title">${it.headline}<span class="nc-tag" style="color:${rc};border-color:${rc}20;background:${rc}15">${it.rel}</span></div><div class="nc-meta">📅 ${it.date}</div><div class="nc-body">${it.body}</div></div>`;}).join("");
-  cont.innerHTML=`<div class="ai-panel">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-      <div><div style="font-size:16px;font-weight:700">${st.name} — Financial Trend Analysis</div>
-      <div style="font-size:10px;color:var(--muted)">${sym} · Based on annual report data · No API key required</div></div>
+function businessModelCanvas(sym, st, m, info) {
+  const revenue = m.raw.rv.filter(v => isOK(v));
+  const latestRev = revenue[revenue.length-1];
+  const gpMargin = m.av.gpm;
+  const npMargin = m.av.npm;
+  const roe = m.av.roe;
+  const debtEq = m.av.debtToEquity;
+
+  let valueProp = '';
+  if (info.sector === 'Mining') valueProp = 'High‑quality, low‑cost assets with long mine lives.';
+  else if (info.sector === 'Banking') valueProp = 'Strong brand, extensive branch network, digital leadership.';
+  else if (info.sector === 'Technology') valueProp = 'Innovation, scale, and ecosystem lock‑in.';
+  else valueProp = info.moat || 'Competitive advantages derived from market position and operational efficiency.';
+
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div><strong>Key Partners</strong><br>${info.sector === 'Banking' ? 'Depositors, regulators, fintech partners.' : info.sector === 'Mining' ? 'Governments, contractors, offtakers.' : 'Suppliers, technology partners, regulators.'}</div>
+      <div><strong>Key Activities</strong><br>${info.sector === 'Banking' ? 'Lending, deposit gathering, risk management.' : info.sector === 'Mining' ? 'Exploration, extraction, logistics, sales.' : 'Product development, marketing, sales, service.'}</div>
+      <div><strong>Value Proposition</strong><br>${valueProp}</div>
+      <div><strong>Customer Segments</strong><br>${info.sector === 'Banking' ? 'Retail, SMEs, corporate.' : info.sector === 'Mining' ? 'Global industrial consumers.' : 'Diverse global consumers.'}</div>
+      <div><strong>Revenue Streams</strong><br>${info.sector === 'Banking' ? 'Net interest income, fees.' : info.sector === 'Mining' ? 'Commodity sales.' : 'Product sales, subscriptions, services.'}</div>
+      <div><strong>Cost Structure</strong><br>${info.sector === 'Banking' ? 'Interest expense, personnel, tech.' : info.sector === 'Mining' ? 'Operating costs, labour, fuel.' : 'R&D, marketing, personnel, COGS.'}</div>
     </div>
-    ${cards}
-    <div class="ai-cache-note">Auto-generated from financial data · Add ANTHROPIC_API_KEY to GitHub Secrets for AI-powered live news</div>
-  </div>`;
+    <p style="margin-top:12px;font-size:11px;color:var(--muted);">
+      <strong>Key metrics:</strong> Revenue ${fmtNum(latestRev,1)} ${st.currency} · Gross margin ${fmtPct(gpMargin)} · Net margin ${fmtPct(npMargin)} · ROE ${fmtPct(roe)} · D/E ${fmtPct(debtEq)}
+    </p>
+  `;
 }
 
-function newsHTML(sym, st, content, dateStr) {
-  const age=dateStr?Math.round((Date.now()-new Date(dateStr))/3600000):null;
-  const ageStr=age==null?"auto-generated":age<1?"just now":age<24?`${age}h ago`:`${Math.round(age/24)}d ago`;
-  const sections=(content||"").split(/^## /m).filter(Boolean);
-  const cards=sections.map(s=>{const lines=s.trim().split("\n");const title=lines[0].trim();const body=lines.slice(1).join("\n").trim();const dateM=body.match(/\*\*Date:\*\*\s*([^\n*]+)/);const relM=body.match(/\*\*Relevance:\*\*\s*([^\n*]+)/);const date=dateM?dateM[1].trim():"";const rel=relM?relM[1].trim():"";const rc=/bull/i.test(rel)?"var(--green)":/bear/i.test(rel)?"var(--red)":"var(--muted)";const cb=body.replace(/\*\*Date:\*\*[^\n]*/,"").replace(/\*\*Relevance:\*\*[^\n]*/,"").replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").trim();return `<div class="news-card"><div class="nc-title">${title}${rel?`<span class="nc-tag" style="color:${rc};border-color:${rc}20;background:${rc}15">${rel}</span>`:""}</div>${date?`<div class="nc-meta">📅 ${date}</div>`:""}<div class="nc-body">${cb}</div></div>`;}).join("");
-  return `<div class="ai-panel"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px"><div><div style="font-size:16px;font-weight:700">${st.name} — Fundamental News</div><div style="font-size:10px;color:var(--muted)">${sym} · ${ageStr}</div></div></div>${cards||"<div class=\"ai-content\"><p>No news found.</p></div>"}<div class="ai-cache-note">AI-generated via GitHub Actions workflow · ${ageStr}</div></div>`;
+function generateSWOT(sym, st, m) {
+  const strengths = [], weaknesses = [], opportunities = [], threats = [];
+
+  if (m.av.roe > 20) strengths.push(`High return on equity (${fmtPct(m.av.roe)}) – excellent capital efficiency.`);
+  if (m.av.gpm > 40) strengths.push(`Strong gross margin (${fmtPct(m.av.gpm)}), indicating pricing power or cost leadership.`);
+  if (m.av.debtToEquity < 50) strengths.push(`Low debt-to-equity (${fmtPct(m.av.debtToEquity)}), conservative balance sheet.`);
+  if (m.cg.rev > 10) strengths.push(`Double‑digit revenue growth (${fmtPct(m.cg.rev)} CAGR).`);
+  if (m.buff > 100) strengths.push(`Passes Buffett $1 test (${fmtPct(m.buff)}) – retained earnings create value.`);
+
+  if (m.av.roe < 10) weaknesses.push(`Low return on equity (${fmtPct(m.av.roe)}) – capital may be underutilized.`);
+  if (m.av.npm < 10) weaknesses.push(`Thin net margin (${fmtPct(m.av.npm)}), vulnerable to cost pressures.`);
+  if (m.av.debtToEquity > 100) weaknesses.push(`High leverage (D/E ${fmtPct(m.av.debtToEquity)}), interest rate sensitivity.`);
+  if (m.cg.rev < 0) weaknesses.push(`Revenue decline (${fmtPct(m.cg.rev)} CAGR) – top‑line contraction.`);
+  if (m.cg.np < 0) weaknesses.push(`Earnings shrinking (${fmtPct(m.cg.np)} CAGR).`);
+
+  const opp = [];
+  if (m.cashToAsset > 20) opp.push(`Strong cash position (${fmtPct(m.cashToAsset)} of assets) enables M&A or shareholder returns.`);
+  if (m.cg.rev > 0) opp.push(`Continue growth trajectory in core markets.`);
+  if (m.av.npm < 20 && m.av.gpm > 30) opp.push(`Margin expansion potential through cost optimisation.`);
+  if (CO_INFO[sym]?.sector === 'Technology') opp.push(`AI and digital transformation could drive new revenue streams.`);
+  if (CO_INFO[sym]?.sector === 'Mining') opp.push(`Commodity price upside could boost earnings.`);
+  if (CO_INFO[sym]?.sector === 'Banking') opp.push(`Digital banking and cross‑selling opportunities.`);
+  if (CO_INFO[sym]?.sector === 'Oil & Gas') opp.push(`LNG demand growth in Asia.`);
+
+  const thr = [];
+  if (m.av.debtToEquity > 80) thr.push(`High debt increases risk in rising interest rate environment.`);
+  if (m.cg.rev < 0) thr.push(`Persistent revenue decline may signal structural issues.`);
+  if (CO_INFO[sym]?.sector === 'Mining') thr.push(`Commodity price volatility, regulatory/ESG pressure.`);
+  if (CO_INFO[sym]?.sector === 'Banking') thr.push(`Credit cycle deterioration, fintech disruption.`);
+  if (CO_INFO[sym]?.sector === 'Technology') thr.push(`Intense competition, rapid technological change, regulatory scrutiny.`);
+  if (CO_INFO[sym]?.sector === 'Oil & Gas') thr.push(`Energy transition, carbon taxes, geopolitical risk.`);
+
+  if (strengths.length === 0) strengths.push('Financial data not sufficient to determine strengths.');
+  if (weaknesses.length === 0) weaknesses.push('No major weaknesses identified from available data.');
+  if (opp.length === 0) opportunities.push('Opportunities are sector‑dependent; monitor industry trends.');
+  if (threats.length === 0) threats.push('Standard industry risks apply; see sensitivity chart.');
+
+  return `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      <div><strong>✅ Strengths</strong><ul>${strengths.map(s => `<li>${s}</li>`).join('')}</ul></div>
+      <div><strong>❌ Weaknesses</strong><ul>${weaknesses.map(w => `<li>${w}</li>`).join('')}</ul></div>
+      <div><strong>🚀 Opportunities</strong><ul>${opportunities.map(o => `<li>${o}</li>`).join('')}</ul></div>
+      <div><strong>⚠️ Threats</strong><ul>${threats.map(t => `<li>${t}</li>`).join('')}</ul></div>
+    </div>
+  `;
 }
 
+function futureOutlook(sym, st, m) {
+  const revTrend = m.cg.rev > 5 ? 'strongly growing' : m.cg.rev > 0 ? 'modestly growing' : m.cg.rev < -5 ? 'declining' : 'stable';
+  const npTrend = m.cg.np > 5 ? 'strongly growing' : m.cg.np > 0 ? 'modestly growing' : m.cg.np < -5 ? 'declining' : 'stable';
+  const margin = m.av.npm;
+  const roe = m.av.roe;
+  const de = m.av.debtToEquity;
+  const buff = m.buff;
 
-function selStock(k){
-  S.sel=k;
-  render();
+  let outlookText = `Over the past ${YEARS.length-1} years, revenue has been ${revTrend} (${fmtPct(m.cg.rev)} CAGR) and net profit ${npTrend} (${fmtPct(m.cg.np)} CAGR). `;
+
+  if (margin > 20) outlookText += `The business enjoys high profitability with an average net margin of ${fmtPct(margin)}. `;
+  else if (margin > 10) outlookText += `The business maintains solid profitability (avg net margin ${fmtPct(margin)}). `;
+  else outlookText += `Margins are thin (avg net margin ${fmtPct(margin)}), requiring focus on cost management. `;
+
+  if (roe > 20) outlookText += `With ROE at ${fmtPct(roe)}, management has been effective at generating returns. `;
+  else if (roe < 10) outlookText += `ROE of ${fmtPct(roe)} suggests capital efficiency needs improvement. `;
+
+  if (de > 100) outlookText += `High leverage (D/E ${fmtPct(de)}) increases financial risk. `;
+  else if (de < 30) outlookText += `The balance sheet is conservatively funded (D/E ${fmtPct(de)}). `;
+
+  if (buff > 100) outlookText += `The company passes the Buffett $1 test (${fmtPct(buff)}), meaning retained earnings create value. `;
+  else if (buff > 0) outlookText += `Retained earnings generate some value (${fmtPct(buff)}), but room for improvement. `;
+  else if (buff !== null) outlookText += `Retained earnings are destroying value (${fmtPct(buff)}) – a red flag. `;
+
+  const sector = CO_INFO[sym]?.sector || 'General';
+  let sectorOutlook = '';
+  if (sector === 'Mining') sectorOutlook = 'Commodity demand from energy transition and infrastructure may support prices, but ESG pressures remain.';
+  else if (sector === 'Banking') sectorOutlook = 'Digital transformation and interest rate trends will drive profitability; credit quality is key.';
+  else if (sector === 'Technology') sectorOutlook = 'Innovation cycles and AI adoption present growth catalysts, but competition and regulation are headwinds.';
+  else if (sector === 'Oil & Gas') sectorOutlook = 'Long‑term contracts provide stability, but the energy transition poses a structural challenge.';
+  else sectorOutlook = 'The company’s future will depend on its ability to adapt to industry trends and execute strategy.';
+
+  outlookText += `<br><br><strong>Industry context:</strong> ${sectorOutlook}`;
+  return `<p>${outlookText}</p>`;
 }
-function setTab(t){S.tab=t;render();}
-function setWt(k,v){const n=parseFloat(v);if(!isNaN(n)&&n>=0){S.wts[k]=n;render();}}
+
+function generateCustomTornado(sym, st, m) {
+  const sector = CO_INFO[sym]?.sector || 'Technology';
+  let risks = (SECTOR_RISKS[sector] || SECTOR_RISKS['Technology']).map(r => ({...r}));
+
+  if (m.av.debtToEquity > 80) risks.push({ name: 'Interest Rate Sensitivity', low: -15, high: 5 });
+  if (m.cg.rev < 0) risks.push({ name: 'Revenue Decline Persistence', low: -20, high: 5 });
+  if (m.av.gpm > 40 && m.av.npm < 15) risks.push({ name: 'Operating Cost Inflation', low: -12, high: 3 });
+  if (m.cg.np < 0 && m.cg.np < -10) risks.push({ name: 'Profit Margin Compression', low: -18, high: 4 });
+
+  risks = risks.slice(0,7);
+  risks.sort((a,b) => Math.abs(b.high - b.low) - Math.abs(a.high - a.low));
+  return risks;
+}
+
+function bottomLine(sym, st, m, tornadoVars) {
+  const sorted = [...tornadoVars].sort((a,b) => (Math.abs(b.high - b.low)) - (Math.abs(a.high - a.low)));
+  const topRisk = sorted[0];
+  const topOpportunity = sorted.find(v => v.high > Math.abs(v.low)) || sorted[0];
+
+  let verdict = '';
+  let reason = '';
+
+  if (m.buff > 100 && m.cg.rev > 5 && m.av.roe > 15) {
+    verdict = 'High‑quality compounder';
+    reason = `Passes the Buffett test (${fmtPct(m.buff)}), strong growth, high returns – attractive for long‑term investors.`;
+  } else if (m.buff > 80 && m.cg.rev > 0 && m.av.roe > 10) {
+    verdict = 'Solid, stable business';
+    reason = `Consistent performance and capital allocation – a core holding candidate.`;
+  } else if (m.cg.rev < 0 && m.av.roe < 10) {
+    verdict = 'Challenged business';
+    reason = `Declining revenue and low returns – requires turnaround or valuation margin of safety.`;
+  } else {
+    verdict = 'Mixed signals';
+    reason = `Strengths and weaknesses balanced; further analysis needed before committing.`;
+  }
+
+  let tornadoLink = `<p style="margin-top:12px;font-size:12px;"><strong>Key sensitivities:</strong><br>
+    The most significant downside risk is <strong>${topRisk.name}</strong> (${fmtPct(topRisk.low)} impact).<br>
+    The largest upside potential comes from <strong>${topOpportunity.name}</strong> (${fmtPct(topOpportunity.high)} impact).<br>
+    A long‑term investor should watch these factors closely – they will likely determine future profitability.
+  </p>`;
+
+  return `
+    <div style="background:var(--surf);border-left:3px solid var(--cyan);padding:12px 16px;margin:8px 0;">
+      <strong style="font-size:14px;">${verdict}</strong>
+      <p style="margin-top:8px;font-size:12px;">${reason}</p>
+      ${tornadoLink}
+      <p style="margin-top:12px;font-size:11px;color:var(--muted);">Key watchpoints: revenue growth, margin stability, capital allocation, industry dynamics.</p>
+    </div>
+  `;
+}
+
+function tabInsights(sym, st) {
+  const m = calcM(sym);
+  if (!m) return '<div class="state-box"><p>No financial data available for ' + sym + '</p></div>';
+  const info = CO_INFO[sym] || { sector: st.exchange, full: st.name, hq: '—', founded: '—', moat: 'See financial data.' };
+  
+  const bmc = businessModelCanvas(sym, st, m, info);
+  const swot = generateSWOT(sym, st, m);
+  const future = futureOutlook(sym, st, m);
+  const tornadoVars = generateCustomTornado(sym, st, m);
+  const tornado = renderTornadoChart(tornadoVars);
+  const bottom = bottomLine(sym, st, m, tornadoVars);
+
+  return `
+    <div class="ai-panel">
+      <div style="margin-bottom:20px;">
+        <div style="font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span>${st.name}</span>
+          <span style="font-size:11px;font-weight:normal;color:var(--muted);">${sym} · ${st.exchange} · ${st.currency}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">
+          Based on annual reports & filings (${YEARS[0]}–${YEARS[YEARS.length-2]})
+        </div>
+      </div>
+
+      <div class="ai-content">
+        <h2>🏢 Business Model Canvas</h2>
+        ${bmc}
+      </div>
+
+      <div class="ai-content">
+        <h2>📊 SWOT Analysis</h2>
+        ${swot}
+      </div>
+
+      <div class="ai-content">
+        <h2>🌪️ Sensitivity Analysis – Net Profit Impact</h2>
+        <p style="font-size:11px;color:var(--muted);">Estimated % change in net profit under different scenarios. Based on company‑specific risks.</p>
+        ${tornado}
+      </div>
+
+      <div class="ai-content">
+        <h2>🔮 Future Outlook</h2>
+        ${future}
+      </div>
+
+      <div class="ai-content">
+        <h2>🎯 The Bottom Line</h2>
+        ${bottom}
+      </div>
+
+      <div class="ai-cache-note">
+        📚 Data sources: IDX/ASX/NYSE filings · Annual Reports · Yahoo Finance · StockAnalysis.com · IDNFinancials · Bloomberg · AFR
+      </div>
+    </div>
+  `;
+}
 
 // ═══════════════════════════════════
 // BOOT
@@ -1792,24 +1820,17 @@ async function boot() {
     ANNUALISATION = liveData.annualisation || {};
     const ts = Date.now();
 
-    // ── Clean slate: reset stocks to only what data.json provides ──
-    // Since LS_KEY bumped to v5, S.custom/deleted/status are all fresh.
-    // data.json is the single source of truth for all stocks.
     S.stocks  = {...BASE_STOCKS};
     S.custom  = {};
     S.deleted = {};
 
     Object.entries(liveData.stocks).forEach(([sym, sd]) => {
       const hasData = Array.isArray(sd.revenue) && sd.revenue.some(v => v !== null);
-
-      // Register stock (adds custom/NYSE/NASDAQ stocks not in BASE_STOCKS)
       S.stocks[sym] = {
         name:     sd.name     || sym,
         exchange: sd.exchange || 'NYSE',
         currency: sd.currency || 'B USD',
       };
-
-      // Load data unconditionally — data.json is always authoritative
       S.data[sym] = {
         totalAsset:  sd.totalAsset,
         cash:        sd.cash,
@@ -1836,13 +1857,11 @@ async function boot() {
     if (!S.stocks[S.sel]) S.sel = Object.keys(S.stocks)[0] || 'BHP';
 
   } else {
-    // No data.json (local file or first run) — use embedded fallback
     initPreloadedData();
     if (_hSub) _hSub.textContent =
       `ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · Host on GitHub Pages for auto-refresh`;
   }
 
-  // Set status for any remaining untracked stocks
   Object.keys(S.stocks).forEach(k => {
     if (!S.status[k]) S.status[k] = S.data[k] ? 'ok' : 'idle';
   });
