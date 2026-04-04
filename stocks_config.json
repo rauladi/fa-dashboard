@@ -11,6 +11,14 @@
       "hint_cur": "AUD"
     }
     {
+      "symbol": "NAB",
+      "name": "National Australia Bank Ltd",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "NAB.AX",
+      "hint_cur": "AUD"
+    }
+    {
       "symbol": "PBR-A",
       "name": "Petroleo Brasileiro S.A. ADR",
       "exchange": "NYSE",
