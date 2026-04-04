@@ -315,7 +315,8 @@ def build_arrays(yd, sym):
             arr.append(lv)
         out[f]=arr
     return out
-    # ---------- DEEP STATIC PROFILES (manually researched) ----------
+
+# ---------- DEEP STATIC PROFILES (manually researched) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -541,8 +542,6 @@ High dividend payout (80-90%) rewards shareholders. Banpu parent may extract div
 
 ## Future Outlook
 India import demand growing. BoCT terminal expansion. Solar hybrid projects. Watch coal prices, energy transition policies, and Banpu parent strategy.""",
-}
-# Continuing PROFILES dictionary
     "POWR": """## Business Model Canvas
 **Key Partners:** PGN/Pertamina (gas supply); PLN (grid backstop); industrial tenants (2,650 customers); GE/Siemens (turbines); Bechtel/Technip (EPC); government (PPU licence).
 **Key Activities:** Electricity generation (gas, coal); distribution to industrial estates; grid maintenance; capacity expansion; power purchase agreements.
@@ -992,6 +991,7 @@ Management focused on merchant model, US expansion, and connected trip. Sharehol
 ## Future Outlook
 US expansion. Alternative accommodations. AI personalisation. Watch travel demand, competition from Google, and regulation.""",
 }
+
 def generate_static_profiles(out):
     """Add static deep analysis to data.json for all stocks."""
     for sym in STOCKS:
