@@ -2,8 +2,8 @@ name: Refresh FA Dashboard Data
 
 on:
   schedule:
-    - cron: '0 6 5 * *'
-  workflow_dispatch:
+    - cron: '0 6 5 * *'   # 5th of every month at 06:00 UTC
+  workflow_dispatch:        # manual trigger
 
 jobs:
   refresh:
@@ -23,27 +23,6 @@ jobs:
       - name: Install dependencies
         run: pip install yfinance --quiet
 
-      - name: Test Gemini API key
-        run: |
-          python -c "
-          import urllib.request, json
-          key = '${{ secrets.ANTHROPIC_API_KEY }}'
-          print('Key prefix:', key[:10] if key else 'None')
-          if not key.startswith('AIza'):
-              print('ERROR: Key does not start with AIza')
-          else:
-            req = urllib.request.Request(
-                'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + key,
-                data=json.dumps({'contents': [{'parts': [{'text': 'Say hello'}]}]}).encode(),
-                headers={'Content-Type': 'application/json'}
-            )
-            try:
-                resp = urllib.request.urlopen(req)
-                print('API test SUCCESS:', resp.read()[:100])
-            except Exception as e:
-                print('API test FAILED:', e)
-          "
-      
       - name: Fetch financial data & generate AI profiles
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
