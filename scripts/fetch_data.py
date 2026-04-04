@@ -7,7 +7,6 @@ except Exception:
     os.system("pip install yfinance --quiet")
     import yfinance as yf
 
-# ---------- constants ----------
 NOW = datetime.now(timezone.utc)
 CURRENT_YEAR = NOW.year
 LATEST_YEAR = CURRENT_YEAR - 1
@@ -56,7 +55,39 @@ STOCKS = {
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-# ---------- exchange rates ----------
+# ======================== FALLBACK DATA (restored from original) ========================
+FALLBACK = {
+    # ASX
+    "BHP":  {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,None,None]},
+    "WDS":  {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,None,None]},
+    "CBA":  {"totalAsset":[1088,1141,1186,1217,None,None],"cash":[69,72,75,78,None,None],"totalDebt":[918,965,1002,1030,None,None],"totalEquity":[66,70,73,77,None,None],"revenue":[22.5,23.8,24.9,26.4,None,None],"grossProfit":[14.0,14.8,15.6,16.5,None,None],"netProfit":[8.8,9.6,10.2,10.0,None,None],"eps":[4.93,5.40,5.73,5.68,None,None],"dps":[2.00,3.85,4.50,4.65,None,None]},
+    # IDX
+    "BBRI": {"totalAsset":[1635,1865,1965,2073,None,None],"cash":[163,186,196,207,None,None],"totalDebt":[1380,1570,1650,1730,None,None],"totalEquity":[255,295,315,343,None,None],"revenue":[135,150,165,187,None,None],"grossProfit":[85,95,104,118,None,None],"netProfit":[25,43,51,60,None,None],"eps":[1019,1753,2086,2443,None,None],"dps":[460,791,940,1100,None,None]},
+    "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],"eps":[256,960,480,510,None,None],"dps":[130,480,240,255,None,None]},
+    "SMSM": {"totalAsset":[2.6,2.8,3.0,3.2,None,None],"cash":[0.9,1.0,1.1,1.2,None,None],"totalDebt":[0.35,0.30,0.30,0.25,None,None],"totalEquity":[2.0,2.2,2.4,2.6,None,None],"revenue":[2.5,2.8,3.2,3.4,None,None],"grossProfit":[0.82,0.92,1.05,1.12,None,None],"netProfit":[0.43,0.51,0.58,0.62,None,None],"eps":[183,217,247,264,None,None],"dps":[138,164,186,198,None,None]},
+    "UNTR": {"totalAsset":[118,130,138,145,None,None],"cash":[16,18,20,22,None,None],"totalDebt":[23,20,18,16,None,None],"totalEquity":[78,88,97,105,None,None],"revenue":[108,125,130,135,None,None],"grossProfit":[25,30,32,33,None,None],"netProfit":[13,16,17,18,None,None],"eps":[3510,4320,4590,4860,None,None],"dps":[1580,1944,2065,2187,None,None]},
+    "ITMG": {"totalAsset":[19,26,20,21,None,None],"cash":[6,12,8,7,None,None],"totalDebt":[0.8,1.0,0.8,0.7,None,None],"totalEquity":[16,22,17,18,None,None],"revenue":[36,65,42,45,None,None],"grossProfit":[10,25,14,13,None,None],"netProfit":[5,16,8,7,None,None],"eps":[4530,14493,7246,6344,None,None],"dps":[4000,13000,6500,5710,None,None]},
+    "POWR": {"totalAsset":[9.5,10.0,10.5,11.0,None,None],"cash":[1.3,1.4,1.5,1.6,None,None],"totalDebt":[2.0,1.8,1.6,1.4,None,None],"totalEquity":[5.8,6.5,7.2,7.8,None,None],"revenue":[5.0,5.2,5.5,5.8,None,None],"grossProfit":[2.0,2.1,2.2,2.3,None,None],"netProfit":[0.95,1.00,1.10,1.15,None,None],"eps":[95,100,110,115,None,None],"dps":[57,60,66,69,None,None]},
+    "MPMX": {"totalAsset":[9.0,9.5,10.0,10.5,None,None],"cash":[1.5,1.6,1.7,1.8,None,None],"totalDebt":[2.4,2.2,2.0,1.8,None,None],"totalEquity":[4.8,5.3,5.8,6.3,None,None],"revenue":[12.5,13.0,13.5,14.0,None,None],"grossProfit":[2.1,2.2,2.3,2.4,None,None],"netProfit":[0.40,0.45,0.50,0.55,None,None],"eps":[93,105,116,128,None,None],"dps":[40,45,50,55,None,None]},
+    "BTPS": {"totalAsset":[24,27,30,32,None,None],"cash":[2.4,2.7,3.0,3.2,None,None],"totalDebt":[19,21,23.5,25,None,None],"totalEquity":[5.0,6.0,6.5,7.0,None,None],"revenue":[7.0,8.0,9.0,9.5,None,None],"grossProfit":[4.2,4.8,5.4,5.7,None,None],"netProfit":[1.2,1.8,2.0,2.1,None,None],"eps":[413,557,618,650,None,None],"dps":[124,167,185,195,None,None]},
+    "DMAS": {"totalAsset":[7.0,7.5,8.0,8.5,None,None],"cash":[1.8,2.0,2.2,2.4,None,None],"totalDebt":[1.0,0.9,0.8,0.7,None,None],"totalEquity":[5.5,6.0,6.5,7.0,None,None],"revenue":[1.8,2.2,2.8,2.5,None,None],"grossProfit":[1.2,1.6,2.0,1.8,None,None],"netProfit":[0.7,0.9,1.1,1.0,None,None],"eps":[35,45,55,50,None,None],"dps":[24,32,38,35,None,None]},
+    "SPTO": {"totalAsset":[2.6,2.7,2.8,2.9,None,None],"cash":[0.32,0.35,0.38,0.40,None,None],"totalDebt":[0.70,0.65,0.60,0.55,None,None],"totalEquity":[1.55,1.70,1.85,1.98,None,None],"revenue":[1.9,2.0,2.1,2.2,None,None],"grossProfit":[0.69,0.73,0.77,0.80,None,None],"netProfit":[0.25,0.27,0.30,0.32,None,None],"eps":[278,300,333,356,None,None],"dps":[139,150,167,178,None,None]},
+    # NYSE
+    "TSM":  {"totalAsset":[133,175,206,209,248,None],"cash":[40,52,54,57,87,None],"totalDebt":[20,30,38,40,33,None],"totalEquity":[71,92,107,134,170,None],"revenue":[57,77,70,91,119,None],"grossProfit":[30,42,37,51,71,None],"netProfit":[22,31,27,37,53,None],"eps":[4.18,6.14,5.07,7.09,10.36,None],"dps":[1.72,1.72,1.76,2.19,2.82,None]},
+    "V":    {"totalAsset":[82.9,85.5,90.5,94.5,92.6,None],"cash":[15.7,16.3,11.9,11.6,17.2,None],"totalDebt":[22.4,20.5,20.5,20.8,25.2,None],"totalEquity":[35.6,38.7,38.3,38.0,32.9,None],"revenue":[24.1,29.3,32.7,35.9,40.0,None],"grossProfit":[20.1,24.9,28.1,31.4,35.1,None],"netProfit":[12.3,15.0,17.3,19.7,20.1,None],"eps":[5.74,7.12,8.23,9.74,10.22,None],"dps":[1.28,1.50,1.80,2.08,2.34,None]},
+    "MA":   {"totalAsset":[43.0,46.4,46.8,46.5,47.0,None],"cash":[8.0,7.8,7.4,8.0,8.5,None],"totalDebt":[14.2,15.7,15.8,16.6,17.0,None],"totalEquity":[6.0,5.5,5.3,5.0,5.5,None],"revenue":[18.9,22.2,25.1,28.2,31.0,None],"grossProfit":[13.3,16.0,18.4,21.1,23.5,None],"netProfit":[8.7,10.5,11.2,12.9,14.6,None],"eps":[8.76,10.61,11.44,13.89,15.60,None],"dps":[1.76,2.00,2.28,2.64,2.97,None]},
+    "PBR-A":{"totalAsset":[247,280,279,264,None,None],"cash":[11,18,16,15,None,None],"totalDebt":[87,80,69,62,None,None],"totalEquity":[96,124,128,118,None,None],"revenue":[77,115,90,88,None,None],"grossProfit":[38,68,48,44,None,None],"netProfit":[9,37,24,19,None,None],"eps":[1.30,5.35,3.46,2.74,None,None],"dps":[0.60,3.80,2.60,2.10,None,None]},
+    # NASDAQ
+    "MSFT": {"totalAsset":[333.8,364.8,411.9,484.3,523.0,None],"cash":[130.3,104.8,111.3,80.0,71.6,None],"totalDebt":[67.8,61.3,69.9,97.9,97.2,None],"totalEquity":[141.9,166.5,166.5,233.0,287.0,None],"revenue":[168.1,198.3,211.9,245.1,279.6,None],"grossProfit":[115.9,135.6,146.1,171.0,195.1,None],"netProfit":[61.3,72.7,72.4,88.1,106.0,None],"eps":[8.12,9.65,9.72,11.45,14.16,None],"dps":[2.24,2.48,2.72,3.00,3.32,None]},
+    "AMZN": {"totalAsset":[420.5,462.7,527.9,527.5,624.9,None],"cash":[96.1,70.0,73.9,86.8,101.2,None],"totalDebt":[116.4,155.6,161.5,164.8,173.0,None],"totalEquity":[138.2,146.0,143.3,171.3,236.9,None],"revenue":[469.8,514.0,524.9,637.0,760.0,None],"grossProfit":[197.5,226.2,240.6,283.0,351.0,None],"netProfit":[33.4,-2.7,20.1,59.2,64.0,None],"eps":[64.81,-5.36,3.99,11.53,12.10,None],"dps":[None,None,None,None,None,None]},
+    "AAPL": {"totalAsset":[351.0,352.8,352.6,353.5,364.9,None],"cash":[69.0,48.3,55.2,65.2,53.8,None],"totalDebt":[136.5,132.5,123.9,128.5,97.3,None],"totalEquity":[63.1,50.7,62.1,74.2,56.9,None],"revenue":[365.8,394.3,383.3,391.0,436.0,None],"grossProfit":[152.8,170.8,169.1,180.7,203.0,None],"netProfit":[94.7,99.8,97.0,101.0,94.0,None],"eps":[5.61,6.11,6.13,6.43,6.08,None],"dps":[0.85,0.91,0.94,0.97,1.00,None]},
+    "META": {"totalAsset":[165.9,185.7,185.7,229.6,276.1,None],"cash":[47.9,40.7,31.8,49.3,77.8,None],"totalDebt":[10.2,27.5,18.4,28.8,28.8,None],"totalEquity":[124.9,125.1,128.3,153.2,182.6,None],"revenue":[117.9,116.6,134.9,185.0,235.0,None],"grossProfit":[100.1,97.3,113.0,156.9,200.0,None],"netProfit":[39.4,23.2,39.1,62.4,78.0,None],"eps":[13.77,8.59,14.87,23.86,31.00,None],"dps":[None,None,None,None,2.00,None]},
+    "NVDA": {"totalAsset":[28.8,44.2,41.2,65.7,111.6,None],"cash":[11.6,19.3,13.3,25.0,43.2,None],"totalDebt":[6.9,11.7,11.0,10.0,8.5,None],"totalEquity":[16.9,26.1,26.1,42.6,65.7,None],"revenue":[16.7,26.9,27.0,60.9,130.5,None],"grossProfit":[10.4,17.5,15.4,42.0,97.9,None],"netProfit":[4.3,9.8,4.4,29.8,72.9,None],"eps":[1.73,3.85,1.74,11.93,29.24,None],"dps":[0.016,0.016,0.016,0.016,0.01,None]},
+    "GOOG": {"totalAsset":[359.3,391.4,402.0,430.3,450.0,None],"cash":[142.0,139.6,115.0,108.1,95.7,None],"totalDebt":[14.8,15.1,14.7,14.7,15.0,None],"totalEquity":[251.6,256.1,272.3,314.1,360.0,None],"revenue":[257.6,282.8,307.4,350.0,385.0,None],"grossProfit":[146.7,156.6,174.1,208.1,237.0,None],"netProfit":[76.0,60.0,73.8,100.1,115.0,None],"eps":[5.61,4.56,5.80,7.79,9.27,None],"dps":[None,None,None,None,None,None]},
+    "BKNG": {"totalAsset":[25.5,26.8,30.7,31.8,33.0,None],"cash":[11.2,12.4,15.1,16.8,17.5,None],"totalDebt":[15.4,13.8,14.0,12.0,11.0,None],"totalEquity":[0.5,1.4,4.0,7.0,9.0,None],"revenue":[11.0,17.1,21.4,23.7,26.0,None],"grossProfit":[9.7,15.2,19.0,21.2,23.1,None],"netProfit":[1.1,3.0,4.3,4.8,6.0,None],"eps":[25.0,72.0,110.0,130.0,165.0,None],"dps":[None,None,None,None,None,None]},
+}
+
+# ======================== Helper functions (unchanged) ========================
 def get_rates():
     usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031
     try:
@@ -157,10 +188,11 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym=""):
         rev_val = safe(rv[ic] if rv is not None else None, div, fx)
         eps_val = safe(ep[ic] if ep is not None else None, 1, epsfx)
 
+        # Skip TTM for latest year if column month doesn't match FY end
         if yr == LATEST_YEAR and rev_val is not None and eps_val is None:
             fy_end = FISCAL_YEAR_END.get(sym, 12)
             if ic.month != fy_end:
-                print(f"    ⚠ {sym} yr={yr}: col={ic.date()} FY_end={fy_end} → TTM, skip", flush=True)
+                print(f"    ⚠ {sym} yr={yr}: col={ic.date()} FY_end={fy_end} col_month={ic.month} → TTM, skip", flush=True)
                 row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None,
                            totalAsset=None,cash=None,totalDebt=None,totalEquity=None,dps=None)
                 return row
@@ -288,8 +320,8 @@ def build_arrays(yd, fb):
         out[f]=arr
     return out
 
-# ---------- AI generation (Gemini / Anthropic) ----------
-def call_anthropic(prompt, api_key, max_tokens=1200):
+# ======================== AI generation with enriched prompts ========================
+def call_anthropic(prompt, api_key, max_tokens=2000):
     try:
         import urllib.request, json as jsonlib
         body = jsonlib.dumps({
@@ -307,25 +339,25 @@ def call_anthropic(prompt, api_key, max_tokens=1200):
             },
             method="POST"
         )
-        with urllib.request.urlopen(req, timeout=45) as resp:
+        with urllib.request.urlopen(req, timeout=60) as resp:
             data = jsonlib.loads(resp.read())
             return data["content"][0]["text"]
     except Exception as e:
         print(f"  Anthropic API error: {e}", flush=True)
         return None
 
-def call_gemini(prompt, api_key, max_tokens=1200):
+def call_gemini(prompt, api_key, max_tokens=2000):
     try:
         import urllib.request, json as jsonlib
         model = "gemini-2.0-flash"
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
         body = jsonlib.dumps({
             "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"maxOutputTokens": max_tokens}
+            "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3}
         }).encode()
         req = urllib.request.Request(url, data=body,
             headers={"Content-Type": "application/json"}, method="POST")
-        with urllib.request.urlopen(req, timeout=45) as resp:
+        with urllib.request.urlopen(req, timeout=60) as resp:
             data = jsonlib.loads(resp.read())
             parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
             return "".join(p.get("text","") for p in parts) or None
@@ -333,38 +365,21 @@ def call_gemini(prompt, api_key, max_tokens=1200):
         print(f"  Gemini API error: {e}", flush=True)
         return None
 
-PROFILE_PROMPT = """Write a comprehensive investment analysis for {name} ({ticker}, {exchange}).
-
-Include the following sections with clear headings:
-
-## Business Model Canvas
-Fill all 9 blocks: Key Partners, Key Activities, Key Resources, Value Proposition, Customer Relationships, Channels, Customer Segments, Cost Structure, Revenue Streams.
-
-## SWOT Analysis
-Strengths, Weaknesses, Opportunities, Threats (based on actual financial and strategic data).
-
-## PESTLE Analysis
-Political, Economic, Social, Technological, Legal, Environmental factors affecting the company.
-
-## Porter's Five Forces
-Competitive Rivalry, Threat of New Entrants, Supplier Power, Buyer Power, Threat of Substitutes.
-
-## Management & Decision Making
-Capital allocation philosophy, recent strategic decisions (M&A, divestments, major projects), and insight into management quality.
-
-## Future Outlook
-Key growth drivers, risks, and what investors should watch over the next 3-5 years.
-
-Use specific data from public filings, annual reports, and credible business news. Be factual and detailed."""
-
-NEWS_PROMPT = """Summarize the 5 most recent important fundamental business developments for {name} ({ticker}, {exchange}).
-
-For each, use exactly:
-## [Headline]
-**Date:** [period]  **Relevance:** [Bullish/Bearish/Neutral]
-[2-3 sentences on what happened and why it matters for long-term investors]
-
-Focus on: earnings, revenue changes, strategy, acquisitions, dividends, regulations. Skip pure price news."""
+def get_financial_summary(sym, data, m):
+    """Create a short financial summary to inject into the prompt."""
+    if not m:
+        return ""
+    latest_rev = m.raw.rv.filter(isOK)[-1] if any(m.raw.rv) else None
+    return f"""
+Financial Highlights for {sym} (latest available year):
+- Revenue: {latest_rev:.2f} {S.stocks[sym]['currency'] if sym in S else 'currency'} (CAGR {m.cg.rev:.1f}% over 5 years)
+- Net Profit Margin: {m.av.npm:.1f}%
+- Return on Equity (ROE): {m.av.roe:.1f}%
+- Debt/Equity: {m.av.debtToEquity:.1f}%
+- Buffett $1 Test (Retained EPS → EPS growth): {m.buff:.0f}% (above 100% is excellent)
+- Revenue Growth (CAGR): {m.cg.rev:.1f}%
+- Net Profit Growth (CAGR): {m.cg.np:.1f}%
+"""
 
 def generate_ai_content(all_stocks, out, api_key):
     if not api_key:
@@ -377,9 +392,128 @@ def generate_ai_content(all_stocks, out, api_key):
     call_fn = call_gemini if is_gemini else call_anthropic
     print(f"\n{'='*50}\nGenerating AI profiles & news via {provider} ({len(all_stocks)} stocks)...\n{'='*50}", flush=True)
 
-    for sym, (name, exchange, ticker, *_) in all_stocks.items():
+    # We need to access S.data and calculated metrics. Since we are inside the script,
+    # we already have out["stocks"] with the arrays. We'll compute metrics on the fly.
+    # For simplicity, we'll use the out data to compute key metrics.
+    # But easier: we already have the data in out["stocks"][sym] arrays.
+    # Let's create a temporary calc function using those arrays.
+    def calc_from_arrays(arrs):
+        # arrs is a dict with keys like totalAsset, revenue, etc., each a list of 6 values
+        # We need to compute ROE, margins, CAGR, Buffett test.
+        # For brevity, we'll compute simple ones.
+        rev = arrs.get("revenue", [])
+        np = arrs.get("netProfit", [])
+        te = arrs.get("totalEquity", [])
+        eps = arrs.get("eps", [])
+        dps = arrs.get("dps", [])
+        # Use only completed years (first 5)
+        rev_comp = [v for v in rev[:5] if v is not None]
+        np_comp = [v for v in np[:5] if v is not None]
+        te_comp = [v for v in te[:5] if v is not None]
+        eps_comp = [v for v in eps[:5] if v is not None]
+        dps_comp = [v for v in dps[:5] if v is not None]
+        def cagr(arr):
+            if len(arr) < 2: return None
+            return (pow(arr[-1]/arr[0], 1/(len(arr)-1)) - 1) * 100
+        rev_cagr = cagr(rev_comp) if rev_comp else None
+        np_cagr = cagr(np_comp) if np_comp else None
+        avg_npm = (np_comp[i]/rev_comp[i]*100 for i in range(min(len(np_comp), len(rev_comp))) if rev_comp[i] and np_comp[i]) and None
+        npm_list = [np_comp[i]/rev_comp[i]*100 for i in range(min(len(np_comp), len(rev_comp))) if rev_comp[i] and np_comp[i]]
+        avg_npm = sum(npm_list)/len(npm_list) if npm_list else None
+        avg_roe_list = [np_comp[i]/te_comp[i]*100 for i in range(min(len(np_comp), len(te_comp))) if te_comp[i] and np_comp[i]]
+        avg_roe = sum(avg_roe_list)/len(avg_roe_list) if avg_roe_list else None
+        # Buffett test
+        ret_eps = [eps_comp[i] - (dps_comp[i] if i < len(dps_comp) and dps_comp[i] else 0) for i in range(len(eps_comp)) if eps_comp[i] is not None]
+        total_ret = sum(ret_eps) if ret_eps else None
+        eps_inc = eps_comp[-1] - eps_comp[0] if len(eps_comp) >= 2 else None
+        buff = (eps_inc / total_ret * 100) if total_ret and total_ret != 0 and eps_inc else None
+        return {
+            "rev_cagr": rev_cagr, "np_cagr": np_cagr, "avg_npm": avg_npm, "avg_roe": avg_roe,
+            "debt_to_equity": None,  # not computed here
+            "buffett": buff
+        }
+
+    for sym, stock_info in out["stocks"].items():
+        name = stock_info["name"]
+        exchange = stock_info["exchange"]
+        ticker = stock_info["ticker"]
+        # Build financial summary from the arrays
+        rev_arr = stock_info.get("revenue", [])
+        np_arr = stock_info.get("netProfit", [])
+        te_arr = stock_info.get("totalEquity", [])
+        eps_arr = stock_info.get("eps", [])
+        dps_arr = stock_info.get("dps", [])
+        # compute basic metrics
+        rev_comp = [v for v in rev_arr[:5] if v is not None]
+        np_comp = [v for v in np_arr[:5] if v is not None]
+        te_comp = [v for v in te_arr[:5] if v is not None]
+        eps_comp = [v for v in eps_arr[:5] if v is not None]
+        dps_comp = [v for v in dps_arr[:5] if v is not None]
+        def cagr(arr):
+            if len(arr) < 2: return None
+            return (pow(arr[-1]/arr[0], 1/(len(arr)-1)) - 1) * 100
+        rev_cagr = cagr(rev_comp) if rev_comp else None
+        np_cagr = cagr(np_comp) if np_comp else None
+        npm_list = [np_comp[i]/rev_comp[i]*100 for i in range(min(len(np_comp), len(rev_comp))) if rev_comp[i] and np_comp[i]]
+        avg_npm = sum(npm_list)/len(npm_list) if npm_list else None
+        roe_list = [np_comp[i]/te_comp[i]*100 for i in range(min(len(np_comp), len(te_comp))) if te_comp[i] and np_comp[i]]
+        avg_roe = sum(roe_list)/len(roe_list) if roe_list else None
+        ret_eps = [eps_comp[i] - (dps_comp[i] if i < len(dps_comp) and dps_comp[i] else 0) for i in range(len(eps_comp)) if eps_comp[i] is not None]
+        total_ret = sum(ret_eps) if ret_eps else None
+        eps_inc = eps_comp[-1] - eps_comp[0] if len(eps_comp) >= 2 else None
+        buff = (eps_inc / total_ret * 100) if total_ret and total_ret != 0 and eps_inc else None
+
+        fin_summary = f"""
+Key Financial Metrics (based on latest available data, currency {stock_info['currency']}):
+- Revenue CAGR (5 years): {rev_cagr:.1f}% if rev_cagr else 'N/A'
+- Net Profit CAGR: {np_cagr:.1f}% if np_cagr else 'N/A'
+- Average Net Profit Margin: {avg_npm:.1f}% if avg_npm else 'N/A'
+- Average Return on Equity: {avg_roe:.1f}% if avg_roe else 'N/A'
+- Buffett $1 Test: {buff:.0f}% if buff else 'N/A'
+"""
+
+        # Enhanced prompts with financial context
+        profile_prompt = f"""You are a financial analyst. Write a detailed, company-specific investment analysis for {name} ({ticker}, {exchange}).
+
+{fin_summary}
+
+Use the financial metrics above to ground your analysis. Do not copy generic descriptions. Provide specific insights for this company.
+
+Write with the following sections:
+
+## Business Model Canvas
+Fill all 9 blocks with concrete details based on the company's actual business model.
+
+## SWOT Analysis
+Strengths, Weaknesses, Opportunities, Threats. Use the financial metrics to support your points.
+
+## PESTLE Analysis
+Political, Economic, Social, Technological, Legal, Environmental factors affecting this specific company.
+
+## Porter's Five Forces
+Analyse each force: Competitive Rivalry, Threat of New Entrants, Supplier Power, Buyer Power, Threat of Substitutes.
+
+## Management & Decision Making
+Discuss capital allocation (dividends, buybacks, debt), recent strategic moves (M&A, major projects), and evidence of rational decision-making.
+
+## Future Outlook
+Key growth drivers, risks, and what investors should watch over the next 3-5 years.
+
+Make every section specific to {name}. Avoid generic statements that could apply to any company."""
+
+        news_prompt = f"""Summarize the 5 most recent important fundamental business developments for {name} ({ticker}, {exchange}).
+
+{fin_summary}
+
+For each, use exactly:
+## [Headline]
+**Date:** [period]  **Relevance:** [Bullish/Bearish/Neutral]
+[2-3 sentences on what happened and why it matters for long-term investors]
+
+Focus on: earnings, revenue changes, strategy, acquisitions, dividends, regulations. Skip pure price news. Make sure the developments are specific to {name}."""
+
         print(f"  [{sym}] profile...", flush=True)
-        profile = call_fn(PROFILE_PROMPT.format(name=name, ticker=ticker, exchange=exchange), api_key, max_tokens=2000)
+        profile = call_fn(profile_prompt, api_key, max_tokens=2500)
         if profile:
             out["stocks"][sym]["profile"] = profile
             out["stocks"][sym]["profileDate"] = NOW.isoformat()
@@ -389,7 +523,7 @@ def generate_ai_content(all_stocks, out, api_key):
         time.sleep(0.5 if is_gemini else 0.3)
 
         print(f"  [{sym}] news...", flush=True)
-        news = call_fn(NEWS_PROMPT.format(name=name, ticker=ticker, exchange=exchange), api_key, max_tokens=1500)
+        news = call_fn(news_prompt, api_key, max_tokens=1800)
         if news:
             out["stocks"][sym]["news"] = news
             out["stocks"][sym]["newsDate"] = NOW.isoformat()
@@ -400,7 +534,7 @@ def generate_ai_content(all_stocks, out, api_key):
 
     print(f"AI content generation complete via {provider}.", flush=True)
 
-# ---------- main ----------
+# ======================== main ========================
 def main():
     usd_aud, usd_idr, twd_usd = get_rates()
     all_stocks = {**STOCKS}
@@ -420,7 +554,7 @@ def main():
     for i,(sym,(name,exchange,ticker_str,currency,_div,hint_cur)) in enumerate(all_stocks.items()):
         if i>0: time.sleep(1)
         yd,ann=fetch_one(sym,exchange,ticker_str,hint_cur,usd_aud,usd_idr,twd_usd)
-        fb = {}   # no fallback needed because we rely on yfinance only
+        fb = FALLBACK.get(sym, {})
         arrs=build_arrays(yd,fb)
         src="yfinance" if yd else "fallback"
         if yd: ok+=1
@@ -429,11 +563,27 @@ def main():
         out["stocks"][sym].update(arrs)
         out["annualisation"][sym]=ann
 
+    # AI generation
     api_key = os.environ.get("ANTHROPIC_API_KEY","").strip()
     if api_key:
         generate_ai_content(all_stocks, out, api_key)
     else:
-        print("No API key found – skipping AI generation.", flush=True)
+        # Try to preserve existing AI content from previous data.json
+        prev_path = os.path.abspath(os.path.join(os.path.dirname(__file__),"..","data.json"))
+        if os.path.exists(prev_path):
+            try:
+                with open(prev_path) as f: prev = json.load(f)
+                for sym in out["stocks"]:
+                    prev_stock = prev.get("stocks",{}).get(sym,{})
+                    if prev_stock.get("profile"):
+                        out["stocks"][sym]["profile"] = prev_stock["profile"]
+                        out["stocks"][sym]["profileDate"] = prev_stock.get("profileDate","")
+                    if prev_stock.get("news"):
+                        out["stocks"][sym]["news"] = prev_stock["news"]
+                        out["stocks"][sym]["newsDate"] = prev_stock.get("newsDate","")
+                print("Preserved existing profile/news from previous data.json", flush=True)
+            except Exception as e:
+                print(f"Could not preserve previous AI content: {e}", flush=True)
 
     path=os.path.abspath(os.path.join(os.path.dirname(__file__),"..","data.json"))
     with open(path,"w") as f: json.dump(out,f,indent=2)
