@@ -310,32 +310,44 @@ def build_arrays(yd, fb, sym):
         arr=[]
         for i,yr in enumerate(ALL_YEARS):
             lv=yd[yr].get(f) if yd and yr in yd else None
-            # fallback to PRELOADED if available
             if lv is None and sym in PRELOADED and f in PRELOADED[sym] and i < len(PRELOADED[sym][f]):
                 lv = PRELOADED[sym][f][i]
             arr.append(lv)
         out[f]=arr
     return out
 
-# ---------- AI generation with Gemini ----------
-def call_gemini(prompt, api_key, max_tokens=2500):
-    try:
-        import urllib.request, json as jsonlib
-        model = "gemini-2.0-flash"
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
-        body = jsonlib.dumps({
-            "contents": [{"parts": [{"text": prompt}]}],
-            "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.2}
-        }).encode()
-        req = urllib.request.Request(url, data=body,
-            headers={"Content-Type": "application/json"}, method="POST")
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            data = jsonlib.loads(resp.read())
-            parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
-            return "".join(p.get("text","") for p in parts) or None
-    except Exception as e:
-        print(f"  Gemini API error: {e}", flush=True)
-        return None
+# ---------- AI generation with Gemini and rate limit handling ----------
+def call_gemini_with_retry(prompt, api_key, max_tokens=2500, retries=3):
+    import urllib.request, json as jsonlib
+    model = "gemini-2.0-flash"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+    body = jsonlib.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.2}
+    }).encode()
+    
+    for attempt in range(retries):
+        try:
+            req = urllib.request.Request(url, data=body,
+                headers={"Content-Type": "application/json"}, method="POST")
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                data = jsonlib.loads(resp.read())
+                parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+                return "".join(p.get("text","") for p in parts) or None
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                wait = 10 * (2 ** attempt)  # 10, 20, 40 seconds
+                print(f"  Rate limit (429), retrying in {wait}s...", flush=True)
+                time.sleep(wait)
+                continue
+            else:
+                print(f"  Gemini API HTTP error {e.code}: {e.reason}", flush=True)
+                return None
+        except Exception as e:
+            print(f"  Gemini API error: {e}", flush=True)
+            return None
+    print("  Max retries exceeded, giving up.", flush=True)
+    return None
 
 def build_ai_prompt(sym, name, exchange, ticker, metrics):
     return f"""You are a professional equity analyst. Write a comprehensive, deep-dive investment analysis for {name} ({ticker}, {exchange}).
@@ -415,8 +427,7 @@ def generate_ai_content(all_stocks, out, api_key, all_metrics):
         prompt = build_ai_prompt(sym, name, exchange, ticker, metrics)
         print(f"  [{sym}] generating analysis...", flush=True)
 
-        # Call Gemini once for the full analysis
-        profile = call_gemini(prompt, api_key, max_tokens=3000)
+        profile = call_gemini_with_retry(prompt, api_key, max_tokens=3000, retries=3)
         if profile:
             out["stocks"][sym]["profile"] = profile
             out["stocks"][sym]["profileDate"] = NOW.isoformat()
@@ -424,10 +435,9 @@ def generate_ai_content(all_stocks, out, api_key, all_metrics):
         else:
             print(f"  [!] No profile for {sym}", flush=True)
 
-        # Wait to avoid rate limits
-        time.sleep(random.uniform(1.5, 3.0))
+        # Longer delay to avoid rate limits (5-10 seconds)
+        time.sleep(random.uniform(5, 10))
 
-        # News summary (shorter)
         news_prompt = f"""Summarize the 5 most recent important fundamental business developments for {name} ({ticker}, {exchange}).
 
 For each, use exactly:
@@ -437,7 +447,7 @@ For each, use exactly:
 
 Focus on: earnings, revenue changes, strategy, acquisitions, dividends, regulations. Skip pure price news."""
         print(f"  [{sym}] news...", flush=True)
-        news = call_gemini(news_prompt, api_key, max_tokens=1500)
+        news = call_gemini_with_retry(news_prompt, api_key, max_tokens=1500, retries=3)
         if news:
             out["stocks"][sym]["news"] = news
             out["stocks"][sym]["newsDate"] = NOW.isoformat()
@@ -445,7 +455,8 @@ Focus on: earnings, revenue changes, strategy, acquisitions, dividends, regulati
         else:
             print(f"  [!] No news for {sym}", flush=True)
 
-        time.sleep(random.uniform(1.5, 3.0))
+        # Delay again before next stock
+        time.sleep(random.uniform(5, 10))
 
     print("AI content generation complete.", flush=True)
 
@@ -472,8 +483,7 @@ def main():
         if i > 0:
             time.sleep(1)
         yd, ann = fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
-        # Use PRELOADED as fallback for missing data
-        arrs = build_arrays(yd, {}, sym)   # empty fb because we use PRELOADED directly inside build_arrays
+        arrs = build_arrays(yd, {}, sym)
         src = "yfinance" if yd else "fallback"
         if yd:
             ok += 1
@@ -518,7 +528,6 @@ def main():
                 return "N/A"
             return f"{sum(ratios)/len(ratios):.1f}%"
 
-        # Buffett test: simple version using EPS and DPS
         buffett = "N/A"
         if len(ep_arr) >= 2:
             eps_start = ep_arr[0]
@@ -548,7 +557,6 @@ def main():
         }
         all_metrics[sym] = metrics
 
-    # Generate AI content using the metrics
     api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if api_key:
         generate_ai_content(all_stocks, out, api_key, all_metrics)
