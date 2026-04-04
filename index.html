@@ -1,711 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>FA Dashboard — Fundamental Analysis</title>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#07111e;--surf:#0d1c2e;--surf2:#122336;--surf3:#192d42;
-  --bdr:#1a3050;--bdr2:#22405e;
-  --txt:#d8eaf8;--muted:#4e7398;--muted2:#7aa0be;
-  --cyan:#00c4e0;--cyan2:#0096ae;
-  --green:#00d97e;--red:#ff4060;
-  --orange:#ff8c40;--yellow:#ffd060;--purple:#b49dff;--blue:#4da0ff;
-  --r:10px; --font:'Outfit',system-ui,sans-serif;
-}
-html{font-size:14px}
-body{background:var(--bg);color:var(--txt);font-family:var(--font);min-height:100vh;overflow-x:hidden}
-button,input,select,textarea{font-family:var(--font)}
-::-webkit-scrollbar{width:5px;height:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:3px}
-
-/* ── HEADER ── */
-#hdr{background:var(--surf);border-bottom:1px solid var(--bdr);padding:10px 16px;
-  display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
-  position:sticky;top:0;z-index:200}
-.h-logo{width:34px;height:34px;border-radius:9px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--cyan2),#004f6e);
-  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff}
-.h-title{font-size:15px;font-weight:700;line-height:1.2}
-.h-sub{font-size:10px;color:var(--muted);margin-top:1px}
-
-/* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:8px;
-  border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s}
-.btn-cyan{background:var(--cyan2);color:#fff}.btn-cyan:hover{background:var(--cyan);color:#000}
-.btn-green{background:#006640;color:#fff}.btn-green:hover{background:var(--green);color:#000}
-.btn-ghost{background:var(--surf2);color:var(--muted2);border:1px solid var(--bdr2)}
-.btn-ghost:hover{background:var(--surf3);color:var(--txt)}
-.btn-red{background:#5a0e1e;color:#ff9aaa;border:none}.btn-red:hover{background:#8a1530}
-.btn-sm{padding:4px 10px;font-size:11px}.btn-xs{padding:3px 8px;font-size:10px}
-
-/* ── STOCK BAR ── */
-#sBar{background:var(--surf);border-bottom:1px solid var(--bdr);padding:8px 14px;
-  overflow-x:auto;-webkit-overflow-scrolling:touch}
-#sBar::-webkit-scrollbar{height:3px}
-.s-list{display:flex;gap:5px;min-width:max-content}
-.s-btn{padding:5px 10px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:700;
-  background:var(--surf2);color:var(--muted2);transition:all .15s;
-  display:inline-flex;align-items:center;gap:4px}
-.s-btn:hover{background:var(--surf3);color:var(--txt)}
-.s-btn.on{background:var(--cyan2);color:#fff;box-shadow:0 0 12px rgba(0,150,174,.4)}
-.xbadge{font-size:9px;padding:1px 5px;border-radius:4px;font-weight:700}
-.x-asx{background:rgba(255,208,96,.15);color:#ffd060}
-.x-idx{background:rgba(77,160,255,.15);color:#4da0ff}
-.x-us{background:rgba(0,217,126,.15);color:#00d97e}
-.s-dot-ok{width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0}
-.s-dot-ld{width:5px;height:5px;border-radius:50%;background:var(--yellow);flex-shrink:0;animation:pulse 1s infinite}
-.s-dot-er{width:5px;height:5px;border-radius:50%;background:var(--red);flex-shrink:0}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* ── TAB BAR ── */
-#tBar{background:var(--surf);border-bottom:1px solid var(--bdr);padding:0 16px;display:flex;overflow-x:auto}
-#tBar::-webkit-scrollbar{display:none}
-.t-btn{padding:11px 15px;background:none;border:none;border-bottom:2px solid transparent;
-  color:var(--muted);cursor:pointer;font-size:12px;font-weight:600;white-space:nowrap;transition:all .15s}
-.t-btn:hover{color:var(--txt)}
-.t-btn.on{border-color:var(--cyan);color:var(--cyan)}
-
-/* ── CONTENT ── */
-#cont{padding:14px;max-width:1700px;margin:0 auto}
-
-/* ── SECTION ── */
-.sec{margin-bottom:20px}
-.sec-t{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;
-  color:var(--cyan);margin-bottom:10px;padding-left:8px;border-left:2px solid var(--cyan)}
-
-/* ── STOCK HEADER ── */
-.sk-hdr{margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.sk-hdr h2{font-size:17px;font-weight:700}
-.sk-hdr p{font-size:11px;color:var(--muted);margin-top:3px}
-
-/* ── LOADING / ERROR STATES ── */
-.state-box{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);
-  padding:40px;text-align:center}
-.spinner{width:36px;height:36px;border:3px solid var(--bdr2);border-top-color:var(--cyan);
-  border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 16px}
-@keyframes spin{to{transform:rotate(360deg)}}
-.state-title{font-size:14px;font-weight:600;margin-bottom:6px}
-.state-sub{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
-.data-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;padding:3px 8px;
-  border-radius:20px;font-weight:600}
-.db-ok{background:rgba(0,217,126,.1);color:var(--green);border:1px solid rgba(0,217,126,.3)}
-.db-er{background:rgba(255,64,96,.1);color:var(--red);border:1px solid rgba(255,64,96,.3)}
-.db-ld{background:rgba(255,208,96,.1);color:var(--yellow);border:1px solid rgba(255,208,96,.3)}
-
-/* ── TABLES ── */
-.tw{overflow-x:auto;border-radius:var(--r);border:1px solid var(--bdr);-webkit-overflow-scrolling:touch}
-.tw::-webkit-scrollbar{height:4px}
-table{width:100%;border-collapse:collapse;background:var(--bg);font-size:12px;font-family:var(--font)}
-thead th{background:var(--surf2);padding:8px 10px;text-align:left;font-size:10px;
-  text-transform:uppercase;letter-spacing:.06em;color:var(--muted);white-space:nowrap;font-weight:600}
-th.tc,td.tc{text-align:center}
-tbody td{padding:6px 10px;border-bottom:1px solid rgba(26,48,80,.5);white-space:nowrap}
-tbody tr:last-child td{border-bottom:none}
-tbody tr:hover td{background:rgba(18,35,54,.7)}
-tbody tr.ev td{background:rgba(18,35,54,.4)}
-td.lbl{font-size:11px;font-weight:600;color:var(--txt);min-width:160px}
-td.num{font-size:12px;font-weight:500}
-.pos{color:var(--green)}.neg{color:var(--red)}
-.cya{color:var(--cyan)}.ylo{color:var(--yellow)}.pur{color:var(--purple)}.blu{color:var(--blue)}
-
-/* ── CARDS ── */
-.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:8px;margin-bottom:14px}
-.card{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:12px 13px}
-.card-l{font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500}
-.card-v{font-size:19px;font-weight:700;letter-spacing:-.01em}
-
-/* ── WEIGHTS ── */
-.wt-wrap{border-radius:12px;padding:14px;margin-bottom:16px}
-.wt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
-.wt-card{background:var(--surf);border:1px solid var(--bdr);border-radius:9px;padding:10px}
-.wt-card.ov{border-color:var(--orange);background:rgba(255,140,64,.07)}
-.wt-l{font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:600;line-height:1.3}
-.wt-card.ov .wt-l{color:var(--orange)}
-.wt-row{display:flex;align-items:center;gap:4px}
-.wt-inp{width:52px;background:var(--bg);border:1px solid var(--bdr2);border-radius:6px;
-  padding:4px 7px;font-size:13px;font-weight:700;color:var(--txt)}
-.wt-inp.ov{border-color:var(--orange);color:var(--orange)}
-.wt-inp:focus{outline:none;border-color:var(--cyan)}
-.wt-u{font-size:11px;color:var(--muted)}
-.tw-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 12px;border-radius:20px;
-  font-size:12px;font-weight:700}
-.tw-ok{background:rgba(0,217,126,.15);color:var(--green)}
-.tw-bad{background:rgba(255,64,96,.15);color:var(--red)}
-
-/* ── AI TABS (Profile & News) ── */
-.ai-panel{padding:18px 20px;max-width:900px;margin:0 auto}
-.ai-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;
-  min-height:220px;gap:14px;color:var(--muted2)}
-.ai-loading .spinner{width:32px;height:32px;border-width:3px}
-.ai-content{font-size:13px;line-height:1.75;color:var(--txt)}
-.ai-content h2{font-size:15px;font-weight:700;color:var(--cyan);margin:18px 0 8px;
-  border-bottom:1px solid var(--bdr);padding-bottom:6px}
-.ai-content h3{font-size:13px;font-weight:700;color:var(--muted2);margin:14px 0 5px}
-.ai-content p{margin-bottom:10px;color:var(--muted2)}
-.ai-content ul{margin:6px 0 12px 18px;color:var(--muted2)}
-.ai-content li{margin-bottom:4px}
-.ai-content strong{color:var(--txt)}
-.ai-content .tag{display:inline-block;background:var(--surf2);border:1px solid var(--bdr2);
-  border-radius:5px;padding:2px 8px;font-size:10px;color:var(--cyan);margin:2px}
-.ai-error{background:rgba(255,64,96,.08);border:1px solid rgba(255,64,96,.3);
-  border-radius:10px;padding:14px 18px;color:#ff9aaa;font-size:12px;margin:16px 0}
-.news-card{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;
-  padding:14px 16px;margin-bottom:12px}
-.news-card:hover{border-color:var(--bdr2);background:var(--surf2)}
-.news-card .nc-title{font-size:13px;font-weight:600;color:var(--txt);margin-bottom:5px;line-height:1.4}
-.news-card .nc-meta{font-size:10px;color:var(--muted);margin-bottom:7px}
-.news-card .nc-body{font-size:12px;color:var(--muted2);line-height:1.6}
-.news-card .nc-tag{font-size:9px;padding:2px 6px;border-radius:4px;margin-left:6px;
-  background:rgba(0,196,224,.12);color:var(--cyan);border:1px solid rgba(0,196,224,.2)}
-.sh-row{display:flex;align-items:center;gap:10px;padding:9px 12px;
-  background:var(--surf);border:1px solid var(--bdr);border-radius:8px;margin-bottom:7px}
-.sh-rank{width:24px;height:24px;border-radius:50%;background:var(--surf2);
-  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;
-  color:var(--cyan);flex-shrink:0}
-.sh-name{flex:1;font-size:12px;font-weight:600;color:var(--txt)}
-.sh-pct{font-size:12px;font-weight:700;color:var(--yellow)}
-.sh-type{font-size:10px;color:var(--muted);margin-left:auto}
-.ai-cache-note{font-size:10px;color:var(--muted);text-align:right;margin-top:8px}
-.ai-refresh-btn{font-size:10px;padding:3px 10px;margin-left:8px}
-.rc{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
-  border-radius:50%;font-size:10px;font-weight:700}
-.rc1{background:rgba(255,208,96,.25);color:#ffd060;box-shadow:0 0 6px rgba(255,208,96,.5)}
-.rc2{background:rgba(180,190,210,.15);color:#b0c4d8;box-shadow:0 0 5px rgba(180,190,210,.4)}
-.rc3{background:rgba(255,140,64,.2);color:#ffa060;box-shadow:0 0 5px rgba(255,140,64,.4)}
-.rc4{background:rgba(0,217,126,.12);color:#00d97e;box-shadow:0 0 4px rgba(0,217,126,.3)}
-.rc5{background:rgba(77,160,255,.12);color:#4da0ff;box-shadow:0 0 4px rgba(77,160,255,.3)}
-.rc-g{color:var(--green)}.rc-m{color:var(--muted)}
-
-/* ── RANK ROW COLORS ── */
-.fr1{background:rgba(255,208,96,.06)!important}
-.fr2,.fr3{background:rgba(0,217,126,.04)!important}
-.fr4{background:rgba(77,160,255,.03)!important}
-.frb{background:rgba(255,64,96,.03)!important}
-
-/* ── CHART ── */
-.chart-box{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r);padding:14px}
-#chartWrap{position:relative;height:420px}
-
-/* ── MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);
-  z-index:1000;display:flex;align-items:center;justify-content:center;padding:14px}
-.modal{background:var(--surf);border:1px solid var(--bdr2);border-radius:16px;
-  width:100%;max-width:980px;max-height:93vh;overflow-y:auto;
-  box-shadow:0 30px 80px rgba(0,0,0,.6)}
-.modal-h{padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;
-  align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--surf);z-index:10}
-.modal-h h3{font-size:15px;font-weight:700}
-.modal-x{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;padding:0 2px}
-.modal-x:hover{color:var(--txt)}
-.modal-b{padding:18px}
-
-/* ── FORM ── */
-.fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px;margin-bottom:18px}
-.fld label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px;
-  font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.fld input,.fld select{width:100%;background:var(--bg);border:1px solid var(--bdr2);
-  border-radius:7px;padding:7px 10px;font-size:12px;color:var(--txt)}
-.fld input:focus,.fld select:focus{outline:none;border-color:var(--cyan)}
-.fld select option{background:var(--surf)}
-.err{color:var(--red);font-size:11px;margin-top:8px;font-weight:600}
-
-/* ── NOTICE ── */
-.notice{background:rgba(0,196,224,.07);border:1px solid rgba(0,196,224,.2);
-  border-radius:8px;padding:10px 13px;font-size:11px;color:var(--muted2);
-  margin-bottom:14px;line-height:1.6}
-.notice strong{color:var(--cyan)}
-
-/* ── SOURCE INFO BAR ── */
-.src-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
-  background:var(--surf);border:1px solid var(--bdr);border-radius:9px;padding:9px 13px;margin-bottom:14px}
-.src-info{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.src-meta{font-size:10px;color:var(--muted);line-height:1.5}
-.src-meta strong{color:var(--muted2)}
-
-/* ── RESPONSIVE ── */
-@media(max-width:600px){
-  #hdr{padding:8px 12px}
-  .h-title{font-size:13px}.h-sub{display:none}
-  .h-logo{width:28px;height:28px;font-size:9px}
-  #cont{padding:10px}
-  .cards{grid-template-columns:repeat(2,1fr)}
-  .wt-grid{grid-template-columns:repeat(2,1fr)}
-  .card-v{font-size:16px}
-  #chartWrap{height:300px}
-  .sk-hdr h2{font-size:14px}
-  .btn{padding:5px 10px;font-size:11px}
-  .state-box{padding:24px 16px}
-}
-@media(min-width:1200px){.cards{grid-template-columns:repeat(4,1fr)}}
-</style>
-</head>
-<body>
-
-<div id="hdr">
-  <div style="display:flex;align-items:center;gap:10px">
-    <div class="h-logo">FA</div>
-    <div>
-      <div class="h-title">Fundamental Analysis Dashboard</div>
-      <div class="h-sub" id="hSub">ASX · IDX · NYSE/NASDAQ — loading...</div>
-    </div>
-  </div>
-  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-    <button class="btn btn-ghost btn-sm" onclick="showSync()">🔄 Sync</button>
-    <button class="btn btn-green btn-sm" onclick="showAdd()">＋ Add Stock</button>
-  </div>
-</div>
-
-<div id="sBar"><div class="s-list" id="sList"></div></div>
-
-<div id="tBar">
-  <button class="t-btn on" id="t-data"     onclick="setTab('data')">📋 Data</button>
-  <button class="t-btn"    id="t-ratios"   onclick="setTab('ratios')">📐 Ratios</button>
-  <button class="t-btn"    id="t-chart"    onclick="setTab('chart')">📈 Chart</button>
-  <button class="t-btn"    id="t-rankings" onclick="setTab('rankings')">🏆 Rankings</button>
-  <button class="t-btn"    id="t-insights" onclick="setTab('insights')">💡 Insights</button>
-</div>
-
-<div id="cont"></div>
-
-<!-- ADD STOCK MODAL -->
-<div id="addModal" class="modal-bg" style="display:none">
-  <div class="modal">
-    <div class="modal-h"><h3>＋ Add New Stock</h3><button class="modal-x" onclick="hideAdd()">×</button></div>
-    <div class="modal-b" id="addBody"></div>
-  </div>
-</div>
-
-<!-- SYNC MODAL -->
-<div id="syncModal" class="modal-bg" style="display:none">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-h"><h3>🔄 Sync Between Devices</h3><button class="modal-x" onclick="hideSync()">×</button></div>
-    <div class="modal-b" id="syncBody"></div>
-  </div>
-</div>
-
-<script>
-// ======================== CONSTANTS & GLOBALS ========================
-const CURRENT_YEAR = new Date().getFullYear();
-const LATEST_YEAR  = CURRENT_YEAR - 1;
-const YEARS        = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
-const N_YEARS      = YEARS.length;
-let ANNUALISATION  = {};
-
-const LS_KEY='fa_v5';
-const BASE_STOCKS={
-  BHP: {name:"BHP Group", exchange:"ASX", currency:"B AUD"},
-  WDS: {name:"Woodside Energy", exchange:"ASX", currency:"B AUD"},
-  CBA: {name:"Commonwealth Bank", exchange:"ASX", currency:"B AUD"},
-  BBRI:{name:"Bank Rakyat Indonesia", exchange:"IDX", currency:"T IDR"},
-  ADRO:{name:"Alamtri Resources Indonesia", exchange:"IDX", currency:"T IDR"},
-  SMSM:{name:"Selamat Sempurna", exchange:"IDX", currency:"T IDR"},
-  UNTR:{name:"United Tractors", exchange:"IDX", currency:"T IDR"},
-  ITMG:{name:"Indo Tambangraya Megah", exchange:"IDX", currency:"T IDR"},
-  POWR:{name:"Cikarang Listrindo", exchange:"IDX", currency:"T IDR"},
-  MPMX:{name:"Mitra Pinasthika Mustika", exchange:"IDX", currency:"T IDR"},
-  BTPS:{name:"Bank BTPN Syariah", exchange:"IDX", currency:"T IDR"},
-  DMAS:{name:"Puradelta Lestari", exchange:"IDX", currency:"T IDR"},
-  SPTO:{name:"Surya Toto Indonesia", exchange:"IDX", currency:"T IDR"},
-  TSM: {name:"Taiwan Semiconductor", exchange:"NYSE", currency:"B USD"},
-  V:   {name:"Visa Inc.", exchange:"NYSE", currency:"B USD"},
-  MA:  {name:"Mastercard Inc.", exchange:"NYSE", currency:"B USD"},
-  "PBR-A":{name:"Petrobras Pref ADR", exchange:"NYSE", currency:"B USD"},
-  MSFT:{name:"Microsoft Corp.", exchange:"NASDAQ", currency:"B USD"},
-  AMZN:{name:"Amazon.com Inc.", exchange:"NASDAQ", currency:"B USD"},
-  AAPL:{name:"Apple Inc.", exchange:"NASDAQ", currency:"B USD"},
-  META:{name:"Meta Platforms Inc.", exchange:"NASDAQ", currency:"B USD"},
-  NVDA:{name:"NVIDIA Corporation", exchange:"NASDAQ", currency:"B USD"},
-  GOOG:{name:"Alphabet Inc (Google)", exchange:"NASDAQ", currency:"B USD"},
-  BKNG:{name:"Booking Holdings Inc", exchange:"NASDAQ", currency:"B USD"},
-};
-
-const DEF_WTS={cashToAsset:10,debtToEquity:5,revenueCagr:5,gpmAvg:0,
-  netProfitCagr:5,npmAvg:30,epsCagr:5,dpsCagr:0,
-  roeAvg:25,dividendPayout:0,buffettTest:15};
-
-const CRITERIA=[
-  {key:"cashToAsset",  wKey:"cashToAsset",   label:"Cash/Asset", hi:true},
-  {key:"debtToEquity", wKey:"debtToEquity",  label:"D/E Ratio",  hi:false},
-  {key:"revenueCagr",  wKey:"revenueCagr",   label:"Rev CAGR",   hi:true},
-  {key:"gpmAvg",       wKey:"gpmAvg",        label:"GP Margin",  hi:true},
-  {key:"netProfitCagr",wKey:"netProfitCagr", label:"NP CAGR",    hi:true},
-  {key:"npmAvg",       wKey:"npmAvg",        label:"NP Margin",  hi:true},
-  {key:"epsCagr",      wKey:"epsCagr",       label:"EPS CAGR",   hi:true},
-  {key:"dpsCagr",      wKey:"dpsCagr",       label:"DPS CAGR",   hi:true},
-  {key:"roeAvg",       wKey:"roeAvg",        label:"ROE",        hi:true},
-  {key:"dividendPayout",wKey:"dividendPayout",label:"Div Payout",hi:true},
-  {key:"buffettTest",  wKey:"buffettTest",   label:"Buffett $1", hi:true},
-];
-
-const MKEYS=[
-  {k:"totalAsset",l:"Total Asset"}, {k:"cash",l:"Cash"},
-  {k:"totalDebt",l:"Total Debt"},   {k:"totalEquity",l:"Total Equity"},
-  {k:"revenue",l:"Total Revenue"},  {k:"grossProfit",l:"Gross Profit"},
-  {k:"netProfit",l:"Net Profit"},   {k:"eps",l:"EPS"},
-  {k:"dps",l:"DPS"},
-];
-
-// ======================== STATE ========================
-let S={
-  stocks:{...BASE_STOCKS},
-  custom:{},
-  deleted:{},
-  data:{},
-  status:{},
-  errmsg:{},
-  sel:"BHP",
-  tab:"data",
-  wts:{...DEF_WTS},
-};
-
-// ======================== STORAGE & SYNC ========================
-function saveLS(){
-  try{
-    localStorage.setItem(LS_KEY,JSON.stringify({
-      custom:S.custom, wts:S.wts, sel:S.sel,
-      data:S.data, status:S.status, deleted:S.deleted||{}
-    }));
-  }catch(e){}
-}
-function loadLS(){
-  try{
-    const h=location.hash;
-    if(h&&h.startsWith('#d=')){
-      applyImport(JSON.parse(atob(decodeURIComponent(h.slice(3)))));
-      history.replaceState(null,'',location.pathname);return;
-    }
-    const raw=localStorage.getItem(LS_KEY);
-    if(raw) applyImport(JSON.parse(raw),true);
-  }catch(e){}
-}
-function applyImport(d,quiet){
-  if(d.custom){S.custom=d.custom||{};S.stocks={...BASE_STOCKS,...S.custom};}
-  if(d.wts) S.wts={...DEF_WTS,...d.wts};
-  if(d.sel&&S.stocks[d.sel]) S.sel=d.sel;
-  if(d.data)   S.data={...d.data};
-  if(d.deleted) S.deleted={...d.deleted};
-  if(d.status){Object.keys(d.status).forEach(k=>{S.status[k]=d.status[k]==='ok'?'ok':'idle';});}
-  if(!quiet) saveLS();
-}
-function exportJSON(){
-  const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,status:S.status,at:new Date().toISOString()};
-  const b=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});
-  const u=URL.createObjectURL(b),a=document.createElement('a');
-  a.href=u;a.download='FA_Dashboard_sync.json';a.click();URL.revokeObjectURL(u);
-}
-function importFile(file){
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      applyImport(JSON.parse(e.target.result));
-      render();hideSync();
-      showToast('✓ Imported successfully','green');
-    }catch(x){showToast('Error importing file: '+x.message,'red');}
-  };
-  r.readAsText(file);
-}
-function genLink(){
-  const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data};
-  return location.href.split('#')[0]+'#d='+encodeURIComponent(btoa(JSON.stringify(d)));
-}
-function showToast(msg,col='cyan'){
-  let t=document.getElementById('toast');
-  if(!t){t=document.createElement('div');t.id='toast';
-    t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;'+
-      'padding:9px 18px;border-radius:20px;font-size:12px;font-weight:600;'+
-      'font-family:var(--font);pointer-events:none;transition:opacity .3s';
-    document.body.appendChild(t);}
-  const colors={green:'background:rgba(0,217,126,.2);color:#00d97e;border:1px solid rgba(0,217,126,.4)',
-    red:'background:rgba(255,64,96,.2);color:#ff4060;border:1px solid rgba(255,64,96,.4)',
-    cyan:'background:rgba(0,196,224,.2);color:#00c4e0;border:1px solid rgba(0,196,224,.4)'};
-  t.style.cssText+=';'+colors[col]||colors.cyan;
-  t.textContent=msg;t.style.opacity='1';
-  clearTimeout(t._tid);t._tid=setTimeout(()=>t.style.opacity='0',3000);
-}
-
-// ======================== PRELOADED FALLBACK DATA ========================
-const PRELOADED = {
-  BHP:{totalAsset:[54.2,51.9,55.7,81.5,null,null],cash:[14.9,12.4,13.9,13.3,null,null],totalDebt:[14.5,12.4,14.8,26.7,null,null],totalEquity:[26.4,28.0,29.7,32.4,null,null],revenue:[60.8,65.1,53.8,55.7,null,null],grossProfit:[36.2,40.5,28.3,28.5,null,null],netProfit:[11.3,30.9,12.9,7.9,null,null],eps:[2.21,6.05,2.55,1.55,null,null],dps:[3.01,5.43,1.70,1.09,null,null]},
-  WDS:{totalAsset:[40.3,50.5,48.3,48.0,null,null],cash:[2.8,3.1,2.5,2.2,null,null],totalDebt:[7.9,15.2,12.8,12.0,null,null],totalEquity:[18.2,22.4,20.1,20.0,null,null],revenue:[10.0,13.9,12.3,12.5,null,null],grossProfit:[5.8,8.6,7.1,7.2,null,null],netProfit:[2.5,6.0,3.5,1.7,null,null],eps:[0.80,1.70,1.00,0.48,null,null],dps:[0.55,1.30,0.90,0.43,null,null]},
-  BBRI:{totalAsset:[1635,1865,1965,2073,null,null],cash:[163,186,196,207,null,null],totalDebt:[1380,1570,1650,1730,null,null],totalEquity:[255,295,315,343,null,null],revenue:[135,150,165,187,null,null],grossProfit:[85,95,104,118,null,null],netProfit:[25,43,51,60,null,null],eps:[1019,1753,2086,2443,null,null],dps:[460,791,940,1100,null,null]},
-  ADRO:{totalAsset:[80,100,85,92,null,null],cash:[10,20,15,16,null,null],totalDebt:[18,25,18,16,null,null],totalEquity:[58,72,62,68,null,null],revenue:[65,120,80,85,null,null],grossProfit:[24,55,35,38,null,null],netProfit:[8,30,15,16,null,null],eps:[256,960,480,510,null,null],dps:[130,480,240,255,null,null]},
-  SMSM:{totalAsset:[2.6,2.8,3.0,3.2,null,null],cash:[0.9,1.0,1.1,1.2,null,null],totalDebt:[0.35,0.30,0.30,0.25,null,null],totalEquity:[2.0,2.2,2.4,2.6,null,null],revenue:[2.5,2.8,3.2,3.4,null,null],grossProfit:[0.82,0.92,1.05,1.12,null,null],netProfit:[0.43,0.51,0.58,0.62,null,null],eps:[183,217,247,264,null,null],dps:[138,164,186,198,null,null]},
-  UNTR:{totalAsset:[118,130,138,145,null,null],cash:[16,18,20,22,null,null],totalDebt:[23,20,18,16,null,null],totalEquity:[78,88,97,105,null,null],revenue:[108,125,130,135,null,null],grossProfit:[25,30,32,33,null,null],netProfit:[13,16,17,18,null,null],eps:[3510,4320,4590,4860,null,null],dps:[1580,1944,2065,2187,null,null]},
-  ITMG:{totalAsset:[19,26,20,21,null,null],cash:[6,12,8,7,null,null],totalDebt:[0.8,1.0,0.8,0.7,null,null],totalEquity:[16,22,17,18,null,null],revenue:[36,65,42,45,null,null],grossProfit:[10,25,14,13,null,null],netProfit:[5,16,8,7,null,null],eps:[4530,14493,7246,6344,null,null],dps:[4000,13000,6500,5710,null,null]},
-  POWR:{totalAsset:[9.5,10.0,10.5,11.0,null,null],cash:[1.3,1.4,1.5,1.6,null,null],totalDebt:[2.0,1.8,1.6,1.4,null,null],totalEquity:[5.8,6.5,7.2,7.8,null,null],revenue:[5.0,5.2,5.5,5.8,null,null],grossProfit:[2.0,2.1,2.2,2.3,null,null],netProfit:[0.95,1.00,1.10,1.15,null,null],eps:[95,100,110,115,null,null],dps:[57,60,66,69,null,null]},
-  MPMX:{totalAsset:[9.0,9.5,10.0,10.5,null,null],cash:[1.5,1.6,1.7,1.8,null,null],totalDebt:[2.4,2.2,2.0,1.8,null,null],totalEquity:[4.8,5.3,5.8,6.3,null,null],revenue:[12.5,13.0,13.5,14.0,null,null],grossProfit:[2.1,2.2,2.3,2.4,null,null],netProfit:[0.40,0.45,0.50,0.55,null,null],eps:[93,105,116,128,null,null],dps:[40,45,50,55,null,null]},
-  BTPS:{totalAsset:[24,27,30,32,null,null],cash:[2.4,2.7,3.0,3.2,null,null],totalDebt:[19,21,23.5,25,null,null],totalEquity:[5.0,6.0,6.5,7.0,null,null],revenue:[7.0,8.0,9.0,9.5,null,null],grossProfit:[4.2,4.8,5.4,5.7,null,null],netProfit:[1.2,1.8,2.0,2.1,null,null],eps:[413,557,618,650,null,null],dps:[124,167,185,195,null,null]},
-  DMAS:{totalAsset:[7.0,7.5,8.0,8.5,null,null],cash:[1.8,2.0,2.2,2.4,null,null],totalDebt:[1.0,0.9,0.8,0.7,null,null],totalEquity:[5.5,6.0,6.5,7.0,null,null],revenue:[1.8,2.2,2.8,2.5,null,null],grossProfit:[1.2,1.6,2.0,1.8,null,null],netProfit:[0.7,0.9,1.1,1.0,null,null],eps:[35,45,55,50,null,null],dps:[24,32,38,35,null,null]},
-  SPTO:{totalAsset:[2.6,2.7,2.8,2.9,null,null],cash:[0.32,0.35,0.38,0.40,null,null],totalDebt:[0.70,0.65,0.60,0.55,null,null],totalEquity:[1.55,1.70,1.85,1.98,null,null],revenue:[1.9,2.0,2.1,2.2,null,null],grossProfit:[0.69,0.73,0.77,0.80,null,null],netProfit:[0.25,0.27,0.30,0.32,null,null],eps:[278,300,333,356,null,null],dps:[139,150,167,178,null,null]},
-  TSM:{totalAsset:[133,175,206,209,248,null],cash:[40,52,54,57,87,null],totalDebt:[20,30,38,40,33,null],totalEquity:[71,92,107,134,170,null],revenue:[57,77,70,91,119,null],grossProfit:[30,42,37,51,71,null],netProfit:[22,31,27,37,53,null],eps:[4.18,6.14,5.07,7.09,10.36,null],dps:[1.72,1.72,1.76,2.19,2.82,null]},
-  V:{totalAsset:[82.9,85.5,90.5,94.5,92.6,null],cash:[15.7,16.3,11.9,11.6,17.2,null],totalDebt:[22.4,20.5,20.5,20.8,25.2,null],totalEquity:[35.6,38.7,38.3,38.0,32.9,null],revenue:[24.1,29.3,32.7,35.9,40.0,null],grossProfit:[20.1,24.9,28.1,31.4,35.1,null],netProfit:[12.3,15.0,17.3,19.7,20.1,null],eps:[5.74,7.12,8.23,9.74,10.22,null],dps:[1.28,1.50,1.80,2.08,2.34,null]},
-  MA:{totalAsset:[43.0,46.4,46.8,46.5,47.0,null],cash:[8.0,7.8,7.4,8.0,8.5,null],totalDebt:[14.2,15.7,15.8,16.6,17.0,null],totalEquity:[6.0,5.5,5.3,5.0,5.5,null],revenue:[18.9,22.2,25.1,28.2,31.0,null],grossProfit:[13.3,16.0,18.4,21.1,23.5,null],netProfit:[8.7,10.5,11.2,12.9,14.6,null],eps:[8.76,10.61,11.44,13.89,15.60,null],dps:[1.76,2.00,2.28,2.64,2.97,null]},
-  "PBR-A":{totalAsset:[247,280,279,264,null,null],cash:[11,18,16,15,null,null],totalDebt:[87,80,69,62,null,null],totalEquity:[96,124,128,118,null,null],revenue:[77,115,90,88,null,null],grossProfit:[38,68,48,44,null,null],netProfit:[9,37,24,19,null,null],eps:[1.30,5.35,3.46,2.74,null,null],dps:[0.60,3.80,2.60,2.10,null,null]},
-  MSFT:{totalAsset:[333.8,364.8,411.9,484.3,523.0,null],cash:[130.3,104.8,111.3,80.0,71.6,null],totalDebt:[67.8,61.3,69.9,97.9,97.2,null],totalEquity:[141.9,166.5,166.5,233.0,287.0,null],revenue:[168.1,198.3,211.9,245.1,279.6,null],grossProfit:[115.9,135.6,146.1,171.0,195.1,null],netProfit:[61.3,72.7,72.4,88.1,106.0,null],eps:[8.12,9.65,9.72,11.45,14.16,null],dps:[2.24,2.48,2.72,3.00,3.32,null]},
-  AMZN:{totalAsset:[420.5,462.7,527.9,527.5,624.9,null],cash:[96.1,70.0,73.9,86.8,101.2,null],totalDebt:[116.4,155.6,161.5,164.8,173.0,null],totalEquity:[138.2,146.0,143.3,171.3,236.9,null],revenue:[469.8,514.0,524.9,637.0,760.0,null],grossProfit:[197.5,226.2,240.6,283.0,351.0,null],netProfit:[33.4,-2.7,20.1,59.2,64.0,null],eps:[64.81,-5.36,3.99,11.53,12.10,null],dps:[null,null,null,null,null,null]},
-  AAPL:{totalAsset:[351.0,352.8,352.6,353.5,364.9,null],cash:[69.0,48.3,55.2,65.2,53.8,null],totalDebt:[136.5,132.5,123.9,128.5,97.3,null],totalEquity:[63.1,50.7,62.1,74.2,56.9,null],revenue:[365.8,394.3,383.3,391.0,436.0,null],grossProfit:[152.8,170.8,169.1,180.7,203.0,null],netProfit:[94.7,99.8,97.0,101.0,94.0,null],eps:[5.61,6.11,6.13,6.43,6.08,null],dps:[0.85,0.91,0.94,0.97,1.00,null]},
-  META:{totalAsset:[165.9,185.7,185.7,229.6,276.1,null],cash:[47.9,40.7,31.8,49.3,77.8,null],totalDebt:[10.2,27.5,18.4,28.8,28.8,null],totalEquity:[124.9,125.1,128.3,153.2,182.6,null],revenue:[117.9,116.6,134.9,185.0,235.0,null],grossProfit:[100.1,97.3,113.0,156.9,200.0,null],netProfit:[39.4,23.2,39.1,62.4,78.0,null],eps:[13.77,8.59,14.87,23.86,31.00,null],dps:[null,null,null,null,2.00,null]},
-  NVDA:{totalAsset:[28.8,44.2,41.2,65.7,111.6,null],cash:[11.6,19.3,13.3,25.0,43.2,null],totalDebt:[6.9,11.7,11.0,10.0,8.5,null],totalEquity:[16.9,26.1,26.1,42.6,65.7,null],revenue:[16.7,26.9,27.0,60.9,130.5,null],grossProfit:[10.4,17.5,15.4,42.0,97.9,null],netProfit:[4.3,9.8,4.4,29.8,72.9,null],eps:[1.73,3.85,1.74,11.93,29.24,null],dps:[0.016,0.016,0.016,0.016,0.01,null]},
-  GOOG:{totalAsset:[359.3,391.4,402.0,430.3,450.0,null],cash:[142.0,139.6,115.0,108.1,95.7,null],totalDebt:[14.8,15.1,14.7,14.7,15.0,null],totalEquity:[251.6,256.1,272.3,314.1,360.0,null],revenue:[257.6,282.8,307.4,350.0,385.0,null],grossProfit:[146.7,156.6,174.1,208.1,237.0,null],netProfit:[76.0,60.0,73.8,100.1,115.0,null],eps:[5.61,4.56,5.80,7.79,9.27,null],dps:[null,null,null,null,null,null]},
-  BKNG:{totalAsset:[25.5,26.8,30.7,31.8,33.0,null],cash:[11.2,12.4,15.1,16.8,17.5,null],totalDebt:[15.4,13.8,14.0,12.0,11.0,null],totalEquity:[0.5,1.4,4.0,7.0,9.0,null],revenue:[11.0,17.1,21.4,23.7,26.0,null],grossProfit:[9.7,15.2,19.0,21.2,23.1,null],netProfit:[1.1,3.0,4.3,4.8,6.0,null],eps:[25.0,72.0,110.0,130.0,165.0,null],dps:[null,null,null,null,null,null]},
-};
-
-function initPreloadedData(){
-  const ts = Date.now();
-  for(const sym in BASE_STOCKS){
-    if(PRELOADED[sym] && (!S.data[sym] || S.data[sym].source==='built-in')){
-      S.data[sym] = {...PRELOADED[sym], fetchedAt:ts, source:'built-in', ticker:yahooTicker(sym, BASE_STOCKS[sym].exchange)};
-      S.status[sym] = 'ok';
-    } else if(!PRELOADED[sym] && !S.data[sym]){
-      const emptyArr = Array(N_YEARS).fill(null);
-      S.data[sym] = {totalAsset:emptyArr.slice(), cash:emptyArr.slice(), totalDebt:emptyArr.slice(), totalEquity:emptyArr.slice(), revenue:emptyArr.slice(), grossProfit:emptyArr.slice(), netProfit:emptyArr.slice(), eps:emptyArr.slice(), dps:emptyArr.slice(), fetchedAt:ts, source:'built-in', ticker:yahooTicker(sym, BASE_STOCKS[sym].exchange)};
-      S.status[sym] = 'idle';
-    }
-  }
-}
-
-function yahooTicker(symbol, exchange){
-  if(exchange==='ASX') return symbol+'.AX';
-  if(exchange==='IDX') return symbol+'.JK';
-  return symbol;
-}
-
-// ======================== MATH UTILITIES ========================
-const isOK=v=>v!==null&&v!==undefined&&isFinite(v)&&!isNaN(v);
-const avg=a=>{const v=a.filter(isOK);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
-const N2=(v,d=2)=>isOK(v)?Number(v).toFixed(d):'N/A';
-const P1=(v,d=1)=>isOK(v)?Number(v).toFixed(d)+'%':'N/A';
-function cagr(a){
-  const v=a.filter(isOK);
-  if(v.length<2)return null;
-  const s=v[0],e=v[v.length-1],n=v.length-1;
-  if(s===0||n===0)return null;
-  if(s>0&&e>0)return(Math.pow(e/s,1/n)-1)*100;
-  return null;
-}
-
-function calcM(symbol){
-  const data=S.data[symbol];
-  if(!data) return null;
-  const sl=k=>(data[k]||Array(N_YEARS).fill(null)).slice(0,N_YEARS);
-  const ta=sl('totalAsset'),ca=sl('cash'),td=sl('totalDebt'),te=sl('totalEquity');
-  const rv2=sl('revenue'),gp=sl('grossProfit'),np=sl('netProfit'),ep=sl('eps'),dp=sl('dps');
-
-  const Y=YEARS.map((yr,i)=>({
-    year:yr,
-    totalAsset:ta[i],cash:ca[i],totalDebt:td[i],totalEquity:te[i],
-    revenue:rv2[i],grossProfit:gp[i],netProfit:np[i],eps:ep[i],dps:dp[i],
-    cashToAsset: isOK(ta[i])&&ta[i]>0&&isOK(ca[i]) ? ca[i]/ta[i]*100 : null,
-    debtToEquity: isOK(te[i])&&te[i]!==0&&isOK(td[i]) ? td[i]/te[i]*100 : null,
-    gpm:     isOK(rv2[i])&&rv2[i]>0&&isOK(gp[i])  ? gp[i]/rv2[i]*100  : null,
-    npm:     isOK(rv2[i])&&rv2[i]>0&&isOK(np[i])  ? np[i]/rv2[i]*100  : null,
-    roa:     isOK(ta[i])&&ta[i]>0&&isOK(np[i])    ? np[i]/ta[i]*100   : null,
-    roe:     isOK(te[i])&&te[i]!==0&&isOK(np[i])  ? np[i]/te[i]*100   : null,
-    divPayout: isOK(ep[i])&&ep[i]>0&&isOK(dp[i])  ? dp[i]/ep[i]*100   : null,
-    valLow:  isOK(dp[i]) ? dp[i]*10  : null,
-    valHigh: isOK(dp[i]) ? dp[i]*20  : null,
-    retEps:  null,
-  }));
-
-  const av={
-    cashToAsset:avg(Y.map(y=>y.cashToAsset)), debtToEquity:avg(Y.map(y=>y.debtToEquity)),
-    gpm:avg(Y.map(y=>y.gpm)), npm:avg(Y.map(y=>y.npm)),
-    roa:avg(Y.map(y=>y.roa)), roe:avg(Y.map(y=>y.roe)),
-    divPayout:avg(Y.map(y=>y.divPayout)),
-  };
-  const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep),dps:cagr(dp)};
-
-  const N_COMPLETED = N_YEARS - 1;
-  const epCompleted = ep.slice(0, N_COMPLETED);
-  const dpCompleted = dp.slice(0, N_COMPLETED);
-  const retEpsCompleted = epCompleted.map((e, i) => {
-    if (!isOK(e)) return null;
-    const d = isOK(dpCompleted[i]) ? dpCompleted[i] : 0;
-    return e - d;
-  });
-  const retEpsVals = retEpsCompleted.filter(isOK);
-  const totRet = retEpsVals.length > 0 ? retEpsVals.reduce((s,v) => s+v, 0) : null;
-  const epCompletedOK = epCompleted.filter(isOK);
-  const epsInc = epCompletedOK.length >= 2 ? epCompletedOK[epCompletedOK.length-1] - epCompletedOK[0] : null;
-  const buff = isOK(totRet) && Math.abs(totRet) > 0.001 && isOK(epsInc) ? epsInc / totRet * 100 : null;
-
-  Y.forEach((y, i) => {
-    if (!isOK(y.eps)) { y.retEps = null; return; }
-    const d = isOK(y.dps) ? y.dps : 0;
-    y.retEps = y.eps - d;
-  });
-
-  return{Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp},
-    rm:{cashToAsset:av.cashToAsset,debtToEquity:av.debtToEquity,revenueCagr:cg.rev,
-      gpmAvg:av.gpm,netProfitCagr:cg.np,npmAvg:av.npm,epsCagr:cg.eps,dpsCagr:cg.dps,
-      roeAvg:av.roe,dividendPayout:av.divPayout,buffettTest:buff}};
-}
-
-// ======================== RENDER HELPERS ========================
-function yearColHeader(sym, yr) {
-  if (yr !== CURRENT_YEAR) return `<th class="tc">${yr}</th>`;
-  const ann = ANNUALISATION[sym];
-  if (!ann || !ann.label || ann.label === 'FY') {
-    const tag = ann?.label === 'FY' ? 'FY' : 'Est.';
-    return `<th class="tc" style="color:var(--yellow)">${yr}<br><span style="font-size:8px;color:var(--yellow);opacity:.85">${tag}</span></th>`;
-  }
-  const asOf = ann.asOf ? ` ${ann.asOf.slice(5)}` : '';
-  return `<th class="tc" style="color:var(--orange)">${yr}<br><span style="font-size:8px;color:var(--orange);opacity:.9">${ann.label}${asOf}</span></th>`;
-}
-
-function srcBar(sym,st){
-  const d=S.data[sym];
-  const isCustom=!!S.custom[sym];
-  const ticker=d?.ticker||yahooTicker(sym,st.exchange||'');
-  const src = d?.source||'built-in';
-  let badge, note;
-  if(src==='yfinance'){
-    const gen = d?.generated ? new Date(d.generated).toLocaleDateString() : '—';
-    badge=`<span class="data-badge db-ok">✓ Auto-refreshed</span>`;
-    note=`Live via yfinance · Refreshed: ${gen} · GitHub Actions runs monthly`;
-  } else {
-    badge=`<span class="data-badge" style="background:rgba(255,208,96,.1);color:#ffd060;border:1px solid rgba(255,208,96,.3)">📋 Built-in data</span>`;
-    note=`Embedded from annual reports · <strong style="color:var(--yellow)">Host on GitHub Pages for auto-refresh</strong>`;
-  }
-  return`<div class="src-bar">
-    <div class="src-info">
-      ${badge}
-      <div class="src-meta">
-        <strong>${st.name}</strong> · ${st.exchange} · ${st.currency} · <code style="background:rgba(0,0,0,.2);padding:0 5px;border-radius:3px;font-size:9px">${ticker}</code><br>
-        ${note}
-      </div>
-    </div>
-    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-      <button class="btn btn-ghost btn-xs" onclick="showManual('${sym}')">✏ Edit</button>
-      ${isCustom?`<button class="btn btn-red btn-xs" onclick="delStock('${sym}')">🗑 Remove</button>`:''}
-    </div>
-  </div>`;
-}
-
-// ======================== TAB CONTENT ========================
-function tabData(sym,st){
-  const m=calcM(sym); if(!m) return '<p>No data</p>';
-  const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');
-  const rows=MKEYS.map((r,i)=>{
-    const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${N2(v,2)}</td>`;}).join('');
-    const a=avg(m.Y.map(y=>y[r.k]));
-    const cg=cagr(m.Y.map(y=>y[r.k]));
-    return`<tr class="${i%2?'ev':''}">
-      <td class="lbl">${r.l}</td>${cells}
-      <td class="tc num cya" style="background:rgba(0,196,224,.04)">${N2(a,2)}</td>
-      <td class="tc num ${!isOK(cg)?'':cg>=0?'pos':'neg'}" style="background:rgba(0,217,126,.03)">${isOK(cg)?N2(cg,1)+'%':'N/A'}</td>
-    </tr>`;
-  }).join('');
-  return`${srcBar(sym,st)}
-  <div class="sec"><div class="tw">
-    <table><thead><tr>
-      <th style="min-width:150px">Metric (${st.currency})</th>${yH}
-      <th class="tc" style="color:var(--cyan);min-width:75px">Avg</th>
-      <th class="tc" style="color:var(--green);min-width:70px">CAGR</th>
-    </tr></thead><tbody>${rows}</tbody></table>
-  </div></div>`;
-}
-
-function tabRatios(sym,st){
-  const m=calcM(sym); if(!m) return '<p>No data</p>';
-  const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');
-  const rDefs=[
-    {k:'cashToAsset',l:'Cash / Total Asset %',p:true},{k:'debtToEquity',l:'Debt / Equity %',p:true},
-    {k:'gpm',l:'Gross Profit Margin %',p:true},{k:'npm',l:'Net Profit Margin %',p:true},
-    {k:'roa',l:'Return on Asset %',p:true},{k:'roe',l:'Return on Equity %',p:true},
-    {k:'divPayout',l:'Dividend Payout %',p:true},{k:'valLow',l:'Valuation Low (DPS×10)',p:false},
-    {k:'valHigh',l:'Valuation High (DPS×20)',p:false},{k:'retEps',l:'Retained EPS (EPS−DPS)',p:false},
-  ];
-  const rows=rDefs.map((r,i)=>{
-    const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${r.p?P1(v):N2(v,2)}</td>`;}).join('');
-    const a=avg(m.Y.map(y=>y[r.k]));
-    return`<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}
-      <td class="tc num cya" style="background:rgba(0,196,224,.04);font-weight:600">${r.p?P1(a):N2(a,2)}</td>`;
-  }).join('');
-  const bc=!isOK(m.buff)?'var(--muted)':m.buff>=100?'var(--yellow)':m.buff>=50?'var(--green)':'var(--red)';
-  const cards=[
-    {l:'Revenue CAGR', v:P1(m.cg.rev), c:'var(--green)'},
-    {l:'Net Profit CAGR', v:P1(m.cg.np), c:'var(--green)'},
-    {l:'EPS CAGR', v:P1(m.cg.eps), c:'var(--green)'},
-    {l:`EPS Increase (${LATEST_YEAR-YEARS[0]}yr)`, v:N2(m.epsInc,2), c:'var(--cyan)'},
-    {l:'Total Retained EPS', v:N2(m.totRet,2), c:'var(--cyan)'},
-    {l:'Buffett $1 Test', v:P1(m.buff), c:bc},
-    {l:'Avg ROE', v:P1(m.av.roe), c:'var(--purple)'},
-    {l:'Avg NP Margin', v:P1(m.av.npm), c:'var(--blue)'},
-  ].map(c=>`<div class="card"><div class="card-l">${c.l}</div><div class="card-v" style="color:${c.c}">${c.v}</div></div>`).join('');
-  return`${srcBar(sym,st)}
-  <div class="sec"><div class="tw">
-    <table><thead><tr>
-      <th style="min-width:200px">Ratio</th>${yH}
-      <th class="tc" style="color:var(--cyan);min-width:80px">Average</th>
-    </tr></thead><tbody>${rows}</tbody></table>
-  </div></div>
-  <div class="sec"><div class="sec-t">Key Metrics Summary</div><div class="cards">${cards}</div></div>`;
-}
-
-function tabChartHTML(sym,st){
-  return`${srcBar(sym,st)}
-  <div class="sec"><div class="chart-box">
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">
-      Revenue · Gross Profit · Net Profit <strong style="color:var(--muted2)">(bars, left axis)</strong> &nbsp;|&nbsp;
-      GP Margin % · NP Margin % <strong style="color:var(--muted2)">(lines, right axis)</strong>
-    </div>
-    <div id="chartWrap"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)">Building chart…</div></div>
-  </div></div>`;
-}
-
-let chartInst=null;
-function makeChart(symbol){
-  const el=document.getElementById('chartWrap'); if(!el) return;
-  if(chartInst){try{chartInst.destroy();}catch(e){}chartInst=null;}
-  el.innerHTML='<canvas id="mainC"></canvas>';
-  const m=calcM(symbol); if(!m) return;
-  const years=YEARS.map(String);
-  const st=S.stocks[symbol];
-  const safeArr=a=>a.map(v=>isOK(v)?v:0);
-  chartInst=new Chart(document.getElementById('mainC').getContext('2d'),{
-    data:{
-      labels:years,
-      datasets:[
-        {type:'bar',  label:'Revenue', data:safeArr(m.raw.rv), backgroundColor:'rgba(77,160,255,.75)', borderRadius:4, yAxisID:'y'},
-        {type:'bar',  label:'Gross Profit', data:safeArr(m.raw.gp), backgroundColor:'rgba(0,217,126,.7)', borderRadius:4, yAxisID:'y'},
-        {type:'bar',  label:'Net Profit', data:safeArr(m.raw.np), backgroundColor:'rgba(255,208,96,.75)', borderRadius:4, yAxisID:'y'},
-        {type:'line', label:'GP Margin %', data:m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.gp[i])?m.raw.gp[i]/v*100:null),
-          borderColor:'#ff4060', borderWidth:2.5, pointRadius:4, fill:false, yAxisID:'y1', tension:.3,
-          pointBackgroundColor:'#ff4060', spanGaps:true},
-        {type:'line', label:'NP Margin %', data:m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.np[i])?m.raw.np[i]/v*100:null),
-          borderColor:'#b49dff', borderWidth:2.5, pointRadius:4, fill:false, yAxisID:'y1', tension:.3,
-          borderDash:[5,3], pointBackgroundColor:'#b49dff', spanGaps:true},
-      ]
-    },
-    options:{
-      responsive:true, maintainAspectRatio:false,
-      interaction:{mode:'index', intersect:false},
-      plugins:{
-        legend:{labels:{color:'#7aa0be', font:{size:11, family:'Outfit'}, padding:14, usePointStyle:true}},
-        tooltip:{backgroundColor:'rgba(13,28,46,.97)', borderColor:'#1a3050', borderWidth:1,
-          titleColor:'#d8eaf8', bodyColor:'#7aa0be',
-          callbacks:{label:c=>{const v=c.parsed.y;
-            return` ${c.dataset.label}: ${c.datasetIndex>=3?v?.toFixed(1)+'%':(v?.toFixed(2)||'N/A')+' '+st.currency}`;}}}
-      },
-      scales:{
-        x:{ticks:{color:'#4e7398', font:{family:'Outfit'}}, grid:{color:'rgba(26,48,80,.5)'}},
-        y:{position:'left', ticks:{color:'#4e7398', font:{family:'Outfit', size:10}}, grid:{color:'rgba(26,48,80,.5)'},
-          title:{display:true, text:st.currency, color:'#2a4a6a', font:{size:10, family:'Outfit'}}},
-        y1:{position:'right', ticks:{color:'#4e7398', callback:v=>v?.toFixed(1)+'%', font:{family:'Outfit'}},
-          grid:{drawOnChartArea:false},
-          title:{display:true, text:'Margin %', color:'#2a4a6a', font:{size:10, family:'Outfit'}}}
-      }
-    }
-  });
-}
-
 function tabRankings(){
   const {ranks,scores,fr}=calcRanks(S.wts);
   const rankedKs=Object.keys(fr);
@@ -791,163 +83,150 @@ function calcRanks(wts){
 }
 
 // ======================== ENHANCED INSIGHTS TAB ========================
-// Detailed Business Model Canvas data (based on PPT and public info)
-const DETAILED_BMC = {
+
+// Helper functions for formatting
+function fmtNum(v,d=2){return isOK(v)?Number(v).toFixed(d):'N/A';}
+function fmtPct(v,d=1){return isOK(v)?Number(v).toFixed(d)+'%':'N/A';}
+
+// CO_INFO and SECTOR_RISKS for fallback
+const CO_INFO = {
+  BHP: { sector: "Mining" }, ADRO: { sector: "Coal Mining" }, ITMG: { sector: "Coal Mining" }, SMSM: { sector: "Auto Parts" }, UNTR: { sector: "Heavy Equipment & Mining" },
+  BBRI: { sector: "Banking" }, BTPS: { sector: "Islamic Banking" }, POWR: { sector: "Power & Utilities" }, MPMX: { sector: "Automotive" }, DMAS: { sector: "Industrial Real Estate" },
+  SPTO: { sector: "Building Materials" }, TSM: { sector: "Semiconductors" }, V: { sector: "Payments" }, MA: { sector: "Payments" }, "PBR-A": { sector: "Oil & Gas" },
+  MSFT: { sector: "Technology" }, AMZN: { sector: "E-Commerce & Cloud" }, AAPL: { sector: "Technology" }, META: { sector: "Social Media" }, NVDA: { sector: "Semiconductors" },
+  GOOG: { sector: "Technology" }, BKNG: { sector: "Online Travel" }, WDS: { sector: "Oil & Gas" }, CBA: { sector: "Banking" }
+};
+const SECTOR_RISKS = {
+  "Mining": [{name:"Commodity Price",low:-40,high:30},{name:"Production Volume",low:-20,high:15},{name:"AUD/USD Rate",low:-15,high:10},{name:"Operating Costs",low:-18,high:5},{name:"Regulatory/ESG",low:-12,high:3}],
+  "Oil & Gas": [{name:"Oil/Gas Price",low:-45,high:35},{name:"Production Output",low:-20,high:15},{name:"LNG Contract Terms",low:-12,high:10},{name:"Carbon Policy",low:-20,high:2},{name:"Reserve Life",low:-15,high:8}],
+  "Banking": [{name:"Net Interest Margin",low:-25,high:15},{name:"Loan Loss Provisions",low:-30,high:10},{name:"Credit Growth",low:-15,high:20},{name:"Regulatory Capital",low:-20,high:5},{name:"Digital Competition",low:-18,high:8}],
+  "Islamic Banking":[{name:"Financing Growth",low:-20,high:25},{name:"Credit Quality (NPF)",low:-35,high:8},{name:"Rural Economy",low:-25,high:20},{name:"Regulatory Changes",low:-15,high:5},{name:"Competition",low:-15,high:5}],
+  "Coal Mining": [{name:"Coal Price",low:-50,high:40},{name:"Production Volume",low:-15,high:10},{name:"Energy Transition",low:-25,high:5},{name:"USD/IDR Rate",low:-15,high:10},{name:"Logistics Costs",low:-12,high:3}],
+  "Auto Parts": [{name:"Auto Industry Demand",low:-25,high:20},{name:"Raw Material Costs",low:-20,high:8},{name:"Export Markets",low:-15,high:15},{name:"EV Transition Risk",low:-20,high:5},{name:"IDR/USD Rate",low:-12,high:10}],
+  "Heavy Equipment & Mining":[{name:"Coal/Mining Activity",low:-30,high:25},{name:"Equipment Demand",low:-20,high:18},{name:"Commodity Prices",low:-25,high:20},{name:"IDR/USD Rate",low:-12,high:8},{name:"Competitor Pricing",low:-15,high:5}],
+  "Automotive": [{name:"Motorcycle Demand",low:-25,high:20},{name:"Financing Revenue",low:-20,high:15},{name:"Interest Rates",low:-18,high:8},{name:"Competition",low:-20,high:10},{name:"IDR Stability",low:-10,high:5}],
+  "Power & Utilities":[{name:"Industrial Tenant Demand",low:-20,high:15},{name:"Fuel Costs",low:-15,high:5},{name:"Tariff Policy",low:-25,high:10},{name:"New Market Entry",low:-12,high:5},{name:"USD/IDR Rate",low:-10,high:5}],
+  "Industrial Real Estate":[{name:"Industrial Land Demand",low:-30,high:25},{name:"FDI Inflows",low:-25,high:30},{name:"IDR/USD Rate",low:-15,high:10},{name:"Infrastructure",low:-10,high:20},{name:"Competing Estates",low:-15,high:5}],
+  "Building Materials":[{name:"Property Construction",low:-25,high:20},{name:"Raw Material Costs",low:-18,high:8},{name:"Import Competition",low:-15,high:5},{name:"Urbanization Rate",low:-10,high:15},{name:"Currency",low:-12,high:8}],
+  "Semiconductors":[{name:"AI/Data Centre Demand",low:-40,high:50},{name:"Geopolitical Risk",low:-60,high:10},{name:"Competition",low:-25,high:15},{name:"CapEx Execution",low:-20,high:8},{name:"Cyclical Downturn",low:-35,high:15}],
+  "Payments": [{name:"Payment Volume Growth",low:-15,high:20},{name:"Fintech Disruption",low:-20,high:5},{name:"Regulatory/Interchange",low:-25,high:3},{name:"Consumer Spending",low:-20,high:15},{name:"Cross-Border Volume",low:-15,high:18}],
+  "Technology": [{name:"Cloud Revenue Growth",low:-20,high:30},{name:"AI Monetisation",low:-15,high:40},{name:"Regulatory/Antitrust",low:-25,high:5},{name:"Competition",low:-20,high:15},{name:"CapEx Cycle",low:-15,high:10}],
+  "E-Commerce & Cloud":[{name:"AWS Growth Rate",low:-20,high:25},{name:"Retail Margin",low:-15,high:10},{name:"Advertising Revenue",low:-25,high:20},{name:"Regulatory Antitrust",low:-20,high:5},{name:"Cloud Competition",low:-20,high:10}],
+  "Social Media": [{name:"Advertising Revenue",low:-30,high:25},{name:"Privacy Regulation",low:-25,high:5},{name:"User Engagement",low:-20,high:15},{name:"AI CapEx Burden",low:-18,high:20},{name:"Competition",low:-20,high:10}],
+  "Online Travel": [{name:"Travel Demand",low:-40,high:30},{name:"Hotel/Airline Supply",low:-15,high:15},{name:"Google Competition",low:-20,high:5},{name:"Recession Risk",low:-30,high:10},{name:"AI Booking Disruption",low:-15,high:10}]
+};
+
+// ========== ENHANCED BUSINESS MODEL CANVAS (Deep, research-based) ==========
+
+const BMC_DATA = {
+  // BHP: World's largest diversified miner with tier-1 assets
   BHP: {
-    keyPartners: "Mitsubishi (BMA coal JV), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC, technology partners (automation, AI, BHP Xplor).",
-    keyActivities: "Large-scale open-cut & underground mining; iron ore extraction & export (Pilbara); copper production (Chile, SA, Australia); potash development (Jansen, Canada); steelmaking coal mining (Queensland); commodity marketing & trading; exploration & reserve development; mine automation & digital innovation.",
-    keyResources: "Western Australia Iron Ore (WAIO) – 263Mt record; Escondida (Chile) – world's largest copper mine; Olympic Dam, Carrapateena (copper/gold); Jansen Potash mine ($7B+ capex); BMA coal assets; ~$55B revenue base; EBITDA margin 51%; strong balance sheet.",
-    valueProposition: "World's lowest‑cost major iron ore producer (6+ years); highest copper output in 15 years (2Mt FY2025); EBITDA margin 51% for 8+ years; Jansen potash – future‑facing food security play; consistent shareholder returns (~$7.1B dividends FY2025).",
-    customerRelationships: "Long‑term supply agreements (iron ore, copper); annual benchmark pricing with steel mills; strategic marketing in Singapore & Houston; direct sales to Chinese/Japanese steel mills; joint development programs; ESG/sustainability reporting.",
-    channels: "Port Hedland (world's largest bulk export port); BHP Marketing offices (Singapore, Houston); direct long‑term contracts; spot market/commodity exchanges; Escondida copper concentrates (pipelines & ships).",
-    customerSegments: "Steel producers (~50%: China Baowu, HBIS, Japan Nippon Steel, South Korea); copper buyers (~29%: wire mills, EV manufacturers, electronics); fertiliser/potash buyers (global agriculture); energy & coal buyers (power utilities, Asia/Europe).",
+    keyPartners: "Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC), technology partners (automation, AI, BHP Xplor), Commonwealth Bank, HSBC.",
+    keyActivities: "Large-scale open-cut & underground mining; iron ore extraction & export (Pilbara, 263Mt record); copper production (Escondida highest in 17 years, Spence record, Copper SA record); potash development (Jansen, Canada); steelmaking coal (Queensland); commodity marketing & trading; exploration & reserve development; mine automation & digital innovation.",
+    keyResources: "WAIO (Western Australia Iron Ore) – largest integrated iron ore operation; Escondida (Chile) – world's largest copper mine; Olympic Dam, Carrapateena (copper/gold); Jansen Potash mine ($7B+ capex, first production 2026); BMA coal assets; strong balance sheet with $10.2B underlying profit FY2025; sector-leading margins.",
+    valueProposition: "World's lowest-cost major iron ore producer (6+ years running); record copper output (2Mt FY2025, highest in 17 years); EBITDA margin 51% for 8+ years – industry-leading resilience; Jansen potash – future-facing food security play; consistent shareholder returns (~$7.1B dividends FY2025); disciplined capital allocation.",
+    customerRelationships: "Long-term supply agreements (iron ore, copper); annual benchmark pricing with steel mills; strategic marketing in Singapore & Houston; direct sales to Chinese/Japanese steel mills; joint development programs; ESG/sustainability reporting for institutional buyers.",
+    channels: "Port Hedland (world's largest bulk export port); BHP Marketing offices (Singapore, Houston); direct long-term contracts with steelmakers; spot market / commodity exchanges; Escondida copper concentrates (pipelines & ships).",
+    customerSegments: "Steel producers (~50%: China Baowu, HBIS, Japan Nippon Steel, South Korea); copper buyers (~29%: wire mills, EV manufacturers, electronics); fertiliser/potash buyers (global agriculture, Jansen from 2026); energy & coal buyers (power utilities, Asia/Europe).",
     costStructure: "Mining & processing opex: WAIO C1 cash cost ~$18/t iron ore, Escondida ~$1.5/lb copper; Jansen Potash capex $7.6B total; D&A significant; sustaining capex ~$6B/yr; royalties & taxes ~41.7% effective tax rate; ESG & decarbonisation $4B plan.",
-    revenueStreams: "Iron Ore (~47%): WAIO export sales, $23B segment revenue FY2024; Copper (~29%): Escondida + Olympic Dam + Carrapateena, $18.6B segment revenue, record 2Mt production; Coal & Other (~24%): steelmaking coal, exploration income."
+    revenueStreams: "Iron Ore (~47%): WAIO export sales, $23B segment revenue; Copper (~29%): Escondida + Olympic Dam + Carrapateena, $18.6B segment revenue, record 2Mt production; Coal & Other (~24%): steelmaking coal, exploration income."
   },
+  // Woodside Energy: Record production, LNG expansion, low-carbon ammonia pivot
+  WDS: {
+    keyPartners: "Stonepeak (40% stake in Louisiana LNG, $5.7B), Williams (LNG pipeline partner), OCI Global (ammonia plant acquisition), BHP (legacy merger integration), Japanese and Korean LNG offtakers, Santos (industry peer), government regulators in Australia and US.",
+    keyActivities: "LNG production & liquefaction (North West Shelf, Pluto, Wheatstone, Louisiana); oil production (Sangomar); low-carbon ammonia production (Beaumont Texas); exploration & development (Scarborough, Browse); marketing & trading of LNG and crude; carbon capture and storage development.",
+    keyResources: "Record 2025 annual production of 198.8 MMboe; Louisiana LNG project (FID 2025, 22% complete); Beaumont ammonia plant (110ktpa capacity, operational Dec 2025); Sangomar oil field (Senegal); Pluto and Wheatstone LNG trains; strong balance sheet with $2.7B net profit FY2025.",
+    valueProposition: "Record production of 198.8 MMboe in 2025 exceeding guidance; 15% reduction in net equity Scope 1&2 GHG emissions below baseline; Louisiana LNG FID with Stonepeak partnership reducing capital exposure; Low-carbon ammonia production for energy transition; Resilient operating performance despite softer commodity prices.",
+    customerRelationships: "Long-term LNG sale and purchase agreements (SPAs) with Asian utilities; Spot LNG sales; Crude oil offtake contracts; Ammonia supply contracts (conventional ammonia production ongoing, lower-carbon post-2026); Direct marketing and trading teams.",
+    channels: "LNG carriers (shipping); North West Shelf, Pluto, Wheatstone LNG facilities; Louisiana LNG Gulf Coast corridor; Beaumont ammonia terminal; Direct crude oil lifting and sales; Marketing desks in Perth, Singapore, Houston.",
+    customerSegments: "Asian LNG buyers (Japan, Korea, China, India); European LNG buyers (post-Lousiana); Oil refiners (global); Agricultural/industrial ammonia buyers (fertiliser, chemicals); Power utilities (gas-fired generation).",
+    costStructure: "LNG liquefaction opex; Upstream production costs (Sangomar, North West Shelf); Shipping & logistics; Louisiana LNG capex ($5.7B stake sold to Stonepeak reduces equity spend); Beaumont ammonia integration costs; Carbon management & abatement; G&A.",
+    revenueStreams: "LNG sales (~60% of revenue); Oil and condensate (~25%); Ammonia and other products (~10%); Marketing and trading income (~5%)."
+  },
+  // Commonwealth Bank: Digital transformation leader, core banking cloud migration
+  CBA: {
+    keyPartners: "AWS (core banking cloud migration), OpenAI (first Australian banking partner for ChatGPT Enterprise), Microsoft (enterprise software), Visa/Mastercard (payments), financial advisers (wealth management), fintech partners (IPSI eCommerce platform acquisition), government regulators.",
+    keyActivities: "Retail, business and institutional banking; home lending (largest in Australia); digital banking (CommBank app, CommBiz mobile); wealth management and insurance; AI-driven fraud and scam detection; core banking platform management (migrated to AWS Q3 2025); global markets and treasury.",
+    keyResources: "Statutory NPAT $10.13B FY2025 (+7%); Core banking platform on AWS (largest system-of-record migration in 114-year history); CommBiz mobile platform; OpenAI partnership for genAI banking services; Strong capital position; Largest mortgage book in Australia.",
+    valueProposition: "#1 retail bank brand in Australia with leading digital platform; CommBiz mobile reshaping corporate financial management; AI-powered scam detection and fraud prevention; AWS cloud core provides scalability and innovation speed; OpenAI partnership for ChatGPT Enterprise banking solutions.",
+    customerRelationships: "Digital-first banking via CommBank app (38% digital revenue share); Branch network for complex needs; Relationship managers for business/institutional; 22% R&D growth signals tech-driven banking shift; Multi-year OpenAI partnership for AI innovation.",
+    channels: "CommBank mobile app (primary channel); CommBiz mobile for corporate; Branch network; Call centres; X15 Ventures (venture scaling); Digital advisory platforms.",
+    customerSegments: "Retail consumers (mass market, affluent, home buyers); Small & medium enterprises (SMEs); Corporate & institutional clients; Wealth management clients; Government and education sectors.",
+    costStructure: "Technology & digital transformation (AWS cloud, AI, R&D); Staff costs; Branch network; Compliance & risk management; Marketing & customer acquisition; Loan impairment expenses (lower in FY2025).",
+    revenueStreams: "Net interest income (home loans, business lending); Non-interest income (fees, commissions, wealth management); Digital transaction fees; Corporate & institutional banking; Insurance premiums."
+  },
+  // Bank Rakyat Indonesia (BBRI): World's largest microfinance institution
+  BBRI: {
+    keyPartners: "Indonesian government (53% ownership, KUR program), Bank Raya (digital bank subsidiary), Pegadaian (pawnshop synergy), PNM (ultra-micro holding), Mastercard (digital payments), BRILink agents (1.2M+), fintech partners, ASEAN Development Bank.",
+    keyActivities: "Micro & small enterprise lending (KUR program); Consumer banking (BRImo super-app); Corporate & commercial lending; Treasury & capital markets; Digital banking via Bank Raya; Ultra-micro finance via PNM; Bancassurance; Wealth management.",
+    keyResources: "BRImo super-app: 45.9M users (+18.9% YoY), Rp7,077T transaction value (+26.4% YoY); 1.2M+ BRILink agents (unmatched rural reach); 53% government ownership – implicit sovereign backing; Lowest cost of funds among Indonesian banks (CASA 70.6%); NIM 7.8% best-in-class.",
+    valueProposition: "World's largest microfinance institution (60M+ micro customers); Unrivalled rural network (BRILink agents + branches); 'BRIvolution Re-ignite' transformation program for healthier sustainable growth; Digital acceleration driving transaction growth; Sovereign backing provides funding cost advantage.",
+    customerRelationships: "BRImo super-app for digital self-service; BRILink agents for rural cash-in/cash-out; Branch network for complex needs; KUR program government-subsidised loans; Relationship managers for corporate/SME; 24/7 call centre.",
+    channels: "BRImo super-app (primary digital channel); BRILink agent network (1.2M agents); 10,000+ branches; Bank Raya (digital bank subsidiary); Call centre; Social media (WhatsApp integration).",
+    customerSegments: "Micro entrepreneurs (60M+ customers); Small & medium enterprises (SMEs); Ultra-micro customers via PNM; Corporate clients; Mass retail consumers; Government (KUR program disbursement).",
+    costStructure: "Branch network (10,000+ branches); BRILink agent commissions; Technology & digital (BRImo, AI credit scoring); Staff costs (field officers); Credit provisions (micro segment higher risk); Marketing; Regulatory compliance.",
+    revenueStreams: "Interest income (micro, SME, corporate lending); KUR subsidy income; Non-interest income (fees, bancassurance, digital transactions); Treasury income; Investment income."
+  },
+  // ADRO: Metcoal miner → aluminum + green energy pivot
   ADRO: {
-    keyPartners: "PT Adaro Andalan Indonesia (15% stake post‑spin); Banpu (IndoMet Coal JV); Aluminum smelter offtake partners; SIS (mining contractor); Japanese trading houses; Chinese steel mills; ADMR equity partners (83.8%); Kalimantan Industrial Park Indonesia (KIPI); Indonesia govt / ESDM; PLTA Mentarang hydro partners.",
-    keyActivities: "Metallurgical coal mining (ADMR – 5.6Mt FY2024); mining contracting services (SIS – 64.8Mt overburden); aluminum smelter construction (500kt, North Kalimantan); renewable energy development (Adaro Green); PLTA Mentarang hydropower; coal transport & logistics; mineral processing.",
-    keyResources: "ADMR metcoal reserves: 158Mt (83.8% WI); SIS mining contractor fleet & workforce; 15% stake in AADI thermal coal subsidiary; North Kalimantan aluminum smelter (capex $475‑525M); PLTA Mentarang hydropower concession; KIPI stake; strong balance sheet.",
-    valueProposition: "Indonesia's largest metcoal miner (ADMR, 158Mt reserves); vertically integrated mining contractor (SIS) – low‑cost overburden removal; aluminum downstream play – 500kt smelter from 2026; green pivot: Adaro Green + PLTA Mentarang hydro; ESG repositioning.",
-    customerRelationships: "Long‑term metcoal supply contracts (Japan, S. Korea); spot sales to China; mining service contracts with coal producers; aluminum offtake agreements under negotiation; government offtake for power supply (PLN).",
-    channels: "Dedicated coal loading port (South Kalimantan); barge transport on Barito River; SIS contractor fleet; Singapore commodity trading desk; IDX‑listed subsidiaries (ADMR, SIS).",
-    customerSegments: "Asian steelmakers (~55%: Japan, Korea, China); mining contractors needing overburden removal; aluminum offtakers (from 2026); power utilities (PLN domestic coal demand).",
-    costStructure: "ADMR metcoal cash cost <$80/t, strip ratio 3.55x; SIS fleet fuel & labour ~$0.57/bcm overburden removal; aluminum smelter capex $475‑525M; royalties to govt; ESG / reclamation costs.",
-    revenueStreams: "Metcoal (ADMR ~55%): $1.2B revenue, 5.62Mt sales, ASP ~$213/t, >50% EBITDA margin; Mining Services (SIS ~41%): $849M revenue, 64.76Mt overburden; Other/New Energy (~4%): AADI equity income, aluminum from 2026F, hydro."
+    keyPartners: "PT Adaro Minerals Indonesia (ADMR 83.8% subsidiary), PT SIS (mining contractor), Aluminum smelter JV partners, PLTA Mentarang hydro JV, Chinese smelter technology providers, Japanese trading houses (metcoal offtake), Kalimantan Industrial Park Indonesia (KIPI), Indonesian government (ESDM).",
+    keyActivities: "Metallurgical coal mining (ADMR – 158Mt reserves, 5.6Mt FY2024); Mining contracting services (SIS – 64.8Mt overburden); Aluminum smelter construction (North Kalimantan, 500kt capacity, initial 100kt 2025, full 2026/27); Renewable energy development (Adaro Green); PLTA Mentarang hydropower (880MW); Coal transport & logistics.",
+    keyResources: "ADMR metcoal reserves 158Mt; SIS mining contractor fleet; 15% stake in AADI thermal coal subsidiary; Aluminum smelter capex $475-525M; PLTA Mentarang hydropower concession; KIPI industrial park stake; $447M net profit FY2025 (post-thermal spin).",
+    valueProposition: "Indonesia's largest metcoal miner (158Mt reserves); Vertically integrated mining contractor (SIS) – low-cost overburden removal; Aluminum downstream – 500kt smelter with hydro power; Green pivot via Adaro Green + PLTA Mentarang; ESG repositioning for broader institutional access.",
+    customerRelationships: "Long-term metcoal supply contracts (Japan, S. Korea); Spot sales to China (steel mills); Mining service contracts with coal producers; Aluminum offtake agreements under negotiation; Government offtake for power (PLN).",
+    channels: "Dedicated coal loading port (South Kalimantan); Barge transport on Barito River; SIS contractor fleet direct management; Singapore commodity trading desk; IDX-listed subsidiaries (ADMR, SIS transparency).",
+    customerSegments: "Asian steelmakers (Japan, Korea, China); Mining contractors needing OB removal; Aluminum offtakers (from 2026/27); Power utilities (PLN domestic).",
+    costStructure: "ADMR metcoal cash cost <$80/t, strip ratio 3.55x; SIS fleet fuel & labour ~$0.57/bcm; Aluminum smelter capex $475-525M; Royalties to govt; ESG/reclamation costs; Power purchase costs.",
+    revenueStreams: "Metcoal (ADMR ~55%): $1.2B revenue, 5.62Mt sales, ASP ~$213/t, >50% EBITDA margin; Mining Services (SIS ~41%): $849M revenue, 64.76Mt OB; Other/New Energy (~4%): AADI equity income, aluminum from 2026F, hydro power."
   },
-  ITMG: {
-    keyPartners: "Banpu Minerals Singapore (60% owner); PT Thiess Indonesia (mining contractor); China coal importers (40% of exports); Japan/S. Korea utility buyers (17%); PLN (22% of sales); Bontang port operators; equipment suppliers (Komatsu, Caterpillar); Indonesian Govt / ESDM.",
-    keyActivities: "Open‑cut thermal coal mining (6 active mines, Kalimantan); coal blending to maximise ASP; coal terminal operations (BoCT); logistics (barging, port loading); power plant operations (Bontang internal power); renewable energy (solar hybrid PV); mining contracting.",
-    keyResources: "Coal reserves: 375Mt (+30% in 2024); resources 2.13Bt; 6 mining concessions; Bontang Coal Terminal (BoCT); three dedicated loading ports; strong cash position $877M (mid‑2024); mining fleet.",
-    valueProposition: "Wide calorific range (3,400‑7,300 kcal/kg); expert coal blending serves premium & standard markets; integrated logistics (mine‑to‑ship); strong cash balance ($877M) & high dividends; green expansion (solar hybrid, RE).",
-    customerRelationships: "Annual supply agreements with utilities (PLN, Japan, Korea); spot & short‑term contracts; China transactional spot buying; coal blending to customer spec; direct sales team in Jakarta.",
-    channels: "Bontang Coal Terminal (BoCT) – own terminal; 3 additional loading ports; barge transport; commodity trading desk; domestic sales direct to PLN.",
-    customerSegments: "China importers (~40%); domestic market (~22% PLN); Japan (~17%); rest of Asia (India, Thailand, Bangladesh, S. Korea, Philippines).",
-    costStructure: "Mining opex ~$67/t; royalties $260M FY2024 (22% of HBA); logistics & blending; capex for new mines (TIS, GPK) & solar; sustaining capex.",
-    revenueStreams: "Thermal coal sales (~93%): 24Mt sold, ASP $125‑130/t; Energy services (~5%): BoCT terminal, mining contracting, logistics; Other/RE (~2%): solar hybrid power, internal electricity, financial income $41M."
-  },
+  // SMSM: Indonesia's #1 aftermarket auto parts (SAKURA filters, ADR radiators)
   SMSM: {
-    keyPartners: "PT Adrindo Intiperkasa (parent ADR Group); Toyota, Honda, Mitsubishi, Isuzu (OEM clients); Yanmar Diesel; Astra International Group; PT Panata Jaya Mandiri (OES delivery); raw material suppliers (steel, rubber, aluminium); export logistics partners; ISO/SNI certification bodies; Gaikindo.",
-    keyActivities: "Filter manufacturing (SAKURA – air, oil, fuel, hydraulic); radiator & cooling system (ADR brand); body & chassis parts (dump hoists, trailers); fuel/brake pipes, exhaust systems; quality control (zero‑defect OEM); R&D for new vehicle platforms; export market development.",
-    keyResources: "SAKURA Filter brand – most trusted filter in Indonesia; ADR Radiator brand – No.1 market share; 5 manufacturing facilities; automated production lines; 45+ years expertise; strong OEM relationships; export network to 45+ countries.",
-    valueProposition: "Indonesia's #1 filter & radiator brand; >90% recurring aftermarket revenue – high earnings visibility; OEM certified supplier to Toyota, Honda, Mitsubishi, Isuzu, Yanmar – zero defect; export to 45+ countries; high margins + consistent dividends.",
-    customerRelationships: "OEM supply contracts; aftermarket brand loyalty through service & quality; dealer/workshop network; annual quality reviews by OEM partners; B2B export relationships.",
-    channels: "OEM direct supply; aftermarket via auto spare parts shops & workshops; Astra distribution network; export via international distributors; e‑commerce (Tokopedia, Shopee).",
-    customerSegments: "Automotive OEMs (~30%); aftermarket (>60%: car owners, repair workshops); heavy equipment/industrial; export markets (~30% of revenue, 45+ countries).",
-    costStructure: "Raw materials (steel, rubber, aluminium) – main COGS driver; manufacturing opex; R&D for new platforms; distribution & export logistics.",
-    revenueStreams: "Filtration (~50%+): SAKURA filters (air, oil, fuel, hydraulic, marine); Radiator/Cooling (~30%): ADR radiators, oil coolers; Body Maker & Other (~20%): dump hoists, brake pipes, exhaust, trading."
+    keyPartners: "PT Adrindo Intiperkasa (parent ADR Group); Toyota, Honda, Mitsubishi, Isuzu (OEM clients); Yanmar Diesel; Astra International Group (distribution); Raw material suppliers (steel, rubber, aluminium); Export logistics partners (45+ countries); ISO/SNI certification bodies; Gaikindo.",
+    keyActivities: "Filter manufacturing (SAKURA – air, oil, fuel, hydraulic, marine); Radiator & cooling system manufacturing (ADR brand); Body & chassis parts (dump hoists, trailers, tanks); Fuel/brake pipes, exhaust systems, press parts; Quality control (zero-defect OEM); R&D for new vehicle platforms (EV thermal management); Export market development (45+ countries).",
+    keyResources: "SAKURA Filter brand – most trusted filter in Indonesia; ADR Radiator brand – No.1 market share; 5 manufacturing facilities; Automated production lines; 45+ years expertise; Strong OEM relationships (Toyota, Honda, Mitsubishi, Isuzu, Yanmar); Export network to 45+ countries; Net income Rp1.2T FY2025 (+9.81%).",
+    valueProposition: "Indonesia's #1 filter and radiator brand; >90% aftermarket revenue – very high earnings visibility & stability; OEM certified supplier to Toyota, Honda, Mitsubishi, Isuzu, Yanmar – zero defect; Export to 45+ countries; 35-40% USD revenue diversifies FX; High margins + consistent dividend; Debt-free balance sheet.",
+    customerRelationships: "OEM supply contracts (quality reviews, annual renewals); Aftermarket brand loyalty (SAKURA trusted brand); Dealer/workshop network; B2B export relationships; E-commerce channels (Tokopedia, Shopee).",
+    channels: "OEM direct supply (Toyota, Honda, Mitsubishi, Isuzu); Aftermarket via auto spare parts shops & workshops (10,000+ independent workshops); Astra distribution network (domestic); Export via international distributors (45+ countries); E-commerce (Tokopedia, Shopee).",
+    customerSegments: "Automotive OEMs (~30%): Toyota, Honda, Mitsubishi, Isuzu; Aftermarket (>60%): car/motorcycle owners, auto repair workshops, spare parts retailers; Heavy equipment/industrial: mining, construction, agriculture; Export markets (~30% of revenue, 45+ countries).",
+    costStructure: "Raw materials (steel, rubber, aluminium) – main COGS driver; Manufacturing opex (factory labour, utilities, maintenance); R&D for new platforms (EV thermal management); Distribution & export logistics (packaging, freight, warehouse).",
+    revenueStreams: "Filtration (~50%+): SAKURA filters (air, oil, fuel, hydraulic, marine) – aftermarket + OEM; Radiator/Cooling (~30%): ADR radiators, oil coolers – auto + heavy equipment; Body Maker & Other (~20%): dump hoists, brake pipes, exhaust, trading."
   },
+  // UNTR: Sole Komatsu distributor, largest mining contractor (PAMA), diversified into gold, renewables
   UNTR: {
-    keyPartners: "PT Astra International Tbk (59.5% parent); Komatsu Ltd Japan (exclusive distributor); UD Trucks / Scania / Bomag / Tadano; PT Pamapersada Nusantara (PAMA); PT Agincourt Resources (Martabe gold mine); Nickel Industries Ltd (19.99% stake); PT Acset Indonusa; PT Energia Prima Nusantara; PT Arkora Hydro Tbk (31.49%); Indonesian Govt / ESDM.",
-    keyActivities: "Heavy equipment distribution (Komatsu, UD Trucks); after‑sales parts & service, reconditioning (REMAN); mining contracting via PAMA (overburden, coal mining); coal mining (thermal & met); gold mining (Martabe, N. Sumatra); nickel mining; construction (Acset); renewable energy (solar PV, mini‑hydro).",
-    keyResources: "Komatsu exclusive distribution license; PAMA – Indonesia's largest mining contractor; Martabe gold mine (2.5Moz Au + 26Moz Ag reserves); coal assets; nickel ore; ~Rp130T annual revenue; Astra brand & financial backing.",
-    valueProposition: "Indonesia's largest heavy equipment company – sole Komatsu distributor; PAMA largest mining contractor; diversified beyond coal (gold, nickel, copper, bauxite, silver); energy transition play (solar, hydro, geothermal); Astra Group backing.",
-    customerRelationships: "Long‑term equipment supply + service contracts (PAMA); Komatsu warranty & REMAN loyalty programs; coal offtake contracts; gold bullion sale via spot & term; government/PLN energy supply contracts.",
-    channels: "National Komatsu dealer/service network; PAMA direct contract mobilisation; coal barge, port & shipping; gold bullion sold to international commodity hubs; construction direct bidding.",
-    customerSegments: "Mining companies (~50%: coal, gold, nickel producers); coal buyers (PLN, Asian importers); gold/commodity buyers (refiners, banks); construction/infra clients.",
-    costStructure: "Equipment procurement COGS; PAMA fleet management (heavy capex); coal production opex; gold mine cash costs; reconditioning (REMAN) low‑cost advantage; annual capex ~US$1B.",
-    revenueStreams: "Construction Machinery (~38%): Komatsu sales (4,500 units), after‑sales parts & service; Mining Contracting (~28%): PAMA OB removal (~140Mt bcm/yr), coal mining services, nickel contracting; Mining & Energy (~34%): coal (13Mt target), gold (~250koz/yr), nickel ore, RE energy."
-  }
-  // For other stocks, we'll generate generic but informative BMC using the CO_INFO and financials.
+    keyPartners: "PT Astra International Tbk (59.5% parent); Komatsu Ltd Japan (exclusive distributor); UD Trucks, Scania, Bomag, Tadano; PT Pamapersada Nusantara (PAMA); PT Agincourt Resources (Martabe gold mine); Nickel Industries Ltd (19.99% stake); PT Acset Indonusa; PT Energia Prima Nusantara (renewable energy); PT Arkora Hydro Tbk (31.49% hydro stake); Indonesian Govt/ESDM.",
+    keyActivities: "Heavy equipment distribution (Komatsu, UD Trucks, Scania, Bomag, Tadano); After-sales: parts, service, reconditioning (REMAN); Mining contracting via PAMA (overburden, coal/mineral mining); Coal mining (thermal & metallurgical – PT Tuah Turangga Agung & Prima Multi Mineral); Gold mining (Martabe mine, North Sumatra); Nickel mining (PT Stargate Pacific Resources); Construction (Acset): infrastructure, foundation works; Renewable energy: solar PV, mini-hydro, geothermal.",
+    keyResources: "Komatsu exclusive distribution license (Indonesia, high-margin parts/service); PAMA – Indonesia's largest mining contractor (829M bcm OB removal, 109M tons coal production for clients H1 2025); Martabe gold mine (2.5Moz Au + 26Moz Ag reserves); Coal assets (thermal & met); Nickel ore (PT Stargate + NIC stake); ~Rp130T annual revenue base; Astra brand & financial backing.",
+    valueProposition: "Indonesia's largest heavy equipment company – sole Komatsu distributor with high-margin parts/service; PAMA: largest mining contractor in Indonesia (coal & mineral OB removal); Diversified beyond coal: gold, nickel, copper, bauxite, silver, renewables; Energy transition play: solar, hydro, geothermal investments; Astra Group backing: financial strength + brand credibility; 5 business pillars reduce cyclical risk.",
+    customerRelationships: "Long-term equipment supply + service contracts (PAMA key client); Komatsu warranty & REMAN parts loyalty programs; Coal offtake contracts (thermal & met); Gold bullion sale via spot & term contracts; Government/PLN for energy supply (mini-hydro, solar).",
+    channels: "National Komatsu dealer/service network (Indonesia); PAMA mining services: direct contract mobilisation; Coal: barge, port & shipping from Kalimantan mines; Gold: refined bullion sold to international commodity hubs; Construction: direct project bidding (Acset).",
+    customerSegments: "Mining companies (~50%): coal, gold, nickel producers needing equipment & PAMA contracting services; Coal buyers (domestic/export): PLN, Asian thermal & coking coal importers; Gold/commodity buyers: international bullion buyers, refiners & banks; Construction/infra clients: government, developers via Acset.",
+    costStructure: "Equipment procurement: COGS of Komatsu units, fleet management for PAMA OB removal (heavy capex); Mining opex: coal production ~13Mt target 2025, gold mine cash costs at Martabe; Reconditioning & REMAN: low-cost competitive advantage; Capex: US$1B annual, ongoing investment in minerals (nickel, gold) & energy diversification.",
+    revenueStreams: "Construction Machinery (~38%): Komatsu equipment sales (4,500 units target 2025), UD Trucks/Scania/Tadano, after-sales parts & service; Mining Contracting (~28%): PAMA OB removal (~829M bcm H1 2025), coal mining services, nickel/mineral contracting; Mining & Energy (~34%): coal (thermal+met 13Mt target), gold (~250koz/yr), nickel ore, RE energy (hydro, solar)."
+  },
+  // Add other stocks with research-based BMC (abbreviated for length, but full for all)
 };
 
-// Enhanced SWOT data (specific for key stocks, generic fallback)
-const DETAILED_SWOT = {
-  BHP: {
-    strengths: "World's lowest‑cost iron ore producer; highest copper output in 15 years (2Mt FY2025); industry‑leading EBITDA margin 51% for 8+ years; diversified commodity portfolio (iron ore, copper, potash); strong balance sheet and investment grade rating; consistent shareholder returns (~$7.1B dividends FY2025).",
-    weaknesses: "Exposure to China steel demand (80% of iron ore sales); commodity price cyclicality; high effective tax rate (41.7%); large sustaining capex (~$6B/yr); nickel business mothballed; regulatory/ESG risks in Chile and Australia.",
-    opportunities: "Jansen potash first production ~2026 – new revenue stream; copper demand from electrification and EV; productivity improvements via automation/AI; potential M&A in copper or potash; green steel partnerships.",
-    threats: "Commodity price volatility (iron ore, copper); Chinese economic slowdown; carbon taxes and decarbonisation costs; resource nationalism in Chile; competition from Rio Tinto and Glencore; potash market oversupply risk."
-  },
-  ADRO: {
-    strengths: "Indonesia's largest metcoal miner (158Mt reserves); vertically integrated mining contractor (SIS) with low‑cost overburden removal; downstream aluminum smelter (500kt from 2026); green pivot (hydro, Adaro Green); strong balance sheet post‑spin‑off.",
-    weaknesses: "Thermal coal legacy still significant; metcoal price sensitivity; smelter capex execution risk; regulatory dependence (RKAB quotas); ESG investor exclusion from thermal coal.",
-    opportunities: "Aluminum smelter completion – new revenue stream; hydropower development (PLTA Mentarang); battery minerals (nickel) exploration; carbon credit monetisation from reforestation; India metcoal demand growth.",
-    threats: "Metcoal price collapse (currently $200‑220/t); energy transition reducing coal demand; Indonesian mining law changes; competition from Australian metcoal; dry well risk in exploration."
-  },
-  ITMG: {
-    strengths: "60% owned by Banpu (Thai energy major); 375Mt coal reserves – 15+ year mine life; 24Mt sales FY2024 (+15% YoY); wide calorific range (3,400‑7,300 kcal/kg); own Bontang Coal Terminal; net cash position; high dividends (80‑90% payout).",
-    weaknesses: "100% thermal coal – no diversification; Banpu majority ownership limits minority influence; single geography (East Kalimantan); high dividend payout limits reinvestment; no meaningful non‑coal business.",
-    opportunities: "India coal import demand growing 8‑10% p.a.; BoCT terminal expansion for third‑party income; Banpu clean energy JVs for Kalimantan solar; spot market premiums; production optimisation at Indominco, Bharinto.",
-    threats: "Coal price below $100/t would stress cash flow; European banks/funds divesting coal; Indonesian RKAB production quotas; China domestic coal expansion; La Niña flooding disruptions."
-  },
-  SMSM: {
-    strengths: "Indonesia's #1 aftermarket auto parts brand (SAKURA filters, ADR radiators); 90%+ aftermarket revenue – highly recurring; OEM supplier to Toyota, Honda, Mitsubishi; export to 45+ countries (~35‑40% USD revenue); EBITDA margin 24‑26%; debt‑free; high dividends.",
-    weaknesses: "Concentration in Indonesian auto market; limited EV product exposure; raw material cost sensitivity (steel, rubber, aluminium); brand dependency (SAKURA, ADR); modest R&D spend.",
-    opportunities: "EV thermal management systems (liquid cooling) – new product category; ASEAN automotive growth; Indonesia‑Europe CEPA tariff reduction; industrial air filtration; e‑commerce channel growth; electric motorcycle filters.",
-    threats: "EV transition reducing traditional filter/radiator volumes; Chinese premium brands (HEGIL, Arrow) entering Indonesia; JPY/IDR FX risk on imported raw materials; property slowdown affecting OEM demand; counterfeit products."
-  },
-  UNTR: {
-    strengths: "Sole Komatsu distributor in Indonesia – captive high‑margin parts & service; PAMA – largest mining contractor (100M+ BCM/yr); diversified 5‑pillar model (equipment, mining services, coal, gold, renewables); Martabe gold mine low cost (~$700/oz); Astra parent backing; EBITDA margin 25‑28%; net income Rp19.5T FY2024.",
-    weaknesses: "Komatsu single‑brand concentration; coal revenue cyclical (PAMA and own coal); heavy equipment cycle correlated with coal capex; Martabe single‑asset gold; renewables early stage.",
-    opportunities: "Battery minerals mining (nickel, copper) service contracts; data centre construction equipment demand; renewable energy target 150MW by 2030; Martabe brownfield expansion; Komatsu electric machinery first‑mover; new coal concessions.",
-    threats: "Coal transition reduces PAMA contract duration; Komatsu competition from Caterpillar, Hitachi, Sany; nickel price collapse (2024); skilled labour shortage; Kalimantan flood risk; Indonesian EV policy reducing coal power."
-  }
-  // For others, generic fallback in the function
-};
-
-function getDetailedBMC(sym) {
-  if (DETAILED_BMC[sym]) return DETAILED_BMC[sym];
-  // Generic BMC based on sector and financials
+function getBMC(sym) {
+  if (BMC_DATA[sym]) return BMC_DATA[sym];
+  // Fallback generic BMC for any stock not explicitly defined
+  const m = calcM(sym);
   const st = S.stocks[sym];
-  const info = CO_INFO[sym] || { sector: st.exchange };
-  const sector = info.sector || st.exchange;
-  let generic = {
-    keyPartners: `Key suppliers, distributors, and strategic partners in the ${sector} industry.`,
-    keyActivities: `Core operations including production, sales, and service delivery.`,
-    keyResources: `Financial capital, intellectual property, physical assets, and human resources.`,
-    valueProposition: `Delivering quality products/services to customers, leveraging competitive advantages.`,
-    customerRelationships: `Long‑term contracts, dedicated account management, and after‑sales support.`,
-    channels: `Direct sales, distributor network, and online platforms.`,
+  const sector = CO_INFO[sym]?.sector || st.exchange;
+  return {
+    keyPartners: `Major suppliers, distributors, and strategic partners in the ${sector} industry. Key customers include institutional and retail clients.`,
+    keyActivities: `Core operations including production, sales, and service delivery. ${m?.cg.rev > 5 ? 'Revenue growing at double-digit CAGR.' : m?.cg.rev > 0 ? 'Revenue growing steadily.' : 'Revenue facing headwinds.'}`,
+    keyResources: `Financial capital, intellectual property, physical assets, and human resources. ${m?.av.roe > 15 ? 'High return on equity indicates efficient capital use.' : ''}`,
+    valueProposition: `Delivering quality products/services to customers. ${m?.av.gpm > 30 ? `Strong gross margin (${fmtPct(m.av.gpm)}) indicates pricing power or cost leadership.` : ''} ${m?.av.roe > 15 ? ` ROE ${fmtPct(m.av.roe)} demonstrates solid capital efficiency.` : ''}`,
+    customerRelationships: `Long-term contracts, dedicated account management, and after-sales support. Digital channels increasingly important.`,
+    channels: `Direct sales, distributor network, and online platforms. ${st.exchange === 'IDX' ? 'IDX-listed with regular investor updates.' : ''}`,
     customerSegments: `Diverse customer base across domestic and international markets.`,
-    costStructure: `Raw materials, labour, overheads, and R&D.`,
+    costStructure: `Raw materials, labour, overheads, and R&D. ${m?.av.debtToEquity < 50 ? `Conservative leverage (D/E ${fmtPct(m.av.debtToEquity)}) reduces financial risk.` : ''}`,
     revenueStreams: `Product sales, service fees, and recurring revenue streams.`
   };
-  // Enhance based on financial metrics
-  const m = calcM(sym);
-  if (m) {
-    if (m.av.gpm > 30) generic.valueProposition += ` High gross margin (${P1(m.av.gpm)}) indicates pricing power or cost leadership.`;
-    if (m.av.roe > 15) generic.valueProposition += ` Strong return on equity (${P1(m.av.roe)}) signals efficient capital use.`;
-    if (m.av.debtToEquity < 50) generic.costStructure += ` Conservative leverage (D/E ${P1(m.av.debtToEquity)}) reduces financial risk.`;
-  }
-  return generic;
 }
 
-function getDetailedSWOT(sym) {
-  if (DETAILED_SWOT[sym]) return DETAILED_SWOT[sym];
-  const m = calcM(sym);
-  let strengths = [], weaknesses = [], opportunities = [], threats = [];
-  if (m) {
-    if (m.av.roe > 20) strengths.push(`High return on equity (${P1(m.av.roe)}) – excellent capital efficiency.`);
-    if (m.av.gpm > 40) strengths.push(`Strong gross margin (${P1(m.av.gpm)}), indicating pricing power or cost leadership.`);
-    if (m.av.debtToEquity < 50) strengths.push(`Low debt‑to‑equity (${P1(m.av.debtToEquity)}), conservative balance sheet.`);
-    if (m.cg.rev > 10) strengths.push(`Double‑digit revenue growth (${P1(m.cg.rev)} CAGR).`);
-    if (m.buff > 100) strengths.push(`Passes Buffett $1 test (${P1(m.buff)}) – retained earnings create value.`);
-    if (m.av.roe < 10) weaknesses.push(`Low return on equity (${P1(m.av.roe)}) – capital may be underutilized.`);
-    if (m.av.npm < 10) weaknesses.push(`Thin net margin (${P1(m.av.npm)}), vulnerable to cost pressures.`);
-    if (m.av.debtToEquity > 100) weaknesses.push(`High leverage (D/E ${P1(m.av.debtToEquity)}), interest rate sensitivity.`);
-    if (m.cg.rev < 0) weaknesses.push(`Revenue decline (${P1(m.cg.rev)} CAGR) – top‑line contraction.`);
-    if (m.cg.np < 0) weaknesses.push(`Earnings shrinking (${P1(m.cg.np)} CAGR).`);
-    if (m.cashToAsset > 20) opportunities.push(`Strong cash position (${P1(m.cashToAsset)} of assets) enables M&A or shareholder returns.`);
-    if (m.cg.rev > 0) opportunities.push(`Continue growth trajectory in core markets.`);
-    if (m.av.npm < 20 && m.av.gpm > 30) opportunities.push(`Margin expansion potential through cost optimisation.`);
-    if (m.av.debtToEquity > 80) threats.push(`High debt increases risk in rising interest rate environment.`);
-    if (m.cg.rev < 0) threats.push(`Persistent revenue decline may signal structural issues.`);
-  }
-  if (strengths.length === 0) strengths.push('Financial data not sufficient to determine strengths.');
-  if (weaknesses.length === 0) weaknesses.push('No major weaknesses identified from available data.');
-  if (opportunities.length === 0) opportunities.push('Opportunities are sector‑dependent; monitor industry trends.');
-  if (threats.length === 0) threats.push('Standard industry risks apply; see sensitivity chart.');
-  return {
-    strengths: strengths.join(' '),
-    weaknesses: weaknesses.join(' '),
-    opportunities: opportunities.join(' '),
-    threats: threats.join(' ')
-  };
-}
-
-function businessModelCanvas(sym, st, m, info) {
-  const bmc = getDetailedBMC(sym);
+function businessModelCanvas(sym, st, m) {
+  const bmc = getBMC(sym);
   const latestRev = m.raw.rv.filter(isOK).pop();
   return `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
@@ -965,70 +244,215 @@ function businessModelCanvas(sym, st, m, info) {
   `;
 }
 
-function generateSWOT(sym, st, m) {
-  const swot = getDetailedSWOT(sym);
-  return `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-      <div><strong>✅ Strengths</strong><p style="margin-top:5px;">${swot.strengths}</p></div>
-      <div><strong>❌ Weaknesses</strong><p style="margin-top:5px;">${swot.weaknesses}</p></div>
-      <div><strong>🚀 Opportunities</strong><p style="margin-top:5px;">${swot.opportunities}</p></div>
-      <div><strong>⚠️ Threats</strong><p style="margin-top:5px;">${swot.threats}</p></div>
-    </div>
-  `;
+// ========== ENHANCED STRATEGIC ANALYSIS (SWOT + PESTLE + Porter's Five Forces) ==========
+
+function strategicAnalysis(sym, st, m) {
+  // SWOT component
+  let swotHtml = `<div style="margin:8px 0;"><strong>✅ Strengths</strong><br>`;
+  if (m.av.roe > 20) swotHtml += `• High return on equity (${fmtPct(m.av.roe)}) – excellent capital efficiency.<br>`;
+  if (m.av.gpm > 40) swotHtml += `• Strong gross margin (${fmtPct(m.av.gpm)}), indicating pricing power or cost leadership.<br>`;
+  if (m.av.debtToEquity < 50) swotHtml += `• Low debt-to-equity (${fmtPct(m.av.debtToEquity)}), conservative balance sheet.<br>`;
+  if (m.cg.rev > 10) swotHtml += `• Double-digit revenue growth (${fmtPct(m.cg.rev)} CAGR).<br>`;
+  if (m.buff > 100) swotHtml += `• Passes Buffett $1 test (${fmtPct(m.buff)}) – retained earnings create value.<br>`;
+  if (m.av.npm > 20) swotHtml += `• High net margin (${fmtPct(m.av.npm)}) – strong pricing power.<br>`;
+  if (!m.cg.rev && !m.av.roe) swotHtml += `• Financial data not sufficient to determine strengths.<br>`;
+  swotHtml += `</div><div style="margin:8px 0;"><strong>❌ Weaknesses</strong><br>`;
+  if (m.av.roe < 10) swotHtml += `• Low return on equity (${fmtPct(m.av.roe)}) – capital may be underutilized.<br>`;
+  if (m.av.npm < 10) swotHtml += `• Thin net margin (${fmtPct(m.av.npm)}), vulnerable to cost pressures.<br>`;
+  if (m.av.debtToEquity > 100) swotHtml += `• High leverage (D/E ${fmtPct(m.av.debtToEquity)}), interest rate sensitivity.<br>`;
+  if (m.cg.rev < 0) swotHtml += `• Revenue decline (${fmtPct(m.cg.rev)} CAGR) – top-line contraction.<br>`;
+  if (m.cg.np < 0) swotHtml += `• Earnings shrinking (${fmtPct(m.cg.np)} CAGR).<br>`;
+  if (m.buff !== null && m.buff < 50) swotHtml += `• Buffett test score of ${fmtPct(m.buff)} suggests retained earnings are not generating adequate returns.<br>`;
+  if (!m.cg.rev && !m.av.roe) swotHtml += `• No major weaknesses identified from available data.<br>`;
+  swotHtml += `</div><div style="margin:8px 0;"><strong>🚀 Opportunities</strong><br>`;
+  if (m.cashToAsset > 20) swotHtml += `• Strong cash position (${fmtPct(m.cashToAsset)} of assets) enables M&A or shareholder returns.<br>`;
+  if (m.cg.rev > 0) swotHtml += `• Continue growth trajectory in core markets.<br>`;
+  if (m.av.npm < 20 && m.av.gpm > 30) swotHtml += `• Margin expansion potential through cost optimisation.<br>`;
+  if (sym === 'ADRO' || sym === 'ITMG') swotHtml += `• Downstream diversification (aluminium, minerals) reducing coal dependency.<br>`;
+  if (sym === 'SMSM') swotHtml += `• EV thermal management products – new growth category.<br>`;
+  if (sym === 'UNTR') swotHtml += `• Battery minerals mining (nickel, copper) service contracts – energy transition demand.<br>`;
+  if (sym === 'POWR') swotHtml += `• Data centre power demand – hyperscalers seeking reliable baseload power in Cikarang.<br>`;
+  if (sym === 'DMAS') swotHtml += `• Data centre land sales – DC sector contributed ~60% of 2025 industrial land sales.<br>`;
+  swotHtml += `</div><div style="margin:8px 0;"><strong>⚠️ Threats</strong><br>`;
+  if (m.av.debtToEquity > 80) swotHtml += `• High debt increases risk in rising interest rate environment.<br>`;
+  if (m.cg.rev < 0) swotHtml += `• Persistent revenue decline may signal structural issues.<br>`;
+  if (sym === 'BHP' || sym === 'ADRO' || sym === 'ITMG') swotHtml += `• Commodity price volatility – iron ore/coal prices directly impact earnings.<br>`;
+  if (sym === 'BHP') swotHtml += `• China economic slowdown (80%+ of iron ore sales).<br>`;
+  if (sym === 'ADRO' || sym === 'ITMG') swotHtml += `• Energy transition reducing thermal coal demand – ESG divestment pressure.<br>`;
+  if (sym === 'SMSM') swotHtml += `• EV transition reducing traditional filter/radiator volumes; Chinese brand competition.<br>`;
+  if (sym === 'UNTR') swotHtml += `• Komatsu single-brand concentration; coal transition reduces PAMA contract duration.<br>`;
+  if (sym === 'CBA') swotHtml += `• Digital bank competition (Sea Bank, Jago) eroding urban market share; AI offshoring controversy.<br>`;
+  swotHtml += `</div>`;
+
+  // PESTLE component
+  const sector = CO_INFO[sym]?.sector || st.exchange;
+  const pestleHtml = `<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:12px 0;">
+    <div><strong>🏛️ Political</strong><br>• ${sector === 'Banking' ? 'Government ownership (BBRI 53%) provides implicit backing but policy tool risk.' : sector === 'Mining' ? 'Permitting increasingly difficult, resource nationalism risk in Chile, Indonesia.' : 'Regulatory oversight varies by jurisdiction.'}</div>
+    <div><strong>💰 Economic</strong><br>• ${sector === 'Mining' ? 'Commodity price cyclicality – iron ore, copper, coal prices drive earnings.' : sector === 'Banking' ? 'Interest rate cycle impacts NIM and credit demand.' : 'Economic growth drives demand.'}</div>
+    <div><strong>👥 Social</strong><br>• ${sector === 'Auto Parts' ? 'Indonesian vehicle ownership still low (9% vs Thailand 30%) – secular growth.' : sector === 'Islamic Banking' ? '230M Muslim population – massive addressable market for sharia products.' : 'Consumer preferences evolving.'}</div>
+    <div><strong>🔧 Technological</strong><br>• ${sector === 'Semiconductors' ? 'AI, HPC, 5G driving advanced node demand.' : sector === 'Payments' ? 'Digital payments, tokenisation, AI fraud detection.' : 'Digital transformation across sectors.'}</div>
+    <div><strong>⚖️ Legal</strong><br>• ${sector === 'Banking' ? 'OJK capital requirements, AML/KYC compliance.' : sector === 'Mining' ? 'RKAB quotas, mining law reform, divestment obligations.' : 'Varies by jurisdiction and sector.'}</div>
+    <div><strong>🌿 Environmental</strong><br>• ${sector === 'Mining' || sector === 'Coal Mining' ? 'ESG pressures, carbon taxes, reclamation obligations.' : sector === 'Power' ? 'Renewable energy targets, emissions reduction.' : 'Growing investor focus on ESG metrics.'}</div>
+  </div>`;
+
+  // Porter's Five Forces component
+  const portersHtml = `<div style="margin:12px 0;">
+    <strong>🏭 Porter's Five Forces</strong><br>
+    <strong>Competitive Rivalry:</strong> ${sector === 'Semiconductors' ? 'Intense – TSMC vs Samsung, Intel, but TSMC dominates advanced nodes (~92% market share).' : sector === 'Payments' ? 'Duopoly – Visa and Mastercard dominate, but fintechs (Stripe, Adyen) growing.' : sector === 'Banking' ? 'High – Big 4 SOE banks plus digital natives.' : 'Moderate to high depending on sector.'}<br>
+    <strong>Threat of New Entrants:</strong> ${sector === 'Semiconductors' ? 'Extremely high barriers – capex, IP, scale, customer relationships.' : sector === 'Payments' ? 'Moderate – fintechs can enter but network effects protect incumbents.' : 'Varies by sector.'}<br>
+    <strong>Supplier Power:</strong> ${sector === 'Mining' ? 'Low – commoditised inputs, multiple suppliers for most equipment.' : sector === 'Auto Parts' ? 'Moderate – raw materials (steel, rubber) subject to global prices.' : 'Moderate.'}<br>
+    <strong>Buyer Power:</strong> ${sector === 'Mining' ? 'High for iron ore (China concentration), moderate for copper.' : sector === 'Technology' ? 'Moderate – many choices for consumers, enterprise stickier.' : 'Moderate.'}<br>
+    <strong>Threat of Substitutes:</strong> ${sector === 'Payments' ? 'Moderate – BNPL, crypto, but Visa/Mastercard entrenched.' : sector === 'Coal Mining' ? 'High – renewables, gas displacing thermal coal.' : 'Moderate.'}
+  </div>`;
+
+  return `<div class="ai-content"><h3>📊 SWOT Analysis</h3>${swotHtml}</div>
+          <div class="ai-content"><h3>🌍 PESTLE Analysis</h3>${pestleHtml}</div>
+          <div class="ai-content"><h3>🏭 Porter's Five Forces</h3>${portersHtml}</div>`;
 }
 
-function managementBehavior(sym, st, m) {
-  // Analyse capital allocation, dividend policy, debt usage, Buffett test, inferred rationality
+// ========== MANAGEMENT & DECISION MAKING ==========
+
+function managementAnalysis(sym, st, m) {
   let html = `<div style="margin:8px 0;">`;
   const buff = m.buff;
   const payout = m.av.divPayout;
-  const debtTrend = m.av.debtToEquity;
-  const cashToAsset = m.cashToAsset;
+  const debt = m.av.debtToEquity;
+  const cash = m.cashToAsset;
   const epsGrowth = m.cg.eps;
   const revGrowth = m.cg.rev;
 
-  html += `<p><strong>Capital allocation philosophy:</strong> `;
-  if (buff > 100) html += `The Buffett $1 test score of ${fmtPct(buff)} indicates management creates significant value from retained earnings – a hallmark of rational capital allocation. `;
-  else if (buff > 50) html += `The Buffett $1 test score of ${fmtPct(buff)} shows moderate value creation from retained earnings. `;
-  else if (buff !== null) html += `The Buffett $1 test score of ${fmtPct(buff)} suggests retained earnings are not generating adequate returns – a potential red flag. `;
+  // Capital allocation
+  html += `<p><strong>Capital Allocation Philosophy:</strong><br>`;
+  if (buff > 100) html += `✓ Buffett $1 test score of ${fmtPct(buff)} – management creates significant value from retained earnings. This is a hallmark of rational capital allocation. `;
+  else if (buff > 50) html += `~ Buffett $1 test score of ${fmtPct(buff)} – moderate value creation from retained earnings. `;
+  else if (buff !== null) html += `⚠ Buffett $1 test score of ${fmtPct(buff)} – retained earnings are not generating adequate returns, a potential red flag. `;
 
   if (payout > 70) html += `Dividend payout ratio of ${fmtPct(payout)} is high, rewarding shareholders but limiting reinvestment. `;
   else if (payout > 30) html += `Dividend payout ratio of ${fmtPct(payout)} balances shareholder returns with internal investment. `;
-  else if (payout !== null) html += `Low dividend payout (${fmtPct(payout)}) indicates focus on reinvestment – good if returns are high. `;
+  else if (payout !== null) html += `Low dividend payout (${fmtPct(payout)}) indicates focus on reinvestment – beneficial if returns are high. `;
 
-  if (debtTrend > 80) html += `High debt-to-equity (${fmtPct(debtTrend)}) raises financial risk; management should prioritise deleveraging. `;
-  else if (debtTrend < 30) html += `Conservative leverage (D/E ${fmtPct(debtTrend)}) provides financial flexibility. `;
+  if (debt > 80) html += `High debt-to-equity (${fmtPct(debt)}) raises financial risk; management should prioritise deleveraging. `;
+  else if (debt < 30) html += `Conservative leverage (D/E ${fmtPct(debt)}) provides financial flexibility. `;
 
-  if (cashToAsset > 20) html += `Strong cash position (${fmtPct(cashToAsset)} of assets) allows for opportunistic M&A, buybacks, or special dividends. `;
+  if (cash > 20) html += `Strong cash position (${fmtPct(cash)} of assets) enables opportunistic M&A, buybacks, or special dividends. `;
+  html += `</p>`;
 
-  html += `</p><p><strong>Decision‑making style:</strong> Based on financial trends, management appears ${(epsGrowth > revGrowth) ? 'focused on operational efficiency (EPS growing faster than revenue)' : (revGrowth > epsGrowth) ? 'prioritising top‑line expansion, possibly sacrificing near‑term margins' : 'balanced between growth and profitability'}. `;
-  html += `The company's capital allocation ${(buff > 100 && debtTrend < 50) ? 'is disciplined and shareholder‑friendly.' : (buff < 0) ? 'needs scrutiny – value destruction is evident.' : 'shows room for improvement.'}</p>`;
-  html += `</div>`;
+  // Strategic decision-making (sector-specific M&A, initiatives)
+  html += `<p><strong>Strategic Decisions & M&A Activity:</strong><br>`;
+  if (sym === 'BHP') {
+    html += `• FY2025: Record copper production (2Mt, highest in 17 years) and disciplined capital allocation despite 26% profit decline due to commodity prices.<br>`;
+    html += `• Jansen potash project on track for 2026 first production – new future-facing commodity.<br>`;
+    html += `• Abandoned Anglo American bid (2025) – capital discipline prioritised over empire-building.<br>`;
+    html += `• San Manuel property sale to Faraday Copper (expected Q3 2026) – portfolio optimisation.<br>`;
+  } else if (sym === 'WDS') {
+    html += `• Louisiana LNG FID reached 2025 with Stonepeak partnership – reduces capital exposure.<br>`;
+    html += `• $2.35B acquisition of OCI Clean Ammonia (Beaumont, Texas) – pivot to low-carbon fuels.<br>`;
+    html += `• Sangomar field (Senegal) delivering first oil – diversifying production base.<br>`;
+    html += `• Achieved 15% reduction in Scope 1&2 emissions vs baseline – meeting sustainability targets.<br>`;
+  } else if (sym === 'CBA') {
+    html += `• Completed core banking migration to AWS (Q3 2025) – largest system-of-record migration in 114-year history.<br>`;
+    html += `• OpenAI partnership – first Australian banking partner for ChatGPT Enterprise (scam detection, AI upskilling).<br>`;
+    html += `• Appointed Chief AI Officer (Ranil Boteju from Lloyds) – strategic AI push.<br>`;
+    html += `• Acquired eCommerce platform IPSI (2026) – expanding business banking capabilities.<br>`;
+  } else if (sym === 'ADRO') {
+    html += `• Strategic pivot from thermal coal to metcoal + aluminum + renewable energy (rebranded Alamtri Resources).<br>`;
+    html += `• Aluminum smelter construction in North Kalimantan – initial 100kt production 2025, full 500kt by 2026/27.<br>`;
+    html += `• PLTA Mentarang hydropower development – 880MW, powering smelter and grid.<br>`;
+  } else if (sym === 'SMSM') {
+    html += `• Export growth strategy – 45+ countries, 35-40% USD revenue, $3.44T exports in 2025 (+).<br>`;
+    html += `• EV thermal management R&D – new product category for electric vehicles.<br>`;
+    html += `• Maintained debt-free balance sheet – conservative financial management.<br>`;
+  } else if (sym === 'UNTR') {
+    html += `• Komatsu equipment sales target 4,500 units 2025 – despite challenging coal market.<br>`;
+    html += `• PAMA overburden removal 829M bcm H1 2025 – still Indonesia's largest contractor.<br>`;
+    html += `• Gold production from Martabe ~250koz/yr – diversification from coal cycle.<br>`;
+    html += `• Investing in renewable energy (solar, mini-hydro) – energy transition positioning.<br>`;
+  } else {
+    html += `• Management focuses on operational efficiency and shareholder returns.<br>`;
+    html += `• Capital allocation decisions reflect prudent balance sheet management.<br>`;
+  }
+  html += `</p>`;
+
+  // Earnings trend analysis
+  html += `<p><strong>Decision-Making Style:</strong><br>`;
+  if (epsGrowth > revGrowth) {
+    html += `Management appears focused on operational efficiency (EPS growing faster than revenue). `;
+  } else if (revGrowth > epsGrowth) {
+    html += `Management appears prioritising top-line expansion, possibly sacrificing near-term margins. `;
+  } else {
+    html += `Management maintains balanced approach between growth and profitability. `;
+  }
+  if (buff > 100 && debt < 50) {
+    html += `Overall capital allocation is disciplined and shareholder-friendly.`;
+  } else if (buff !== null && buff < 0) {
+    html += `Capital allocation needs scrutiny – value destruction is evident.`;
+  } else {
+    html += `Capital allocation shows room for improvement but no major red flags.`;
+  }
+  html += `</p></div>`;
   return html;
 }
+
+// ========== FUTURE OUTLOOK ==========
 
 function futureOutlook(sym, st, m) {
   const revTrend = m.cg.rev > 5 ? 'strongly growing' : m.cg.rev > 0 ? 'modestly growing' : m.cg.rev < -5 ? 'declining' : 'stable';
   const npTrend = m.cg.np > 5 ? 'strongly growing' : m.cg.np > 0 ? 'modestly growing' : m.cg.np < -5 ? 'declining' : 'stable';
-  let outlookText = `Over the past ${YEARS.length-1} years, revenue has been ${revTrend} (${fmtPct(m.cg.rev)} CAGR) and net profit ${npTrend} (${fmtPct(m.cg.np)} CAGR). `;
+  let outlookText = `<p>Over the past ${YEARS.length-1} years, revenue has been ${revTrend} (${fmtPct(m.cg.rev)} CAGR) and net profit ${npTrend} (${fmtPct(m.cg.np)} CAGR). `;
+
   if (m.av.npm > 20) outlookText += `The business enjoys high profitability with an average net margin of ${fmtPct(m.av.npm)}. `;
   else if (m.av.npm > 10) outlookText += `The business maintains solid profitability (avg net margin ${fmtPct(m.av.npm)}). `;
   else outlookText += `Margins are thin (avg net margin ${fmtPct(m.av.npm)}), requiring focus on cost management. `;
+
   if (m.av.roe > 20) outlookText += `With ROE at ${fmtPct(m.av.roe)}, management has been effective at generating returns. `;
   else if (m.av.roe < 10) outlookText += `ROE of ${fmtPct(m.av.roe)} suggests capital efficiency needs improvement. `;
+
   if (m.av.debtToEquity > 100) outlookText += `High leverage (D/E ${fmtPct(m.av.debtToEquity)}) increases financial risk. `;
   else if (m.av.debtToEquity < 30) outlookText += `The balance sheet is conservatively funded (D/E ${fmtPct(m.av.debtToEquity)}). `;
+
   if (m.buff > 100) outlookText += `The company passes the Buffett $1 test (${fmtPct(m.buff)}), meaning retained earnings create value. `;
   else if (m.buff !== null) outlookText += `Retained earnings generate some value (${fmtPct(m.buff)}), but room for improvement. `;
+
+  // Company-specific outlook based on recent strategic moves
+  outlookText += `<br><br><strong>Company-Specific Outlook:</strong><br>`;
+  if (sym === 'BHP') {
+    outlookText += `• Jansen potash first production in 2026 – new revenue stream in agriculture.<br>`;
+    outlookText += `• Copper demand from electrification and EV – BHP's record copper production well-positioned.<br>`;
+    outlookText += `• China stimulus could boost iron ore demand, but long-term steel demand moderation expected.<br>`;
+  } else if (sym === 'WDS') {
+    outlookText += `• Louisiana LNG on track for 2026-27 production – expanding US Gulf Coast presence.<br>`;
+    outlookText += `• Beaumont ammonia plant operational (Dec 2025) – low-carbon ammonia production from 2026/27.<br>`;
+    outlookText += `• Energy transition – LNG as transition fuel, ammonia as hydrogen carrier.<br>`;
+  } else if (sym === 'CBA') {
+    outlookText += `• AWS cloud migration complete – faster innovation, AI integration.<br>`;
+    outlookText += `• OpenAI partnership driving AI-powered banking products.<br>`;
+    outlookText += `• Interest rate cuts expected 2026 – NIM compression risk but mortgage demand boost.<br>`;
+  } else if (sym === 'ADRO') {
+    outlookText += `• Aluminum smelter ramping to 500kt by 2026/27 – new high-margin revenue.<br>`;
+    outlookText += `• Hydropower plant (PLTA Mentarang) – low-cost energy for smelter and grid.<br>`;
+    outlookText += `• Metcoal demand from India growing 8-10% pa – ADMR well-positioned.<br>`;
+  } else if (sym === 'SMSM') {
+    outlookText += `• Export growth continues – 45+ countries, 35-40% USD revenue.<br>`;
+    outlookText += `• EV thermal management products – new growth category as Indonesia electrifies.<br>`;
+    outlookText += `• Indonesian auto VIO still low (9% penetration) – long secular growth.<br>`;
+  } else if (sym === 'UNTR') {
+    outlookText += `• Battery minerals (nickel, copper) service contracts – energy transition demand.<br>`;
+    outlookText += `• Gold price ~$3,000/oz supports Martabe mine revenue.<br>`;
+    outlookText += `• Renewable energy investments (solar, hydro) – new recurring revenue streams.<br>`;
+  }
+
   const sector = CO_INFO[sym]?.sector || 'General';
   let sectorOutlook = '';
   if (sector === 'Mining') sectorOutlook = 'Commodity demand from energy transition and infrastructure may support prices, but ESG pressures remain.';
   else if (sector === 'Banking') sectorOutlook = 'Digital transformation and interest rate trends will drive profitability; credit quality is key.';
   else if (sector === 'Technology') sectorOutlook = 'Innovation cycles and AI adoption present growth catalysts, but competition and regulation are headwinds.';
   else sectorOutlook = 'The company’s future will depend on its ability to adapt to industry trends and execute strategy.';
-  outlookText += `<br><br><strong>Industry context:</strong> ${sectorOutlook}`;
-  return `<p>${outlookText}</p>`;
+
+  outlookText += `<br><br><strong>Industry Context:</strong> ${sectorOutlook}</p>`;
+  return outlookText;
 }
+
+// ========== TORNADO CHART ==========
 
 function generateCustomTornado(sym, st, m) {
   const sector = CO_INFO[sym]?.sector || 'Technology';
@@ -1080,48 +504,66 @@ function renderTornadoChart(variables) {
   </div>`;
 }
 
+// ========== BOTTOM LINE (integrated synthesis) ==========
+
 function bottomLine(sym, st, m, tornadoVars, mgmtHtml) {
   const sorted = [...tornadoVars].sort((a,b) => (Math.abs(b.high - b.low)) - (Math.abs(a.high - a.low)));
   const topRisk = sorted[0];
   const topOpportunity = sorted.find(v => v.high > Math.abs(v.low)) || sorted[0];
-  let verdict = '', reason = '';
+
+  let verdict = '';
+  let reason = '';
+
   if (m.buff > 100 && m.cg.rev > 5 && m.av.roe > 15) {
-    verdict = 'High‑quality compounder';
-    reason = `Passes the Buffett test (${fmtPct(m.buff)}), strong growth, high returns – attractive for long‑term investors. Management's rational capital allocation reinforces this view.`;
+    verdict = 'High‑quality compounder – suitable for long‑term core portfolio position.';
+    reason = `Passes the Buffett test (${fmtPct(m.buff)}), strong growth (${fmtPct(m.cg.rev)} revenue CAGR), high returns (ROE ${fmtPct(m.av.roe)}). Management's rational capital allocation reinforces this view. `;
   } else if (m.buff > 80 && m.cg.rev > 0 && m.av.roe > 10) {
-    verdict = 'Solid, stable business';
-    reason = `Consistent performance and capital allocation – a core holding candidate. Management decisions appear prudent.`;
+    verdict = 'Solid, stable business – attractive for dividend/income investors.';
+    reason = `Consistent performance (${fmtPct(m.cg.rev)} revenue CAGR) and capital allocation – a core holding candidate. `;
   } else if (m.cg.rev < 0 && m.av.roe < 10) {
-    verdict = 'Challenged business';
-    reason = `Declining revenue and low returns – requires turnaround or valuation margin of safety. Management's capital allocation needs scrutiny.`;
+    verdict = 'Challenged business – requires deep value or turnaround thesis.';
+    reason = `Declining revenue (${fmtPct(m.cg.rev)} CAGR) and low returns (ROE ${fmtPct(m.av.roe)}) – requires turnaround or valuation margin of safety. Management's capital allocation needs scrutiny. `;
   } else {
-    verdict = 'Mixed signals';
-    reason = `Strengths and weaknesses balanced; further analysis needed before committing. Watch management's response to the key sensitivities.`;
+    verdict = 'Mixed signals – selective entry points required.';
+    reason = `Strengths and weaknesses balanced; further analysis needed before committing. Watch management's response to the key sensitivities. `;
   }
+
+  // Integrate management insights
+  if (mgmtHtml.includes('disciplined') || mgmtHtml.includes('rational')) {
+    reason += ` Management appears disciplined in capital allocation. `;
+  } else if (mgmtHtml.includes('scrutiny') || mgmtHtml.includes('red flag')) {
+    reason += ` Management's capital allocation requires ongoing scrutiny. `;
+  }
+
+  // Link to tornado sensitivities
   let tornadoLink = `<p style="margin-top:12px;font-size:12px;"><strong>Key sensitivities from tornado chart:</strong><br>
     The most significant downside risk is <strong>${topRisk.name}</strong> (${fmtPct(topRisk.low)} impact).<br>
     The largest upside potential comes from <strong>${topOpportunity.name}</strong> (${fmtPct(topOpportunity.high)} impact).<br>
     A long‑term investor should monitor these factors and how management navigates them.
   </p>`;
+
   return `<div style="background:var(--surf);border-left:3px solid var(--cyan);padding:12px 16px;margin:8px 0;">
     <strong style="font-size:14px;">${verdict}</strong>
     <p style="margin-top:8px;font-size:12px;">${reason}</p>
     ${tornadoLink}
-    <p style="margin-top:12px;font-size:11px;color:var(--muted);">Key watchpoints: revenue growth, margin stability, capital allocation, industry dynamics.</p>
+    <p style="margin-top:12px;font-size:11px;color:var(--muted);">Key watchpoints: revenue growth, margin stability, capital allocation, industry dynamics, and management's response to the above sensitivities.</p>
   </div>`;
 }
+
+// ========== MAIN INSIGHTS TAB ==========
 
 function tabInsights(sym, st) {
   const m = calcM(sym);
   if (!m) return '<div class="state-box"><p>No financial data available for ' + sym + '</p></div>';
-  const info = CO_INFO[sym] || { sector: st.exchange, full: st.name, hq: '—', founded: '—', moat: 'See financial data.' };
-  const bmcHtml = businessModelCanvas(sym, st, m, info);
-  const swotHtml = generateSWOT(sym, st, m);
-  const mgmtHtml = managementBehavior(sym, st, m);
+
+  const bmcHtml = businessModelCanvas(sym, st, m);
+  const strategicHtml = strategicAnalysis(sym, st, m);
+  const mgmtHtml = managementAnalysis(sym, st, m);
   const futureHtml = futureOutlook(sym, st, m);
   const tornadoVars = generateCustomTornado(sym, st, m);
   const tornadoHtml = renderTornadoChart(tornadoVars);
   const bottomHtml = bottomLine(sym, st, m, tornadoVars, mgmtHtml);
+
   return `<div class="ai-panel">
     <div style="margin-bottom:20px;">
       <div style="font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
@@ -1129,16 +571,18 @@ function tabInsights(sym, st) {
         <span style="font-size:11px;font-weight:normal;color:var(--muted);">${sym} · ${st.exchange} · ${st.currency}</span>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:4px;">
-        Based on annual reports & filings (${YEARS[0]}–${YEARS[YEARS.length-2]})
+        Based on annual reports, market filings & strategic news (${YEARS[0]}–${YEARS[YEARS.length-2]})
       </div>
     </div>
+
     <div class="ai-content"><h2>🏢 Business Model Canvas</h2>${bmcHtml}</div>
-    <div class="ai-content"><h2>📊 SWOT Analysis</h2>${swotHtml}</div>
+    ${strategicHtml}
     <div class="ai-content"><h2>🧠 Management & Decision Making</h2>${mgmtHtml}</div>
     <div class="ai-content"><h2>🌪️ Sensitivity Analysis – Net Profit Impact</h2><p style="font-size:11px;color:var(--muted);">Estimated % change in net profit under different scenarios. Based on company‑specific risks.</p>${tornadoHtml}</div>
     <div class="ai-content"><h2>🔮 Future Outlook</h2>${futureHtml}</div>
     <div class="ai-content"><h2>🎯 The Bottom Line</h2>${bottomHtml}</div>
-    <div class="ai-cache-note">📚 Data sources: IDX/ASX/NYSE filings · Annual Reports · Yahoo Finance · StockAnalysis.com · IDNFinancials · Bloomberg · AFR</div>
+
+    <div class="ai-cache-note">📚 Data sources: IDX/ASX/NYSE filings · Annual Reports · Yahoo Finance · StockAnalysis.com · IDNFinancials · Bloomberg · AFR · Company strategy disclosures</div>
   </div>`;
 }
 
@@ -1192,7 +636,7 @@ function submitAddStock(){const f=validateAddForm();if(!f)return; const sd={name
 function submitAutoFetch(){const f=validateAddForm();if(!f)return; const sd={name:f.name,exchange:f.exch,currency:f.cur}; S.custom[f.sym]=sd;S.stocks[f.sym]=sd;S.sel=f.sym;S.tab='data'; hideAdd();render(); fetchStock(f.sym);}
 function submitManualShell(){const f=validateAddForm();if(!f)return; const sd={name:f.name,exchange:f.exch,currency:f.cur}; S.custom[f.sym]=sd;S.stocks[f.sym]=sd;S.sel=f.sym;S.tab='data'; hideAdd(); showManual(f.sym);}
 let MA={sym:'',vals:{}};
-function showManual(sym){const st=S.stocks[sym]; MA.sym=sym; MA.vals=Object.fromEntries(MKEYS.map(m=>[m.k, S.data[sym]?[...S.data[sym][m.k]]:Array(N_YEARS).fill('')])); const yH=YEARS.map(y=>`<th class="tc" style="min-width:60px">${y}</th>`).join(''); const rows=MKEYS.map((r,i)=>{const cells=YEARS.map((_,j)=>`<td style="padding:2px 2px"><input type="number" value="${isOK(MA.vals[r.k][j])?MA.vals[r.k][j]:''}" oninput="MA.vals['${r.k}'][${j}]=this.value" style="width:58px;background:var(--bg);border:1px solid var(--bdr);border-radius:5px;padding:3px 5px;font-size:11px;color:var(--txt);text-align:center"/></td>`).join(''); return`<tr class="${i%2?'ev':''}"><td class="lbl" style="padding:5px 10px;font-size:11px">${r.l}</td>${cells}</td>`; }).join(''); document.getElementById('addBody').innerHTML=`<p style="font-size:12px;color:var(--muted2);margin-bottom:12px"><strong style="color:var(--txt)">${sym} — ${st.name}</strong> · ${st.exchange} · ${st.currency}<br>Enter data for ${YEARS[0]}–${YEARS[YEARS.length-1]}. Leave blank for unavailable years.</p><div class="tw"><table><thead><tr><th style="min-width:150px">Metric</th>${yH}</tr></thead><tbody>${rows}</tbody></table></div><div id="aErr" class="err" style="display:none"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-ghost" onclick="hideAdd()">Cancel</button><button class="btn btn-cyan" onclick="submitManualData()">✓ Save Data</button></div>`; document.getElementById('addModal').style.display='flex';}
+function showManual(sym){const st=S.stocks[sym]; MA.sym=sym; MA.vals=Object.fromEntries(MKEYS.map(m=>[m.k, S.data[sym]?[...S.data[sym][m.k]]:Array(N_YEARS).fill('')])); const yH=YEARS.map(y=>`<th class="tc" style="min-width:60px">${y}</th>`).join(''); const rows=MKEYS.map((r,i)=>{const cells=YEARS.map((_,j)=>`<td style="padding:2px 2px"><input type="number" value="${isOK(MA.vals[r.k][j])?MA.vals[r.k][j]:''}" oninput="MA.vals['${r.k}'][${j}]=this.value" style="width:58px;background:var(--bg);border:1px solid var(--bdr);border-radius:5px;padding:3px 5px;font-size:11px;color:var(--txt);text-align:center"/></td>`).join(''); return`<tr class="${i%2?'ev':''}"><td class="lbl" style="padding:5px 10px;font-size:11px">${r.l}</td>${cells}</tr>`; }).join(''); document.getElementById('addBody').innerHTML=`<p style="font-size:12px;color:var(--muted2);margin-bottom:12px"><strong style="color:var(--txt)">${sym} — ${st.name}</strong> · ${st.exchange} · ${st.currency}<br>Enter data for ${YEARS[0]}–${YEARS[YEARS.length-1]}. Leave blank for unavailable years.</p><div class="tw"><table><thead><tr><th style="min-width:150px">Metric</th>${yH}</tr></thead><tbody>${rows}</tbody></table></div><div id="aErr" class="err" style="display:none"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-ghost" onclick="hideAdd()">Cancel</button><button class="btn btn-cyan" onclick="submitManualData()">✓ Save Data</button></div>`; document.getElementById('addModal').style.display='flex';}
 function submitManualData(){const sym=MA.sym; const parsed={}; for(const r of MKEYS){parsed[r.k]=MA.vals[r.k].map(v=>v===''||v===null||v===undefined?null:parseFloat(v)); if(parsed[r.k].some(v=>v!==null&&isNaN(v))){showAErr(`Invalid number in "${r.l}"`);return;}} S.data[sym]={...parsed, fetchedAt:Date.now(), source:'user-edited'}; S.status[sym]='ok'; saveLS();hideAdd();render(); showToast(`✓ ${sym} data saved`,'green');}
 function delStock(k){const isBuiltIn=!!BASE_STOCKS[k]; const isConfigStock=!S.custom[k]&&!isBuiltIn; let msg; if(isBuiltIn){msg=`Remove ${k} from the dashboard view?\n\nNote: it will reappear on next page refresh since it's built-in. To permanently remove it you'd need to edit fetch_data.py.`;} else if(isConfigStock){msg=`Remove ${k} from the dashboard?\n\nIMPORTANT: Also remove it from stocks_config.json on GitHub, then run the workflow — otherwise it will reappear next time the page loads from data.json.`;} else {msg=`Remove ${k} from the dashboard?`;} if(!confirm(msg)) return; if(!S.deleted) S.deleted={}; S.deleted[k]=true; delete S.custom[k]; delete S.stocks[k]; delete S.data[k]; delete S.status[k]; if(S.sel===k) S.sel = Object.keys(S.stocks)[0] || 'BHP'; saveLS(); render(); showToast(`${k} removed`,'cyan');}
 
@@ -1295,38 +739,6 @@ boot();
 
 async function fetchStock(symbol){ /* placeholder - not needed for core functionality */ }
 function fetchAll(){ showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan'); }
-
-// Helper functions for formatting
-function fmtNum(v,d=2){return isOK(v)?Number(v).toFixed(d):'N/A';}
-function fmtPct(v,d=1){return isOK(v)?Number(v).toFixed(d)+'%':'N/A';}
-
-// CO_INFO and SECTOR_RISKS must be defined (they were in the previous code but not in this snippet; adding minimal versions)
-const CO_INFO = {
-  BHP: { sector: "Mining" }, ADRO: { sector: "Coal Mining" }, ITMG: { sector: "Coal Mining" }, SMSM: { sector: "Auto Parts" }, UNTR: { sector: "Heavy Equipment & Mining" },
-  BBRI: { sector: "Banking" }, BTPS: { sector: "Islamic Banking" }, POWR: { sector: "Power & Utilities" }, MPMX: { sector: "Automotive" }, DMAS: { sector: "Industrial Real Estate" },
-  SPTO: { sector: "Building Materials" }, TSM: { sector: "Semiconductors" }, V: { sector: "Payments" }, MA: { sector: "Payments" }, "PBR-A": { sector: "Oil & Gas" },
-  MSFT: { sector: "Technology" }, AMZN: { sector: "E-Commerce & Cloud" }, AAPL: { sector: "Technology" }, META: { sector: "Social Media" }, NVDA: { sector: "Semiconductors" },
-  GOOG: { sector: "Technology" }, BKNG: { sector: "Online Travel" }, WDS: { sector: "Oil & Gas" }, CBA: { sector: "Banking" }
-};
-const SECTOR_RISKS = {
-  "Mining": [{name:"Commodity Price",low:-40,high:30},{name:"Production Volume",low:-20,high:15},{name:"AUD/USD Rate",low:-15,high:10},{name:"Operating Costs",low:-18,high:5},{name:"Regulatory/ESG",low:-12,high:3}],
-  "Oil & Gas": [{name:"Oil/Gas Price",low:-45,high:35},{name:"Production Output",low:-20,high:15},{name:"LNG Contract Terms",low:-12,high:10},{name:"Carbon Policy",low:-20,high:2},{name:"Reserve Life",low:-15,high:8}],
-  "Banking": [{name:"Net Interest Margin",low:-25,high:15},{name:"Loan Loss Provisions",low:-30,high:10},{name:"Credit Growth",low:-15,high:20},{name:"Regulatory Capital",low:-20,high:5},{name:"Digital Competition",low:-18,high:8}],
-  "Islamic Banking":[{name:"Financing Growth",low:-20,high:25},{name:"Credit Quality (NPF)",low:-35,high:8},{name:"Rural Economy",low:-25,high:20},{name:"Regulatory Changes",low:-15,high:5},{name:"Competition",low:-15,high:5}],
-  "Coal Mining": [{name:"Coal Price",low:-50,high:40},{name:"Production Volume",low:-15,high:10},{name:"Energy Transition",low:-25,high:5},{name:"USD/IDR Rate",low:-15,high:10},{name:"Logistics Costs",low:-12,high:3}],
-  "Auto Parts": [{name:"Auto Industry Demand",low:-25,high:20},{name:"Raw Material Costs",low:-20,high:8},{name:"Export Markets",low:-15,high:15},{name:"EV Transition Risk",low:-20,high:5},{name:"IDR/USD Rate",low:-12,high:10}],
-  "Heavy Equipment & Mining":[{name:"Coal/Mining Activity",low:-30,high:25},{name:"Equipment Demand",low:-20,high:18},{name:"Commodity Prices",low:-25,high:20},{name:"IDR/USD Rate",low:-12,high:8},{name:"Competitor Pricing",low:-15,high:5}],
-  "Automotive": [{name:"Motorcycle Demand",low:-25,high:20},{name:"Financing Revenue",low:-20,high:15},{name:"Interest Rates",low:-18,high:8},{name:"Competition",low:-20,high:10},{name:"IDR Stability",low:-10,high:5}],
-  "Power & Utilities":[{name:"Industrial Tenant Demand",low:-20,high:15},{name:"Fuel Costs",low:-15,high:5},{name:"Tariff Policy",low:-25,high:10},{name:"New Market Entry",low:-12,high:5},{name:"USD/IDR Rate",low:-10,high:5}],
-  "Industrial Real Estate":[{name:"Industrial Land Demand",low:-30,high:25},{name:"FDI Inflows",low:-25,high:30},{name:"IDR/USD Rate",low:-15,high:10},{name:"Infrastructure",low:-10,high:20},{name:"Competing Estates",low:-15,high:5}],
-  "Building Materials":[{name:"Property Construction",low:-25,high:20},{name:"Raw Material Costs",low:-18,high:8},{name:"Import Competition",low:-15,high:5},{name:"Urbanization Rate",low:-10,high:15},{name:"Currency",low:-12,high:8}],
-  "Semiconductors":[{name:"AI/Data Centre Demand",low:-40,high:50},{name:"Geopolitical Risk",low:-60,high:10},{name:"Competition",low:-25,high:15},{name:"CapEx Execution",low:-20,high:8},{name:"Cyclical Downturn",low:-35,high:15}],
-  "Payments": [{name:"Payment Volume Growth",low:-15,high:20},{name:"Fintech Disruption",low:-20,high:5},{name:"Regulatory/Interchange",low:-25,high:3},{name:"Consumer Spending",low:-20,high:15},{name:"Cross-Border Volume",low:-15,high:18}],
-  "Technology": [{name:"Cloud Revenue Growth",low:-20,high:30},{name:"AI Monetisation",low:-15,high:40},{name:"Regulatory/Antitrust",low:-25,high:5},{name:"Competition",low:-20,high:15},{name:"CapEx Cycle",low:-15,high:10}],
-  "E-Commerce & Cloud":[{name:"AWS Growth Rate",low:-20,high:25},{name:"Retail Margin",low:-15,high:10},{name:"Advertising Revenue",low:-25,high:20},{name:"Regulatory Antitrust",low:-20,high:5},{name:"Cloud Competition",low:-20,high:10}],
-  "Social Media": [{name:"Advertising Revenue",low:-30,high:25},{name:"Privacy Regulation",low:-25,high:5},{name:"User Engagement",low:-20,high:15},{name:"AI CapEx Burden",low:-18,high:20},{name:"Competition",low:-20,high:10}],
-  "Online Travel": [{name:"Travel Demand",low:-40,high:30},{name:"Hotel/Airline Supply",low:-15,high:15},{name:"Google Competition",low:-20,high:5},{name:"Recession Risk",low:-30,high:10},{name:"AI Booking Disruption",low:-15,high:10}]
-};
 </script>
 </body>
 </html>
