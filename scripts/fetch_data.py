@@ -225,9 +225,9 @@ def current_year_row(tk, yr, div, fx, epsfx):
     ann = {"method":"none","label":None,"quarters":0,"asOf":None}
     row = {f:None for f in FIELDS}
     try:
-        ai=tk.financials; ab=tk.balance_sheet; ac=tk.cashflow
+        ai=tk.financials; ab=tk.balance_sheet; cf=tk.cashflow
         if ai is not None and not ai.empty and col_yr(ai,yr) is not None:
-            r = annual_row(ai, ab, ac, yr, div, fx, epsfx)
+            r = annual_row(ai, ab, cf, yr, div, fx, epsfx)
             r.pop("_sh",None)
             ic = col_yr(ai,yr)
             return r, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
@@ -304,7 +304,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
     return None, {"method":"none","label":None}
 
-def build_arrays(yd, fb):
+def build_arrays(yd, fb, sym):
     out={}
     for f in FIELDS:
         arr=[]
@@ -471,7 +471,7 @@ def main():
         yd, ann = fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
         # Use PRELOADED as fallback for missing data
         fb = PRELOADED.get(sym, {})
-        arrs = build_arrays(yd, fb)
+        arrs = build_arrays(yd, fb, sym)
         src = "yfinance" if yd else "fallback"
         if yd:
             ok += 1
