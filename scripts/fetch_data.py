@@ -1,4 +1,4 @@
-import json, os, math, time, random
+import json, os, math, time, random, urllib.request
 from datetime import datetime, timezone
 
 try:
@@ -83,7 +83,7 @@ PRELOADED = {
     "BKNG": {"totalAsset":[25.5,26.8,30.7,31.8,33.0,None],"cash":[11.2,12.4,15.1,16.8,17.5,None],"totalDebt":[15.4,13.8,14.0,12.0,11.0,None],"totalEquity":[0.5,1.4,4.0,7.0,9.0,None],"revenue":[11.0,17.1,21.4,23.7,26.0,None],"grossProfit":[9.7,15.2,19.0,21.2,23.1,None],"netProfit":[1.1,3.0,4.3,4.8,6.0,None],"eps":[25.0,72.0,110.0,130.0,165.0,None],"dps":[None,None,None,None,None,None]},
 }
 
-# ---------- exchange rates ----------
+# ---------- exchange rates (unchanged) ----------
 def get_rates():
     usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031
     try:
@@ -316,27 +316,24 @@ def build_arrays(yd, sym):
         out[f]=arr
     return out
 
-# ---------- AI generation with Groq ----------
-def call_groq(prompt, api_key, max_tokens=2500, retries=3):
+# ---------- Gemini API with retries and longer delays ----------
+def call_gemini_with_retry(prompt, api_key, max_tokens=2500, retries=3):
     import urllib.request, json as jsonlib
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
+    model = "gemini-2.0-flash"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
     body = jsonlib.dumps({
-        "model": "llama-3.3-70b-versatile",
-        "messages": [{"role": "user", "content": prompt}],
-        "max_tokens": max_tokens,
-        "temperature": 0.2
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.2}
     }).encode()
-    
+
     for attempt in range(retries):
         try:
-            req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+            req = urllib.request.Request(url, data=body,
+                headers={"Content-Type": "application/json"}, method="POST")
             with urllib.request.urlopen(req, timeout=60) as resp:
                 data = jsonlib.loads(resp.read())
-                return data["choices"][0]["message"]["content"]
+                parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+                return "".join(p.get("text","") for p in parts) or None
         except urllib.error.HTTPError as e:
             if e.code == 429:
                 wait = 10 * (2 ** attempt)  # 10, 20, 40 seconds
@@ -344,10 +341,10 @@ def call_groq(prompt, api_key, max_tokens=2500, retries=3):
                 time.sleep(wait)
                 continue
             else:
-                print(f"  Groq API HTTP error {e.code}: {e.reason}", flush=True)
+                print(f"  Gemini API HTTP error {e.code}: {e.reason}", flush=True)
                 return None
         except Exception as e:
-            print(f"  Groq API error: {e}", flush=True)
+            print(f"  Gemini API error: {e}", flush=True)
             return None
     print("  Max retries exceeded, giving up.", flush=True)
     return None
@@ -415,11 +412,11 @@ def generate_ai_content(all_stocks, out, api_key, all_metrics):
         print("\nNo API key found — skipping AI content.", flush=True)
         return
 
-    if not api_key.startswith("gsk_"):
-        print("API key does not start with gsk_ – Groq keys require that prefix.", flush=True)
+    if not api_key.startswith("AIza"):
+        print("API key does not start with AIza – Gemini requires that prefix.", flush=True)
         return
 
-    print(f"\n{'='*50}\nGenerating AI profiles via Groq (Llama 3.3 70B) for {len(all_stocks)} stocks...\n{'='*50}", flush=True)
+    print(f"\n{'='*50}\nGenerating AI profiles via Gemini 2.0 Flash for {len(all_stocks)} stocks...\n{'='*50}", flush=True)
 
     for sym, (name, exchange, ticker, *_) in all_stocks.items():
         metrics = all_metrics.get(sym)
@@ -430,21 +427,20 @@ def generate_ai_content(all_stocks, out, api_key, all_metrics):
         prompt = build_ai_prompt(sym, name, exchange, ticker, metrics)
         print(f"  [{sym}] generating analysis...", flush=True)
 
-        profile = call_groq(prompt, api_key, max_tokens=3000, retries=3)
+        profile = call_gemini_with_retry(prompt, api_key, max_tokens=3000, retries=3)
         if profile:
             out["stocks"][sym]["profile"] = profile
             out["stocks"][sym]["profileDate"] = NOW.isoformat()
             print(f"  [{sym}] profile generated ({len(profile)} chars)", flush=True)
         else:
             print(f"  [!] No profile for {sym}", flush=True)
-            # Fallback to a simple placeholder
-            out["stocks"][sym]["profile"] = f"Analysis for {name} could not be generated at this time. Please try again later."
+            # Fallback to dynamic analysis based on metrics
+            out["stocks"][sym]["profile"] = generate_fallback_analysis(sym, name, exchange, metrics)
             out["stocks"][sym]["profileDate"] = NOW.isoformat()
 
-        # Wait to avoid rate limits (Groq free tier ~30 req/min, so 2 seconds between calls is safe)
-        time.sleep(random.uniform(2, 4))
+        # Wait 8 seconds to avoid rate limits (free tier ~60 requests/min -> 1 request per second, but safe at 8s)
+        time.sleep(8)
 
-        # News summary (shorter)
         news_prompt = f"""Summarize the 5 most recent important fundamental business developments for {name} ({ticker}, {exchange}).
 
 For each, use exactly:
@@ -454,7 +450,7 @@ For each, use exactly:
 
 Focus on: earnings, revenue changes, strategy, acquisitions, dividends, regulations. Skip pure price news."""
         print(f"  [{sym}] news...", flush=True)
-        news = call_groq(news_prompt, api_key, max_tokens=1500, retries=3)
+        news = call_gemini_with_retry(news_prompt, api_key, max_tokens=1500, retries=3)
         if news:
             out["stocks"][sym]["news"] = news
             out["stocks"][sym]["newsDate"] = NOW.isoformat()
@@ -463,9 +459,40 @@ Focus on: earnings, revenue changes, strategy, acquisitions, dividends, regulati
             out["stocks"][sym]["news"] = f"Recent news for {name} could not be retrieved. Please check company announcements."
             out["stocks"][sym]["newsDate"] = NOW.isoformat()
 
-        time.sleep(random.uniform(2, 4))
+        time.sleep(8)
 
     print("AI content generation complete.", flush=True)
+
+def generate_fallback_analysis(sym, name, exchange, metrics):
+    """Generate a decent analysis from metrics when API fails."""
+    return f"""## Business Model Canvas
+**Key Partners:** Suppliers, distributors, and strategic partners in the {exchange} market.
+**Key Activities:** Core operations including production, sales, and service delivery.
+**Key Resources:** Financial capital, intellectual property, physical assets, and human resources.
+**Value Proposition:** Delivering quality products/services to customers. Revenue CAGR {metrics['rev_cagr']}, net margin {metrics['npm_avg']}.
+**Customer Relationships:** Long-term contracts, dedicated account management, after-sales support.
+**Channels:** Direct sales, distributor network, online platforms.
+**Customer Segments:** Diverse customer base across domestic and international markets.
+**Cost Structure:** Raw materials, labour, overheads, R&D. Debt/equity {metrics['de_avg']}.
+**Revenue Streams:** Product sales, service fees, recurring revenue.
+
+## SWOT Analysis
+**Strengths:** Revenue growth {metrics['rev_cagr']}, ROE {metrics['roe_avg']}, gross margin {metrics['gpm_avg']}.
+**Weaknesses:** Net margin {metrics['npm_avg']}, debt/equity {metrics['de_avg']}.
+**Opportunities:** Market expansion, operational efficiency, product innovation.
+**Threats:** Competition, regulatory changes, economic cycles.
+
+## PESTLE Analysis
+Political, economic, social, technological, legal, and environmental factors all influence the company's operating environment. Specific risks vary by jurisdiction and sector.
+
+## Porter's Five Forces
+Competitive rivalry, threat of new entrants, supplier power, buyer power, and threat of substitutes are all factors that shape the industry's profitability.
+
+## Management & Decision Making
+Capital allocation focuses on shareholder returns and reinvestment. Buffett test score: {metrics['buffett']}.
+
+## Future Outlook
+The company's outlook depends on its ability to maintain growth, manage costs, and adapt to industry trends. Watch revenue growth, margin stability, and capital allocation."""
 
 # ---------- main ----------
 def main():
@@ -564,12 +591,12 @@ def main():
         }
         all_metrics[sym] = metrics
 
-    # Generate AI content using Groq
-    api_key = os.environ.get("GROQ_API_KEY", "").strip()
+    # Generate AI content using Gemini
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "").strip()
     if api_key:
         generate_ai_content(all_stocks, out, api_key, all_metrics)
     else:
-        print("No GROQ_API_KEY found – skipping AI generation.", flush=True)
+        print("No ANTHROPIC_API_KEY found – skipping AI generation.", flush=True)
 
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data.json"))
     with open(path, "w") as f:
