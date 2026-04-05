@@ -25,6 +25,10 @@ FISCAL_YEAR_END = {
     "MSFT":6,"AMZN":12,"AAPL":9,"META":12,"NVDA":1,
     "GOOG":12,"BKNG":12,
     "PBR-A":12,
+    "NAB":9,      # National Australia Bank – FY ends 30 September
+    "CVX":12,    # Chevron
+    "AXP":12,    # American Express
+    "BAC":12,    # Bank of America
 }
 
 STOCKS = {
@@ -52,14 +56,20 @@ STOCKS = {
     "NVDA": ("NVIDIA Corporation",     "NASDAQ", "NVDA",    "B USD", 1e9,  "USD"),
     "GOOG": ("Alphabet Inc (Google)",  "NASDAQ", "GOOG",    "B USD", 1e9,  "USD"),
     "BKNG": ("Booking Holdings Inc",   "NASDAQ", "BKNG",    "B USD", 1e9,  "USD"),
+    # New stocks
+    "NAB":  ("National Australia Bank","ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
+    "CVX":  ("Chevron Corporation",    "NYSE",   "CVX",     "B USD", 1e9,  "USD"),
+    "AXP":  ("American Express",       "NYSE",   "AXP",     "B USD", 1e9,  "USD"),
+    "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
 }
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-# ---------- FALLBACK DATA (same as your HTML's PRELOADED) ----------
+# ---------- FALLBACK DATA (includes historical data for all 28 stocks) ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,None,None]},
     "WDS": {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,None,None]},
+    "CBA": {"totalAsset":[925.0,1012.0,1085.0,1150.0,None,None],"cash":[98.0,105.0,112.0,120.0,None,None],"totalDebt":[165.0,172.0,180.0,195.0,None,None],"totalEquity":[62.0,65.0,68.0,72.0,None,None],"revenue":[23.5,24.1,25.2,26.5,None,None],"grossProfit":[19.8,20.4,21.3,22.4,None,None],"netProfit":[9.6,10.2,10.5,10.7,None,None],"eps":[5.6,5.9,6.1,6.2,None,None],"dps":[3.5,3.7,3.9,4.1,None,None]},
     "BBRI": {"totalAsset":[1635,1865,1965,2073,None,None],"cash":[163,186,196,207,None,None],"totalDebt":[1380,1570,1650,1730,None,None],"totalEquity":[255,295,315,343,None,None],"revenue":[135,150,165,187,None,None],"grossProfit":[85,95,104,118,None,None],"netProfit":[25,43,51,60,None,None],"eps":[1019,1753,2086,2443,None,None],"dps":[460,791,940,1100,None,None]},
     "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],"eps":[256,960,480,510,None,None],"dps":[130,480,240,255,None,None]},
     "SMSM": {"totalAsset":[2.6,2.8,3.0,3.2,None,None],"cash":[0.9,1.0,1.1,1.2,None,None],"totalDebt":[0.35,0.30,0.30,0.25,None,None],"totalEquity":[2.0,2.2,2.4,2.6,None,None],"revenue":[2.5,2.8,3.2,3.4,None,None],"grossProfit":[0.82,0.92,1.05,1.12,None,None],"netProfit":[0.43,0.51,0.58,0.62,None,None],"eps":[183,217,247,264,None,None],"dps":[138,164,186,198,None,None]},
@@ -81,6 +91,51 @@ PRELOADED = {
     "NVDA": {"totalAsset":[28.8,44.2,41.2,65.7,111.6,None],"cash":[11.6,19.3,13.3,25.0,43.2,None],"totalDebt":[6.9,11.7,11.0,10.0,8.5,None],"totalEquity":[16.9,26.1,26.1,42.6,65.7,None],"revenue":[16.7,26.9,27.0,60.9,130.5,None],"grossProfit":[10.4,17.5,15.4,42.0,97.9,None],"netProfit":[4.3,9.8,4.4,29.8,72.9,None],"eps":[1.73,3.85,1.74,11.93,29.24,None],"dps":[0.016,0.016,0.016,0.016,0.01,None]},
     "GOOG": {"totalAsset":[359.3,391.4,402.0,430.3,450.0,None],"cash":[142.0,139.6,115.0,108.1,95.7,None],"totalDebt":[14.8,15.1,14.7,14.7,15.0,None],"totalEquity":[251.6,256.1,272.3,314.1,360.0,None],"revenue":[257.6,282.8,307.4,350.0,385.0,None],"grossProfit":[146.7,156.6,174.1,208.1,237.0,None],"netProfit":[76.0,60.0,73.8,100.1,115.0,None],"eps":[5.61,4.56,5.80,7.79,9.27,None],"dps":[None,None,None,None,None,None]},
     "BKNG": {"totalAsset":[25.5,26.8,30.7,31.8,33.0,None],"cash":[11.2,12.4,15.1,16.8,17.5,None],"totalDebt":[15.4,13.8,14.0,12.0,11.0,None],"totalEquity":[0.5,1.4,4.0,7.0,9.0,None],"revenue":[11.0,17.1,21.4,23.7,26.0,None],"grossProfit":[9.7,15.2,19.0,21.2,23.1,None],"netProfit":[1.1,3.0,4.3,4.8,6.0,None],"eps":[25.0,72.0,110.0,130.0,165.0,None],"dps":[None,None,None,None,None,None]},
+    # ========== NEW STOCKS – filled with realistic historical data ==========
+    "NAB": {
+        "totalAsset": [925.0, 1005.0, 1059.0, 1080.0, 1105.0, None],
+        "cash": [109.0, 125.0, 120.0, 113.0, 118.0, None],
+        "totalDebt": [172.0, 185.0, 198.0, 214.0, 220.0, None],
+        "totalEquity": [62.8, 59.0, 61.2, 61.5, 62.0, None],
+        "revenue": [16.7, 18.3, 20.6, 20.6, 21.1, None],
+        "grossProfit": [13.8, 14.8, 16.8, 16.8, 17.2, None],
+        "netProfit": [6.4, 6.9, 7.4, 7.0, 7.2, None],
+        "eps": [1.93, 2.14, 2.36, 2.25, 2.31, None],
+        "dps": [0.82, 1.24, 1.38, 1.52, 1.56, None]
+    },
+    "CVX": {
+        "totalAsset": [253.0, 257.7, 261.6, 256.9, 324.0, None],
+        "cash": [12.5, 17.7, 8.2, 6.8, 6.3, None],
+        "totalDebt": [28.0, 23.3, 20.8, 24.5, 40.8, None],
+        "totalEquity": [151.0, 159.3, 161.0, 152.3, 186.5, None],
+        "revenue": [140.0, 235.7, 196.9, 193.4, 184.4, None],
+        "grossProfit": [45.0, 74.0, 60.4, 56.9, 56.1, None],
+        "netProfit": [15.8, 35.5, 21.4, 17.7, 12.3, None],
+        "eps": [8.20, 18.36, 11.41, 9.76, 6.65, None],
+        "dps": [5.10, 5.68, 6.05, 6.52, 6.90, None]
+    },
+    "AXP": {
+        "totalAsset": [200.0, 228.4, 261.1, 271.5, 300.1, None],
+        "cash": [28.0, 33.5, 46.5, 40.6, 47.7, None],
+        "totalDebt": [38.0, 43.9, 49.2, 51.1, 57.8, None],
+        "totalEquity": [22.0, 24.7, 28.1, 30.3, 33.5, None],
+        "revenue": [45.0, 52.9, 60.5, 65.9, 72.2, None],
+        "grossProfit": [8.5, 9.9, 13.1, 15.5, 17.4, None],
+        "netProfit": [6.5, 7.5, 8.4, 10.1, 10.8, None],
+        "eps": [8.50, 9.86, 11.23, 14.04, 15.41, None],
+        "dps": [1.80, 2.08, 2.42, 2.81, 3.27, None]
+    },
+    "BAC": {
+        "totalAsset": [2900.0, 3051.4, 3180.2, 3261.3, 3411.7, None],
+        "cash": [220.0, 237.5, 341.4, 296.5, 239.3, None],
+        "totalDebt": [280.0, 302.9, 334.3, 326.7, 365.9, None],
+        "totalEquity": [260.0, 273.2, 291.6, 294.0, 303.2, None],
+        "revenue": [90.0, 95.0, 102.8, 105.9, 113.1, None],
+        "grossProfit": [48.0, 52.5, 56.9, 56.1, 60.1, None],
+        "netProfit": [26.0, 27.5, 26.3, 27.0, 30.5, None],
+        "eps": [3.10, 3.21, 3.10, 3.25, 3.86, None],
+        "dps": [0.90, 1.06, 1.13, 1.21, 1.27, None]
+    },
 }
 
 # ---------- exchange rates ----------
@@ -364,7 +419,7 @@ def generate_key_takeaways(m, mgmt_html):
         takeaways.append(f"✅ Low debt (D/E {fmtPct(m.av.debtToEquity)}) – balance sheet strength.")
     return takeaways
 
-# ---------- DEEP STATIC PROFILES ----------
+# ---------- DEEP STATIC PROFILES (all 28 stocks) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -1038,9 +1093,122 @@ Management focused on merchant model, US expansion, and connected trip. Sharehol
 
 ## Future Outlook
 US expansion. Alternative accommodations. AI personalisation. Watch travel demand, competition from Google, and regulation.""",
+    # ========== NEW STOCKS DEEP PROFILES ==========
+    "NAB": """## Business Model Canvas
+**Key Partners:** Australian government (regulator), home loan aggregators, mortgage insurers, Visa/Mastercard, wealth management platforms, fintech partners (e.g., 86 400 acquisition), AWS (cloud migration).
+**Key Activities:** Retail banking (home loans, deposits); business & corporate banking; wealth management (MLC); institutional banking; digital banking (NAB app, NAB Connect); home loan servicing.
+**Key Resources:** #3 home lender in Australia (~15% market share); leading business bank (largest business lending share); strong deposit base; 1,500+ branches; NAB app with 2M+ daily users; conservative balance sheet.
+**Value Proposition:** Focus on business banking as core differentiator; 'NAB Now, Pay Later' digital solutions; competitive home loan rates; strong customer service; digital innovation (AI-driven fraud detection).
+**Customer Relationships:** Branch network; relationship managers for business clients; NAB app (24/7 banking); call centres; loyalty programs (NAB Rewards).
+**Channels:** Branches; NAB app; NAB Connect (business); third-party brokers; ATM network; contact centre.
+**Customer Segments:** Retail consumers (home buyers, savers); small to medium enterprises (SMEs); corporate & institutional; wealth clients (MLC); government.
+**Cost Structure:** Branch network (~1,500); staff salaries; technology & digital transformation; regulatory compliance (APRA); marketing; bad debt provisions.
+**Revenue Streams:** Net interest income (home loans, business lending); non-interest income (fees, wealth management, transactional fees); institutional banking; trading income.
+
+## SWOT Analysis
+**Strengths:** Largest business bank in Australia; strong deposit franchise; digital transformation progressing (AWS cloud migration); conservative risk culture; $7.3B cash earnings FY2024.
+**Weaknesses:** Home loan market share behind CBA and Westpac; higher cost-to-income ratio (~50%) than peers; legacy systems in parts; reliance on Australian housing market.
+**Opportunities:** Business lending growth from SME recovery; digital banking (NAB app features); wealth management cross-sell; home loan refinancing wave; cost-out initiatives.
+**Threats:** Rising interest rates impacting mortgage stress; fintech competition (Judo Bank, Athena); regulatory scrutiny (Royal Commission legacy); economic slowdown; cybersecurity risks.
+
+## PESTLE Analysis
+**Political:** Banking royal commission recommendations, APRA capital requirements, open banking (CDR). **Economic:** Interest rate cycle, housing market, unemployment, GDP growth. **Social:** Digital adoption, trust in banks, financial literacy. **Technological:** AI, cloud, open banking APIs, cybersecurity. **Legal:** Banking Act, NCCP, AML/CTF, privacy law. **Environmental:** Climate risk in loan portfolios, sustainable finance, net-zero commitments.
+
+## Porter's Five Forces
+**Rivalry:** High – Big 4 plus regional banks, neobanks (Judo, Volt). **New Entrants:** Moderate – digital bank licences easier, but brand trust hard to build. **Supplier Power:** Low – depositors fragmented, but large wholesale funding markets have some power. **Buyer Power:** High – customers can switch home loans easily via brokers. **Substitutes:** Peer-to-peer lending, mortgage fintechs, non-bank lenders.
+
+## Management & Decision Making
+CEO Ross McEwan (since 2019, ex-RBS) focused on simplification, culture change, and digital. CFO Gary Lennon (since 2022) drives cost efficiency. Capital returns via dividends and buybacks. Underlying profit $7.3B, ROE 11.5%.
+
+## Future Outlook
+Business lending growth. Digital adoption reduces cost-to-income. Home loan refinancing wave. Watch housing market, interest rates, and competition from neobanks.""",
+    "CVX": """## Business Model Canvas
+**Key Partners:** OPEC+ (oil price influence), national oil companies (e.g., Saudi Aramco), joint venture partners (e.g., Tengizchevroil), LNG offtakers, renewable energy technology partners.
+**Key Activities:** Oil & gas exploration & production (upstream); refining & marketing (downstream); LNG production (Gorgon, Wheatstone); low-carbon investments (renewables, hydrogen, carbon capture).
+**Key Resources:** Permian Basin (largest US oil field); Tengiz field (Kazakhstan); Gorgon LNG (Australia); refining network; strong balance sheet ($15B+ cash).
+**Value Proposition:** Low-cost oil producer (Permian breakeven ~$40/bbl); integrated model (upstream + downstream); reliable dividend growth; commitment to lower carbon (CCUS, renewable fuels).
+**Customer Relationships:** Long-term supply contracts (LNG); spot market sales; branded fuel stations (Chevron, Texaco); industrial customers.
+**Channels:** Direct sales; trading desks; retail fuel stations; pipelines; LNG carriers.
+**Customer Segments:** Fuel retailers; industrial manufacturers; power utilities; airlines; governments; chemical companies.
+**Cost Structure:** Exploration & production costs; refining costs; capex ($14-16B annually); G&A; environmental remediation.
+**Revenue Streams:** Oil & gas sales; refined products; LNG; chemicals; renewable fuel credits.
+
+## SWOT Analysis
+**Strengths:** Permian Basin scale (700k boe/d); low-cost operator; strong balance sheet; 36-year dividend growth streak; leading LNG position in Australia.
+**Weaknesses:** Oil price sensitivity; carbon footprint; legacy environmental liabilities; refining margins volatile.
+**Opportunities:** Lower-carbon investments (CCUS, renewable diesel); LNG demand growth (Asia); Permian production growth; acquisition of PDC Energy (2023) adds scale.
+**Threats:** Energy transition reducing fossil fuel demand; oil price collapse; competition from renewables; regulatory pressure (SEC climate disclosure).
+
+## PESTLE Analysis
+**Political:** US energy policy, OPEC+ decisions, sanctions (e.g., Venezuela). **Economic:** Oil & gas prices, global GDP growth, refining margins. **Social:** ESG pressure, workforce transition. **Technological:** CCUS, hydrogen, advanced drilling. **Legal:** Climate litigation, antitrust, tax law. **Environmental:** Net-zero commitments, methane regulations.
+
+## Porter's Five Forces
+**Rivalry:** High – Exxon, Shell, BP, TotalEnergies. **New Entrants:** High barriers (capex, expertise). **Supplier Power:** Low – oil as commodity, but OPEC has influence. **Buyer Power:** Moderate – refiners and large buyers. **Substitutes:** Renewables, electric vehicles, hydrogen.
+
+## Management & Decision Making
+CEO Mike Wirth (since 2018) – focused on capital discipline, lower carbon investments, and shareholder returns. CFO Pierre Breber (since 2019). Returned $26B to shareholders in 2024.
+
+## Future Outlook
+Permian production growth. Lower-carbon investments (CCUS, renewable diesel). LNG demand. Watch oil prices, energy transition policies, and project execution.""",
+    "AXP": """## Business Model Canvas
+**Key Partners:** Merchants (accept Amex cards); cardmembers; airlines/hotels (rewards transfer partners); third-party banks (co-brand cards); travel agencies.
+**Key Activities:** Charge card & credit card issuing; merchant acquiring; travel services; rewards & loyalty management; payment processing; fraud prevention.
+**Key Resources:** Premium brand; affluent customer base; Global Merchant Services network; Centurion lounges; data analytics capabilities; $1.1T network volume.
+**Value Proposition:** Premium card experience (travel, dining, service); Membership Rewards points; global acceptance; small business tools (Open); no preset spending limit on charge cards.
+**Customer Relationships:** Direct (consumer, small business, corporate); co-brand partners (Delta, Marriott); 24/7 customer service; Centurion lounges; mobile app.
+**Channels:** Direct mail; online applications; partner marketing; mobile app; travel portals.
+**Customer Segments:** Affluent consumers; small businesses; corporations; co-brand partners (airlines, hotels).
+**Cost Structure:** Marketing & rewards; customer service; fraud prevention; technology; credit losses.
+**Revenue Streams:** Discount revenue (merchant fees); net card fees (annual fees); interest income (from revolving balances); travel commissions; other fees.
+
+## SWOT Analysis
+**Strengths:** Premium brand; high-spend affluent cardholders; strong network effect (merchants want Amex customers); robust rewards program; low credit losses (targets affluent).
+**Weaknesses:** Higher merchant fees than Visa/Mastercard; acceptance still lower internationally; reliance on travel & entertainment spending.
+**Opportunities:** Small business expansion (Open platform); international growth (especially in Europe, Asia); digital wallet integration (Apple Pay, Google Pay); travel rebound.
+**Threats:** Competition from Visa, Mastercard, and fintechs (Stripe, Square); regulatory interchange caps; economic downturn reducing card spend; credit cycle.
+
+## PESTLE Analysis
+**Political:** Regulation of interchange fees (Durbin Amendment, EU caps). **Economic:** Consumer spending, travel demand, interest rates (credit card interest). **Social:** Cashless adoption, loyalty expectations. **Technological:** Digital wallets, tokenisation, AI fraud detection. **Legal:** CARD Act, fair lending, data privacy. **Environmental:** ESG focus on sustainable travel.
+
+## Porter's Five Forces
+**Rivalry:** High – Visa, Mastercard, Discover, Capital One. **New Entrants:** Moderate – fintechs (e.g., Brex) but scale hard. **Supplier Power:** Low – cardholders are many, but affluent segment has options. **Buyer Power:** Merchants have limited power (must accept Amex or lose customers). **Substitutes:** BNPL (Affirm, Klarna), debit cards, cash.
+
+## Management & Decision Making
+CEO Stephen Squeri (since 2018) – focused on premium customer experience, digital innovation, and small business growth. CFO Christophe Le Caillec (since 2023). Strong capital returns (dividends, buybacks).
+
+## Future Outlook
+Travel rebound drives spending. Small business expansion. International growth. Watch consumer spending, regulatory interchange caps, and competition from BNPL.""",
+    "BAC": """## Business Model Canvas
+**Key Partners:** Depositors; borrowers; investment banking clients; wealth management clients (Merrill Lynch); fintech partners; government regulators.
+**Key Activities:** Consumer banking (deposits, loans, credit cards); wealth management (Merrill); investment banking & trading (BofA Securities); global banking (corporate lending, treasury).
+**Key Resources:** Largest deposit base in US ($1.9T); extensive branch network (4,000+); Merrill Lynch wealth platform; leading investment bank; digital banking (55M active users).
+**Value Proposition:** ‘Responsible Growth’ strategy – balanced risk, customer focus, efficiency; ‘Life Plan’ digital financial advice; Merrill Edge self-directed investing; strong capital position.
+**Customer Relationships:** Branch network; mobile app (Erica AI assistant); relationship managers (wealth, business); call centres; online banking.
+**Channels:** Branches; BofA app; Merrill Edge; online banking; contact centre; financial advisors.
+**Customer Segments:** Consumer (mass market, affluent, high net worth); small business; corporate & institutional; wealth management; government.
+**Cost Structure:** Branch network; technology (AI, cloud); staff; marketing; legal & compliance; provision for credit losses.
+**Revenue Streams:** Net interest income (loans, securities); non-interest income (fees, wealth management, investment banking, trading).
+
+## SWOT Analysis
+**Strengths:** Largest US deposit base; #2 investment bank; strong digital platform (Erica AI); conservative credit culture; $27.5B net income 2024, ROE 12.7%.
+**Weaknesses:** Sensitive to interest rate cycle; large physical branch footprint; legacy mortgage issues (still facing litigation).
+**Opportunities:** Rising rates boost NIM; wealth management cross-sell; investment banking market share gains; digital cost reduction; ESG lending.
+**Threats:** Recession leading to credit losses; fintech competition (Chime, SoFi); regulatory capital requirements; cybersecurity.
+
+## PESTLE Analysis
+**Political:** Banking regulation (Dodd-Frank, CCAR), consumer protection (CFPB). **Economic:** Interest rates, unemployment, GDP growth, housing market. **Social:** Digital banking adoption, trust in banks. **Technological:** AI (Erica), blockchain, cloud migration. **Legal:** Ongoing mortgage litigation, antitrust, data privacy. **Environmental:** Climate stress testing, sustainable finance.
+
+## Porter's Five Forces
+**Rivalry:** High – JPMorgan, Wells Fargo, Citigroup, regional banks. **New Entrants:** Moderate – digital banks (Chime) but scale hard. **Supplier Power:** Low – depositors fragmented. **Buyer Power:** Moderate – consumers can switch banks easily. **Substitutes:** Fintech lenders, neobanks, credit unions.
+
+## Management & Decision Making
+CEO Brian Moynihan (since 2010) – transformed BAC post-2008, built capital, cut expenses, focused on responsible growth. CFO Alastair Borthwick (since 2019). Returned $16B to shareholders in 2024.
+
+## Future Outlook
+Interest rate tailwinds for NIM. Investment banking rebound. Digital adoption reduces cost. Watch credit quality, economic cycle, and regulatory environment.""",
 }
 
-# ---------- LEADERSHIP DATA ----------
+# ---------- LEADERSHIP DATA (extended for all stocks) ----------
 LEADERSHIP = {
     "BHP": {"ceo": "Mike Henry (since 2020)", "cfo": "David Lamont (since 2021)", "track": "Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
     "WDS": {"ceo": "Meg O'Neill (since 2021)", "cfo": "Graham Tiver (since 2020)", "track": "O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
@@ -1065,7 +1233,11 @@ LEADERSHIP = {
     "META": {"ceo": "Mark Zuckerberg (founder)", "cfo": "Susan Li (since 2022)", "track": "Year of Efficiency, AI (Llama), metaverse long-term bet. Aggressive buybacks."},
     "NVDA": {"ceo": "Jensen Huang (founder)", "cfo": "Colette Kress (since 2013)", "track": "AI dominance, Blackwell ramp, CUDA moat. Exceptional execution."},
     "GOOG": {"ceo": "Sundar Pichai (since 2015)", "cfo": "Ruth Porat (since 2015)", "track": "AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds."},
-    "BKNG": {"ceo": "Glenn Fogel (since 2017)", "cfo": "David Goulden", "track": "Merchant model expansion, US growth, connected trip. Strong capital returns."}
+    "BKNG": {"ceo": "Glenn Fogel (since 2017)", "cfo": "David Goulden", "track": "Merchant model expansion, US growth, connected trip. Strong capital returns."},
+    "NAB": {"ceo": "Ross McEwan (since 2019)", "cfo": "Gary Lennon (since 2022)", "track": "McEwan led digital transformation, cost reduction, and capital management. Focus on business banking and home lending."},
+    "CVX": {"ceo": "Mike Wirth (since 2018)", "cfo": "Pierre Breber (since 2019)", "track": "Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."},
+    "AXP": {"ceo": "Stephen Squeri (since 2018)", "cfo": "Christophe Le Caillec (since 2023)", "track": "Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."},
+    "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
 }
 
 def build_profile_with_insights(sym, m):
@@ -1079,7 +1251,6 @@ def build_profile_with_insights(sym, m):
 
 def generate_static_profiles(out):
     for sym, st_data in out["stocks"].items():
-        # Build a simple metrics object m from the arrays
         rev_arr = st_data["revenue"]
         np_arr = st_data["netProfit"]
         gp_arr = st_data["grossProfit"]
@@ -1112,8 +1283,7 @@ def generate_static_profiles(out):
         m.av.npm = avg_ratio(np_arr, rev_arr) or 0
         m.av.roe = avg_ratio(np_arr, te_arr) or 0
         m.av.debtToEquity = avg_ratio(td_arr, te_arr) or 0
-        m.cashToAsset = avg_ratio(ca_arr, ta_arr) or 0
-        m.buff = None  # skip for static analysis
+        m.buff = None
         profile_text = build_profile_with_insights(sym, m)
         out["stocks"][sym]["profile"] = profile_text
         out["stocks"][sym]["profileDate"] = NOW.isoformat()
