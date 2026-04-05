@@ -1,4 +1,4 @@
 // config.js – DO NOT COMMIT TO GITHUB
 window.API_CONFIG = {
-  GEMINI_API_KEY: "AIzaSyApvyewv8wnJzxqPbZdmvJBywUrCnaG4Ag"  // your actual Gemini key
+  GEMINI_API_KEY: "AIzaSyDJfBH59IUuvOPmIHFiuziIVoc7irjkZm0"  // your actual Gemini key
 };
