@@ -313,6 +313,129 @@ td.num{font-size:12px;font-weight:500}
 </div>
 
 <script>
+  // ----- AI Assistant (Gemini) -----
+let aiModalOpen = false;
+
+function openAIChat() {
+  const modal = document.getElementById('aiChatModal');
+  const stockNameSpan = document.getElementById('aiStockName');
+  const currentStock = S.stocks[S.sel];
+  stockNameSpan.innerText = `${S.sel} · ${currentStock.name}`;
+  modal.style.display = 'flex';
+  aiModalOpen = true;
+}
+
+function closeAIChat() {
+  document.getElementById('aiChatModal').style.display = 'none';
+  aiModalOpen = false;
+}
+
+async function callGeminiForQuestion(question, stockSym) {
+  const stockData = S.data[stockSym];
+  if (!stockData) return "No financial data available for this stock.";
+
+  // Get the latest year's key metrics
+  const latestIdx = YEARS.length - 2; // last completed year
+  const rev = stockData.revenue?.[latestIdx] || "N/A";
+  const eps = stockData.eps?.[latestIdx] || "N/A";
+  const roe = calcM(stockSym)?.av.roe || "N/A";
+  const newsText = stockData.news || "No recent news summary available.";
+
+  const prompt = `You are a financial assistant for a stock dashboard. Answer the user's question concisely (2-4 sentences) using the provided data and your general knowledge.
+
+Stock: ${stockSym}
+Latest revenue (${YEARS[latestIdx]}): ${rev}
+Latest EPS: ${eps}
+Latest ROE: ${roe}%
+Recent news summary: ${newsText}
+
+User question: ${question}
+
+Answer:`;
+
+  // Get API key from config (or fallback to hardcoded – not recommended)
+  const apiKey = window.API_CONFIG?.GEMINI_API_KEY || "YOUR_KEY_HERE";
+  if (!apiKey || apiKey === "YOUR_KEY_HERE") {
+    return "Please set your Gemini API key in config.js or replace the placeholder.";
+  }
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const body = {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 300, temperature: 0.3 }
+    };
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || "Sorry, I couldn't generate an answer.";
+    return answer;
+  } catch (err) {
+    console.error("Gemini error:", err);
+    return "Error contacting AI service. Please try again later.";
+  }
+}
+
+async function sendAIMessage() {
+  const input = document.getElementById('aiQuestion');
+  const question = input.value.trim();
+  if (!question) return;
+  const messagesDiv = document.getElementById('aiChatMessages');
+  // Add user message
+  const userMsgDiv = document.createElement('div');
+  userMsgDiv.className = 'ai-message ai-user';
+  userMsgDiv.style.textAlign = 'right';
+  userMsgDiv.style.margin = '8px 0';
+  userMsgDiv.innerHTML = `<strong>You:</strong> ${escapeHtml(question)}`;
+  messagesDiv.appendChild(userMsgDiv);
+  input.value = '';
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  // Add loading indicator
+  const loadingDiv = document.createElement('div');
+  loadingDiv.className = 'ai-message ai-bot';
+  loadingDiv.innerHTML = '<em>Thinking...</em>';
+  messagesDiv.appendChild(loadingDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+  const answer = await callGeminiForQuestion(question, S.sel);
+  loadingDiv.remove();
+  const botMsgDiv = document.createElement('div');
+  botMsgDiv.className = 'ai-message ai-bot';
+  botMsgDiv.style.margin = '8px 0';
+  botMsgDiv.innerHTML = `<strong>Assistant:</strong> ${escapeHtml(answer)}`;
+  messagesDiv.appendChild(botMsgDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>]/g, function(m) {
+    if (m === '&') return '&amp;';
+    if (m === '<') return '&lt;';
+    if (m === '>') return '&gt;';
+    return m;
+  }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+    return c;
+  });
+}
+
+// Wire up the chat UI after DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = document.getElementById('aiChatBtn');
+  if (btn) btn.onclick = openAIChat;
+  const sendBtn = document.getElementById('aiSendBtn');
+  if (sendBtn) sendBtn.onclick = sendAIMessage;
+  const questionInput = document.getElementById('aiQuestion');
+  if (questionInput) {
+    questionInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') sendAIMessage();
+    });
+  }
+});
 // ======================== CONSTANTS & GLOBALS ========================
 const CURRENT_YEAR = new Date().getFullYear();
 const LATEST_YEAR  = CURRENT_YEAR - 1;
