@@ -992,20 +992,126 @@ Management focused on merchant model, US expansion, and connected trip. Sharehol
 US expansion. Alternative accommodations. AI personalisation. Watch travel demand, competition from Google, and regulation.""",
 }
 
+# ---------- LEADERSHIP DATA (CEO/CFO) ----------
+LEADERSHIP = {
+    "BHP": { ceo: "Mike Henry (since 2020)", cfo: "David Lamont (since 2021)", track: "Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval." },
+    "WDS": { ceo: "Meg O'Neill (since 2021)", cfo: "Graham Tiver (since 2020)", track: "O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase." },
+    "CBA": { ceo: "Matt Comyn (since 2018)", cfo: "Alan Docherty (since 2021)", track: "Comyn led cloud migration to AWS, OpenAI partnership, digital transformation. Strong capital returns." },
+    "BBRI": { ceo: "Sunarso (since 2019)", cfo: "Viviana Dyah Ayu (since 2020)", track: "Sunarso drove 'BRIvolution' digital transformation, ultra-micro holding integration, record BRImo adoption." },
+    "ADRO": { ceo: "Garibaldi 'Boy' Thohir (since 2008)", cfo: "Jodhi Pangestu", track: "Thohir led spin-off of thermal coal, pivot to metcoal, aluminum smelter, and renewable energy." },
+    "SMSM": { ceo: "Tony S. Budiman", cfo: "Suryadi", track: "Consistent execution, export growth to 45+ countries, maintained debt-free balance sheet, EV product R&D." },
+    "UNTR": { ceo: "Darma Setiawan (since 2015)", cfo: "Yunus Saifulhak", track: "Maintained Komatsu exclusivity, PAMA largest contractor, diversification into gold and renewables." },
+    "ITMG": { ceo: "M. Qodrat (since 2022)", cfo: "Agus Suhendar", track: "Focused on high dividends, production efficiency, solar hybrid projects. Banpu parent strategy influence." },
+    "POWR": { ceo: "M. Firdaus", cfo: "R. Agus", track: "Conservative management, long-term PPAs, stable operations. Slow to adopt renewables but exploring solar." },
+    "MPMX": { ceo: "Djoko Susanto", cfo: "Iwan Setiawan", track: "Stable Honda distribution, integrated financing and rental. Investing in EV motorcycle transition." },
+    "BTPS": { ceo: "Ridwan Kurniawan", cfo: "Dewi Sartika", track: "Focused on sharia microfinance, digital group meetings, partnership with Baznas. Small scale but niche." },
+    "DMAS": { ceo: "Takeshi Koyama (Sojitz)", cfo: "Santi Widjaja", track: "Japanese parent backing, data centre land sales driving growth. Green estate certification." },
+    "SPTO": { ceo: "Widjaja (family)", cfo: "Lukman", track: "Long-term TOTO exclusivity maintained. Expanding to Tier-2 cities. High dividend yield." },
+    "TSM": { ceo: "C.C. Wei (since 2018)", cfo: "Wendell Huang", track: "Wei led 2nm/3nm ramp, global expansion (Arizona, Japan, Germany). Capital discipline, high R&D." },
+    "V": { ceo: "Ryan McInerney (since 2023)", cfo: "Chris Suh (since 2023)", track: "Focus on tokenisation, cross-border solutions, crypto partnerships. Strong capital returns." },
+    "MA": { ceo: "Michael Miebach (since 2020)", cfo: "Sachin Mehra", track: "Multi-rail expansion, crypto partnerships, B2B payments. Consistent growth." },
+    "PBR-A": { ceo: "Magda Chambriard (since 2024)", cfo: "Fernando Melgarejo", track: "Focus on pre-salt growth, debt reduction, and shareholder returns. Political interference risk." },
+    "MSFT": { ceo: "Satya Nadella (since 2014)", cfo: "Amy Hood (since 2013)", track: "Cloud and AI leadership, OpenAI partnership, Activision acquisition. Excellent capital allocation." },
+    "AMZN": { ceo: "Andy Jassy (since 2021)", cfo: "Brian Olsavsky (since 2015)", track: "Jassy focused on cost optimisation, AWS growth, AI (Bedrock). Healthcare and satellite long-term bets." },
+    "AAPL": { ceo: "Tim Cook (since 2011)", cfo: "Luca Maestri (since 2014)", track: "Services expansion, ecosystem lock-in, capital returns. Vision Pro and AI integration next." },
+    "META": { ceo: "Mark Zuckerberg (founder)", cfo: "Susan Li (since 2022)", track: "Year of Efficiency, AI (Llama), metaverse long-term bet. Aggressive buybacks." },
+    "NVDA": { ceo: "Jensen Huang (founder)", cfo: "Colette Kress (since 2013)", track: "AI dominance, Blackwell ramp, CUDA moat. Exceptional execution." },
+    "GOOG": { ceo: "Sundar Pichai (since 2015)", cfo: "Ruth Porat (since 2015)", track: "AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds." },
+    "BKNG": { ceo: "Glenn Fogel (since 2017)", cfo: "David Goulden", track: "Merchant model expansion, US growth, connected trip. Strong capital returns." }
+}
+
+# ---------- STATIC ANALYSIS GENERATION ----------
+def generate_key_takeaways(sym, m, mgmt_html):
+    takeaways = []
+    if m.av.gpm > 40: takeaways.append(f"✅ High gross margin ({fmtPct(m.av.gpm)}) indicates strong pricing power or cost leadership.")
+    elif m.av.gpm > 20: takeaways.append(f"📊 Gross margin of {fmtPct(m.av.gpm)} is healthy but leaves room for improvement.")
+    else: takeaways.append(f"⚠️ Thin gross margin ({fmtPct(m.av.gpm)}) – vulnerable to input cost inflation.")
+    if m.av.npm > 20: takeaways.append(f"💰 Excellent net profitability ({fmtPct(m.av.npm)}) – each dollar of revenue generates substantial profit.")
+    elif m.av.npm > 10: takeaways.append(f"💵 Solid net margin ({fmtPct(m.av.npm)}) – efficient operations.")
+    else: takeaways.append(f"📉 Low net margin ({fmtPct(m.av.npm)}) – earnings are sensitive to cost increases.")
+    if m.av.roe > 20: takeaways.append(f"🚀 Outstanding return on equity ({fmtPct(m.av.roe)}) – management creates significant shareholder value.")
+    elif m.av.roe > 12: takeaways.append(f"📈 Good ROE ({fmtPct(m.av.roe)}) – efficient use of shareholder capital.")
+    else: takeaways.append(f"🐢 ROE of {fmtPct(m.av.roe)} suggests capital is not being deployed optimally.")
+    if m.buff > 100: takeaways.append(f"🧠 Passes the Buffett $1 test – every dollar retained generates more than a dollar of market value.")
+    elif m.buff > 0: takeaways.append(f"📊 Buffett test score {fmtPct(m.buff)} – some value creation from retained earnings.")
+    elif m.buff is not None: takeaways.append(f"⚠️ Buffett test score {fmtPct(m.buff)} – retained earnings destroy value.")
+    if "disciplined" in mgmt_html: takeaways.append("🏦 Management appears disciplined in capital allocation.")
+    if "scrutiny" in mgmt_html: takeaways.append("🔍 Management's capital allocation requires ongoing scrutiny.")
+    if m.cg.rev > 10: takeaways.append(f"📈 Strong revenue growth ({fmtPct(m.cg.rev)} CAGR) – top-line momentum.")
+    elif m.cg.rev < 0: takeaways.append(f"📉 Revenue declining ({fmtPct(m.cg.rev)} CAGR) – investigate root causes.")
+    if m.av.debtToEquity > 80: takeaways.append(f"⚠️ High leverage (D/E {fmtPct(m.av.debtToEquity)}) increases financial risk.")
+    elif m.av.debtToEquity < 30: takeaways.append(f"✅ Low debt (D/E {fmtPct(m.av.debtToEquity)}) – balance sheet strength.")
+    return takeaways
+
+def build_profile_with_insights(sym, st, m):
+    """Build the full profile text (BMC, SWOT, PESTLE, Porter's, Management, Outlook) from static data."""
+    # Use the pre-written profile from PROFILES if available
+    if sym in PROFILES:
+        base_profile = PROFILES[sym]
+    else:
+        base_profile = "Analysis not yet available for this stock."
+    # Add leadership info
+    leader = LEADERSHIP.get(sym, {})
+    leadership_section = f"\n\n## Leadership\n**CEO:** {leader.get('ceo', 'N/A')}  \n**CFO:** {leader.get('cfo', 'N/A')}  \n**Track Record:** {leader.get('track', 'No data.')}"
+    # Add key takeaways
+    mgmt_html = ""  # dummy for takeaways
+    takeaways = generate_key_takeaways(sym, m, mgmt_html)
+    takeaways_section = "\n\n## Key Takeaways for Long‑Term Investors\n" + "\n".join(f"- {t}" for t in takeaways)
+    return base_profile + leadership_section + takeaways_section
+
 def generate_static_profiles(out):
     """Add static deep analysis to data.json for all stocks."""
-    for sym in STOCKS:
-        if sym in PROFILES:
-            out["stocks"][sym]["profile"] = PROFILES[sym]
-            out["stocks"][sym]["profileDate"] = NOW.isoformat()
-            out["stocks"][sym]["news"] = "For latest news, please refer to company announcements and recent filings."
-            out["stocks"][sym]["newsDate"] = NOW.isoformat()
-        else:
-            # Fallback (should not happen)
-            out["stocks"][sym]["profile"] = f"Analysis for {sym} will be added soon."
-            out["stocks"][sym]["profileDate"] = NOW.isoformat()
-            out["stocks"][sym]["news"] = "No recent news available."
-            out["stocks"][sym]["newsDate"] = NOW.isoformat()
+    for sym, (name, exchange, ticker_str, currency, _, _) in STOCKS.items():
+        # Compute metrics for this stock (needed for takeaways)
+        # We already have the data arrays in out["stocks"][sym]
+        # But we need to compute m again? We'll do it inside.
+        data = out["stocks"][sym]
+        # Build a simple m-like object from arrays
+        rev_arr = data["revenue"]
+        np_arr = data["netProfit"]
+        gp_arr = data["grossProfit"]
+        ep_arr = data["eps"]
+        ta_arr = data["totalAsset"]
+        ca_arr = data["cash"]
+        te_arr = data["totalEquity"]
+        td_arr = data["totalDebt"]
+        dp_arr = data["dps"]
+        # Helper functions
+        def valid(arr): return [v for v in arr if v is not None and v != 0]
+        def cagr(arr):
+            v = valid(arr)
+            if len(v) < 2: return None
+            start, end = v[0], v[-1]
+            years = len(v) - 1
+            if start <= 0 or end <= 0: return None
+            return (pow(end/start, 1/years)-1)*100
+        def avg_ratio(num_arr, den_arr):
+            ratios = []
+            for n, d in zip(num_arr, den_arr):
+                if n is not None and d is not None and d != 0:
+                    ratios.append(n/d * 100)
+            return sum(ratios)/len(ratios) if ratios else None
+        def avg(arr):
+            v = valid(arr)
+            return sum(v)/len(v) if v else None
+        m = type('', (), {})()
+        m.cg = type('', (), {})()
+        m.cg.rev = cagr(rev_arr) or 0
+        m.cg.np = cagr(np_arr) or 0
+        m.av = type('', (), {})()
+        m.av.gpm = avg_ratio(gp_arr, rev_arr) or 0
+        m.av.npm = avg_ratio(np_arr, rev_arr) or 0
+        m.av.roe = avg_ratio(np_arr, te_arr) or 0
+        m.av.debtToEquity = avg_ratio(td_arr, te_arr) or 0
+        m.cashToAsset = avg_ratio(ca_arr, ta_arr) or 0
+        m.buff = None  # skip for takeaways
+        # Generate the full profile text
+        profile_text = build_profile_with_insights(sym, st, m)
+        out["stocks"][sym]["profile"] = profile_text
+        out["stocks"][sym]["profileDate"] = NOW.isoformat()
+        # Add a simple news placeholder
+        out["stocks"][sym]["news"] = "For latest news, please refer to company announcements and recent filings."
+        out["stocks"][sym]["newsDate"] = NOW.isoformat()
 
 # ---------- main ----------
 def main():
@@ -1040,7 +1146,52 @@ def main():
         out["annualisation"][sym] = ann
 
     # Add static deep analysis (no API calls)
-    generate_static_profiles(out)
+    # We need to pass a stock object for each sym, but we can build a dummy st
+    for sym, st_data in out["stocks"].items():
+        st = type('', (), {})()
+        st.name = st_data["name"]
+        st.exchange = st_data["exchange"]
+        st.currency = st_data["currency"]
+        # Compute metrics for this stock
+        rev_arr = st_data["revenue"]
+        np_arr = st_data["netProfit"]
+        gp_arr = st_data["grossProfit"]
+        ep_arr = st_data["eps"]
+        ta_arr = st_data["totalAsset"]
+        ca_arr = st_data["cash"]
+        te_arr = st_data["totalEquity"]
+        td_arr = st_data["totalDebt"]
+        dp_arr = st_data["dps"]
+        def valid(arr): return [v for v in arr if v is not None and v != 0]
+        def cagr(arr):
+            v = valid(arr)
+            if len(v) < 2: return None
+            start, end = v[0], v[-1]
+            years = len(v) - 1
+            if start <= 0 or end <= 0: return None
+            return (pow(end/start, 1/years)-1)*100
+        def avg_ratio(num_arr, den_arr):
+            ratios = []
+            for n, d in zip(num_arr, den_arr):
+                if n is not None and d is not None and d != 0:
+                    ratios.append(n/d * 100)
+            return sum(ratios)/len(ratios) if ratios else None
+        m = type('', (), {})()
+        m.cg = type('', (), {})()
+        m.cg.rev = cagr(rev_arr) or 0
+        m.cg.np = cagr(np_arr) or 0
+        m.av = type('', (), {})()
+        m.av.gpm = avg_ratio(gp_arr, rev_arr) or 0
+        m.av.npm = avg_ratio(np_arr, rev_arr) or 0
+        m.av.roe = avg_ratio(np_arr, te_arr) or 0
+        m.av.debtToEquity = avg_ratio(td_arr, te_arr) or 0
+        m.cashToAsset = avg_ratio(ca_arr, ta_arr) or 0
+        m.buff = None
+        profile_text = build_profile_with_insights(sym, st, m)
+        out["stocks"][sym]["profile"] = profile_text
+        out["stocks"][sym]["profileDate"] = NOW.isoformat()
+        out["stocks"][sym]["news"] = "For latest news, please refer to company announcements and recent filings."
+        out["stocks"][sym]["newsDate"] = NOW.isoformat()
 
     path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data.json"))
     with open(path, "w") as f:
