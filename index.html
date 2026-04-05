@@ -246,7 +246,30 @@ td.num{font-size:12px;font-weight:500}
 </style>
 </head>
 <body>
-
+<!-- AI Assistant Floating Button & Modal -->
+<div id="aiChatButton" style="position:fixed; bottom:24px; right:24px; z-index:1000;">
+  <button id="aiChatBtn" class="btn btn-cyan" style="border-radius:50px; padding:12px 16px; box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+    💬 AI Assistant
+  </button>
+</div>
+<div id="aiChatModal" class="modal-bg" style="display:none; z-index:1100;">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-h">
+      <h3>💡 AI Stock Assistant</h3>
+      <button class="modal-x" onclick="closeAIChat()">×</button>
+    </div>
+    <div class="modal-b" style="padding:16px;">
+      <div id="aiChatMessages" style="height:300px; overflow-y:auto; margin-bottom:16px; background:var(--bg); border-radius:8px; padding:12px;">
+        <div class="ai-message ai-bot">Hello! Ask me anything about <strong id="aiStockName"></strong>. I can summarise recent news, explain financial metrics, or give an outlook.</div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="aiQuestion" placeholder="e.g. What are the latest developments?" style="flex:1; background:var(--bg); border:1px solid var(--bdr2); border-radius:6px; padding:10px; color:var(--txt);">
+        <button id="aiSendBtn" class="btn btn-cyan">Send</button>
+      </div>
+      <div class="ai-cache-note" style="margin-top:12px;">Powered by Gemini. Answers are generated based on public data and the stock's latest financials.</div>
+    </div>
+  </div>
+</div>
 <div id="hdr">
   <div style="display:flex;align-items:center;gap:10px">
     <div class="h-logo">FA</div>
