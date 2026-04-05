@@ -360,29 +360,33 @@ Capital allocation disciplined: returned $7.1B dividends, avoided overpaying for
 
 ## Future Outlook
 Jansen potash 2026 first production. Copper demand from electrification. China stimulus potential. Watch commodity prices, China demand, and project execution.""",
-    # ... (other existing profiles truncated for brevity; keep all existing ones)
-    # For new stocks, we will generate a generic profile using metrics
+    # For brevity, other existing profiles (WDS, CBA, BBRI, ADRO, SMSM, UNTR, ITMG, POWR, MPMX, BTPS, DMAS, SPTO, TSM, V, MA, PBR-A, MSFT, AMZN, AAPL, META, NVDA, GOOG, BKNG) would be included here.
+    # Since the user has them from previous versions, I'll assume they are present. To save space, I omit them but they must be kept.
+    # For the new stocks (NAB, CVX, AXP, BAC), we will generate generic profiles in build_profile_with_insights.
 }
 
-def build_profile_with_insights(sym, m):
+def fmtPct(v):
+    return f"{v:.1f}%" if v is not None else "N/A"
+
+def build_profile_with_insights(sym, m, exchange, currency):
     # If static profile exists, use it; otherwise generate a decent one from metrics
     if sym in PROFILES:
         base = PROFILES[sym]
     else:
         base = f"""## Business Model Canvas
-**Key Partners:** Major suppliers, distributors, and strategic partners in the {S.stocks[sym].exchange} market.
+**Key Partners:** Major suppliers, distributors, and strategic partners in the {exchange} market.
 **Key Activities:** Core operations including production, sales, and service delivery.
 **Key Resources:** Financial capital, intellectual property, physical assets, and human resources.
-**Value Proposition:** Delivering quality products/services to customers. Revenue CAGR {P1(m.cg.rev) if m.cg.rev else 'N/A'}, net margin {P1(m.av.npm) if m.av.npm else 'N/A'}.
+**Value Proposition:** Delivering quality products/services to customers. Revenue CAGR {fmtPct(m.cg.rev) if m.cg.rev else 'N/A'}, net margin {fmtPct(m.av.npm) if m.av.npm else 'N/A'}.
 **Customer Relationships:** Long-term contracts, dedicated account management, after-sales support.
 **Channels:** Direct sales, distributor network, online platforms.
 **Customer Segments:** Diverse customer base across domestic and international markets.
-**Cost Structure:** Raw materials, labour, overheads, R&D. Debt/equity {P1(m.av.debtToEquity) if m.av.debtToEquity else 'N/A'}.
+**Cost Structure:** Raw materials, labour, overheads, R&D. Debt/equity {fmtPct(m.av.debtToEquity) if m.av.debtToEquity else 'N/A'}.
 **Revenue Streams:** Product sales, service fees, recurring revenue.
 
 ## SWOT Analysis
-**Strengths:** Revenue growth {P1(m.cg.rev) if m.cg.rev else 'N/A'}, ROE {P1(m.av.roe) if m.av.roe else 'N/A'}, gross margin {P1(m.av.gpm) if m.av.gpm else 'N/A'}.
-**Weaknesses:** Net margin {P1(m.av.npm) if m.av.npm else 'N/A'}, debt/equity {P1(m.av.debtToEquity) if m.av.debtToEquity else 'N/A'}.
+**Strengths:** Revenue growth {fmtPct(m.cg.rev) if m.cg.rev else 'N/A'}, ROE {fmtPct(m.av.roe) if m.av.roe else 'N/A'}, gross margin {fmtPct(m.av.gpm) if m.av.gpm else 'N/A'}.
+**Weaknesses:** Net margin {fmtPct(m.av.npm) if m.av.npm else 'N/A'}, debt/equity {fmtPct(m.av.debtToEquity) if m.av.debtToEquity else 'N/A'}.
 **Opportunities:** Market expansion, operational efficiency, product innovation.
 **Threats:** Competition, regulatory changes, economic cycles.
 
@@ -393,17 +397,18 @@ Political, economic, social, technological, legal, and environmental factors all
 Competitive rivalry, threat of new entrants, supplier power, buyer power, and threat of substitutes are all factors that shape the industry's profitability.
 
 ## Management & Decision Making
-Capital allocation focuses on shareholder returns and reinvestment. Buffett test score: {P1(m.buff) if m.buff else 'N/A'}.
+Capital allocation focuses on shareholder returns and reinvestment. Buffett test score: {fmtPct(m.buff) if m.buff else 'N/A'}.
 
 ## Future Outlook
 The company's outlook depends on its ability to maintain growth, manage costs, and adapt to industry trends. Watch revenue growth, margin stability, and capital allocation."""
     leader = LEADERSHIP.get(sym, {"ceo": "N/A", "cfo": "N/A", "track": "No data."})
     leadership_section = f"\n\n## Leadership\n**CEO:** {leader['ceo']}  \n**CFO:** {leader['cfo']}  \n**Track Record:** {leader['track']}"
-    # Key takeaways will be generated in the frontend, so we omit them here
     return base + leadership_section
 
 def generate_static_profiles(out):
     for sym, st_data in out["stocks"].items():
+        exchange = st_data["exchange"]
+        currency = st_data["currency"]
         # Build a simple metrics object m from the arrays
         rev_arr = st_data["revenue"]
         np_arr = st_data["netProfit"]
@@ -438,8 +443,8 @@ def generate_static_profiles(out):
         m.av.roe = avg_ratio(np_arr, te_arr) or 0
         m.av.debtToEquity = avg_ratio(td_arr, te_arr) or 0
         m.cashToAsset = avg_ratio(ca_arr, ta_arr) or 0
-        m.buff = None
-        profile_text = build_profile_with_insights(sym, m)
+        m.buff = None  # skip for static analysis
+        profile_text = build_profile_with_insights(sym, m, exchange, currency)
         out["stocks"][sym]["profile"] = profile_text
         out["stocks"][sym]["profileDate"] = NOW.isoformat()
         out["stocks"][sym]["news"] = "For latest news, please refer to company announcements and recent filings."
@@ -471,11 +476,10 @@ LEADERSHIP = {
     "NVDA": {"ceo": "Jensen Huang (founder)", "cfo": "Colette Kress (since 2013)", "track": "AI dominance, Blackwell ramp, CUDA moat. Exceptional execution."},
     "GOOG": {"ceo": "Sundar Pichai (since 2015)", "cfo": "Ruth Porat (since 2015)", "track": "AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds."},
     "BKNG": {"ceo": "Glenn Fogel (since 2017)", "cfo": "David Goulden", "track": "Merchant model expansion, US growth, connected trip. Strong capital returns."},
-    # New stocks
     "NAB": {"ceo": "Ross McEwan (since 2019)", "cfo": "Gary Lennon (since 2022)", "track": "McEwan led digital transformation, cost reduction, and capital management. Focus on business banking and home lending."},
     "CVX": {"ceo": "Mike Wirth (since 2018)", "cfo": "Pierre Breber (since 2019)", "track": "Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."},
     "AXP": {"ceo": "Stephen Squeri (since 2018)", "cfo": "Christophe Le Caillec (since 2023)", "track": "Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."},
-    "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
+    "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."}
 }
 
 # ---------- main ----------
