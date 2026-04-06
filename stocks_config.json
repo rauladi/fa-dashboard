@@ -3,14 +3,6 @@
   "_format": "symbol, name, exchange (ASX/IDX/NYSE/NASDAQ), display currency, yfinance ticker, hint_cur (USD/AUD/IDR/TWD etc)",
   "custom_stocks": [
     {
-      "symbol": "PGEO",
-      "name": "Pertamina Geothermal Energy Tbk",
-      "exchange": "IDX",
-      "currency": "T IDR",
-      "ticker": "PGEO.JK",
-      "hint_cur": "IDR"
-    }
-    {
       "symbol": "CBA",
       "name": "Commonwealth Bank of Australia",
       "exchange": "ASX",
