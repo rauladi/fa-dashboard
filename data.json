@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-06T03:39:28.746310+00:00",
+  "generated": "2026-04-06T03:50:05.495552+00:00",
   "years": [
     2021,
     2022,
@@ -18,10 +18,10 @@
   "currentYear": 2026,
   "latestYear": 2025,
   "rates": {
-    "usdToAud": 1.448,
+    "usdToAud": 1.44876,
     "usdToIdr": 17038.0,
-    "twdToUsd": 0.03123,
-    "audToUsd": 0.690608,
+    "twdToUsd": 0.031231,
+    "audToUsd": 0.690245,
     "idrToUsd": 5.8692e-05
   },
   "fiscalYearEnd": {
@@ -241,80 +241,80 @@
       "fyEndMonth": 6,
       "totalAsset": [
         54.2,
-        137.8004,
-        146.6766,
-        148.2202,
-        157.5279,
+        137.8727,
+        146.7536,
+        148.298,
+        157.6106,
         null
       ],
       "cash": [
         14.9,
-        24.9577,
-        17.8582,
-        17.9393,
-        17.0415,
+        24.9708,
+        17.8676,
+        17.9487,
+        17.0505,
         null
       ],
       "totalDebt": [
         14.5,
-        23.7877,
-        32.3556,
-        29.9997,
-        35.4702,
+        23.8002,
+        32.3725,
+        30.0154,
+        35.4888,
         null
       ],
       "totalEquity": [
         26.4,
-        63.0112,
-        62.3436,
-        62.8056,
-        66.9381,
+        63.0442,
+        62.3764,
+        62.8385,
+        66.9733,
         null
       ],
       "revenue": [
         60.8,
-        94.2619,
-        77.927,
-        80.5928,
-        74.2274,
+        94.3114,
+        77.9679,
+        80.6351,
+        74.2663,
         null
       ],
       "grossProfit": [
         36.2,
-        72.6664,
-        54.885,
-        58.7092,
-        53.1865,
+        72.7046,
+        54.9138,
+        58.74,
+        53.2144,
         null
       ],
       "netProfit": [
         11.3,
-        44.7432,
-        18.7096,
-        11.4349,
-        13.0595,
+        44.7667,
+        18.7194,
+        11.4409,
+        13.0664,
         null
       ],
       "eps": [
         2.21,
-        8.8415,
-        3.6953,
-        2.256,
-        2.5745,
+        8.8461,
+        3.6972,
+        2.2572,
+        2.5759,
         null
       ],
       "dps": [
         3.01,
-        5.1073,
-        3.7939,
-        2.1929,
-        1.8276,
+        5.11,
+        3.7958,
+        2.194,
+        1.8286,
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (70.3%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (24.4%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (36.3%) \u2013 management creates significant shareholder value.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "WDS": {
       "name": "Woodside Energy",
@@ -325,80 +325,80 @@
       "fyEndMonth": 12,
       "totalAsset": [
         40.3,
-        85.8968,
-        80.1627,
-        88.7103,
-        96.2934,
+        85.9419,
+        80.2048,
+        88.7568,
+        96.344,
         null
       ],
       "cash": [
         2.8,
-        8.9617,
-        2.5195,
-        5.6805,
-        8.271,
+        8.9664,
+        2.5208,
+        5.6835,
+        8.2753,
         null
       ],
       "totalDebt": [
         7.9,
-        9.8059,
-        9.4091,
-        16.8258,
-        19.8695,
+        9.811,
+        9.414,
+        16.8346,
+        19.8799,
         null
       ],
       "totalEquity": [
         18.2,
-        52.6145,
-        49.8098,
-        51.2578,
-        52.0035,
+        52.6421,
+        49.8359,
+        51.2847,
+        52.0308,
         null
       ],
       "revenue": [
         10.0,
-        24.351,
-        20.2633,
-        19.0832,
-        18.8008,
+        24.3638,
+        20.2739,
+        19.0932,
+        18.8107,
         null
       ],
       "grossProfit": [
         5.8,
-        14.8811,
-        9.3758,
-        8.2217,
-        6.5681,
+        14.8889,
+        9.3807,
+        8.2261,
+        6.5716,
         null
       ],
       "netProfit": [
         2.5,
-        9.4091,
-        2.4037,
-        5.1737,
-        3.9357,
+        9.414,
+        2.4049,
+        5.1764,
+        3.9377,
         null
       ],
       "eps": [
         0.8,
-        6.2264,
-        1.267,
-        2.7295,
-        2.0764,
+        6.2297,
+        1.2677,
+        2.7309,
+        2.0775,
         null
       ],
       "dps": [
         0.55,
-        2.4509,
-        3.2472,
-        1.8706,
-        1.537,
+        2.4522,
+        3.2489,
+        1.8716,
+        1.5379,
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (48.7%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (24.7%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\udc22 ROE of 10.8% suggests capital is not being deployed optimally.\n- \ud83d\udcc8 Strong revenue growth (17.1% CAGR) \u2013 top-line momentum.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "CBA": {
       "name": "Commonwealth Bank",
@@ -480,9 +480,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (83.8%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (38.0%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\udcc8 Good ROE (13.6%) \u2013 efficient use of shareholder capital.\n- \u26a0\ufe0f High leverage (D/E 240.9%) increases financial risk.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "BBRI": {
       "name": "Bank Rakyat Indonesia",
@@ -564,9 +564,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (72.3%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (30.6%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\udcc8 Good ROE (16.5%) \u2013 efficient use of shareholder capital.\n- \u26a0\ufe0f High leverage (D/E 148.2%) increases financial risk.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "ADRO": {
       "name": "Alamtri Resources Indonesia",
@@ -648,9 +648,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (42.2%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (42.0%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (23.5%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc9 Revenue declining (-16.3% CAGR) \u2013 investigate root causes.\n- \u2705 Low debt (D/E 21.7%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "SMSM": {
       "name": "Selamat Sempurna",
@@ -732,9 +732,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \ud83d\udcca Gross margin of 35.1% is healthy but leaves room for improvement.\n- \ud83d\udcb5 Solid net margin (18.8%) \u2013 efficient operations.\n- \ud83d\ude80 Outstanding return on equity (27.8%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc8 Strong revenue growth (20.9% CAGR) \u2013 top-line momentum.\n- \u2705 Low debt (D/E 9.9%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "UNTR": {
       "name": "United Tractors",
@@ -816,9 +816,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \ud83d\udcca Gross margin of 25.4% is healthy but leaves room for improvement.\n- \ud83d\udcb5 Solid net margin (14.2%) \u2013 efficient operations.\n- \ud83d\ude80 Outstanding return on equity (20.7%) \u2013 management creates significant shareholder value.\n- \u2705 Low debt (D/E 19.6%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "ITMG": {
       "name": "Indo Tambangraya Megah",
@@ -900,9 +900,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \ud83d\udcca Gross margin of 33.4% is healthy but leaves room for improvement.\n- \ud83d\udcb5 Solid net margin (18.9%) \u2013 efficient operations.\n- \ud83d\ude80 Outstanding return on equity (30.0%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc9 Revenue declining (-2.9% CAGR) \u2013 investigate root causes.\n- \u2705 Low debt (D/E 3.8%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "POWR": {
       "name": "Cikarang Listrindo",
@@ -984,9 +984,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (45.8%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb5 Solid net margin (14.6%) \u2013 efficient operations.\n- \ud83d\udc22 ROE of 11.7% suggests capital is not being deployed optimally.\n- \ud83d\udcc8 Strong revenue growth (17.2% CAGR) \u2013 top-line momentum.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "MPMX": {
       "name": "Mitra Pinasthika Mustika",
@@ -1068,9 +1068,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u26a0\ufe0f Thin gross margin (10.1%) \u2013 vulnerable to input cost inflation.\n- \ud83d\udcc9 Low net margin (3.7%) \u2013 earnings are sensitive to cost increases.\n- \ud83d\udc22 ROE of 8.9% suggests capital is not being deployed optimally.\n- \u2705 Low debt (D/E 10.9%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "BTPS": {
       "name": "Bank BTPN Syariah",
@@ -1152,9 +1152,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (93.5%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (24.0%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\udcc8 Good ROE (16.2%) \u2013 efficient use of shareholder capital.\n- \ud83d\udcc9 Revenue declining (-9.3% CAGR) \u2013 investigate root causes.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "DMAS": {
       "name": "Puradelta Lestari",
@@ -1236,9 +1236,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (68.5%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (58.3%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\udcc8 Good ROE (17.0%) \u2013 efficient use of shareholder capital.\n- \ud83d\udcc9 Revenue declining (-7.7% CAGR) \u2013 investigate root causes.\n- \u2705 Low debt (D/E 5.0%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "SPTO": {
       "name": "Surya Toto Indonesia",
@@ -1320,9 +1320,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \ud83d\udcca Gross margin of 28.4% is healthy but leaves room for improvement.\n- \ud83d\udcc9 Low net margin (9.2%) \u2013 earnings are sensitive to cost increases.\n- \ud83d\udcc8 Good ROE (16.1%) \u2013 efficient use of shareholder capital.\n- \u2705 Low debt (D/E 23.4%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "TSM": {
       "name": "Taiwan Semiconductor",
@@ -1333,80 +1333,80 @@
       "fyEndMonth": 12,
       "totalAsset": [
         133,
-        155.0401,
-        172.7705,
-        208.9892,
-        247.7483,
+        155.045,
+        172.776,
+        208.9959,
+        247.7563,
         null
       ],
       "cash": [
         40,
-        41.9361,
-        45.7653,
-        66.4458,
-        86.4402,
+        41.9374,
+        45.7668,
+        66.4479,
+        86.4429,
         null
       ],
       "totalDebt": [
         20,
-        27.7377,
-        29.8639,
-        32.6991,
-        33.2469,
+        27.7386,
+        29.8649,
+        32.7002,
+        33.248,
         null
       ],
       "totalEquity": [
         71,
-        90.6613,
-        107.104,
-        133.9313,
-        169.254,
+        90.6642,
+        107.1074,
+        133.9356,
+        169.2594,
         null
       ],
       "revenue": [
         57,
-        70.7013,
-        67.511,
-        90.3892,
-        118.9568,
+        70.7036,
+        67.5132,
+        90.3921,
+        118.9606,
         null
       ],
       "grossProfit": [
         30,
-        42.1091,
-        36.6987,
-        50.7286,
-        71.2448,
+        42.1105,
+        36.6999,
+        50.7302,
+        71.2471,
         null
       ],
       "netProfit": [
         22,
-        31.009,
-        26.5998,
-        36.6412,
-        53.6495,
+        31.01,
+        26.6007,
+        36.6423,
+        53.6512,
         null
       ],
       "eps": [
         4.18,
-        6.1211,
-        5.0499,
-        7.0658,
-        10.3465,
+        6.1213,
+        5.0501,
+        7.066,
+        10.3468,
         null
       ],
       "dps": [
         1.72,
-        1.7177,
-        1.7568,
-        2.1865,
-        2.8111,
+        1.7178,
+        1.7569,
+        2.1866,
+        2.8112,
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (56.5%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (41.5%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (29.8%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc8 Strong revenue growth (20.2% CAGR) \u2013 top-line momentum.\n- \u2705 Low debt (D/E 26.1%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "V": {
       "name": "Visa Inc.",
@@ -1488,9 +1488,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (80.9%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (52.0%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (44.9%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc8 Strong revenue growth (13.5% CAGR) \u2013 top-line momentum.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "MA": {
       "name": "Mastercard Inc.",
@@ -1572,9 +1572,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (75.4%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (45.3%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (171.2%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc8 Strong revenue growth (14.8% CAGR) \u2013 top-line momentum.\n- \u26a0\ufe0f High leverage (D/E 242.5%) increases financial risk.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "PBR-A": {
       "name": "Petrobras Pref ADR",
@@ -1656,9 +1656,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (50.4%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb5 Solid net margin (19.0%) \u2013 efficient operations.\n- \ud83d\ude80 Outstanding return on equity (26.0%) \u2013 management creates significant shareholder value.\n- \u26a0\ufe0f High leverage (D/E 88.4%) increases financial risk.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "MSFT": {
       "name": "Microsoft Corp.",
@@ -1740,9 +1740,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (69.0%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (35.9%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (36.9%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc8 Strong revenue growth (13.8% CAGR) \u2013 top-line momentum.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "AMZN": {
       "name": "Amazon.com Inc.",
@@ -1824,9 +1824,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (46.4%) indicates strong pricing power or cost leadership.\n- \ud83d\udcc9 Low net margin (6.4%) \u2013 earnings are sensitive to cost increases.\n- \ud83d\udcc8 Good ROE (15.4%) \u2013 efficient use of shareholder capital.\n- \ud83d\udcc8 Strong revenue growth (11.1% CAGR) \u2013 top-line momentum.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "AAPL": {
       "name": "Apple Inc.",
@@ -1908,9 +1908,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (44.5%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (25.5%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (163.9%) \u2013 management creates significant shareholder value.\n- \u26a0\ufe0f High leverage (D/E 195.5%) increases financial risk.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "META": {
       "name": "Meta Platforms Inc.",
@@ -1992,9 +1992,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (81.5%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (30.1%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (27.5%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc8 Strong revenue growth (14.3% CAGR) \u2013 top-line momentum.\n- \u2705 Low debt (D/E 23.8%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "NVDA": {
       "name": "NVIDIA Corporation",
@@ -2076,9 +2076,9 @@
         0.04
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (67.2%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (39.8%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (53.4%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc8 Strong revenue growth (66.8% CAGR) \u2013 top-line momentum.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "GOOG": {
       "name": "Alphabet Inc (Google)",
@@ -2160,9 +2160,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (57.4%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (27.2%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\ude80 Outstanding return on equity (28.5%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc8 Strong revenue growth (11.8% CAGR) \u2013 top-line momentum.\n- \u2705 Low debt (D/E 9.7%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "BKNG": {
       "name": "Booking Holdings Inc",
@@ -2244,9 +2244,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u26a0\ufe0f Thin gross margin (16.9%) \u2013 vulnerable to input cost inflation.\n- \ud83d\udcb5 Solid net margin (18.6%) \u2013 efficient operations.\n- \ud83d\udc22 ROE of -13.9% suggests capital is not being deployed optimally.\n- \ud83d\udcc8 Strong revenue growth (25.1% CAGR) \u2013 top-line momentum.\n- \u26a0\ufe0f High leverage (D/E 447.8%) increases financial risk.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "NAB": {
       "name": "National Australia Bank",
@@ -2328,9 +2328,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (81.6%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (35.9%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\udc22 ROE of 11.4% suggests capital is not being deployed optimally.\n- \u26a0\ufe0f High leverage (D/E 325.2%) increases financial risk.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "CVX": {
       "name": "Chevron Corporation",
@@ -2412,9 +2412,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \ud83d\udcca Gross margin of 30.8% is healthy but leaves room for improvement.\n- \ud83d\udcb5 Solid net margin (10.6%) \u2013 efficient operations.\n- \ud83d\udcc8 Good ROE (12.8%) \u2013 efficient use of shareholder capital.\n- \u2705 Low debt (D/E 16.8%) \u2013 balance sheet strength.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "AXP": {
       "name": "American Express",
@@ -2496,9 +2496,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \ud83d\udcca Gross margin of 21.4% is healthy but leaves room for improvement.\n- \ud83d\udcb5 Solid net margin (14.6%) \u2013 efficient operations.\n- \ud83d\ude80 Outstanding return on equity (31.1%) \u2013 management creates significant shareholder value.\n- \ud83d\udcc8 Strong revenue growth (12.6% CAGR) \u2013 top-line momentum.\n- \u26a0\ufe0f High leverage (D/E 173.4%) increases financial risk.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "BAC": {
       "name": "Bank of America",
@@ -2580,9 +2580,9 @@
         null
       ],
       "profile": "Analysis not yet available for this stock.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (54.0%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (27.2%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\udc22 ROE of 9.7% suggests capital is not being deployed optimally.\n- \u26a0\ufe0f High leverage (D/E 113.0%) increases financial risk.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     },
     "PGEO": {
       "name": "Pertamina Geothermal Energy Tbk",
@@ -2664,9 +2664,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** PT Pertamina Power Indonesia (majority owner, 80%+ market share), PLN (state electricity company, long-term PPAs), Joint Operating Contract (JOC) partners (e.g., Star Energy), EPC contractors, Indonesian government (energy transition policies).\n**Key Activities:** Geothermal exploration, development, and production; operation of geothermal power plants (steam and electricity generation); long-term steam and power sales to PLN under PPAs up to 30 years; capacity expansion projects (targeting +1.7GW by 2033).\n**Key Resources:** Over 80% market share of Indonesia's geothermal sector; 15 managed areas with 1,877MW total installed capacity; Indonesia's 40% global geothermal reserves (23.6GW) with only 11% tapped; long-term government support via RUPTL plan targeting 5.2GW national geothermal capacity by 2034.\n**Value Proposition:** Dominant state-owned geothermal operator with unrivalled scale and government backing; stable, predictable revenue from ultra-long-term PPAs with PLN; pure-play renewable energy with no fuel cost volatility; key enabler of Indonesia's clean energy transition.\n**Customer Relationships:** Long-term PPAs and SSCs with PLN (up to 30 years); government relationships via Pertamina network; community engagement near plant locations.\n**Channels:** Direct power generation and sales to PLN national grid; steam sales to PLN under SSCs; direct negotiations with government and JOC partners.\n**Customer Segments:** PLN (sole off-taker for electricity and steam); Indonesian government (strategic energy security); industrial consumers indirectly via grid.\n**Cost Structure:** High upfront capex for exploration, drilling, and plant construction; ongoing opex for well maintenance, make-up wells (to combat natural decline), and personnel; royalty payments to government; financing costs for expansion projects.\n**Revenue Streams:** Electricity sales (PPAs with PLN); steam sales (SSCs with PLN); government capacity payments; potential carbon credit sales in future.\n\n## SWOT Analysis\n**Strengths:** Unbeatable market share (>80%) in Indonesia's geothermal sector; government ownership (Pertamina) provides policy backing; massive untapped geothermal reserves; stable, contracted revenue from long-term PPAs; no fuel cost volatility unlike coal or gas peers.\n**Weaknesses:** High capex intensity for new projects and well drilling; natural decline of existing wells requiring continuous make-up wells; single off-taker risk (PLN); slower capacity expansion than national targets; lower dividend payout due to capex needs.\n**Opportunities:** Indonesia's 40% global geothermal reserves offer massive expansion runway; national RUPTL plan targeting 5.2GW geothermal by 2034; carbon credit monetization as global carbon pricing expands; JOC partnerships can accelerate development.\n**Threats:** Regulatory changes in Indonesia's energy policy; PLN's financial health and payment punctuality; operational risks (natural decline, drilling delays, geological surprises); competition from other renewables (solar, hydro) on cost; project execution delays.\n\n## PESTLE Analysis\n**Political:** Strong government backing via Pertamina and national energy transition agenda; RUPTL plan supports geothermal expansion; political stability in Indonesia favourable for long-term infrastructure. **Economic:** Capital intensive nature requires strong access to financing; Indonesia's GDP growth drives electricity demand; IDR/USD exchange rate impacts dollar-denominated costs. **Social:** Geothermal as baseload renewable energy supports energy security; local community employment and development near plant sites. **Technological:** Advanced drilling and reservoir management technologies; natural decline management critical; potential for enhanced geothermal systems (EGS) in future. **Legal:** Mining law and geothermal regulations; long-term PPA enforceability; environmental compliance (AMDAL). **Environmental:** Pure-play renewable energy with minimal carbon footprint; supports Indonesia's net-zero targets; minimal land use compared to hydro/solar; potential for hydrogen co-production.\n\n## Porter's Five Forces\n**Rivalry:** Very low \u2013 PGEO holds >80% market share in Indonesian geothermal, near-monopoly status; only state-owned competitor is controlled by same parent Pertamina. **New Entrants:** Extremely high barriers \u2013 massive capex, geological risk, JOC structures favour incumbents, long permitting times. **Supplier Power:** Low \u2013 drilling and equipment suppliers commoditised; EPC contracts competitively bid. **Buyer Power:** Low \u2013 PLN is sole off-taker but PPAs are long-term, fixed-price contracts; PGEO has no alternative buyer. **Substitutes:** Moderate \u2013 other renewables (solar, wind, hydro) but geothermal provides reliable baseload power that intermittent sources cannot.\n\n## Management & Decision Making\nManagement led by CEO Julfi Hadi (since IPO 2023) with focus on capacity expansion to 1GW by 2028 and 1.7GW by 2033. CFO Yurizki Rio drives prudent financial management, debt reduction (liabilities fell from $993M to $989M in 2024), and operational efficiency. Capital allocation prioritises growth capex over dividends (2024 payout ratio ~85% of net profit). Track record: delivered record electricity production (4,827 GWh) and revenue in 2024.\n\n## Future Outlook\nCapacity expansion through Quick Win, Extension, and Green Field programmes targeting +1.7GW by 2033. Indonesia's RUPTL plan provides demand visibility. Carbon credit monetisation potential. Revenue CAGR projected at 7.1% until 2034. DBS has BUY rating with TP IDR1,780 (34% upside). Watch project execution, regulatory consistency, and PLN payment cycles.\n\n## Leadership\n**CEO:** Julfi Hadi (since 2023)  \n**CFO:** Yurizki Rio  \n**Track Record:** Julfi Hadi led PGEO's successful IPO in 2023, focus on capacity expansion to 1GW by 2028 and 1.7GW by 2033. CFO Yurizki Rio reduced debt and improved operational efficiency.\n\n## Key Takeaways for Long\u2011Term Investors\n- \u2705 High gross margin (55.9%) indicates strong pricing power or cost leadership.\n- \ud83d\udcb0 Excellent net profitability (33.5%) \u2013 each dollar of revenue generates substantial profit.\n- \ud83d\udc22 ROE of 8.0% suggests capital is not being deployed optimally.\n- \ud83d\udcc8 Strong revenue growth (6585.8% CAGR) \u2013 top-line momentum.",
-      "profileDate": "2026-04-06T03:39:28.746310+00:00",
+      "profileDate": "2026-04-06T03:50:05.495552+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-06T03:39:28.746310+00:00"
+      "newsDate": "2026-04-06T03:50:05.495552+00:00"
     }
   }
 }
