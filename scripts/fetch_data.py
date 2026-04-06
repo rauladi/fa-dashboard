@@ -25,11 +25,11 @@ FISCAL_YEAR_END = {
     "MSFT":6,"AMZN":12,"AAPL":9,"META":12,"NVDA":1,
     "GOOG":12,"BKNG":12,
     "PBR-A":12,
-    "NAB":9,      # National Australia Bank – FY ends 30 September
-    "CVX":12,    # Chevron
-    "AXP":12,    # American Express
-    "BAC":12,    # Bank of America
-    "PGEO":12, # Pertamina Geothermal Energy – FY ends 31 December
+    "NAB":9,
+    "CVX":12,
+    "AXP":12,
+    "BAC":12,
+    "PGEO":12,
 }
 
 STOCKS = {
@@ -46,7 +46,6 @@ STOCKS = {
     "BTPS": ("Bank BTPN Syariah",       "IDX",    "BTPS.JK", "T IDR", 1e12, "IDR"),
     "DMAS": ("Puradelta Lestari",       "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
     "SPTO": ("Surya Toto Indonesia",    "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
-    "PGEO": ("Pertamina Geothermal Energy Tbk", "IDX", "PGEO.JK", "T IDR", 1e12, "IDR"),
     "TSM":  ("Taiwan Semiconductor",   "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
     "V":    ("Visa Inc.",              "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",        "NYSE",   "MA",      "B USD", 1e9,  "USD"),
@@ -58,20 +57,19 @@ STOCKS = {
     "NVDA": ("NVIDIA Corporation",     "NASDAQ", "NVDA",    "B USD", 1e9,  "USD"),
     "GOOG": ("Alphabet Inc (Google)",  "NASDAQ", "GOOG",    "B USD", 1e9,  "USD"),
     "BKNG": ("Booking Holdings Inc",   "NASDAQ", "BKNG",    "B USD", 1e9,  "USD"),
-    # New stocks
     "NAB":  ("National Australia Bank","ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
     "CVX":  ("Chevron Corporation",    "NYSE",   "CVX",     "B USD", 1e9,  "USD"),
     "AXP":  ("American Express",       "NYSE",   "AXP",     "B USD", 1e9,  "USD"),
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
+    "PGEO": ("Pertamina Geothermal Energy Tbk", "IDX", "PGEO.JK", "T IDR", 1e12, "IDR"),
 }
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-# ---------- FALLBACK DATA (includes historical data for all 28 stocks) ----------
+# ---------- FALLBACK DATA (all numbers in correct display units) ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,None,None]},
     "WDS": {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,None,None]},
-    "CBA": {"totalAsset":[925.0,1012.0,1085.0,1150.0,None,None],"cash":[98.0,105.0,112.0,120.0,None,None],"totalDebt":[165.0,172.0,180.0,195.0,None,None],"totalEquity":[62.0,65.0,68.0,72.0,None,None],"revenue":[23.5,24.1,25.2,26.5,None,None],"grossProfit":[19.8,20.4,21.3,22.4,None,None],"netProfit":[9.6,10.2,10.5,10.7,None,None],"eps":[5.6,5.9,6.1,6.2,None,None],"dps":[3.5,3.7,3.9,4.1,None,None]},
     "BBRI": {"totalAsset":[1635,1865,1965,2073,None,None],"cash":[163,186,196,207,None,None],"totalDebt":[1380,1570,1650,1730,None,None],"totalEquity":[255,295,315,343,None,None],"revenue":[135,150,165,187,None,None],"grossProfit":[85,95,104,118,None,None],"netProfit":[25,43,51,60,None,None],"eps":[1019,1753,2086,2443,None,None],"dps":[460,791,940,1100,None,None]},
     "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],"eps":[256,960,480,510,None,None],"dps":[130,480,240,255,None,None]},
     "SMSM": {"totalAsset":[2.6,2.8,3.0,3.2,None,None],"cash":[0.9,1.0,1.1,1.2,None,None],"totalDebt":[0.35,0.30,0.30,0.25,None,None],"totalEquity":[2.0,2.2,2.4,2.6,None,None],"revenue":[2.5,2.8,3.2,3.4,None,None],"grossProfit":[0.82,0.92,1.05,1.12,None,None],"netProfit":[0.43,0.51,0.58,0.62,None,None],"eps":[183,217,247,264,None,None],"dps":[138,164,186,198,None,None]},
@@ -82,7 +80,6 @@ PRELOADED = {
     "BTPS": {"totalAsset":[24,27,30,32,None,None],"cash":[2.4,2.7,3.0,3.2,None,None],"totalDebt":[19,21,23.5,25,None,None],"totalEquity":[5.0,6.0,6.5,7.0,None,None],"revenue":[7.0,8.0,9.0,9.5,None,None],"grossProfit":[4.2,4.8,5.4,5.7,None,None],"netProfit":[1.2,1.8,2.0,2.1,None,None],"eps":[413,557,618,650,None,None],"dps":[124,167,185,195,None,None]},
     "DMAS": {"totalAsset":[7.0,7.5,8.0,8.5,None,None],"cash":[1.8,2.0,2.2,2.4,None,None],"totalDebt":[1.0,0.9,0.8,0.7,None,None],"totalEquity":[5.5,6.0,6.5,7.0,None,None],"revenue":[1.8,2.2,2.8,2.5,None,None],"grossProfit":[1.2,1.6,2.0,1.8,None,None],"netProfit":[0.7,0.9,1.1,1.0,None,None],"eps":[35,45,55,50,None,None],"dps":[24,32,38,35,None,None]},
     "SPTO": {"totalAsset":[2.6,2.7,2.8,2.9,None,None],"cash":[0.32,0.35,0.38,0.40,None,None],"totalDebt":[0.70,0.65,0.60,0.55,None,None],"totalEquity":[1.55,1.70,1.85,1.98,None,None],"revenue":[1.9,2.0,2.1,2.2,None,None],"grossProfit":[0.69,0.73,0.77,0.80,None,None],"netProfit":[0.25,0.27,0.30,0.32,None,None],"eps":[278,300,333,356,None,None],"dps":[139,150,167,178,None,None]},
-    "PGEO": {"totalAsset": [2.48, 2.73, 2.96, 2.99, None, None],"cash": [0.18, 0.21, 0.25, 0.27, None, None],"totalDebt": [0.88, 0.92, 0.993, 0.989, None, None],"totalEquity": [1.23, 1.38, 1.52, 1.58, None, None],"revenue": [0.369, 0.386, 0.406, 0.407, None, None],"grossProfit": [0.186, 0.213, 0.248, 0.242, None, None],"netProfit": [0.085, 0.127, 0.164, 0.160, None, None],"eps": [2.05, 3.07, 3.96, 3.87, None, None],"dps": [0.60, 0.90, 1.20, 1.10, None, None]},    
     "TSM": {"totalAsset":[133,175,206,209,248,None],"cash":[40,52,54,57,87,None],"totalDebt":[20,30,38,40,33,None],"totalEquity":[71,92,107,134,170,None],"revenue":[57,77,70,91,119,None],"grossProfit":[30,42,37,51,71,None],"netProfit":[22,31,27,37,53,None],"eps":[4.18,6.14,5.07,7.09,10.36,None],"dps":[1.72,1.72,1.76,2.19,2.82,None]},
     "V": {"totalAsset":[82.9,85.5,90.5,94.5,92.6,None],"cash":[15.7,16.3,11.9,11.6,17.2,None],"totalDebt":[22.4,20.5,20.5,20.8,25.2,None],"totalEquity":[35.6,38.7,38.3,38.0,32.9,None],"revenue":[24.1,29.3,32.7,35.9,40.0,None],"grossProfit":[20.1,24.9,28.1,31.4,35.1,None],"netProfit":[12.3,15.0,17.3,19.7,20.1,None],"eps":[5.74,7.12,8.23,9.74,10.22,None],"dps":[1.28,1.50,1.80,2.08,2.34,None]},
     "MA": {"totalAsset":[43.0,46.4,46.8,46.5,47.0,None],"cash":[8.0,7.8,7.4,8.0,8.5,None],"totalDebt":[14.2,15.7,15.8,16.6,17.0,None],"totalEquity":[6.0,5.5,5.3,5.0,5.5,None],"revenue":[18.9,22.2,25.1,28.2,31.0,None],"grossProfit":[13.3,16.0,18.4,21.1,23.5,None],"netProfit":[8.7,10.5,11.2,12.9,14.6,None],"eps":[8.76,10.61,11.44,13.89,15.60,None],"dps":[1.76,2.00,2.28,2.64,2.97,None]},
@@ -94,7 +91,6 @@ PRELOADED = {
     "NVDA": {"totalAsset":[28.8,44.2,41.2,65.7,111.6,None],"cash":[11.6,19.3,13.3,25.0,43.2,None],"totalDebt":[6.9,11.7,11.0,10.0,8.5,None],"totalEquity":[16.9,26.1,26.1,42.6,65.7,None],"revenue":[16.7,26.9,27.0,60.9,130.5,None],"grossProfit":[10.4,17.5,15.4,42.0,97.9,None],"netProfit":[4.3,9.8,4.4,29.8,72.9,None],"eps":[1.73,3.85,1.74,11.93,29.24,None],"dps":[0.016,0.016,0.016,0.016,0.01,None]},
     "GOOG": {"totalAsset":[359.3,391.4,402.0,430.3,450.0,None],"cash":[142.0,139.6,115.0,108.1,95.7,None],"totalDebt":[14.8,15.1,14.7,14.7,15.0,None],"totalEquity":[251.6,256.1,272.3,314.1,360.0,None],"revenue":[257.6,282.8,307.4,350.0,385.0,None],"grossProfit":[146.7,156.6,174.1,208.1,237.0,None],"netProfit":[76.0,60.0,73.8,100.1,115.0,None],"eps":[5.61,4.56,5.80,7.79,9.27,None],"dps":[None,None,None,None,None,None]},
     "BKNG": {"totalAsset":[25.5,26.8,30.7,31.8,33.0,None],"cash":[11.2,12.4,15.1,16.8,17.5,None],"totalDebt":[15.4,13.8,14.0,12.0,11.0,None],"totalEquity":[0.5,1.4,4.0,7.0,9.0,None],"revenue":[11.0,17.1,21.4,23.7,26.0,None],"grossProfit":[9.7,15.2,19.0,21.2,23.1,None],"netProfit":[1.1,3.0,4.3,4.8,6.0,None],"eps":[25.0,72.0,110.0,130.0,165.0,None],"dps":[None,None,None,None,None,None]},
-    # ========== NEW STOCKS – filled with realistic historical data ==========
     "NAB": {
         "totalAsset": [925.0, 1005.0, 1059.0, 1080.0, 1105.0, None],
         "cash": [109.0, 125.0, 120.0, 113.0, 118.0, None],
@@ -139,6 +135,17 @@ PRELOADED = {
         "eps": [3.10, 3.21, 3.10, 3.25, 3.86, None],
         "dps": [0.90, 1.06, 1.13, 1.21, 1.27, None]
     },
+    "PGEO": {
+        "totalAsset": [2.48, 2.73, 2.96, 2.99, None, None],
+        "cash": [0.18, 0.21, 0.25, 0.27, None, None],
+        "totalDebt": [0.88, 0.92, 0.993, 0.989, None, None],
+        "totalEquity": [1.23, 1.38, 1.52, 1.58, None, None],
+        "revenue": [0.369, 0.386, 0.406, 0.407, None, None],
+        "grossProfit": [0.186, 0.213, 0.248, 0.242, None, None],
+        "netProfit": [0.085, 0.127, 0.164, 0.160, None, None],
+        "eps": [2.05, 3.07, 3.96, 3.87, None, None],
+        "dps": [0.60, 0.90, 1.20, 1.10, None, None]
+    },
 }
 
 # ---------- exchange rates ----------
@@ -179,13 +186,6 @@ def detect_cur(tk, hint):
         return hint.upper()
 
 def get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd):
-    def get_custom_divisor(sym, exchange, raw_value):
-    """Some IDX stocks return values in billions instead of raw IDR."""
-    if sym == "PGEO" and exchange == "IDX":
-        # yfinance returns numbers in billions (1e9), but we need trillions (1e12)
-        # So divide by an extra 1000.
-        return 1e12 * 1000  # effectively 1e15
-    return None
     if exchange == "ASX":
         return 1e9, (usd_aud if fin_cur == "USD" else 1.0)
     elif exchange == "IDX":
@@ -197,6 +197,13 @@ def eps_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd):
     if exchange == "ASX": return usd_aud if fin_cur == "USD" else 1.0
     if exchange == "IDX": return usd_idr if fin_cur == "USD" else 1.0
     return twd_usd if fin_cur == "TWD" else 1.0
+
+def get_custom_divisor(sym, exchange):
+    """Return a custom divisor for symbols where yfinance returns wrong units."""
+    # PGEO on IDX returns numbers in billions (1e9) but we need trillions (1e12)
+    if sym == "PGEO" and exchange == "IDX":
+        return 1e12 * 1000   # effectively 1e15
+    return None
 
 def safe(val, div=1, fx=1.0):
     if val is None: return None
@@ -349,7 +356,8 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             tk = yf.Ticker(ticker_str)
             fin_cur = detect_cur(tk, hint_cur)
             div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
-            custom_div = get_custom_divisor(sym, exchange, None)
+            # Apply symbol-specific divisor override
+            custom_div = get_custom_divisor(sym, exchange)
             if custom_div:
                 div = custom_div
                 print(f"  Using custom divisor for {sym}: {div}")
@@ -433,7 +441,7 @@ def generate_key_takeaways(m, mgmt_html):
         takeaways.append(f"✅ Low debt (D/E {fmtPct(m.av.debtToEquity)}) – balance sheet strength.")
     return takeaways
 
-# ---------- DEEP STATIC PROFILES (all 28 stocks) ----------
+# ---------- DEEP STATIC PROFILES (all 29 stocks) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -799,34 +807,6 @@ Management focused on maintaining TOTO exclusivity. Expanding showrooms to Tier-
 
 ## Future Outlook
 Property supercycle. Data centre fit-out. Hotel pipeline. Watch JPY/IDR, TOTO relationship, and property market.""",
-    "PGEO": """## Business Model Canvas
-**Key Partners:** PT Pertamina Power Indonesia (majority owner, 80%+ market share), PLN (state electricity company, long-term PPAs), Joint Operating Contract (JOC) partners (e.g., Star Energy), EPC contractors, Indonesian government (energy transition policies).
-**Key Activities:** Geothermal exploration, development, and production; operation of geothermal power plants (steam and electricity generation); long-term steam and power sales to PLN under PPAs up to 30 years; capacity expansion projects (targeting +1.7GW by 2033).
-**Key Resources:** Over 80% market share of Indonesia's geothermal sector; 15 managed areas with 1,877MW total installed capacity; Indonesia's 40% global geothermal reserves (23.6GW) with only 11% tapped; long-term government support via RUPTL plan targeting 5.2GW national geothermal capacity by 2034.
-**Value Proposition:** Dominant state-owned geothermal operator with unrivalled scale and government backing; stable, predictable revenue from ultra-long-term PPAs with PLN; pure-play renewable energy with no fuel cost volatility; key enabler of Indonesia's clean energy transition.
-**Customer Relationships:** Long-term PPAs and SSCs with PLN (up to 30 years); government relationships via Pertamina network; community engagement near plant locations.
-**Channels:** Direct power generation and sales to PLN national grid; steam sales to PLN under SSCs; direct negotiations with government and JOC partners.
-**Customer Segments:** PLN (sole off-taker for electricity and steam); Indonesian government (strategic energy security); industrial consumers indirectly via grid.
-**Cost Structure:** High upfront capex for exploration, drilling, and plant construction; ongoing opex for well maintenance, make-up wells (to combat natural decline), and personnel; royalty payments to government; financing costs for expansion projects.
-**Revenue Streams:** Electricity sales (PPAs with PLN); steam sales (SSCs with PLN); government capacity payments; potential carbon credit sales in future.
-
-## SWOT Analysis
-**Strengths:** Unbeatable market share (>80%) in Indonesia's geothermal sector; government ownership (Pertamina) provides policy backing; massive untapped geothermal reserves; stable, contracted revenue from long-term PPAs; no fuel cost volatility unlike coal or gas peers.
-**Weaknesses:** High capex intensity for new projects and well drilling; natural decline of existing wells requiring continuous make-up wells; single off-taker risk (PLN); slower capacity expansion than national targets; lower dividend payout due to capex needs.
-**Opportunities:** Indonesia's 40% global geothermal reserves offer massive expansion runway; national RUPTL plan targeting 5.2GW geothermal by 2034; carbon credit monetization as global carbon pricing expands; JOC partnerships can accelerate development.
-**Threats:** Regulatory changes in Indonesia's energy policy; PLN's financial health and payment punctuality; operational risks (natural decline, drilling delays, geological surprises); competition from other renewables (solar, hydro) on cost; project execution delays.
-
-## PESTLE Analysis
-**Political:** Strong government backing via Pertamina and national energy transition agenda; RUPTL plan supports geothermal expansion; political stability in Indonesia favourable for long-term infrastructure. **Economic:** Capital intensive nature requires strong access to financing; Indonesia's GDP growth drives electricity demand; IDR/USD exchange rate impacts dollar-denominated costs. **Social:** Geothermal as baseload renewable energy supports energy security; local community employment and development near plant sites. **Technological:** Advanced drilling and reservoir management technologies; natural decline management critical; potential for enhanced geothermal systems (EGS) in future. **Legal:** Mining law and geothermal regulations; long-term PPA enforceability; environmental compliance (AMDAL). **Environmental:** Pure-play renewable energy with minimal carbon footprint; supports Indonesia's net-zero targets; minimal land use compared to hydro/solar; potential for hydrogen co-production.
-
-## Porter's Five Forces
-**Rivalry:** Very low – PGEO holds >80% market share in Indonesian geothermal, near-monopoly status; only state-owned competitor is controlled by same parent Pertamina. **New Entrants:** Extremely high barriers – massive capex, geological risk, JOC structures favour incumbents, long permitting times. **Supplier Power:** Low – drilling and equipment suppliers commoditised; EPC contracts competitively bid. **Buyer Power:** Low – PLN is sole off-taker but PPAs are long-term, fixed-price contracts; PGEO has no alternative buyer. **Substitutes:** Moderate – other renewables (solar, wind, hydro) but geothermal provides reliable baseload power that intermittent sources cannot.
-
-## Management & Decision Making
-Management led by CEO Julfi Hadi (since IPO 2023) with focus on capacity expansion to 1GW by 2028 and 1.7GW by 2033. CFO Yurizki Rio drives prudent financial management, debt reduction (liabilities fell from $993M to $989M in 2024), and operational efficiency. Capital allocation prioritises growth capex over dividends (2024 payout ratio ~85% of net profit). Track record: delivered record electricity production (4,827 GWh) and revenue in 2024.
-
-## Future Outlook
-Capacity expansion through Quick Win, Extension, and Green Field programmes targeting +1.7GW by 2033. Indonesia's RUPTL plan provides demand visibility. Carbon credit monetisation potential. Revenue CAGR projected at 7.1% until 2034. DBS has BUY rating with TP IDR1,780 (34% upside). Watch project execution, regulatory consistency, and PLN payment cycles.""",
     "TSM": """## Business Model Canvas
 **Key Partners:** Apple, NVIDIA, AMD, Qualcomm, Broadcom (key customers); ASML (equipment); equipment vendors (Applied Materials, Lam Research); Taiwan government; research institutes.
 **Key Activities:** Semiconductor wafer fabrication; advanced node R&D (3nm, 2nm); capacity expansion; packaging (CoWoS); customer co-development.
@@ -1135,7 +1115,6 @@ Management focused on merchant model, US expansion, and connected trip. Sharehol
 
 ## Future Outlook
 US expansion. Alternative accommodations. AI personalisation. Watch travel demand, competition from Google, and regulation.""",
-    # ========== NEW STOCKS DEEP PROFILES ==========
     "NAB": """## Business Model Canvas
 **Key Partners:** Australian government (regulator), home loan aggregators, mortgage insurers, Visa/Mastercard, wealth management platforms, fintech partners (e.g., 86 400 acquisition), AWS (cloud migration).
 **Key Activities:** Retail banking (home loans, deposits); business & corporate banking; wealth management (MLC); institutional banking; digital banking (NAB app, NAB Connect); home loan servicing.
@@ -1248,6 +1227,34 @@ CEO Brian Moynihan (since 2010) – transformed BAC post-2008, built capital, cu
 
 ## Future Outlook
 Interest rate tailwinds for NIM. Investment banking rebound. Digital adoption reduces cost. Watch credit quality, economic cycle, and regulatory environment.""",
+    "PGEO": """## Business Model Canvas
+**Key Partners:** PT Pertamina Power Indonesia (majority owner, 80%+ market share), PLN (state electricity company, long-term PPAs), Joint Operating Contract (JOC) partners (e.g., Star Energy), EPC contractors, Indonesian government (energy transition policies).
+**Key Activities:** Geothermal exploration, development, and production; operation of geothermal power plants (steam and electricity generation); long-term steam and power sales to PLN under PPAs up to 30 years; capacity expansion projects (targeting +1.7GW by 2033).
+**Key Resources:** Over 80% market share of Indonesia's geothermal sector; 15 managed areas with 1,877MW total installed capacity; Indonesia's 40% global geothermal reserves (23.6GW) with only 11% tapped; long-term government support via RUPTL plan targeting 5.2GW national geothermal capacity by 2034.
+**Value Proposition:** Dominant state-owned geothermal operator with unrivalled scale and government backing; stable, predictable revenue from ultra-long-term PPAs with PLN; pure-play renewable energy with no fuel cost volatility; key enabler of Indonesia's clean energy transition.
+**Customer Relationships:** Long-term PPAs and SSCs with PLN (up to 30 years); government relationships via Pertamina network; community engagement near plant locations.
+**Channels:** Direct power generation and sales to PLN national grid; steam sales to PLN under SSCs; direct negotiations with government and JOC partners.
+**Customer Segments:** PLN (sole off-taker for electricity and steam); Indonesian government (strategic energy security); industrial consumers indirectly via grid.
+**Cost Structure:** High upfront capex for exploration, drilling, and plant construction; ongoing opex for well maintenance, make-up wells (to combat natural decline), and personnel; royalty payments to government; financing costs for expansion projects.
+**Revenue Streams:** Electricity sales (PPAs with PLN); steam sales (SSCs with PLN); government capacity payments; potential carbon credit sales in future.
+
+## SWOT Analysis
+**Strengths:** Unbeatable market share (>80%) in Indonesia's geothermal sector; government ownership (Pertamina) provides policy backing; massive untapped geothermal reserves; stable, contracted revenue from long-term PPAs; no fuel cost volatility unlike coal or gas peers.
+**Weaknesses:** High capex intensity for new projects and well drilling; natural decline of existing wells requiring continuous make-up wells; single off-taker risk (PLN); slower capacity expansion than national targets; lower dividend payout due to capex needs.
+**Opportunities:** Indonesia's 40% global geothermal reserves offer massive expansion runway; national RUPTL plan targeting 5.2GW geothermal by 2034; carbon credit monetization as global carbon pricing expands; JOC partnerships can accelerate development.
+**Threats:** Regulatory changes in Indonesia's energy policy; PLN's financial health and payment punctuality; operational risks (natural decline, drilling delays, geological surprises); competition from other renewables (solar, hydro) on cost; project execution delays.
+
+## PESTLE Analysis
+**Political:** Strong government backing via Pertamina and national energy transition agenda; RUPTL plan supports geothermal expansion; political stability in Indonesia favourable for long-term infrastructure. **Economic:** Capital intensive nature requires strong access to financing; Indonesia's GDP growth drives electricity demand; IDR/USD exchange rate impacts dollar-denominated costs. **Social:** Geothermal as baseload renewable energy supports energy security; local community employment and development near plant sites. **Technological:** Advanced drilling and reservoir management technologies; natural decline management critical; potential for enhanced geothermal systems (EGS) in future. **Legal:** Mining law and geothermal regulations; long-term PPA enforceability; environmental compliance (AMDAL). **Environmental:** Pure-play renewable energy with minimal carbon footprint; supports Indonesia's net-zero targets; minimal land use compared to hydro/solar; potential for hydrogen co-production.
+
+## Porter's Five Forces
+**Rivalry:** Very low – PGEO holds >80% market share in Indonesian geothermal, near-monopoly status; only state-owned competitor is controlled by same parent Pertamina. **New Entrants:** Extremely high barriers – massive capex, geological risk, JOC structures favour incumbents, long permitting times. **Supplier Power:** Low – drilling and equipment suppliers commoditised; EPC contracts competitively bid. **Buyer Power:** Low – PLN is sole off-taker but PPAs are long-term, fixed-price contracts; PGEO has no alternative buyer. **Substitutes:** Moderate – other renewables (solar, wind, hydro) but geothermal provides reliable baseload power that intermittent sources cannot.
+
+## Management & Decision Making
+Management led by CEO Julfi Hadi (since IPO 2023) with focus on capacity expansion to 1GW by 2028 and 1.7GW by 2033. CFO Yurizki Rio drives prudent financial management, debt reduction (liabilities fell from $993M to $989M in 2024), and operational efficiency. Capital allocation prioritises growth capex over dividends (2024 payout ratio ~85% of net profit). Track record: delivered record electricity production (4,827 GWh) and revenue in 2024.
+
+## Future Outlook
+Capacity expansion through Quick Win, Extension, and Green Field programmes targeting +1.7GW by 2033. Indonesia's RUPTL plan provides demand visibility. Carbon credit monetisation potential. Revenue CAGR projected at 7.1% until 2034. DBS has BUY rating with TP IDR1,780 (34% upside). Watch project execution, regulatory consistency, and PLN payment cycles.""",
 }
 
 # ---------- LEADERSHIP DATA (extended for all stocks) ----------
@@ -1280,12 +1287,13 @@ LEADERSHIP = {
     "CVX": {"ceo": "Mike Wirth (since 2018)", "cfo": "Pierre Breber (since 2019)", "track": "Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."},
     "AXP": {"ceo": "Stephen Squeri (since 2018)", "cfo": "Christophe Le Caillec (since 2023)", "track": "Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."},
     "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
+    "PGEO": {"ceo": "Julfi Hadi (since 2023)", "cfo": "Yurizki Rio", "track": "Julfi Hadi led PGEO's successful IPO in 2023, focus on capacity expansion to 1GW by 2028 and 1.7GW by 2033. CFO Yurizki Rio reduced debt and improved operational efficiency."},
 }
 
 def build_profile_with_insights(sym, m):
     base = PROFILES.get(sym, "Analysis not yet available for this stock.")
     leader = LEADERSHIP.get(sym, {"ceo": "N/A", "cfo": "N/A", "track": "No data."})
-    mgmt_html = ""  # dummy for takeaways
+    mgmt_html = ""
     takeaways = generate_key_takeaways(m, mgmt_html)
     leadership_section = f"\n\n## Leadership\n**CEO:** {leader['ceo']}  \n**CFO:** {leader['cfo']}  \n**Track Record:** {leader['track']}"
     takeaways_section = "\n\n## Key Takeaways for Long‑Term Investors\n" + "\n".join(f"- {t}" for t in takeaways)
