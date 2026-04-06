@@ -61,7 +61,7 @@ STOCKS = {
     "CVX":  ("Chevron Corporation",    "NYSE",   "CVX",     "B USD", 1e9,  "USD"),
     "AXP":  ("American Express",       "NYSE",   "AXP",     "B USD", 1e9,  "USD"),
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
-    "PGEO": ("Pertamina Geothermal Energy Tbk", "IDX", "PGEO.JK", "T IDR", 1e12, "USD"),   # <-- FIXED: hint_cur is USD
+    "PGEO": ("Pertamina Geothermal Energy Tbk", "IDX", "PGEO.JK", "T IDR", 1e09, "USD"),   # <-- FIXED: hint_cur is USD
 }
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
@@ -349,10 +349,10 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             fin_cur = detect_cur(tk, hint_cur)
             div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
             
-            # PGEO: yfinance returns millions IDR → convert to trillions
-            if sym == "PGEO":
-                div = 1e6
-                print(f"  Using custom divisor for {sym}: {div} (millions IDR → T IDR)")
+            # PGEO: yfinance returns thousands USD, not billions
+            if sym == "PGEO" and exchange == "IDX":
+                div = 1e9   # convert thousands USD → trillions IDR
+                print(f"  Using custom divisor for {sym}: {div} (thousands USD → T IDR)")
             
             epsfx = eps_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
             print(f"  cur={fin_cur} fx={fx:.6f} epsfx={epsfx:.6f}", flush=True)
@@ -377,7 +377,6 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
         except Exception as e:
             print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
     return None, {"method": "none", "label": None}
-
 def build_arrays(yd, sym):
     out={}
     for f in FIELDS:
