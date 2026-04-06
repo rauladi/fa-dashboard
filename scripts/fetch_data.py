@@ -349,26 +349,35 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             tk = yf.Ticker(ticker_str)
             fin_cur = detect_cur(tk, hint_cur)
             div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
-            epsfx   = eps_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
+            
+            # PGEO custom divisor: yfinance returns millions of IDR
+            if sym == "PGEO" and exchange == "IDX":
+                div = 1e6
+                print(f"  Using custom divisor for {sym}: {div} (raw data in millions IDR)")
+            
+            epsfx = eps_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
             print(f"  cur={fin_cur} fx={fx:.6f} epsfx={epsfx:.6f}", flush=True)
 
-            inc=tk.financials; bs=tk.balance_sheet; cf=tk.cashflow
-            if inc is None or inc.empty: raise ValueError("no annual data")
+            inc = tk.financials
+            bs = tk.balance_sheet
+            cf = tk.cashflow
+            if inc is None or inc.empty:
+                raise ValueError("no annual data")
 
-            yd={}
+            yd = {}
             for yr in COMPLETED:
-                r=annual_row(inc,bs,cf,yr,div,fx,epsfx,sym)
-                r.pop("_sh",None); yd[yr]=r
+                r = annual_row(inc, bs, cf, yr, div, fx, epsfx, sym)
+                r.pop("_sh", None)
+                yd[yr] = r
 
-            cy,ann=current_year_row(tk,CURRENT_YEAR,div,fx,epsfx)
-            yd[CURRENT_YEAR]=cy
-            live=[y for y in COMPLETED if yd[y].get("revenue") is not None]
+            cy, ann = current_year_row(tk, CURRENT_YEAR, div, fx, epsfx)
+            yd[CURRENT_YEAR] = cy
+            live = [y for y in COMPLETED if yd[y].get("revenue") is not None]
             print(f"  ✓ live: {live}", flush=True)
             return yd, ann
         except Exception as e:
             print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
-    return None, {"method":"none","label":None}
-
+    return None, {"method": "none", "label": None}
 def build_arrays(yd, sym):
     out={}
     for f in FIELDS:
