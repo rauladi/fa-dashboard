@@ -29,6 +29,7 @@ FISCAL_YEAR_END = {
     "CVX":12,    # Chevron
     "AXP":12,    # American Express
     "BAC":12,    # Bank of America
+    "PGEO":12, # Pertamina Geothermal Energy – FY ends 31 December
 }
 
 STOCKS = {
@@ -45,6 +46,7 @@ STOCKS = {
     "BTPS": ("Bank BTPN Syariah",       "IDX",    "BTPS.JK", "T IDR", 1e12, "IDR"),
     "DMAS": ("Puradelta Lestari",       "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
     "SPTO": ("Surya Toto Indonesia",    "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
+    "PGEO": ("Pertamina Geothermal Energy Tbk", "IDX", "PGEO.JK", "T IDR", 1e12, "IDR"),
     "TSM":  ("Taiwan Semiconductor",   "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
     "V":    ("Visa Inc.",              "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",        "NYSE",   "MA",      "B USD", 1e9,  "USD"),
@@ -80,6 +82,7 @@ PRELOADED = {
     "BTPS": {"totalAsset":[24,27,30,32,None,None],"cash":[2.4,2.7,3.0,3.2,None,None],"totalDebt":[19,21,23.5,25,None,None],"totalEquity":[5.0,6.0,6.5,7.0,None,None],"revenue":[7.0,8.0,9.0,9.5,None,None],"grossProfit":[4.2,4.8,5.4,5.7,None,None],"netProfit":[1.2,1.8,2.0,2.1,None,None],"eps":[413,557,618,650,None,None],"dps":[124,167,185,195,None,None]},
     "DMAS": {"totalAsset":[7.0,7.5,8.0,8.5,None,None],"cash":[1.8,2.0,2.2,2.4,None,None],"totalDebt":[1.0,0.9,0.8,0.7,None,None],"totalEquity":[5.5,6.0,6.5,7.0,None,None],"revenue":[1.8,2.2,2.8,2.5,None,None],"grossProfit":[1.2,1.6,2.0,1.8,None,None],"netProfit":[0.7,0.9,1.1,1.0,None,None],"eps":[35,45,55,50,None,None],"dps":[24,32,38,35,None,None]},
     "SPTO": {"totalAsset":[2.6,2.7,2.8,2.9,None,None],"cash":[0.32,0.35,0.38,0.40,None,None],"totalDebt":[0.70,0.65,0.60,0.55,None,None],"totalEquity":[1.55,1.70,1.85,1.98,None,None],"revenue":[1.9,2.0,2.1,2.2,None,None],"grossProfit":[0.69,0.73,0.77,0.80,None,None],"netProfit":[0.25,0.27,0.30,0.32,None,None],"eps":[278,300,333,356,None,None],"dps":[139,150,167,178,None,None]},
+    "PGEO": {"totalAsset": [2480, 2730, 2960, 2990, None, None],"cash": [180, 210, 250, 270, None, None],"totalDebt": [880, 920, 993, 989, None, None],"totalEquity": [1230, 1380, 1520, 1580, None, None],"revenue": [369, 386, 406, 407, None, None],"grossProfit": [186, 213, 248, 242, None, None],"netProfit": [85, 127, 164, 160, None, None],"eps": [2.05, 3.07, 3.96, 3.87, None, None],"dps": [0.60, 0.90, 1.20, 1.10, None, None]},
     "TSM": {"totalAsset":[133,175,206,209,248,None],"cash":[40,52,54,57,87,None],"totalDebt":[20,30,38,40,33,None],"totalEquity":[71,92,107,134,170,None],"revenue":[57,77,70,91,119,None],"grossProfit":[30,42,37,51,71,None],"netProfit":[22,31,27,37,53,None],"eps":[4.18,6.14,5.07,7.09,10.36,None],"dps":[1.72,1.72,1.76,2.19,2.82,None]},
     "V": {"totalAsset":[82.9,85.5,90.5,94.5,92.6,None],"cash":[15.7,16.3,11.9,11.6,17.2,None],"totalDebt":[22.4,20.5,20.5,20.8,25.2,None],"totalEquity":[35.6,38.7,38.3,38.0,32.9,None],"revenue":[24.1,29.3,32.7,35.9,40.0,None],"grossProfit":[20.1,24.9,28.1,31.4,35.1,None],"netProfit":[12.3,15.0,17.3,19.7,20.1,None],"eps":[5.74,7.12,8.23,9.74,10.22,None],"dps":[1.28,1.50,1.80,2.08,2.34,None]},
     "MA": {"totalAsset":[43.0,46.4,46.8,46.5,47.0,None],"cash":[8.0,7.8,7.4,8.0,8.5,None],"totalDebt":[14.2,15.7,15.8,16.6,17.0,None],"totalEquity":[6.0,5.5,5.3,5.0,5.5,None],"revenue":[18.9,22.2,25.1,28.2,31.0,None],"grossProfit":[13.3,16.0,18.4,21.1,23.5,None],"netProfit":[8.7,10.5,11.2,12.9,14.6,None],"eps":[8.76,10.61,11.44,13.89,15.60,None],"dps":[1.76,2.00,2.28,2.64,2.97,None]},
@@ -785,6 +788,34 @@ Management focused on maintaining TOTO exclusivity. Expanding showrooms to Tier-
 
 ## Future Outlook
 Property supercycle. Data centre fit-out. Hotel pipeline. Watch JPY/IDR, TOTO relationship, and property market.""",
+    "PGEO": """## Business Model Canvas
+**Key Partners:** PT Pertamina Power Indonesia (majority owner, 80%+ market share), PLN (state electricity company, long-term PPAs), Joint Operating Contract (JOC) partners (e.g., Star Energy), EPC contractors, Indonesian government (energy transition policies).
+**Key Activities:** Geothermal exploration, development, and production; operation of geothermal power plants (steam and electricity generation); long-term steam and power sales to PLN under PPAs up to 30 years; capacity expansion projects (targeting +1.7GW by 2033).
+**Key Resources:** Over 80% market share of Indonesia's geothermal sector; 15 managed areas with 1,877MW total installed capacity; Indonesia's 40% global geothermal reserves (23.6GW) with only 11% tapped; long-term government support via RUPTL plan targeting 5.2GW national geothermal capacity by 2034.
+**Value Proposition:** Dominant state-owned geothermal operator with unrivalled scale and government backing; stable, predictable revenue from ultra-long-term PPAs with PLN; pure-play renewable energy with no fuel cost volatility; key enabler of Indonesia's clean energy transition.
+**Customer Relationships:** Long-term PPAs and SSCs with PLN (up to 30 years); government relationships via Pertamina network; community engagement near plant locations.
+**Channels:** Direct power generation and sales to PLN national grid; steam sales to PLN under SSCs; direct negotiations with government and JOC partners.
+**Customer Segments:** PLN (sole off-taker for electricity and steam); Indonesian government (strategic energy security); industrial consumers indirectly via grid.
+**Cost Structure:** High upfront capex for exploration, drilling, and plant construction; ongoing opex for well maintenance, make-up wells (to combat natural decline), and personnel; royalty payments to government; financing costs for expansion projects.
+**Revenue Streams:** Electricity sales (PPAs with PLN); steam sales (SSCs with PLN); government capacity payments; potential carbon credit sales in future.
+
+## SWOT Analysis
+**Strengths:** Unbeatable market share (>80%) in Indonesia's geothermal sector; government ownership (Pertamina) provides policy backing; massive untapped geothermal reserves; stable, contracted revenue from long-term PPAs; no fuel cost volatility unlike coal or gas peers.
+**Weaknesses:** High capex intensity for new projects and well drilling; natural decline of existing wells requiring continuous make-up wells; single off-taker risk (PLN); slower capacity expansion than national targets; lower dividend payout due to capex needs.
+**Opportunities:** Indonesia's 40% global geothermal reserves offer massive expansion runway; national RUPTL plan targeting 5.2GW geothermal by 2034; carbon credit monetization as global carbon pricing expands; JOC partnerships can accelerate development.
+**Threats:** Regulatory changes in Indonesia's energy policy; PLN's financial health and payment punctuality; operational risks (natural decline, drilling delays, geological surprises); competition from other renewables (solar, hydro) on cost; project execution delays.
+
+## PESTLE Analysis
+**Political:** Strong government backing via Pertamina and national energy transition agenda; RUPTL plan supports geothermal expansion; political stability in Indonesia favourable for long-term infrastructure. **Economic:** Capital intensive nature requires strong access to financing; Indonesia's GDP growth drives electricity demand; IDR/USD exchange rate impacts dollar-denominated costs. **Social:** Geothermal as baseload renewable energy supports energy security; local community employment and development near plant sites. **Technological:** Advanced drilling and reservoir management technologies; natural decline management critical; potential for enhanced geothermal systems (EGS) in future. **Legal:** Mining law and geothermal regulations; long-term PPA enforceability; environmental compliance (AMDAL). **Environmental:** Pure-play renewable energy with minimal carbon footprint; supports Indonesia's net-zero targets; minimal land use compared to hydro/solar; potential for hydrogen co-production.
+
+## Porter's Five Forces
+**Rivalry:** Very low – PGEO holds >80% market share in Indonesian geothermal, near-monopoly status; only state-owned competitor is controlled by same parent Pertamina. **New Entrants:** Extremely high barriers – massive capex, geological risk, JOC structures favour incumbents, long permitting times. **Supplier Power:** Low – drilling and equipment suppliers commoditised; EPC contracts competitively bid. **Buyer Power:** Low – PLN is sole off-taker but PPAs are long-term, fixed-price contracts; PGEO has no alternative buyer. **Substitutes:** Moderate – other renewables (solar, wind, hydro) but geothermal provides reliable baseload power that intermittent sources cannot.
+
+## Management & Decision Making
+Management led by CEO Julfi Hadi (since IPO 2023) with focus on capacity expansion to 1GW by 2028 and 1.7GW by 2033. CFO Yurizki Rio drives prudent financial management, debt reduction (liabilities fell from $993M to $989M in 2024), and operational efficiency. Capital allocation prioritises growth capex over dividends (2024 payout ratio ~85% of net profit). Track record: delivered record electricity production (4,827 GWh) and revenue in 2024.
+
+## Future Outlook
+Capacity expansion through Quick Win, Extension, and Green Field programmes targeting +1.7GW by 2033. Indonesia's RUPTL plan provides demand visibility. Carbon credit monetisation potential. Revenue CAGR projected at 7.1% until 2034. DBS has BUY rating with TP IDR1,780 (34% upside). Watch project execution, regulatory consistency, and PLN payment cycles.""",
     "TSM": """## Business Model Canvas
 **Key Partners:** Apple, NVIDIA, AMD, Qualcomm, Broadcom (key customers); ASML (equipment); equipment vendors (Applied Materials, Lam Research); Taiwan government; research institutes.
 **Key Activities:** Semiconductor wafer fabrication; advanced node R&D (3nm, 2nm); capacity expansion; packaging (CoWoS); customer co-development.
