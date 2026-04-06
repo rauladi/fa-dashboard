@@ -338,7 +338,6 @@ def current_year_row(tk, yr, div, fx, epsfx):
     except Exception as e:
         print(f"      CY{yr} error: {e}", flush=True)
     return row, ann
-
 def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] {ticker_str}", flush=True)
     for attempt in range(2):
@@ -350,10 +349,10 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             fin_cur = detect_cur(tk, hint_cur)
             div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
             
-            # PGEO custom divisor: yfinance returns millions of IDR
-            if sym == "PGEO" and exchange == "IDX":
+            # PGEO: yfinance returns millions IDR → convert to trillions
+            if sym == "PGEO":
                 div = 1e6
-                print(f"  Using custom divisor for {sym}: {div} (raw data in millions IDR)")
+                print(f"  Using custom divisor for {sym}: {div} (millions IDR → T IDR)")
             
             epsfx = eps_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
             print(f"  cur={fin_cur} fx={fx:.6f} epsfx={epsfx:.6f}", flush=True)
@@ -378,6 +377,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
         except Exception as e:
             print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
     return None, {"method": "none", "label": None}
+
 def build_arrays(yd, sym):
     out={}
     for f in FIELDS:
