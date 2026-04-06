@@ -347,6 +347,11 @@ def current_year_row(tk, yr, div, fx, epsfx):
     return row, ann
 
 def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
+    # For PGEO, use only fallback data (yfinance scaling is unreliable)
+    if sym == "PGEO":
+        print(f"\n[{sym}] Using fallback data only (yfinance numbers are in wrong units)")
+        return None, {"method":"none","label":None}
+    
     print(f"\n[{sym}] {ticker_str}", flush=True)
     for attempt in range(2):
         try:
@@ -356,7 +361,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             tk = yf.Ticker(ticker_str)
             fin_cur = detect_cur(tk, hint_cur)
             div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
-            # Apply symbol-specific divisor override
+            # Apply symbol-specific divisor override (only needed for other symbols)
             custom_div = get_custom_divisor(sym, exchange)
             if custom_div:
                 div = custom_div
@@ -380,7 +385,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
         except Exception as e:
             print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
     return None, {"method":"none","label":None}
-
+    
 def build_arrays(yd, sym):
     out={}
     for f in FIELDS:
