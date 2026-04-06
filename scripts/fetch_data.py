@@ -61,7 +61,7 @@ STOCKS = {
     "CVX":  ("Chevron Corporation",    "NYSE",   "CVX",     "B USD", 1e9,  "USD"),
     "AXP":  ("American Express",       "NYSE",   "AXP",     "B USD", 1e9,  "USD"),
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
-    "PGEO": ("Pertamina Geothermal Energy Tbk", "IDX", "PGEO.JK", "T IDR", 1e12, "IDR"),
+    "PGEO": ("Pertamina Geothermal Energy Tbk", "IDX", "PGEO.JK", "T IDR", 1e12, "USD"),
 }
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
