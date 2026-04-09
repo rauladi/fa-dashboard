@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-09T14:06:49.276075+00:00",
+  "generated": "2026-04-09T21:47:10.108812+00:00",
   "years": [
     2021,
     2022,
@@ -18,10 +18,10 @@
   "currentYear": 2026,
   "latestYear": 2025,
   "rates": {
-    "usdToAud": 1.41753,
+    "usdToAud": 1.41178,
     "usdToIdr": 17077.0,
-    "twdToUsd": 0.031486,
-    "audToUsd": 0.705452,
+    "twdToUsd": 0.031521,
+    "audToUsd": 0.708326,
     "idrToUsd": 5.8558e-05
   },
   "fiscalYearEnd": {
@@ -234,58 +234,58 @@
       "fyEndMonth": 6,
       "totalAsset": [
         54.2,
-        134.9007,
-        143.5901,
-        145.1012,
-        154.2131,
+        134.3535,
+        143.0077,
+        144.5126,
+        153.5875,
         null
       ],
       "cash": [
         14.9,
-        24.4325,
-        17.4824,
-        17.5618,
-        16.6829,
+        24.3334,
+        17.4115,
+        17.4905,
+        16.6152,
         null
       ],
       "totalDebt": [
         14.5,
-        23.2872,
-        31.6747,
-        29.3684,
-        34.7238,
+        23.1927,
+        31.5462,
+        29.2493,
+        34.583,
         null
       ],
       "totalEquity": [
         26.4,
-        61.6852,
-        61.0318,
-        61.4839,
-        65.5296,
+        61.435,
+        60.7842,
+        61.2345,
+        65.2638,
         null
       ],
       "revenue": [
         60.8,
-        92.2784,
-        76.2872,
-        78.8969,
-        72.6654,
+        91.9041,
+        75.9778,
+        78.5769,
+        72.3707,
         null
       ],
       "costOfRevenue": [
         null,
-        21.141,
-        22.5572,
-        21.4231,
-        20.5981,
+        21.0553,
+        22.4657,
+        21.3362,
+        20.5146,
         null
       ],
       "grossProfit": [
         36.2,
-        71.1373,
-        53.7301,
-        57.4738,
-        52.0673,
+        70.8488,
+        53.5121,
+        57.2406,
+        51.8561,
         null
       ],
       "operatingExpenses": [
@@ -298,10 +298,10 @@
       ],
       "operatingIncome": [
         null,
-        46.6183,
-        31.1247,
-        32.4685,
-        27.0436,
+        46.4292,
+        30.9985,
+        32.3368,
+        26.9339,
         null
       ],
       "otherIncome": [
@@ -314,18 +314,18 @@
       ],
       "ebit": [
         null,
-        48.5915,
-        33.3828,
-        25.8416,
-        28.6724,
+        48.3944,
+        33.2474,
+        25.7367,
+        28.5561,
         null
       ],
       "interestExpense": [
         null,
-        1.6188,
-        3.0463,
-        3.0931,
-        2.6565,
+        1.6123,
+        3.0339,
+        3.0805,
+        2.6457,
         null
       ],
       "incomeBeforeTax": [
@@ -346,32 +346,32 @@
       ],
       "netProfit": [
         11.3,
-        43.8017,
-        18.3159,
-        11.1942,
-        12.7847,
+        43.624,
+        18.2416,
+        11.1488,
+        12.7328,
         null
       ],
       "eps": [
         2.21,
-        8.6554,
-        3.6175,
-        2.2085,
-        2.5204,
+        8.6203,
+        3.6029,
+        2.1996,
+        2.5101,
         null
       ],
       "dps": [
         3.01,
-        4.9999,
-        3.714,
-        2.1467,
-        1.7892,
+        4.9796,
+        3.699,
+        2.138,
+        1.7819,
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.\n**Key Activities:** Large-scale open-cut & underground mining; iron ore extraction & export (Pilbara 263Mt record); copper production (Escondida highest in 17 years); potash development (Jansen); steelmaking coal (Queensland); commodity marketing & trading; exploration & reserve development; mine automation & digital innovation.\n**Key Resources:** WAIO (Western Australia Iron Ore); Escondida (world's largest copper mine); Olympic Dam, Carrapateena; Jansen Potash mine ($7.6B capex); BMA coal assets; ~$55B revenue base; EBITDA margin 51%; strong balance sheet.\n**Value Proposition:** World's lowest-cost major iron ore producer (6+ years); record copper output (2Mt FY2025); EBITDA margin 51% for 8+ years; Jansen potash \u2013 future-facing food security play; consistent shareholder returns (~$7.1B dividends FY2025).\n**Customer Relationships:** Long-term supply agreements (iron ore, copper); annual benchmark pricing with steel mills; strategic marketing in Singapore & Houston; direct sales to Chinese/Japanese steel mills; ESG/sustainability reporting.\n**Channels:** Port Hedland (world's largest bulk export port); BHP Marketing offices (Singapore, Houston); direct long-term contracts; spot market/commodity exchanges; Escondida copper concentrates (pipelines & ships).\n**Customer Segments:** Steel producers (~50%: China Baowu, HBIS, Japan Nippon Steel, South Korea); copper buyers (~29%: wire mills, EV manufacturers); fertiliser/potash buyers (global agriculture); energy & coal buyers (power utilities, Asia/Europe).\n**Cost Structure:** Mining & processing opex: WAIO C1 cash cost ~$18/t iron ore, Escondida ~$1.5/lb copper; Jansen Potash capex $7.6B; sustaining capex ~$6B/yr; royalties & taxes ~41.7%; ESG & decarbonisation $4B plan.\n**Revenue Streams:** Iron Ore (~47%): WAIO export sales, $23B segment revenue; Copper (~29%): Escondida + Olympic Dam + Carrapateena, $18.6B segment revenue, record 2Mt; Coal & Other (~24%): steelmaking coal, exploration income.\n\n## SWOT Analysis\n**Strengths:** Lowest-cost iron ore producer globally; record copper output; 51% EBITDA margin for 8+ years; Jansen potash new revenue stream; strong balance sheet; $7.1B dividends.\n**Weaknesses:** Exposure to China steel demand (80% of iron ore); commodity price cyclicality; high effective tax rate (41.7%); nickel business mothballed; ESG risks in Chile/Australia.\n**Opportunities:** Jansen potash first production 2026; copper demand from electrification; automation/AI productivity gains; potential M&A in copper/potash; green steel partnerships.\n**Threats:** Commodity price volatility; Chinese economic slowdown; carbon taxes; resource nationalism in Chile; competition from Rio Tinto and Glencore; potash market oversupply risk.\n\n## PESTLE Analysis\n**Political:** Australian & Chilean govt relations, resource nationalism. **Economic:** China GDP growth, commodity prices. **Social:** ESG investor pressure, community relations. **Technological:** Automation, AI in mining, carbon capture. **Legal:** Mining permits, tax laws. **Environmental:** Decarbonisation targets, water management.\n\n## Porter's Five Forces\n**Rivalry:** Oligopoly with Rio, Vale, Glencore \u2013 volume competition. **New Entrants:** High barriers (capex, permits). **Supplier Power:** Low (commoditised). **Buyer Power:** High for iron ore (China concentration). **Substitutes:** Limited for iron ore/copper, but steel scrap recycling reduces ore demand.\n\n## Management & Decision Making\nCapital allocation disciplined: returned $7.1B dividends, avoided overpaying for Anglo American. Recent decisions: Jansen potash on track, abandoned Anglo bid. Management quality: industry-leading margins and returns.\n\n## Future Outlook\nJansen potash 2026 first production. Copper demand from electrification. China stimulus potential. Watch commodity prices, China demand, and project execution.\n\n## Leadership\n**CEO:** Mike Henry (since 2020)  \n**CFO:** David Lamont (since 2021)  \n**Track Record:** Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "WDS": {
       "name": "Woodside Energy",
@@ -382,58 +382,58 @@
       "fyEndMonth": 12,
       "totalAsset": [
         40.3,
-        84.0893,
-        78.4759,
-        86.8436,
-        94.2672,
+        83.7482,
+        78.1576,
+        86.4913,
+        93.8848,
         null
       ],
       "cash": [
         2.8,
-        8.7731,
-        2.4665,
-        5.561,
-        8.0969,
+        8.7375,
+        2.4565,
+        5.5384,
+        8.0641,
         null
       ],
       "totalDebt": [
         7.9,
-        9.5995,
-        9.2111,
-        16.4717,
-        19.4513,
+        9.5606,
+        9.1737,
+        16.4049,
+        19.3724,
         null
       ],
       "totalEquity": [
         18.2,
-        51.5074,
-        48.7616,
-        50.1791,
-        50.9092,
+        51.2984,
+        48.5638,
+        49.9756,
+        50.7027,
         null
       ],
       "revenue": [
         10.0,
-        23.8386,
-        19.8369,
-        18.6816,
-        18.4052,
+        23.7419,
+        19.7564,
+        18.6058,
+        18.3306,
         null
       ],
       "costOfRevenue": [
         null,
-        9.2706,
-        10.6584,
-        10.6329,
-        11.9753,
+        9.233,
+        10.6152,
+        10.5898,
+        11.9267,
         null
       ],
       "grossProfit": [
         5.8,
-        14.568,
-        9.1785,
-        8.0487,
-        6.4299,
+        14.5089,
+        9.1413,
+        8.0161,
+        6.4038,
         null
       ],
       "operatingExpenses": [
@@ -446,10 +446,10 @@
       ],
       "operatingIncome": [
         null,
-        14.568,
-        9.1785,
-        8.0487,
-        6.4299,
+        14.5089,
+        9.1413,
+        8.0161,
+        6.4038,
         null
       ],
       "otherIncome": [
@@ -462,18 +462,18 @@
       ],
       "ebit": [
         null,
-        13.1901,
-        5.0053,
-        6.6681,
-        5.8246,
+        13.1366,
+        4.985,
+        6.641,
+        5.801,
         null
       ],
       "interestExpense": [
         null,
-        0.1857,
-        0.3657,
-        0.4749,
-        0.3686,
+        0.1849,
+        0.3642,
+        0.4729,
+        0.3671,
         null
       ],
       "incomeBeforeTax": [
@@ -494,32 +494,32 @@
       ],
       "netProfit": [
         2.5,
-        9.2111,
-        2.3531,
-        5.0648,
-        3.8528,
+        9.1737,
+        2.3436,
+        5.0443,
+        3.8372,
         null
       ],
       "eps": [
         0.8,
-        6.0954,
-        1.2403,
-        2.672,
-        2.0327,
+        6.0707,
+        1.2353,
+        2.6612,
+        2.0245,
         null
       ],
       "dps": [
         0.55,
-        2.3994,
-        3.1789,
-        1.8313,
-        1.5047,
+        2.3896,
+        3.166,
+        1.8238,
+        1.4986,
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Stonepeak (40% stake in Louisiana LNG, $5.7B), Williams (LNG pipeline), OCI Global (Beaumont ammonia), Japanese and Korean LNG offtakers, Santos (industry peer), government regulators.\n**Key Activities:** LNG production & liquefaction (North West Shelf, Pluto, Wheatstone, Louisiana); oil production (Sangomar); low-carbon ammonia production (Beaumont Texas); exploration & development (Scarborough, Browse); marketing & trading; carbon capture development.\n**Key Resources:** Record 2025 production 198.8 MMboe; Louisiana LNG FID 2025, 22% complete; Beaumont ammonia plant (110ktpa operational Dec 2025); Sangomar oil field; strong balance sheet $2.7B net profit FY2025.\n**Value Proposition:** Record production exceeding guidance; 15% reduction in GHG emissions; Louisiana LNG with Stonepeak partnership; low-carbon ammonia production; resilient operating performance.\n**Customer Relationships:** Long-term LNG SPAs with Asian utilities; spot LNG sales; crude offtake contracts; ammonia supply agreements; direct marketing teams.\n**Channels:** LNG carriers; North West Shelf, Pluto, Wheatstone facilities; Louisiana Gulf Coast; Beaumont ammonia terminal; crude lifting and sales.\n**Customer Segments:** Asian LNG buyers (Japan, Korea, China, India); European LNG buyers; oil refiners; agricultural/industrial ammonia buyers; power utilities.\n**Cost Structure:** LNG liquefaction opex; upstream production costs; shipping & logistics; Louisiana LNG capex; Beaumont integration; carbon management.\n**Revenue Streams:** LNG (~60% of revenue); oil and condensate (~25%); ammonia and other (~10%); marketing income (~5%).\n\n## SWOT Analysis\n**Strengths:** Record production; Louisiana LNG progressing; Beaumont ammonia operational; Sangomar delivering oil; 15% emissions reduction.\n**Weaknesses:** LNG price sensitivity; high capex requirements; project execution risk; still oil & gas focused despite transition pivot.\n**Opportunities:** Louisiana LNG 2026-27 production; low-carbon ammonia demand; LNG as transition fuel; carbon capture development.\n**Threats:** Oil & gas price volatility; energy transition policy; competition from Qatar, US LNG; carbon taxes.\n\n## PESTLE Analysis\n**Political:** Australian and US regulatory support for LNG. **Economic:** LNG prices, oil prices. **Social:** Community acceptance of LNG projects. **Technological:** Carbon capture, low-carbon ammonia. **Legal:** Environmental permits. **Environmental:** Net zero targets.\n\n## Porter's Five Forces\n**Rivalry:** Intense among global LNG players (Qatar, US, Russia). **New Entrants:** High barriers (capex, long-term contracts). **Supplier Power:** Moderate (equipment, contractors). **Buyer Power:** High (Asian utilities have long-term contracts but can switch). **Substitutes:** Renewables, coal.\n\n## Management & Decision Making\nManagement committed to shareholder returns, Louisiana LNG de-risked via Stonepeak partnership. Acquisition of OCI Clean Ammonia shows pivot to low-carbon fuels.\n\n## Future Outlook\nLouisiana LNG 2026-27. Beaumont low-carbon ammonia. LNG as transition fuel. Watch project execution, gas prices, and energy transition policies.\n\n## Leadership\n**CEO:** Meg O'Neill (since 2021)  \n**CFO:** Graham Tiver (since 2020)  \n**Track Record:** O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "CBA": {
       "name": "Commonwealth Bank",
@@ -665,9 +665,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** AWS (core banking cloud migration), OpenAI (ChatGPT Enterprise partner), Microsoft, Visa/Mastercard, financial advisers, fintech partners (IPSI eCommerce), regulators.\n**Key Activities:** Retail, business and institutional banking; home lending; digital banking (CommBank app, CommBiz); wealth management; AI-driven fraud detection; core banking on AWS.\n**Key Resources:** Statutory NPAT $10.13B FY2025; AWS core banking; CommBiz mobile; OpenAI partnership; largest mortgage book in Australia.\n**Value Proposition:** #1 retail bank brand; leading digital platform; AI-powered scam detection; AWS cloud scalability; OpenAI genAI banking solutions.\n**Customer Relationships:** Digital-first via CommBank app; branch network; relationship managers; OpenAI innovation.\n**Channels:** CommBank app; CommBiz mobile; branches; call centres; X15 Ventures.\n**Customer Segments:** Retail consumers; SMEs; corporate & institutional; wealth clients; government.\n**Cost Structure:** Technology & digital (AWS, AI); staff; branches; compliance; loan impairment expenses.\n**Revenue Streams:** Net interest income (home loans, business); non-interest income (fees, wealth); digital transaction fees; corporate banking; insurance.\n\n## SWOT Analysis\n**Strengths:** #1 retail bank; leading digital platform; OpenAI partnership; AWS cloud migration complete; strong capital.\n**Weaknesses:** Mortgage book concentration; AI offshoring controversy; digital competition.\n**Opportunities:** AI-powered banking products; cloud innovation; interest rate cuts boosting mortgage demand.\n**Threats:** Digital bank competition (Sea Bank, Jago); NIM compression; regulatory scrutiny.\n\n## PESTLE Analysis\n**Political:** Banking regulation, open banking. **Economic:** Interest rates, housing market. **Social:** Digital adoption, trust. **Technological:** AI, cloud, cybersecurity. **Legal:** Capital requirements, AML. **Environmental:** Green finance, climate risk.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Big 4 banks plus digital natives. **New Entrants:** Moderate \u2013 digital bank licences easier but scale hard. **Supplier Power:** Low \u2013 technology vendors have some power. **Buyer Power:** High \u2013 customers can switch banks easily. **Substitutes:** Fintech lenders, neobanks.\n\n## Management & Decision Making\nCompleted AWS migration \u2013 largest system-of-record migration in 114 years. OpenAI partnership for AI banking. Appointed Chief AI Officer. Acquired IPSI eCommerce. Capital allocation disciplined.\n\n## Future Outlook\nAWS cloud enables faster AI integration. OpenAI partnership driving AI products. Interest rate cuts risk NIM compression but boost mortgage demand. Watch tech execution, competition, and credit quality.\n\n## Leadership\n**CEO:** Matt Comyn (since 2018)  \n**CFO:** Alan Docherty (since 2021)  \n**Track Record:** Comyn led cloud migration to AWS, OpenAI partnership, digital transformation. Strong capital returns.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "BBRI": {
       "name": "Bank Rakyat Indonesia",
@@ -813,9 +813,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Indonesian government (53% ownership, KUR program), Bank Raya, Pegadaian, PNM (ultra-micro), Mastercard, BRILink agents (1.2M+), fintech partners, ASEAN Development Bank.\n**Key Activities:** Micro & SME lending (KUR); consumer banking (BRImo); corporate lending; treasury; digital banking via Bank Raya; ultra-micro via PNM; bancassurance; wealth management.\n**Key Resources:** BRImo: 45.9M users, Rp7,077T transaction value; 1.2M+ BRILink agents; 53% govt ownership; lowest cost of funds (CASA 70.6%); NIM 7.8%.\n**Value Proposition:** World's largest microfinance institution (60M+ micro customers); unrivalled rural network; 'BRIvolution Re-ignite' transformation; digital acceleration; sovereign backing.\n**Customer Relationships:** BRImo app; BRILink agents; branches; KUR program; relationship managers.\n**Channels:** BRImo app; BRILink agents (1.2M); 10,000+ branches; Bank Raya; call centre.\n**Customer Segments:** Micro entrepreneurs (60M+); SMEs; ultra-micro via PNM; corporate; mass retail; government.\n**Cost Structure:** Branch network; BRILink commissions; technology; staff; credit provisions; marketing.\n**Revenue Streams:** Interest income (micro, SME, corporate); KUR subsidy income; non-interest income (fees, bancassurance); treasury; investments.\n\n## SWOT Analysis\n**Strengths:** World's largest microfinance institution; unrivalled rural network; government backing; BRImo super-app; lowest funding cost.\n**Weaknesses:** Asset quality (NPL 3.0%); KUR dependency; digital competition; high cost-to-income; branch network expensive.\n**Opportunities:** Ultra-micro (30M addressable); digital lending AI credit scoring; MSME formalisation; bancassurance; wealth management; green finance.\n**Threats:** Digital-native banks (Sea Bank, Jago); OJK consolidation; rising NPL risk; political risk; rate cuts compressing NIM; fintech lending.\n\n## PESTLE Analysis\n**Political:** Government ownership, KUR program, Bank Indonesia rate policy, OJK regulation. **Economic:** Indonesia GDP growth, rupiah, inflation, interest rate cuts. **Social:** Financial inclusion, micro-entrepreneur culture, digital adoption. **Technological:** BRImo AI, open banking, biometric KYC. **Legal:** Banking law, AML/KYC, data protection. **Environmental:** Sustainable finance, green bonds, climate risk.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Big 4 SOE banks plus digital natives. **New Entrants:** Moderate \u2013 digital bank licences easier but scale hard. **Supplier Power:** Low \u2013 depositors atomised. **Buyer Power:** Micro borrowers captive; urban SMEs can switch. **Substitutes:** Mobile wallets, BNPL, cooperatives.\n\n## Management & Decision Making\n'BRIvolution Re-ignite' transformation. Digital acceleration via BRImo. Ultra-micro integration (PNM, Pegadaian). Management focused on sustainable growth.\n\n## Future Outlook\nUltra-micro expansion. Digital lending reduces cost-to-serve. Bancassurance cross-selling. Watch NPL, digital competition, and KUR policy changes.\n\n## Leadership\n**CEO:** Sunarso (since 2019)  \n**CFO:** Viviana Dyah Ayu (since 2020)  \n**Track Record:** Sunarso drove 'BRIvolution' digital transformation, ultra-micro holding integration, record BRImo adoption.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "ADRO": {
       "name": "Alamtri Resources Indonesia",
@@ -961,9 +961,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** PT Adaro Minerals Indonesia (ADMR 83.8%), PT SIS (mining contractor), aluminum smelter JV partners, PLTA Mentarang hydro JV, Japanese trading houses, Chinese steel mills, KIPI, Indonesian government.\n**Key Activities:** Metallurgical coal mining (ADMR 158Mt reserves, 5.6Mt FY2024); mining contracting (SIS 64.8Mt OB); aluminum smelter construction (500kt, North Kalimantan); renewable energy (Adaro Green); PLTA Mentarang hydropower; coal logistics.\n**Key Resources:** ADMR metcoal reserves 158Mt; SIS contractor fleet; 15% stake in AADI; aluminum smelter capex $475-525M; PLTA Mentarang concession; strong balance sheet.\n**Value Proposition:** Indonesia's largest metcoal miner; vertically integrated mining contractor; aluminum downstream from 2026; green pivot (hydro, Adaro Green); ESG repositioning.\n**Customer Relationships:** Long-term metcoal supply contracts (Japan, S. Korea); spot sales to China; mining service contracts; aluminum offtake under negotiation.\n**Channels:** Dedicated coal port; barge transport; SIS fleet; Singapore trading desk; IDX-listed subsidiaries.\n**Customer Segments:** Asian steelmakers (Japan, Korea, China); mining contractors; aluminum offtakers; power utilities.\n**Cost Structure:** ADMR metcoal cash cost <$80/t; SIS fuel & labour ~$0.57/bcm; aluminum smelter capex; royalties; ESG.\n**Revenue Streams:** Metcoal (ADMR ~55%): $1.2B revenue; Mining Services (SIS ~41%): $849M revenue; Other/New Energy (~4%): AADI equity, aluminum from 2026F, hydro.\n\n## SWOT Analysis\n**Strengths:** Largest metcoal miner (158Mt reserves); vertical integration; aluminum smelter from 2026; green pivot; strong balance sheet.\n**Weaknesses:** Thermal coal legacy; metcoal price sensitivity; smelter execution risk; regulatory dependence; ESG exclusion.\n**Opportunities:** Aluminum smelter ramp; hydropower; India metcoal demand growth; carbon credits; battery minerals.\n**Threats:** Metcoal price collapse; energy transition; Indonesian mining law changes; Australian metcoal competition; dry well risk.\n\n## PESTLE Analysis\n**Political:** RKAB quotas, mining law reform, downstream processing mandate. **Economic:** Metcoal prices, Indian steel demand, rupiah. **Social:** Local hiring, community development. **Technological:** Smelter technology, hydropower, mine automation. **Legal:** Mining law, environmental AMDAL, export regulations. **Environmental:** Net zero aspiration, reforestation, carbon offsets.\n\n## Porter's Five Forces\n**Rivalry:** Moderate \u2013 few large Indonesian metcoal miners. **New Entrants:** High barriers (capex, concessions). **Supplier Power:** Low \u2013 own barging fleet reduces dependency. **Buyer Power:** Moderate \u2013 Indian and Japanese steel mills price-sensitive. **Substitutes:** Metcoal substitutes limited in blast furnace steelmaking.\n\n## Management & Decision Making\nStrategic pivot from thermal to metcoal + aluminum + renewables (rebranded Alamtri Resources). Smelter construction on track. Hydro development. Management committed to ESG repositioning.\n\n## Future Outlook\nAluminum smelter ramping to 500kt by 2026/27. Hydropower for low-cost energy. India metcoal demand growth. Watch metcoal prices, smelter execution, and energy transition policies.\n\n## Leadership\n**CEO:** Garibaldi 'Boy' Thohir (since 2008)  \n**CFO:** Jodhi Pangestu  \n**Track Record:** Thohir led spin-off of thermal coal, pivot to metcoal, aluminum smelter, and renewable energy.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "SMSM": {
       "name": "Selamat Sempurna",
@@ -1109,9 +1109,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** PT Adrindo Intiperkasa (parent ADR Group); Toyota, Honda, Mitsubishi, Isuzu (OEM); Yanmar Diesel; Astra International; raw material suppliers; export logistics partners; ISO/SNI bodies; Gaikindo.\n**Key Activities:** Filter manufacturing (SAKURA); radiator & cooling (ADR); body & chassis parts; quality control (zero-defect OEM); R&D for EV thermal management; export development.\n**Key Resources:** SAKURA Filter brand \u2013 #1 in Indonesia; ADR Radiator brand; 5 manufacturing facilities; automated lines; 45+ years expertise; export network to 45+ countries; net income Rp1.2T FY2025.\n**Value Proposition:** Indonesia's #1 filter and radiator brand; >90% aftermarket revenue; OEM certified supplier to Toyota, Honda, Mitsubishi, Isuzu; export to 45+ countries; debt-free; high dividends.\n**Customer Relationships:** OEM supply contracts; aftermarket brand loyalty; dealer/workshop network; B2B export relationships; e-commerce.\n**Channels:** OEM direct supply; aftermarket via workshops (10,000+); Astra distribution; export via international distributors; e-commerce (Tokopedia, Shopee).\n**Customer Segments:** Automotive OEMs (~30%); aftermarket (>60%: car owners, workshops); heavy equipment/industrial; export markets (~30% revenue).\n**Cost Structure:** Raw materials (steel, rubber, aluminium); manufacturing opex; R&D; distribution & export logistics.\n**Revenue Streams:** Filtration (~50%+): SAKURA filters; Radiator/Cooling (~30%): ADR radiators; Body Maker & Other (~20%): dump hoists, brake pipes, exhaust.\n\n## SWOT Analysis\n**Strengths:** #1 filter and radiator brand; >90% aftermarket revenue; OEM certified; export to 45+ countries; debt-free; high dividends.\n**Weaknesses:** Concentration in Indonesia; limited EV product exposure; raw material cost sensitivity; brand dependency.\n**Opportunities:** EV thermal management; ASEAN automotive growth; Indonesia-Europe CEPA; industrial air filtration; e-commerce growth.\n**Threats:** EV transition reducing traditional volumes; Chinese competition; JPY/IDR FX risk; property slowdown; counterfeits.\n\n## PESTLE Analysis\n**Political:** TKDN local content, EV policy, trade policy. **Economic:** Auto sales, motorcycle market, USD/IDR FX, commodity prices. **Social:** Low car ownership (9% vs Thailand 30%), aftermarket culture, brand loyalty. **Technological:** EV product development, filter manufacturing tech, automation. **Legal:** SNI certification, product liability, OEM warranty. **Environmental:** ISO 14001, filter disposal, carbon footprint.\n\n## Porter's Five Forces\n**Rivalry:** Moderate \u2013 few large auto parts makers in Indonesia. **New Entrants:** Moderate \u2013 brand and OEM relationships hard to replicate. **Supplier Power:** Moderate \u2013 raw materials global prices. **Buyer Power:** OEMs have power but SMSM certified; aftermarket atomised. **Substitutes:** Chinese imports, EV removing some parts.\n\n## Management & Decision Making\nExport growth to 45+ countries. EV thermal management R&D. Maintained debt-free balance sheet. High dividend payout policy.\n\n## Future Outlook\nExport growth continues. EV thermal management products. Indonesian auto penetration still low (9%) \u2013 long secular growth. Watch EV transition, raw material costs, and export demand.\n\n## Leadership\n**CEO:** Tony S. Budiman  \n**CFO:** Suryadi  \n**Track Record:** Consistent execution, export growth to 45+ countries, maintained debt-free balance sheet, EV product R&D.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "UNTR": {
       "name": "United Tractors",
@@ -1257,9 +1257,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** PT Astra International Tbk (59.5% parent); Komatsu Ltd Japan (exclusive distributor); UD Trucks, Scania, Bomag, Tadano; PT Pamapersada Nusantara (PAMA); PT Agincourt Resources (Martabe gold); Nickel Industries (19.99% stake); PT Acset Indonusa; PT Energia Prima Nusantara; PT Arkora Hydro; Indonesian Govt/ESDM.\n**Key Activities:** Heavy equipment distribution (Komatsu, UD Trucks, etc.); after-sales parts, service, reconditioning (REMAN); mining contracting via PAMA; coal mining; gold mining (Martabe); nickel mining; construction; renewable energy (solar, mini-hydro).\n**Key Resources:** Komatsu exclusive license; PAMA \u2013 Indonesia's largest mining contractor (829M bcm OB removal H1 2025); Martabe gold mine (2.5Moz Au + 26Moz Ag); coal assets; nickel ore; ~Rp130T revenue; Astra backing.\n**Value Proposition:** Largest heavy equipment company \u2013 sole Komatsu distributor; PAMA largest mining contractor; diversified beyond coal (gold, nickel, renewables); energy transition play; Astra Group backing.\n**Customer Relationships:** Long-term equipment supply + service contracts (PAMA); Komatsu warranty & REMAN loyalty; coal offtake contracts; gold bullion spot & term; government/PLN.\n**Channels:** National Komatsu dealer network; PAMA direct contract; coal barge & shipping; gold to international hubs; construction bidding.\n**Customer Segments:** Mining companies (~50%); coal buyers (PLN, Asian importers); gold/commodity buyers; construction clients.\n**Cost Structure:** Equipment procurement; PAMA fleet management; coal production opex; gold mine cash costs; reconditioning low-cost advantage; capex ~US$1B annual.\n**Revenue Streams:** Construction Machinery (~38%): Komatsu sales, after-sales; Mining Contracting (~28%): PAMA OB removal; Mining & Energy (~34%): coal, gold, nickel, RE.\n\n## SWOT Analysis\n**Strengths:** Sole Komatsu distributor; PAMA largest contractor; diversified 5 pillars; Martabe gold low cost; Astra backing; EBITDA margin 25-28%.\n**Weaknesses:** Komatsu single-brand; coal cycle exposure; heavy equipment cyclical; gold single asset; renewables early stage.\n**Opportunities:** Battery minerals (nickel, copper) contracts; data centre equipment demand; renewable energy target 150MW; Martabe brownfield; Komatsu electric machinery.\n**Threats:** Coal transition; Komatsu competition (Caterpillar, Sany); nickel price crash; labour shortage; flood risk; EV policy.\n\n## PESTLE Analysis\n**Political:** Mining permits, downstream policy, infrastructure spending. **Economic:** Coal prices, gold prices, rupiah, interest rates. **Social:** Local employment, community relations. **Technological:** Komatsu AHS, renewable energy tech. **Legal:** Mining law, environmental permits. **Environmental:** ESG pressure, reclamation, emissions.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 competition from Caterpillar, Hitachi, Sany. **New Entrants:** Moderate \u2013 capital intensive, but Chinese brands entering. **Supplier Power:** Low \u2013 Komatsu exclusive but limited alternatives. **Buyer Power:** Moderate \u2013 mining clients can choose contractors. **Substitutes:** Chinese equipment, electric machinery.\n\n## Management & Decision Making\nKomatsu 4,500 units target. PAMA still largest contractor. Martabe gold ~250koz/yr. Investing in renewables. Astra Group backing ensures governance.\n\n## Future Outlook\nBattery minerals service contracts. Gold price ~$3,000/oz supports Martabe. Renewable energy investments. Watch coal transition, Komatsu competition, and gold prices.\n\n## Leadership\n**CEO:** Darma Setiawan (since 2015)  \n**CFO:** Yunus Saifulhak  \n**Track Record:** Maintained Komatsu exclusivity, PAMA largest contractor, diversification into gold and renewables.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "ITMG": {
       "name": "Indo Tambangraya Megah",
@@ -1405,9 +1405,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Banpu Minerals Singapore (60% owner); PT Thiess Indonesia; China coal importers (40% of exports); Japan/S. Korea utility buyers (17%); PLN (22% of sales); Bontang port operators; Komatsu, Caterpillar; Indonesian Govt/ESDM.\n**Key Activities:** Open-cut thermal coal mining (6 mines, Kalimantan); coal blending; terminal operations (BoCT); logistics (barging, port loading); power plant operations; solar hybrid PV; mining contracting.\n**Key Resources:** Coal reserves 375Mt (+30% in 2024); resources 2.13Bt; 6 concessions; Bontang Coal Terminal; 3 loading ports; cash $877M (mid-2024).\n**Value Proposition:** Wide calorific range (3,400-7,300 kcal/kg); expert blending; integrated logistics; strong cash & high dividends; green expansion.\n**Customer Relationships:** Annual supply agreements with utilities; spot & short-term contracts; China spot buying; blending to spec.\n**Channels:** Bontang Coal Terminal (BoCT); 3 additional ports; barge transport; commodity desk; domestic direct to PLN.\n**Customer Segments:** China importers (~40%); domestic market (~22% PLN); Japan (~17%); rest of Asia (India, Thailand, Bangladesh, S. Korea, Philippines).\n**Cost Structure:** Mining opex ~$67/t; royalties $260M FY2024 (22% of HBA); logistics; capex for new mines & solar.\n**Revenue Streams:** Thermal coal sales (~93%): 24Mt sold, ASP $125-130/t; Energy services (~5%): BoCT terminal, mining contracting; Other/RE (~2%): solar hybrid, internal electricity.\n\n## SWOT Analysis\n**Strengths:** 375Mt reserves; Banpu parent; 24Mt sales +15% YoY; wide calorific range; own terminal; net cash; high dividends.\n**Weaknesses:** 100% thermal coal; Banpu majority; single geography; high payout limits reinvestment; no non-coal business.\n**Opportunities:** India demand growth; BoCT terminal expansion; Banpu clean energy JVs; spot premiums; production optimisation.\n**Threats:** Coal price below $100/t risk; ESG divestment; RKAB quotas; China domestic coal; La Ni\u00f1a flooding.\n\n## PESTLE Analysis\n**Political:** RKAB quotas, mining law, Indonesia energy policy. **Economic:** Coal prices, India/China demand, rupiah. **Social:** Local communities, ESG investor pressure. **Technological:** Coal blending, solar hybrid. **Legal:** Mining permits, environmental. **Environmental:** Energy transition, reclamation.\n\n## Porter's Five Forces\n**Rivalry:** Moderate \u2013 several Indonesian thermal coal miners. **New Entrants:** High \u2013 concession barriers. **Supplier Power:** Low \u2013 multiple equipment suppliers. **Buyer Power:** High \u2013 China and India price-sensitive. **Substitutes:** High \u2013 renewables, gas.\n\n## Management & Decision Making\nHigh dividend payout (80-90%) rewards shareholders. Banpu parent may extract dividends. Limited reinvestment for diversification.\n\n## Future Outlook\nIndia import demand growing. BoCT terminal expansion. Solar hybrid projects. Watch coal prices, energy transition policies, and Banpu parent strategy.\n\n## Leadership\n**CEO:** M. Qodrat (since 2022)  \n**CFO:** Agus Suhendar  \n**Track Record:** Focused on high dividends, production efficiency, solar hybrid projects. Banpu parent strategy influence.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "POWR": {
       "name": "Cikarang Listrindo",
@@ -1553,9 +1553,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** PGN/Pertamina (gas supply); PLN (grid backstop); industrial tenants (2,650 customers); GE/Siemens (turbines); Bechtel/Technip (EPC); government (PPU licence).\n**Key Activities:** Electricity generation (gas, coal); distribution to industrial estates; grid maintenance; capacity expansion; power purchase agreements.\n**Key Resources:** PPU licence for 5 Cikarang estates; 2,650 industrial customers; 30-year exclusive incumbency; long-term supply contracts; strong cash flow.\n**Value Proposition:** Sole private power supplier in Cikarang industrial estates; reliable dedicated grid; long-term contracts; captive customer base.\n**Customer Relationships:** Multi-year supply agreements; dedicated account management; ESG reporting for multinationals.\n**Channels:** Direct distribution network; PLN grid as backstop; direct billing.\n**Customer Segments:** Industrial tenants (Toyota, Samsung, data centres); PLN (wholesale); data centre operators.\n**Cost Structure:** Gas/coal fuel; maintenance; capex for capacity expansion; staff.\n**Revenue Streams:** Electricity sales (tariff-based); capacity charges; connection fees.\n\n## SWOT Analysis\n**Strengths:** Captive monopoly in Cikarang; 30-year incumbency; long-term contracts; stable cash flow.\n**Weaknesses:** Single customer concentration (PLN 18% but industrial atomised); fuel price sensitivity; no growth without new estates.\n**Opportunities:** Data centre power demand; industrial estate expansion; solar/battery integration; green PPAs.\n**Threats:** PLN grid connection; rooftop solar + BESS; diesel generators for baseload too expensive; regulatory changes.\n\n## PESTLE Analysis\n**Political:** PPU licence protection, energy policy. **Economic:** Industrial growth, data centre demand. **Social:** ESG expectations from multinational tenants. **Technological:** Solar, BESS, grid modernisation. **Legal:** PPU licence, environmental permits. **Environmental:** Emissions, renewable integration.\n\n## Porter's Five Forces\n**Rivalry:** Very low \u2013 sole private supplier in zone. **New Entrants:** Extremely unlikely \u2013 only one PPU licence per zone. **Supplier Power:** Moderate \u2013 gas from PGN, turbines from GE/Siemens. **Buyer Power:** Low \u2013 switching cost high, but large buyers have some leverage. **Substitutes:** PLN grid (inferior reliability), rooftop solar (limited by roof space).\n\n## Management & Decision Making\nConservative management, focused on contract renewals and grid reliability. Slow to adopt renewables.\n\n## Future Outlook\nData centre power demand. Industrial estate expansion. Watch PLN grid connection, solar adoption, and industrial tenant growth.\n\n## Leadership\n**CEO:** M. Firdaus  \n**CFO:** R. Agus  \n**Track Record:** Conservative management, long-term PPAs, stable operations. Slow to adopt renewables but exploring solar.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "MPMX": {
       "name": "Mitra Pinasthika Mustika",
@@ -1701,9 +1701,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** AHM (Honda sole distributor); Carro JV; insurance reinsurers; banks (MPM Finance funding); AHM spare parts supply.\n**Key Activities:** Honda motorcycle distribution (East Java); automotive financing (MPM Finance); insurance (non-life); vehicle rental (MPMRent); used car digital (Carro JV).\n**Key Resources:** Honda exclusive distribution rights (East Java); 280 dealers; MPM Finance lending book; MPMRent fleet; strong brand.\n**Value Proposition:** Exclusive Honda distributor in East Java; integrated financing, insurance, rental; one-stop automotive ecosystem.\n**Customer Relationships:** Dealer network; direct financing; rental contracts; insurance policies.\n**Channels:** 280 dealers; MPM Finance branches; MPMRent fleet; Carro digital platform.\n**Customer Segments:** Motorcycle buyers (individual, corporate); financing customers; rental customers; insurance buyers.\n**Cost Structure:** Inventory (Honda units); dealer commissions; financing cost of funds; fleet maintenance; insurance claims.\n**Revenue Streams:** Motorcycle sales; financing interest; insurance premiums; rental income; used car fees.\n\n## SWOT Analysis\n**Strengths:** Honda exclusive East Java; integrated ecosystem; strong dealer network.\n**Weaknesses:** Single brand (Honda); geography concentration; financing book credit risk.\n**Opportunities:** EV motorcycle transition; digital rental (MPMRent); used car platform; insurance cross-sell.\n**Threats:** AHM direct-to-consumer; Yamaha competition; interest rate sensitivity; EV brands (Niu, Volta).\n\n## PESTLE Analysis\n**Political:** EV policy, local content rules. **Economic:** Motorcycle market 6.5M units/yr, GDP East Java 5.2%, BI rate cuts. **Social:** Motorcycle culture, digital mobility, financial inclusion. **Technological:** EV technology, telematics, InsurTech. **Legal:** Multi-finance regulation, insurance law, consumer protection. **Environmental:** EV transition, carbon reporting.\n\n## Porter's Five Forces\n**Rivalry:** Moderate \u2013 Yamaha competes at retail level. **New Entrants:** Low \u2013 AHM would need to grant new licence. **Supplier Power:** High \u2013 AHM sole supplier. **Buyer Power:** Individual buyers price-sensitive but Honda brand loyal. **Substitutes:** Public transport, ride-hailing, car ownership.\n\n## Management & Decision Making\nManagement focuses on Honda distribution, financing, and rental. Investing in EV transition and digital.\n\n## Future Outlook\nEV motorcycle rollout. MPMRent EV fleet transition. Digital used car platform. Watch Honda EV strategy, interest rates, and competition.\n\n## Leadership\n**CEO:** Djoko Susanto  \n**CFO:** Iwan Setiawan  \n**Track Record:** Stable Honda distribution, integrated financing and rental. Investing in EV motorcycle transition.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "BTPS": {
       "name": "Bank BTPN Syariah",
@@ -1849,9 +1849,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** PT Bank SMBC Indonesia (70% parent); SMFG; Baznas; government ultra-micro programs (UMI); community groups (Tunas).\n**Key Activities:** Sharia microfinance (murabahah); group lending (Tunas solidarity model); field officer network; digital group meetings (Bestee).\n**Key Resources:** 100% sharia-compliant; group solidarity model (lowest NPL); 26 branches + field officers; SMBC AAA rating; murabahah margin 89% of revenue.\n**Value Proposition:** Largest sharia microfinance bank; group lending community model; ultra-micro focus; sharia compliance; social empowerment.\n**Customer Relationships:** Group meetings (Tunas); field officers; Bestee platform; community trust.\n**Channels:** Branches; field officers; WhatsApp/video group meetings; Bestee app.\n**Customer Segments:** Muslim women micro-entrepreneurs; ultra-micro borrowers; rural unbanked.\n**Cost Structure:** Field officer salaries; branch network; technology; credit provisions; community programs.\n**Revenue Streams:** Murabahah margin (89% of revenue); other sharia products.\n\n## SWOT Analysis\n**Strengths:** 100% sharia-compliant; group solidarity model (low NPL); SMBC parent; deep rural community penetration; high-quality murabahah income.\n**Weaknesses:** Tiny scale (Rp21.74T assets); single product concentration; no digital banking; expensive field officer model; low brand awareness.\n**Opportunities:** OIK Islamic banking roadmap (25% market share target); ultra-micro BPUM program; digitisation via WhatsApp; 30M unserved Muslim women; hajj savings; sharia capital market.\n**Threats:** Digital Islamic competitors; OJK consolidation pressure; economic downturn raising NPL; government policy changes; fraud.\n\n## PESTLE Analysis\n**Political:** OIK sharia roadmap, government ultra-micro program, Prabowo pro-Islamic economy. **Economic:** GDP growth, BI rate, micro-borrower income. **Social:** 230M Muslim population, women empowerment, rural financial inclusion. **Technological:** Digital group meetings, biometric KYC, AI credit scoring. **Legal:** Sharia banking law, OJK regulations, AML. **Environmental:** Green finance, climate risk for rural borrowers.\n\n## Porter's Five Forces\n**Rivalry:** Low \u2013 few sharia microfinance banks. **New Entrants:** Moderate \u2013 digital Islamic banks emerging. **Supplier Power:** Low \u2013 depositors atomised. **Buyer Power:** Low \u2013 micro borrowers captive. **Substitutes:** BPR, cooperatives, informal lending.\n\n## Management & Decision Making\nManagement focuses on community-based microfinance. Partnering with Baznas. Exploring digitisation to reduce field officer costs.\n\n## Future Outlook\nDigital group meetings (WhatsApp). Ultra-micro expansion. Sharia capital market products. Watch digital adoption, NPL, and OJK policy.\n\n## Leadership\n**CEO:** Ridwan Kurniawan  \n**CFO:** Dewi Sartika  \n**Track Record:** Focused on sharia microfinance, digital group meetings, partnership with Baznas. Small scale but niche.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "DMAS": {
       "name": "Puradelta Lestari",
@@ -1997,9 +1997,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Sojitz Corporation (Japanese partner); industrial tenants (data centres, manufacturers); Bekasi Regency; BKPM; Japan-Indonesia IJEPA.\n**Key Activities:** Industrial estate development (Kota Deltamas); land sales; infrastructure (roads, power, water); property management; township development.\n**Key Resources:** 3,000-hectare Kota Deltamas; DC-ready plots with 132kV substations; GIIC warehouses; green belt; ISO 14001.\n**Value Proposition:** Prime industrial land in Bekasi corridor; integrated township (residential, commercial, industrial); data centre-ready infrastructure; green estate.\n**Customer Relationships:** Long-term land lease/sales; facility management; CSR programs.\n**Channels:** Direct sales; BKPM facilitation; Sojitz network.\n**Customer Segments:** Industrial manufacturers; data centre operators; logistics companies; residential buyers.\n**Cost Structure:** Land acquisition; infrastructure development; maintenance; CSR.\n**Revenue Streams:** Land sales; lease income; facility fees; utilities.\n\n## SWOT Analysis\n**Strengths:** Prime location Bekasi corridor; data centre-ready plots; green estate; ISO 14001; Sojitz partnership.\n**Weaknesses:** Concentration in Bekasi; land sales cyclical; infrastructure cost high.\n**Opportunities:** Data centre demand (Indonesia internet economy growing 20% p.a.); government manufacturing investment target Rp500T; Jakarta rental convergence; green building certification.\n**Threats:** Competing estates; economic slowdown; construction cost inflation; regulatory changes.\n\n## PESTLE Analysis\n**Political:** Industrial policy, BKPM facilitation, data centre regulation, local permits. **Economic:** Data centre demand, industrial land prices, GDP growth. **Social:** Employment (500,000+ workers), housing demand. **Technological:** DC-ready infrastructure, BIM, smart water, LiDAR. **Legal:** Industrial estate regulation, building permits, environmental AMDAL. **Environmental:** ISO 14001, solar PV target, water recycling, net-zero by 2030.\n\n## Porter's Five Forces\n**Rivalry:** Moderate \u2013 several industrial estates in Bekasi. **New Entrants:** High barriers \u2013 land acquisition, permits. **Supplier Power:** Low \u2013 multiple contractors. **Buyer Power:** Moderate \u2013 large data centres negotiate. **Substitutes:** Other estates, greenfield development.\n\n## Management & Decision Making\nManagement focused on data centre land sales (60% of 2025 sales). Green estate initiatives. Sojitz partnership provides Japanese FDI pipeline.\n\n## Future Outlook\nData centre demand continues. Government manufacturing investment. Green building certification. Watch FDI inflows, land prices, and competition.\n\n## Leadership\n**CEO:** Takeshi Koyama (Sojitz)  \n**CFO:** Santi Widjaja  \n**Track Record:** Japanese parent backing, data centre land sales driving growth. Green estate certification.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "SPTO": {
       "name": "Surya Toto Indonesia",
@@ -2145,9 +2145,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** TOTO Japan (exclusive sole-agent since 1977); Villeroy & Boch, Geberit, Franke, Jacuzzi, Kaldewei, Stiebel Eltron; property developers; hotel chains; architects.\n**Key Activities:** Distribution of premium bathroom products; showroom operations; specification sales to developers; project management; after-sales service.\n**Key Resources:** Exclusive TOTO Japan rights; 9 global brands; 14 regional showrooms; 47-year relationship; strong B2B developer relationships.\n**Value Proposition:** One-stop premium bathroom solution; TOTO exclusivity; wide brand portfolio; specification expertise.\n**Customer Relationships:** B2B specification with developers; showroom retail; after-sales service.\n**Channels:** Showrooms (14 cities); direct B2B sales; e-commerce (Tokopedia, Shopee); architect specification.\n**Customer Segments:** Property developers; hotel chains; healthcare projects; high-end homeowners; renovators.\n**Cost Structure:** Import costs (JPY); showroom rent; staff; logistics; marketing.\n**Revenue Streams:** Product sales; specification fees; after-sales service.\n\n## SWOT Analysis\n**Strengths:** Exclusive TOTO Japan since 1977; 9 premium brands; national showroom network; strong developer relationships; high dividend yield (~10.8%).\n**Weaknesses:** Asset-light import-dependent; TOTO concentration risk; narrow margins (gross 12-14%); premium-only; limited e-commerce.\n**Opportunities:** Property supercycle; data centre commercial fit-out; hotel pipeline (20,000+ rooms); middle class expansion; e-commerce growth; healthcare expansion.\n**Threats:** JPY appreciation; TOTO direct sales risk; Chinese premium brands (HEGIL, JOMOO); property slowdown; income polarisation.\n\n## PESTLE Analysis\n**Political:** Trade policy (IJEPA), luxury goods tax, import tariffs. **Economic:** Property market, middle class income, JPY/IDR. **Social:** Bathroom culture upgrade, social media trends, hotel guest expectations. **Technological:** TOTO Washlet, smart bathroom, BIM integration. **Legal:** SNI standards, import regulations, brand protection. **Environmental:** TOTO green products, water efficiency, packaging.\n\n## Porter's Five Forces\n**Rivalry:** Low \u2013 TOTO vs American Standard duopoly in premium. **New Entrants:** Very low \u2013 TOTO exclusivity is absolute barrier. **Supplier Power:** High \u2013 TOTO Japan sole supplier. **Buyer Power:** Moderate \u2013 developers bulk order. **Substitutes:** Local mass-market brands, Chinese mid-premium.\n\n## Management & Decision Making\nManagement focused on maintaining TOTO exclusivity. Expanding showrooms to Tier-2 cities. Building architect specification program.\n\n## Future Outlook\nProperty supercycle. Data centre fit-out. Hotel pipeline. Watch JPY/IDR, TOTO relationship, and property market.\n\n## Leadership\n**CEO:** Widjaja (family)  \n**CFO:** Lukman  \n**Track Record:** Long-term TOTO exclusivity maintained. Expanding to Tier-2 cities. High dividend yield.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "TSM": {
       "name": "Taiwan Semiconductor",
@@ -2158,58 +2158,58 @@
       "fyEndMonth": 12,
       "totalAsset": [
         133,
-        156.311,
-        174.1867,
-        210.7024,
-        249.7792,
+        156.4847,
+        174.3804,
+        210.9366,
+        250.0568,
         null
       ],
       "cash": [
         40,
-        42.2798,
-        46.1405,
-        66.9905,
-        87.1487,
+        42.3268,
+        46.1917,
+        67.0649,
+        87.2456,
         null
       ],
       "totalDebt": [
         20,
-        27.9651,
-        30.1087,
-        32.9672,
-        33.5195,
+        27.9961,
+        30.1422,
+        33.0038,
+        33.5567,
         null
       ],
       "totalEquity": [
         71,
-        91.4045,
-        107.9819,
-        135.0291,
-        170.6414,
+        91.5061,
+        108.102,
+        135.1792,
+        170.8311,
         null
       ],
       "revenue": [
         57,
-        71.2809,
-        68.0644,
-        91.1302,
-        119.9319,
+        71.3601,
+        68.1401,
+        91.2315,
+        120.0652,
         null
       ],
       "costOfRevenue": [
         null,
-        28.8266,
-        31.0649,
-        39.9858,
-        48.1031,
+        28.8586,
+        31.0994,
+        40.0302,
+        48.1565,
         null
       ],
       "grossProfit": [
         30,
-        42.4543,
-        36.9995,
-        51.1444,
-        71.8288,
+        42.5015,
+        37.0407,
+        51.2012,
+        71.9087,
         null
       ],
       "operatingExpenses": [
@@ -2222,10 +2222,10 @@
       ],
       "operatingIncome": [
         null,
-        35.3029,
-        29.0121,
-        41.625,
-        60.9594,
+        35.3422,
+        29.0444,
+        41.6712,
+        61.0271,
         null
       ],
       "otherIncome": [
@@ -2238,18 +2238,18 @@
       ],
       "ebit": [
         null,
-        36.3922,
-        31.2126,
-        44.5947,
-        64.6733,
+        36.4327,
+        31.2473,
+        44.6443,
+        64.7452,
         null
       ],
       "interestExpense": [
         null,
-        0.37,
-        0.3778,
-        0.3305,
-        0.3895,
+        0.3704,
+        0.3782,
+        0.3308,
+        0.3899,
         null
       ],
       "incomeBeforeTax": [
@@ -2270,32 +2270,32 @@
       ],
       "netProfit": [
         22,
-        31.2632,
-        26.8179,
-        36.9415,
-        54.0893,
+        31.2979,
+        26.8477,
+        36.9826,
+        54.1494,
         null
       ],
       "eps": [
         4.18,
-        6.1713,
-        5.0913,
-        7.1237,
-        10.4313,
+        6.1781,
+        5.0969,
+        7.1316,
+        10.4429,
         null
       ],
       "dps": [
         1.72,
-        1.7318,
-        1.7712,
-        2.2044,
-        2.8342,
+        1.7337,
+        1.7732,
+        2.2069,
+        2.8373,
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Apple, NVIDIA, AMD, Qualcomm, Broadcom (key customers); ASML (equipment); equipment vendors (Applied Materials, Lam Research); Taiwan government; research institutes.\n**Key Activities:** Semiconductor wafer fabrication; advanced node R&D (3nm, 2nm); capacity expansion; packaging (CoWoS); customer co-development.\n**Key Resources:** Advanced nodes (3nm, 5nm); 92% market share in advanced chips; 15+ fabs; massive capex (~$30B annual); strong customer relationships.\n**Value Proposition:** World's largest dedicated foundry; unrivalled process technology; high yield rates; capacity scale; customer trust.\n**Customer Relationships:** Long-term capacity agreements; joint technology development; dedicated teams.\n**Channels:** Direct sales; technical support; design ecosystem (TSMC reference flows).\n**Customer Segments:** Fabless semiconductor companies (Apple, NVIDIA, AMD, Qualcomm); IDMs (Intel outsourcing).\n**Cost Structure:** Depreciation (heavy); R&D (~$5B annual); labour; utilities; materials.\n**Revenue Streams:** Wafer sales; advanced node premiums; packaging services.\n\n## SWOT Analysis\n**Strengths:** Advanced node leadership (3nm, 2nm); ~92% market share; massive scale; strong customer loyalty; high margins.\n**Weaknesses:** Geographic concentration (Taiwan); geopolitical risk; high capex intensity; customer concentration (Apple ~25%).\n**Opportunities:** AI/HPC demand; 2nm ramp; global expansion (Arizona, Japan, Germany); chiplets/advanced packaging.\n**Threats:** Geopolitical (China-Taiwan); competition from Samsung, Intel; cyclical downturns; customer vertical integration (Intel foundry).\n\n## PESTLE Analysis\n**Political:** Taiwan-US relations, CHIPS Act subsidies, China threat. **Economic:** Semiconductor cycles, AI capex boom. **Social:** Talent shortage. **Technological:** 2nm, GAAFET, CoWoS, HBM. **Legal:** Export controls, IP protection. **Environmental:** Water usage, renewable energy, carbon neutrality.\n\n## Porter's Five Forces\n**Rivalry:** Intense \u2013 Samsung, Intel catching up. **New Entrants:** Extremely high barriers (capex, IP, scale). **Supplier Power:** Moderate \u2013 ASML (EUV) dominant. **Buyer Power:** Low \u2013 customers dependent on TSMC's technology. **Substitutes:** IDMs producing in-house (Samsung, Intel).\n\n## Management & Decision Making\nManagement committed to R&D and capex. Global expansion to reduce geopolitical risk. Focus on advanced packaging (CoWoS). Customer-centric.\n\n## Future Outlook\nAI/HPC demand drives 2nm ramp. Global fabs in Arizona, Japan, Germany. Watch geopolitical tensions, competition, and capex efficiency.\n\n## Leadership\n**CEO:** C.C. Wei (since 2018)  \n**CFO:** Wendell Huang  \n**Track Record:** Wei led 2nm/3nm ramp, global expansion (Arizona, Japan, Germany). Capital discipline, high R&D.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "V": {
       "name": "Visa Inc.",
@@ -2441,9 +2441,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Banks (issuers); merchants (acquirers); cardholders; VisaNet technology partners; fintechs (tokenisation).\n**Key Activities:** Payment network operation; transaction processing; fraud prevention; digital identity; value-added services (data analytics).\n**Key Resources:** VisaNet global network; brand trust; regulatory relationships; 800M+ cardholders; 130M+ merchants.\n**Value Proposition:** Reliable global payment network; security (tokenisation); convenience; scale.\n**Customer Relationships:** Long-term contracts with issuers/acquirers; API access; developer portals.\n**Channels:** Direct to financial institutions; partner networks; digital wallets.\n**Customer Segments:** Financial institutions (issuers, acquirers); merchants; cardholders; governments.\n**Cost Structure:** Technology; marketing; fraud prevention; regulatory compliance.\n**Revenue Streams:** Transaction fees; data processing; cross-border fees; value-added services.\n\n## SWOT Analysis\n**Strengths:** Largest global payment network; strong brand; network effects; high margins; recurring revenue.\n**Weaknesses:** Regulatory pressure (interchange fees); competition from fintechs; mature markets growth.\n**Opportunities:** Digital payments growth; tokenisation; cross-border e-commerce; B2B payments; crypto partnerships.\n**Threats:** Fintech disruption (Stripe, Adyen); BNPL; central bank digital currencies; regulatory caps on fees.\n\n## PESTLE Analysis\n**Political:** Regulatory scrutiny on interchange fees. **Economic:** Consumer spending, cross-border travel. **Social:** Cashless adoption, digital wallets. **Technological:** Tokenisation, AI fraud detection. **Legal:** Antitrust, interchange regulation. **Environmental:** ESG focus, carbon neutrality.\n\n## Porter's Five Forces\n**Rivalry:** Duopoly with Mastercard, plus fintechs. **New Entrants:** Moderate \u2013 fintechs can enter but network effects strong. **Supplier Power:** Low \u2013 banks as issuers have some power. **Buyer Power:** Merchants have limited power (must accept card). **Substitutes:** BNPL, crypto, bank transfers.\n\n## Management & Decision Making\nManagement focused on digital innovation, tokenisation, and strategic partnerships. Capital returns via dividends and buybacks.\n\n## Future Outlook\nDigital payments growth. Cross-border e-commerce. Tokenisation adoption. Watch regulatory caps, fintech competition, and consumer spending.\n\n## Leadership\n**CEO:** Ryan McInerney (since 2023)  \n**CFO:** Chris Suh (since 2023)  \n**Track Record:** Focus on tokenisation, cross-border solutions, crypto partnerships. Strong capital returns.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "MA": {
       "name": "Mastercard Inc.",
@@ -2589,9 +2589,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Banks, merchants, fintechs, digital wallets, crypto platforms.\n**Key Activities:** Payment network; transaction processing; cyber security; data analytics; multi-rail solutions (credit, debit, prepaid, ACH).\n**Key Resources:** Mastercard network; brand; 2.8B+ cards; regulatory relationships.\n**Value Proposition:** Secure global payments; multi-rail flexibility; value-added services.\n**Customer Relationships:** Issuer/acquirer contracts; developer APIs; innovation labs.\n**Channels:** Direct to FIs; partner ecosystems.\n**Customer Segments:** FIs, merchants, governments, consumers.\n**Cost Structure:** Tech, marketing, fraud prevention, compliance.\n**Revenue Streams:** Transaction fees, cross-border fees, value-added services.\n\n## SWOT Analysis\n**Strengths:** #2 global payment network; multi-rail strategy; strong brand; network effects.\n**Weaknesses:** Regulatory pressure; less global than Visa in some markets.\n**Opportunities:** Digital wallets, crypto partnerships, B2B payments, open banking.\n**Threats:** Fintech disruption, CBDCs, regulatory caps.\n\n## PESTLE Analysis\n**Political:** Interchange regulation. **Economic:** Consumer spending. **Social:** Cashless adoption. **Technological:** Tokenisation, AI. **Legal:** Antitrust. **Environmental:** ESG.\n\n## Porter's Five Forces\n**Rivalry:** Duopoly with Visa. **New Entrants:** Moderate. **Supplier Power:** Low. **Buyer Power:** Moderate. **Substitutes:** BNPL, crypto.\n\n## Management & Decision Making\nManagement focused on multi-rail expansion, crypto partnerships, and value-added services.\n\n## Future Outlook\nDigital payments growth. Crypto integration. B2B payments. Watch regulation and fintech competition.\n\n## Leadership\n**CEO:** Michael Miebach (since 2020)  \n**CFO:** Sachin Mehra  \n**Track Record:** Multi-rail expansion, crypto partnerships, B2B payments. Consistent growth.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "PBR-A": {
       "name": "Petrobras Pref ADR",
@@ -2737,9 +2737,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Brazilian government (controlling shareholder); Petrobras Distribuidora; pre-salt consortium partners; international oil companies.\n**Key Activities:** Oil & gas exploration (pre-salt); refining; distribution; biofuels; petrochemicals.\n**Key Resources:** Pre-salt deepwater fields (Tupi, B\u00fazios); giant reserves; deepwater expertise; refining capacity.\n**Value Proposition:** Low-cost pre-salt production; integrated value chain; domestic market leadership.\n**Customer Relationships:** Long-term fuel supply contracts; spot sales; government policy.\n**Channels:** Direct distribution; Petrobras Distribuidora; export terminals.\n**Customer Segments:** Domestic fuel consumers; international oil buyers; industrial; petrochemical.\n**Cost Structure:** Exploration & production; refining; royalties; taxes; interest.\n**Revenue Streams:** Oil sales; refined products; natural gas; biofuels.\n\n## SWOT Analysis\n**Strengths:** World-class pre-salt assets; low production cost; deepwater expertise; large reserves.\n**Weaknesses:** Government interference; high debt; corruption legacy; refining losses.\n**Opportunities:** Pre-salt production growth; energy transition investments (biofuels, offshore wind); debt reduction.\n**Threats:** Oil price volatility; government intervention; environmental pressure; competition from renewables.\n\n## PESTLE Analysis\n**Political:** Government control (majority shareholder), political risk. **Economic:** Oil prices, Brazil GDP, real exchange rate. **Social:** Corruption perception, local employment. **Technological:** Deepwater tech, carbon capture. **Legal:** Oil law, environmental regulations. **Environmental:** Pre-salt emissions, oil spills, net zero targets.\n\n## Porter's Five Forces\n**Rivalry:** Moderate \u2013 state-controlled, but private competitors in some blocks. **New Entrants:** High barriers (capex, deepwater expertise). **Supplier Power:** Moderate \u2013 specialised deepwater equipment. **Buyer Power:** Low \u2013 oil is global commodity. **Substitutes:** Renewables, electric vehicles.\n\n## Management & Decision Making\nManagement focused on pre-salt growth, debt reduction, and dividend policy. Recent leadership changes aim for commercial discipline.\n\n## Future Outlook\nPre-salt production growth. Biofuels and offshore wind diversification. Debt reduction. Watch oil prices, government policy, and energy transition.\n\n## Leadership\n**CEO:** Magda Chambriard (since 2024)  \n**CFO:** Fernando Melgarejo  \n**Track Record:** Focus on pre-salt growth, debt reduction, and shareholder returns. Political interference risk.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "MSFT": {
       "name": "Microsoft Corp.",
@@ -2885,9 +2885,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** OpenAI, LinkedIn, GitHub, Adobe (integration), cloud resellers, device manufacturers (OEMs).\n**Key Activities:** Cloud computing (Azure); productivity software (Office 365, Teams); AI (Copilot); gaming (Xbox); LinkedIn; Windows.\n**Key Resources:** Azure cloud infrastructure; Office 365 user base; OpenAI partnership; Windows OS dominance.\n**Value Proposition:** Enterprise productivity suite; cloud scale; AI integration; security.\n**Customer Relationships:** Subscription (SaaS); enterprise contracts; developer ecosystem.\n**Channels:** Direct sales; cloud resellers; Microsoft Store; OEM pre-install.\n**Customer Segments:** Enterprises; SMBs; consumers; developers; governments.\n**Cost Structure:** Data centres; R&D; sales & marketing; G&A.\n**Revenue Streams:** Azure; Office 365; Windows; LinkedIn; Xbox; advertising.\n\n## SWOT Analysis\n**Strengths:** Azure #2 cloud; Office 365 dominance; OpenAI partnership; strong balance sheet.\n**Weaknesses:** Slowing Azure growth; antitrust risk; competition in AI (Google, AWS).\n**Opportunities:** AI monetisation (Copilot); cloud growth; gaming (Activision); cybersecurity.\n**Threats:** Regulatory antitrust; cloud competition; economic slowdown.\n\n## PESTLE Analysis\n**Political:** Antitrust scrutiny, export controls. **Economic:** IT spending, cloud budgets. **Social:** Remote work, digital transformation. **Technological:** AI, quantum computing. **Legal:** GDPR, antitrust cases. **Environmental:** Carbon negative goal.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 AWS, Google, Oracle, Salesforce. **New Entrants:** Moderate \u2013 cloud capex barrier. **Supplier Power:** Low \u2013 commoditised hardware. **Buyer Power:** Moderate \u2013 enterprises can multi-cloud. **Substitutes:** Open source, on-prem.\n\n## Management & Decision Making\nManagement focused on AI (Copilot, OpenAI), cloud growth, and shareholder returns (dividends, buybacks).\n\n## Future Outlook\nAI monetisation (Copilot). Cloud growth. Gaming (Activision). Watch AI adoption, cloud competition, and regulation.\n\n## Leadership\n**CEO:** Satya Nadella (since 2014)  \n**CFO:** Amy Hood (since 2013)  \n**Track Record:** Cloud and AI leadership, OpenAI partnership, Activision acquisition. Excellent capital allocation.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "AMZN": {
       "name": "Amazon.com Inc.",
@@ -3033,9 +3033,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Third-party sellers (marketplace); AWS customers; content creators; logistics partners.\n**Key Activities:** E-commerce (online retail); cloud computing (AWS); digital streaming (Prime Video); advertising; logistics.\n**Key Resources:** AWS cloud infrastructure; fulfillment centres; Prime membership; customer data.\n**Value Proposition:** Vast product selection; fast delivery (Prime); AWS compute & storage; advertising reach.\n**Customer Relationships:** Prime loyalty; seller tools; AWS support; self-service.\n**Channels:** Amazon.com; mobile app; Alexa; AWS console; physical stores (Whole Foods).\n**Customer Segments:** Consumers; third-party sellers; enterprises (AWS); advertisers.\n**Cost Structure:** Fulfillment; AWS infrastructure; content acquisition; marketing.\n**Revenue Streams:** Product sales; AWS; advertising; subscription (Prime, Prime Video).\n\n## SWOT Analysis\n**Strengths:** Largest e-commerce; AWS #1 cloud; Prime flywheel; advertising growth; logistics network.\n**Weaknesses:** Thin retail margins; regulatory antitrust; labour issues.\n**Opportunities:** AI (Bedrock, Trainium); healthcare; satellite (Project Kuiper); international e-commerce.\n**Threats:** Competition from Walmart, Temu, Shein; cloud competition (Azure, Google); antitrust.\n\n## PESTLE Analysis\n**Political:** Antitrust, labour laws. **Economic:** Consumer spending, cloud budgets. **Social:** E-commerce adoption, convenience culture. **Technological:** AI, robotics in fulfillment. **Legal:** Antitrust cases, data privacy. **Environmental:** Carbon footprint, renewable energy.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Walmart, Target, Temu, Shein. **New Entrants:** Moderate \u2013 e-commerce easier but scale hard. **Supplier Power:** Low \u2013 many third-party sellers. **Buyer Power:** High \u2013 consumers price-sensitive. **Substitutes:** Physical retail, other e-commerce.\n\n## Management & Decision Making\nManagement focused on cost optimisation, AI investment, and AWS growth. Recent layoffs and efficiency drive.\n\n## Future Outlook\nAI (Bedrock, Trainium). Healthcare expansion. Project Kuiper. Watch e-commerce margins, cloud competition, and antitrust.\n\n## Leadership\n**CEO:** Andy Jassy (since 2021)  \n**CFO:** Brian Olsavsky (since 2015)  \n**Track Record:** Jassy focused on cost optimisation, AWS growth, AI (Bedrock). Healthcare and satellite long-term bets.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "AAPL": {
       "name": "Apple Inc.",
@@ -3181,9 +3181,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** TSMC (chip manufacturing); Foxconn, Pegatron (assembly); app developers; content providers (Apple Music, TV+).\n**Key Activities:** Hardware design (iPhone, Mac, iPad, Watch); software (iOS, macOS); services (App Store, Apple Music, iCloud); retail.\n**Key Resources:** Brand premium; ecosystem (1B+ active devices); App Store monopoly; supply chain expertise.\n**Value Proposition:** Premium hardware; seamless ecosystem; privacy; status.\n**Customer Relationships:** Retail (Apple Store); ecosystem lock-in; AppleCare.\n**Channels:** Apple retail stores; online store; resellers; carriers.\n**Customer Segments:** Consumers; professionals; enterprises; education.\n**Cost Structure:** R&D; supply chain; marketing; retail.\n**Revenue Streams:** iPhone (~50%); services (~25%); Mac, iPad, Wearables.\n\n## SWOT Analysis\n**Strengths:** Brand premium; ecosystem lock-in; high margins; loyal customer base; services growth.\n**Weaknesses:** iPhone concentration; slow innovation; regulatory pressure (App Store).\n**Opportunities:** AI integration; Vision Pro; services expansion; health tech.\n**Threats:** Regulatory (App Store antitrust); competition from Android, Huawei; supply chain disruption.\n\n## PESTLE Analysis\n**Political:** US-China trade, antitrust. **Economic:** Consumer spending, disposable income. **Social:** Brand loyalty, privacy concerns. **Technological:** AI, AR/VR, chip design. **Legal:** App Store antitrust, EU DMA. **Environmental:** Carbon neutral, recycled materials.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Samsung, Google, Huawei. **New Entrants:** Moderate \u2013 brand barrier high. **Supplier Power:** Moderate \u2013 TSMC sole advanced chip supplier. **Buyer Power:** Moderate \u2013 switching costs high (ecosystem). **Substitutes:** Android devices.\n\n## Management & Decision Making\nManagement focused on services growth, AI integration, and Vision Pro. Strong capital returns (dividends, buybacks).\n\n## Future Outlook\nAI integration (Apple Intelligence). Vision Pro. Services expansion. Watch iPhone cycle, regulatory risk, and innovation.\n\n## Leadership\n**CEO:** Tim Cook (since 2011)  \n**CFO:** Luca Maestri (since 2014)  \n**Track Record:** Services expansion, ecosystem lock-in, capital returns. Vision Pro and AI integration next.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "META": {
       "name": "Meta Platforms Inc.",
@@ -3329,9 +3329,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Advertisers; content creators; app developers; AI hardware vendors (NVIDIA).\n**Key Activities:** Social media (Facebook, Instagram, WhatsApp, Messenger); advertising; AI research (Llama); metaverse (Reality Labs).\n**Key Resources:** 3.3B+ daily active users; ad targeting data; AI models; brand.\n**Value Proposition:** Social connection; ad reach; AI tools.\n**Customer Relationships:** Free user accounts; advertiser dashboards; creator tools.\n**Channels:** Mobile apps; website; WhatsApp API.\n**Customer Segments:** Users (free); advertisers (revenue); creators.\n**Cost Structure:** R&D (AI, metaverse); content moderation; marketing.\n**Revenue Streams:** Advertising (>98%); metaverse (negligible).\n\n## SWOT Analysis\n**Strengths:** Unmatched social graph (3.3B+ DAUs); ad targeting data; AI leadership (Llama); strong cash flow.\n**Weaknesses:** Metaverse losses; regulatory risk (privacy); user growth saturation; competition (TikTok).\n**Opportunities:** AI monetisation (Meta AI); Reels growth; WhatsApp business; Threads.\n**Threats:** TikTok; regulatory privacy; EU DMA; Apple ATT.\n\n## PESTLE Analysis\n**Political:** Data privacy regulation, antitrust. **Economic:** Advertising spend. **Social:** User mental health, screen time. **Technological:** AI, AR/VR. **Legal:** GDPR, EU DMA, FTC. **Environmental:** Data centre energy use.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 TikTok, YouTube, X. **New Entrants:** Moderate \u2013 network effects strong. **Supplier Power:** Low \u2013 users are suppliers of attention. **Buyer Power:** Advertisers have many options. **Substitutes:** Other social networks, TV, gaming.\n\n## Management & Decision Making\nManagement focused on AI (Llama, Meta AI), efficiency (Year of Efficiency), and metaverse long-term bet. Aggressive share buybacks.\n\n## Future Outlook\nAI monetisation (Meta AI). Reels growth. WhatsApp business. Watch TikTok competition, regulatory risk, and metaverse progress.\n\n## Leadership\n**CEO:** Mark Zuckerberg (founder)  \n**CFO:** Susan Li (since 2022)  \n**Track Record:** Year of Efficiency, AI (Llama), metaverse long-term bet. Aggressive buybacks.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "NVDA": {
       "name": "NVIDIA Corporation",
@@ -3477,9 +3477,9 @@
         0.04
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** TSMC (chip manufacturing); cloud providers (AWS, Azure, Google); server OEMs (Dell, HPE); AI startups.\n**Key Activities:** GPU design; AI platform (CUDA, DGX); networking (Mellanox); software ecosystem.\n**Key Resources:** CUDA ecosystem (10M+ developers); AI leadership (H100, Blackwell); strong R&D.\n**Value Proposition:** Unrivalled AI compute; CUDA software moat; full-stack AI platform.\n**Customer Relationships:** Direct enterprise; cloud partnerships; developer community.\n**Channels:** Direct sales; OEMs; cloud marketplaces.\n**Customer Segments:** Data centres (AI training/inference); gaming; professional visualisation; automotive.\n**Cost Structure:** R&D (~$8B); wafer costs; marketing; G&A.\n**Revenue Streams:** Data centre (>80%); gaming; professional visualisation; automotive.\n\n## SWOT Analysis\n**Strengths:** CUDA moat; 80%+ data centre GPU share; AI leadership; strong margins.\n**Weaknesses:** Customer concentration (cloud providers); cyclicality; competition; high valuation.\n**Opportunities:** AI inference growth; sovereign AI; edge AI; automotive.\n**Threats:** Competition from AMD, Intel, custom chips (TPU, Inferentia); export controls (China); cyclical downturn.\n\n## PESTLE Analysis\n**Political:** US-China export controls, CHIPS Act. **Economic:** AI capex cycle. **Social:** AI adoption, energy concerns. **Technological:** Blackwell, chiplet, HBM. **Legal:** Export compliance, IP. **Environmental:** GPU energy efficiency.\n\n## Porter's Five Forces\n**Rivalry:** Intense \u2013 AMD, Intel, custom chips. **New Entrants:** High \u2013 capex, CUDA moat. **Supplier Power:** Moderate \u2013 TSMC sole advanced node. **Buyer Power:** Moderate \u2013 cloud providers have scale. **Substitutes:** Custom AI chips (TPU, Trainium).\n\n## Management & Decision Making\nManagement focused on AI dominance, Blackwell ramp, and software ecosystem. Aggressive R&D and acquisitions.\n\n## Future Outlook\nAI inference growth. Blackwell ramp. Sovereign AI. Watch competition, export controls, and AI capex cycle.\n\n## Leadership\n**CEO:** Jensen Huang (founder)  \n**CFO:** Colette Kress (since 2013)  \n**Track Record:** AI dominance, Blackwell ramp, CUDA moat. Exceptional execution.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "GOOG": {
       "name": "Alphabet Inc (Google)",
@@ -3625,9 +3625,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Advertisers; content creators (YouTube); Android OEMs; cloud partners; AI research community.\n**Key Activities:** Search; advertising; YouTube; cloud (GCP); AI (Gemini, DeepMind); hardware (Pixel, Nest).\n**Key Resources:** Search monopoly (90%+ share); YouTube; Android; AI talent (DeepMind).\n**Value Proposition:** Free search & services; ad reach; cloud infrastructure; AI tools.\n**Customer Relationships:** Free user accounts; advertiser dashboards; GCP support.\n**Channels:** Google.com; YouTube; Android; GCP console.\n**Customer Segments:** Users (free); advertisers; enterprises (GCP); developers.\n**Cost Structure:** R&D (AI); traffic acquisition costs; data centres; marketing.\n**Revenue Streams:** Advertising (Search, YouTube); cloud; subscriptions (YouTube Premium, Google One).\n\n## SWOT Analysis\n**Strengths:** Search monopoly; YouTube #2 website; AI leadership (Gemini, DeepMind); strong cash flow.\n**Weaknesses:** Advertising concentration; regulatory antitrust; cloud #3.\n**Opportunities:** AI monetisation (Gemini, Search Generative Experience); cloud growth; YouTube subscriptions.\n**Threats:** Regulatory antitrust (DOJ case); competition from OpenAI, Microsoft; search share erosion.\n\n## PESTLE Analysis\n**Political:** Antitrust, data privacy. **Economic:** Advertising spend. **Social:** Privacy concerns. **Technological:** AI, quantum. **Legal:** EU DMA, US antitrust. **Environmental:** Data centre energy.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Microsoft (Bing, OpenAI), Amazon (ads). **New Entrants:** High \u2013 AI search startups. **Supplier Power:** Low \u2013 many content creators. **Buyer Power:** Advertisers have many options. **Substitutes:** AI chatbots (ChatGPT), social media ads.\n\n## Management & Decision Making\nManagement focused on AI (Gemini, DeepMind), cloud growth, and cost efficiency. Capital returns via buybacks.\n\n## Future Outlook\nAI monetisation (Gemini, Search Generative Experience). Cloud growth. YouTube subscriptions. Watch antitrust, AI competition, and ad spend.\n\n## Leadership\n**CEO:** Sundar Pichai (since 2015)  \n**CFO:** Ruth Porat (since 2015)  \n**Track Record:** AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "BKNG": {
       "name": "Booking Holdings Inc",
@@ -3773,9 +3773,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Hotels; airlines; car rental companies; online travel agencies; payment providers.\n**Key Activities:** Online travel booking (Booking.com, Priceline, Kayak, OpenTable); merchant model; affiliate network.\n**Key Resources:** Booking.com brand; merchant model inventory; 3M+ accommodation listings; 500M+ monthly visitors.\n**Value Proposition:** Largest accommodation inventory; price comparison; merchant model (book now, pay later).\n**Customer Relationships:** Loyalty program (Genius); 24/7 customer support.\n**Channels:** Direct (website, app); affiliate partners; meta-search (Kayak).\n**Customer Segments:** Leisure travellers; business travellers; restaurants (OpenTable).\n**Cost Structure:** Marketing (performance); staff; technology; customer support.\n**Revenue Streams:** Booking commissions; merchant model margin; advertising.\n\n## SWOT Analysis\n**Strengths:** Largest accommodation inventory (3M+); merchant model; strong brand in Europe; high margins.\n**Weaknesses:** Concentration in Europe; competition from Airbnb; seasonality; merchant model credit risk.\n**Opportunities:** US expansion; alternative accommodations; connected trip (flights, car, activities); AI personalisation.\n**Threats:** Google Travel; Airbnb; recession travel slowdown; regulatory (short-term rentals).\n\n## PESTLE Analysis\n**Political:** Short-term rental regulations, tax policies. **Economic:** Travel demand, consumer spending. **Social:** Post-pandemic travel boom, alternative accommodations. **Technological:** AI personalisation, mobile booking. **Legal:** Competition law, consumer protection. **Environmental:** Flight shaming, sustainable travel.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Expedia, Airbnb, Google Travel. **New Entrants:** Moderate \u2013 OTAs require scale. **Supplier Power:** Low \u2013 hotels need distribution. **Buyer Power:** High \u2013 travellers can compare. **Substitutes:** Direct hotel booking, Airbnb.\n\n## Management & Decision Making\nManagement focused on merchant model, US expansion, and connected trip. Shareholder returns via buybacks.\n\n## Future Outlook\nUS expansion. Alternative accommodations. AI personalisation. Watch travel demand, competition from Google, and regulation.\n\n## Leadership\n**CEO:** Glenn Fogel (since 2017)  \n**CFO:** David Goulden  \n**Track Record:** Merchant model expansion, US growth, connected trip. Strong capital returns.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "NAB": {
       "name": "National Australia Bank",
@@ -3921,9 +3921,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Australian government (regulator), home loan aggregators, mortgage insurers, Visa/Mastercard, wealth management platforms, fintech partners (e.g., 86 400 acquisition), AWS (cloud migration).\n**Key Activities:** Retail banking (home loans, deposits); business & corporate banking; wealth management (MLC); institutional banking; digital banking (NAB app, NAB Connect); home loan servicing.\n**Key Resources:** #3 home lender in Australia (~15% market share); leading business bank (largest business lending share); strong deposit base; 1,500+ branches; NAB app with 2M+ daily users; conservative balance sheet.\n**Value Proposition:** Focus on business banking as core differentiator; 'NAB Now, Pay Later' digital solutions; competitive home loan rates; strong customer service; digital innovation (AI-driven fraud detection).\n**Customer Relationships:** Branch network; relationship managers for business clients; NAB app (24/7 banking); call centres; loyalty programs (NAB Rewards).\n**Channels:** Branches; NAB app; NAB Connect (business); third-party brokers; ATM network; contact centre.\n**Customer Segments:** Retail consumers (home buyers, savers); small to medium enterprises (SMEs); corporate & institutional; wealth clients (MLC); government.\n**Cost Structure:** Branch network (~1,500); staff salaries; technology & digital transformation; regulatory compliance (APRA); marketing; bad debt provisions.\n**Revenue Streams:** Net interest income (home loans, business lending); non-interest income (fees, wealth management, transactional fees); institutional banking; trading income.\n\n## SWOT Analysis\n**Strengths:** Largest business bank in Australia; strong deposit franchise; digital transformation progressing (AWS cloud migration); conservative risk culture; $7.3B cash earnings FY2024.\n**Weaknesses:** Home loan market share behind CBA and Westpac; higher cost-to-income ratio (~50%) than peers; legacy systems in parts; reliance on Australian housing market.\n**Opportunities:** Business lending growth from SME recovery; digital banking (NAB app features); wealth management cross-sell; home loan refinancing wave; cost-out initiatives.\n**Threats:** Rising interest rates impacting mortgage stress; fintech competition (Judo Bank, Athena); regulatory scrutiny (Royal Commission legacy); economic slowdown; cybersecurity risks.\n\n## PESTLE Analysis\n**Political:** Banking royal commission recommendations, APRA capital requirements, open banking (CDR). **Economic:** Interest rate cycle, housing market, unemployment, GDP growth. **Social:** Digital adoption, trust in banks, financial literacy. **Technological:** AI, cloud, open banking APIs, cybersecurity. **Legal:** Banking Act, NCCP, AML/CTF, privacy law. **Environmental:** Climate risk in loan portfolios, sustainable finance, net-zero commitments.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Big 4 plus regional banks, neobanks (Judo, Volt). **New Entrants:** Moderate \u2013 digital bank licences easier, but brand trust hard to build. **Supplier Power:** Low \u2013 depositors fragmented, but large wholesale funding markets have some power. **Buyer Power:** High \u2013 customers can switch home loans easily via brokers. **Substitutes:** Peer-to-peer lending, mortgage fintechs, non-bank lenders.\n\n## Management & Decision Making\nCEO Ross McEwan (since 2019, ex-RBS) focused on simplification, culture change, and digital. CFO Gary Lennon (since 2022) drives cost efficiency. Capital returns via dividends and buybacks. Underlying profit $7.3B, ROE 11.5%.\n\n## Future Outlook\nBusiness lending growth. Digital adoption reduces cost-to-income. Home loan refinancing wave. Watch housing market, interest rates, and competition from neobanks.\n\n## Leadership\n**CEO:** Ross McEwan (since 2019)  \n**CFO:** Gary Lennon (since 2022)  \n**Track Record:** McEwan led digital transformation, cost reduction, and capital management. Focus on business banking and home lending.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "CVX": {
       "name": "Chevron Corporation",
@@ -4069,9 +4069,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** OPEC+ (oil price influence), national oil companies (e.g., Saudi Aramco), joint venture partners (e.g., Tengizchevroil), LNG offtakers, renewable energy technology partners.\n**Key Activities:** Oil & gas exploration & production (upstream); refining & marketing (downstream); LNG production (Gorgon, Wheatstone); low-carbon investments (renewables, hydrogen, carbon capture).\n**Key Resources:** Permian Basin (largest US oil field); Tengiz field (Kazakhstan); Gorgon LNG (Australia); refining network; strong balance sheet ($15B+ cash).\n**Value Proposition:** Low-cost oil producer (Permian breakeven ~$40/bbl); integrated model (upstream + downstream); reliable dividend growth; commitment to lower carbon (CCUS, renewable fuels).\n**Customer Relationships:** Long-term supply contracts (LNG); spot market sales; branded fuel stations (Chevron, Texaco); industrial customers.\n**Channels:** Direct sales; trading desks; retail fuel stations; pipelines; LNG carriers.\n**Customer Segments:** Fuel retailers; industrial manufacturers; power utilities; airlines; governments; chemical companies.\n**Cost Structure:** Exploration & production costs; refining costs; capex ($14-16B annually); G&A; environmental remediation.\n**Revenue Streams:** Oil & gas sales; refined products; LNG; chemicals; renewable fuel credits.\n\n## SWOT Analysis\n**Strengths:** Permian Basin scale (700k boe/d); low-cost operator; strong balance sheet; 36-year dividend growth streak; leading LNG position in Australia.\n**Weaknesses:** Oil price sensitivity; carbon footprint; legacy environmental liabilities; refining margins volatile.\n**Opportunities:** Lower-carbon investments (CCUS, renewable diesel); LNG demand growth (Asia); Permian production growth; acquisition of PDC Energy (2023) adds scale.\n**Threats:** Energy transition reducing fossil fuel demand; oil price collapse; competition from renewables; regulatory pressure (SEC climate disclosure).\n\n## PESTLE Analysis\n**Political:** US energy policy, OPEC+ decisions, sanctions (e.g., Venezuela). **Economic:** Oil & gas prices, global GDP growth, refining margins. **Social:** ESG pressure, workforce transition. **Technological:** CCUS, hydrogen, advanced drilling. **Legal:** Climate litigation, antitrust, tax law. **Environmental:** Net-zero commitments, methane regulations.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Exxon, Shell, BP, TotalEnergies. **New Entrants:** High barriers (capex, expertise). **Supplier Power:** Low \u2013 oil as commodity, but OPEC has influence. **Buyer Power:** Moderate \u2013 refiners and large buyers. **Substitutes:** Renewables, electric vehicles, hydrogen.\n\n## Management & Decision Making\nCEO Mike Wirth (since 2018) \u2013 focused on capital discipline, lower carbon investments, and shareholder returns. CFO Pierre Breber (since 2019). Returned $26B to shareholders in 2024.\n\n## Future Outlook\nPermian production growth. Lower-carbon investments (CCUS, renewable diesel). LNG demand. Watch oil prices, energy transition policies, and project execution.\n\n## Leadership\n**CEO:** Mike Wirth (since 2018)  \n**CFO:** Pierre Breber (since 2019)  \n**Track Record:** Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "AXP": {
       "name": "American Express",
@@ -4217,9 +4217,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Merchants (accept Amex cards); cardmembers; airlines/hotels (rewards transfer partners); third-party banks (co-brand cards); travel agencies.\n**Key Activities:** Charge card & credit card issuing; merchant acquiring; travel services; rewards & loyalty management; payment processing; fraud prevention.\n**Key Resources:** Premium brand; affluent customer base; Global Merchant Services network; Centurion lounges; data analytics capabilities; $1.1T network volume.\n**Value Proposition:** Premium card experience (travel, dining, service); Membership Rewards points; global acceptance; small business tools (Open); no preset spending limit on charge cards.\n**Customer Relationships:** Direct (consumer, small business, corporate); co-brand partners (Delta, Marriott); 24/7 customer service; Centurion lounges; mobile app.\n**Channels:** Direct mail; online applications; partner marketing; mobile app; travel portals.\n**Customer Segments:** Affluent consumers; small businesses; corporations; co-brand partners (airlines, hotels).\n**Cost Structure:** Marketing & rewards; customer service; fraud prevention; technology; credit losses.\n**Revenue Streams:** Discount revenue (merchant fees); net card fees (annual fees); interest income (from revolving balances); travel commissions; other fees.\n\n## SWOT Analysis\n**Strengths:** Premium brand; high-spend affluent cardholders; strong network effect (merchants want Amex customers); robust rewards program; low credit losses (targets affluent).\n**Weaknesses:** Higher merchant fees than Visa/Mastercard; acceptance still lower internationally; reliance on travel & entertainment spending.\n**Opportunities:** Small business expansion (Open platform); international growth (especially in Europe, Asia); digital wallet integration (Apple Pay, Google Pay); travel rebound.\n**Threats:** Competition from Visa, Mastercard, and fintechs (Stripe, Square); regulatory interchange caps; economic downturn reducing card spend; credit cycle.\n\n## PESTLE Analysis\n**Political:** Regulation of interchange fees (Durbin Amendment, EU caps). **Economic:** Consumer spending, travel demand, interest rates (credit card interest). **Social:** Cashless adoption, loyalty expectations. **Technological:** Digital wallets, tokenisation, AI fraud detection. **Legal:** CARD Act, fair lending, data privacy. **Environmental:** ESG focus on sustainable travel.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Visa, Mastercard, Discover, Capital One. **New Entrants:** Moderate \u2013 fintechs (e.g., Brex) but scale hard. **Supplier Power:** Low \u2013 cardholders are many, but affluent segment has options. **Buyer Power:** Merchants have limited power (must accept Amex or lose customers). **Substitutes:** BNPL (Affirm, Klarna), debit cards, cash.\n\n## Management & Decision Making\nCEO Stephen Squeri (since 2018) \u2013 focused on premium customer experience, digital innovation, and small business growth. CFO Christophe Le Caillec (since 2023). Strong capital returns (dividends, buybacks).\n\n## Future Outlook\nTravel rebound drives spending. Small business expansion. International growth. Watch consumer spending, regulatory interchange caps, and competition from BNPL.\n\n## Leadership\n**CEO:** Stephen Squeri (since 2018)  \n**CFO:** Christophe Le Caillec (since 2023)  \n**Track Record:** Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     },
     "BAC": {
       "name": "Bank of America",
@@ -4365,9 +4365,9 @@
         null
       ],
       "profile": "## Business Model Canvas\n**Key Partners:** Depositors; borrowers; investment banking clients; wealth management clients (Merrill Lynch); fintech partners; government regulators.\n**Key Activities:** Consumer banking (deposits, loans, credit cards); wealth management (Merrill); investment banking & trading (BofA Securities); global banking (corporate lending, treasury).\n**Key Resources:** Largest deposit base in US ($1.9T); extensive branch network (4,000+); Merrill Lynch wealth platform; leading investment bank; digital banking (55M active users).\n**Value Proposition:** \u2018Responsible Growth\u2019 strategy \u2013 balanced risk, customer focus, efficiency; \u2018Life Plan\u2019 digital financial advice; Merrill Edge self-directed investing; strong capital position.\n**Customer Relationships:** Branch network; mobile app (Erica AI assistant); relationship managers (wealth, business); call centres; online banking.\n**Channels:** Branches; BofA app; Merrill Edge; online banking; contact centre; financial advisors.\n**Customer Segments:** Consumer (mass market, affluent, high net worth); small business; corporate & institutional; wealth management; government.\n**Cost Structure:** Branch network; technology (AI, cloud); staff; marketing; legal & compliance; provision for credit losses.\n**Revenue Streams:** Net interest income (loans, securities); non-interest income (fees, wealth management, investment banking, trading).\n\n## SWOT Analysis\n**Strengths:** Largest US deposit base; #2 investment bank; strong digital platform (Erica AI); conservative credit culture; $27.5B net income 2024, ROE 12.7%.\n**Weaknesses:** Sensitive to interest rate cycle; large physical branch footprint; legacy mortgage issues (still facing litigation).\n**Opportunities:** Rising rates boost NIM; wealth management cross-sell; investment banking market share gains; digital cost reduction; ESG lending.\n**Threats:** Recession leading to credit losses; fintech competition (Chime, SoFi); regulatory capital requirements; cybersecurity.\n\n## PESTLE Analysis\n**Political:** Banking regulation (Dodd-Frank, CCAR), consumer protection (CFPB). **Economic:** Interest rates, unemployment, GDP growth, housing market. **Social:** Digital banking adoption, trust in banks. **Technological:** AI (Erica), blockchain, cloud migration. **Legal:** Ongoing mortgage litigation, antitrust, data privacy. **Environmental:** Climate stress testing, sustainable finance.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 JPMorgan, Wells Fargo, Citigroup, regional banks. **New Entrants:** Moderate \u2013 digital banks (Chime) but scale hard. **Supplier Power:** Low \u2013 depositors fragmented. **Buyer Power:** Moderate \u2013 consumers can switch banks easily. **Substitutes:** Fintech lenders, neobanks, credit unions.\n\n## Management & Decision Making\nCEO Brian Moynihan (since 2010) \u2013 transformed BAC post-2008, built capital, cut expenses, focused on responsible growth. CFO Alastair Borthwick (since 2019). Returned $16B to shareholders in 2024.\n\n## Future Outlook\nInterest rate tailwinds for NIM. Investment banking rebound. Digital adoption reduces cost. Watch credit quality, economic cycle, and regulatory environment.\n\n## Leadership\n**CEO:** Brian Moynihan (since 2010)  \n**CFO:** Alastair Borthwick (since 2019)  \n**Track Record:** Moynihan transformed BAC post\u20112008, reduced expenses, built capital, and focused on digital banking and ESG.",
-      "profileDate": "2026-04-09T14:06:49.276075+00:00",
+      "profileDate": "2026-04-09T21:47:10.108812+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-09T14:06:49.276075+00:00"
+      "newsDate": "2026-04-09T21:47:10.108812+00:00"
     }
   }
 }
