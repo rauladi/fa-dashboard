@@ -276,7 +276,7 @@ function calcM(symbol){
   };
 }
 
-// ======================== tabRatios (fixed: key metrics below table) ========================
+// ======================== tabRatios ========================
 function tabRatios(sym, st){
   try {
     const m = calcM(sym);
@@ -315,7 +315,6 @@ function tabRatios(sym, st){
       {l:'Avg ROE', v:P1(m.av.roe), c:'var(--purple)'},
       {l:'Avg NP Margin', v:P1(m.av.npm), c:'var(--blue)'}
     ].map(c => `<div class="card"><div class="card-l">${c.l}</div><div class="card-v" style="color:${c.c}">${c.v}</div></div>`).join('');
-    // Put the ratio table first, then the key metrics summary
     return `${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead>汽<th style="min-width:200px">Ratio</th>${yH}<th class="tc" style="color:var(--cyan);min-width:80px">Average</th> </thead><tbody>${rows}</tbody> </div></div><div class="sec"><div class="sec-t">Key Metrics Summary</div><div class="cards">${cards}</div></div>`;
   } catch(e) {
     console.error('Error in tabRatios:', e);
@@ -364,7 +363,7 @@ function generateCustomTornado(sym, st, m) {
 // ======================== srcBar ========================
 function srcBar(sym,st){const d=S.data[sym];const isCustom=!!S.custom[sym];const ticker=d?.ticker||yahooTicker(sym,st.exchange||'');const src=d?.source||'built-in';let badge,note;if(src==='yfinance'){const gen=d?.generated?new Date(d.generated).toLocaleDateString():'—';badge=`<span class="data-badge db-ok">✓ Auto-refreshed</span>`;note=`Live via yfinance · Refreshed: ${gen} · GitHub Actions runs monthly`;}else{badge=`<span class="data-badge" style="background:rgba(255,208,96,.1);color:#ffd060;border:1px solid rgba(255,208,96,.3)">📋 Built-in data</span>`;note=`Embedded from annual reports · <strong style="color:var(--yellow)">Host on GitHub Pages for auto-refresh</strong>`;}return`<div class="src-bar"><div class="src-info">${badge}<div class="src-meta"><strong>${st.name}</strong> · ${st.exchange} · ${st.currency} · <code style="background:rgba(0,0,0,.2);padding:0 5px;border-radius:3px;font-size:9px">${ticker}</code><br>${note}</div></div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button class="btn btn-ghost btn-xs" onclick="showManual('${sym}')">✏ Edit</button>${isCustom?`<button class="btn btn-red btn-xs" onclick="delStock('${sym}')">🗑 Remove</button>`:''}</div></div>`;}
 function tabData(sym,st){const m=calcM(sym);if(!m) return '<p>No data</p>';const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');const rows=MKEYS.map((r,i)=>{const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${N2(v,2)}</td>`;}).join('');const a=avg(m.Y.map(y=>y[r.k]));const cg=cagr(m.Y.map(y=>y[r.k]));return`<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="background:rgba(0,196,224,.04)">${N2(a,2)}</td><td class="tc num ${!isOK(cg)?'':cg>=0?'pos':'neg'}" style="background:rgba(0,217,126,.03)">${isOK(cg)?N2(cg,1)+'%':'N/A'}</td>`;
-}).join('');return`${srcBar(sym,st)}<div class="sec"><div class="tw"><tr><thead>汽<th style="min-width:150px">Metric (${st.currency})</th>${yH}<th class="tc" style="color:var(--cyan);min-width:75px">Avg</th><th class="tc" style="color:var(--green);min-width:70px">CAGR</th> </thead><tbody>${rows}</tbody> </div></div>`;}
+}).join('');return`${srcBar(sym,st)}<div class="sec"><div class="tw"></td><thead>汽<th style="min-width:150px">Metric (${st.currency})</th>${yH}<th class="tc" style="color:var(--cyan);min-width:75px">Avg</th><th class="tc" style="color:var(--green);min-width:70px">CAGR</th> </thead><tbody>${rows}</tbody> </div></div>`;}
 function tabChartHTML(sym,st){return`${srcBar(sym,st)}<div class="sec"><div class="chart-box"><div style="font-size:11px;color:var(--muted);margin-bottom:10px">Revenue · Gross Profit · Net Profit <strong style="color:var(--muted2)">(bars, left axis)</strong> &nbsp;|&nbsp;GP Margin % · NP Margin % <strong style="color:var(--muted2)">(lines, right axis)</strong><br><span style="font-size:10px;color:var(--cyan)">💡 Click any bar to see detailed income statement flow</span></div><div id="chartWrap"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted)">Building chart…</div></div></div></div>`;}
 let chartInstance = null;
 function makeChart(symbol){
@@ -402,6 +401,7 @@ function makeChart(symbol){
       }
     }
   });
+  // Attach click handler using Chart.getChart (reliable method)
   const canvas = document.getElementById('mainC');
   canvas.onclick = (e) => {
     const chart = Chart.getChart(canvas);
@@ -422,14 +422,23 @@ function showSankeyForYear(year, datasetLabel) {
   const yearIndex = YEARS.indexOf(parseInt(year));
   if (yearIndex === -1) { showToast('Year not found', 'red'); return; }
   
+  // Get values with fallbacks
   let revenue = data.revenue?.[yearIndex];
   let grossProfit = data.grossProfit?.[yearIndex];
   let netProfit = data.netProfit?.[yearIndex];
+  let costOfRevenue = data.costOfRevenue?.[yearIndex];
+  let operatingExpenses = data.operatingExpenses?.[yearIndex];
+  
+  // Fallback calculations
+  if (isOK(revenue) && !isOK(grossProfit) && isOK(costOfRevenue)) grossProfit = revenue - costOfRevenue;
+  if (isOK(grossProfit) && !isOK(operatingExpenses) && isOK(netProfit)) operatingExpenses = grossProfit - netProfit;
   
   if (!isOK(revenue)) { showToast('Revenue data missing for this year', 'red'); return; }
   
   const gpPct = isOK(grossProfit) ? (grossProfit / revenue) * 100 : null;
   const npPct = isOK(netProfit) ? (netProfit / revenue) * 100 : null;
+  const corPct = (isOK(grossProfit) && isOK(revenue)) ? 100 - gpPct : null;
+  const opexPct = (isOK(grossProfit) && isOK(netProfit)) ? ((grossProfit - netProfit) / revenue) * 100 : null;
   
   const nodes = [];
   const links = [];
@@ -444,10 +453,8 @@ function showSankeyForYear(year, datasetLabel) {
   const corsNode = addNode('Cost of Revenue');
   const opexNode = addNode('Operating Expenses');
   
-  const corPct = isOK(grossProfit) && isOK(revenue) ? 100 - gpPct : null;
   if (corPct !== null && corPct > 0) addLink(revNode, corsNode, corPct);
   if (gpPct !== null && gpPct > 0) addLink(revNode, gpNode, gpPct);
-  const opexPct = (isOK(grossProfit) && isOK(netProfit)) ? ((grossProfit - netProfit) / revenue) * 100 : null;
   if (opexPct !== null && opexPct > 0) addLink(gpNode, opexNode, opexPct);
   if (npPct !== null && npPct > 0) addLink(gpNode, npNode, npPct);
   
@@ -478,7 +485,7 @@ function closeSankeyModal() {
   document.getElementById('sankeyModal').style.display = 'none';
 }
 
-// ======================== Rankings (FIXED: separate tables, proper headers) ========================
+// ======================== Rankings (FIXED) ========================
 function calcRanks(wts){
   const ks = Object.keys(S.stocks).filter(k => S.status[k] === 'ok');
   const N = ks.length;
@@ -554,18 +561,15 @@ function tabRankings(){
     return `<tr class="${i%2?'ev':''}"><td style="font-weight:700;padding:6px 11px">${k}</td>${cells}</tr>`;
   }).join('');
   
-  // Build the rankings page with two separate sections
   let html = `<div class="sec"><div class="sec-t">Scoring Weights</div><div class="wt-wrap" style="border:1px solid ${tot100?'rgba(0,217,126,.3)':'var(--red)'};background:${tot100?'rgba(0,217,126,.02)':'rgba(255,64,96,.04)'}"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px"><span style="font-size:13px;font-weight:600">Weighting Criteria</span></div><div style="display:flex;gap:10px;flex-wrap:wrap">${wCatBlocks}</div>${sumRow}${!tot100?`<p class="err" style="margin-top:10px">⛔ Weights must sum to exactly 100%. Current total: ${totalW.toFixed(1)}%</p>`:''}</div></div>`;
-  
-  html += `<div class="sec"><div class="sec-t">Multi-Criteria Rankings · ${YEARS[0]}–${LATEST_YEAR} (completed) + ${CURRENT_YEAR} annualised</div><div class="tw"><table><thead>汽<th style="min-width:38px">Rank</th><th style="min-width:140px">Stock</th>${thCrit}<th class="tc" style="color:var(--cyan);min-width:55px">Score</th> </thead><tbody>${rankedKs.length ? rRows : '<tr><td colspan="14" style="padding:20px;text-align:center;color:var(--muted)">No ranked stocks yet — load data for stocks first</td>'}${uRows}</tbody> </div><p style="font-size:10px;color:var(--muted);margin-top:8px">Rank circles: 1=best per criterion. Score = weighted average rank — lower is better overall.</p></div>`;
-  
+  html += `<div class="sec"><div class="sec-t">Multi-Criteria Rankings · ${YEARS[0]}–${LATEST_YEAR} (completed) + ${CURRENT_YEAR} annualised</div><div class="tw"><table><thead>汽<th style="min-width:38px">Rank</th><th style="min-width:140px">Stock</th>${thCrit}<th class="tc" style="color:var(--cyan);min-width:55px">Score</th> </thead><tbody>${rankedKs.length ? rRows : '<td><td colspan="14" style="padding:20px;text-align:center;color:var(--muted)">No ranked stocks yet — load data for stocks first</td>'}${uRows}</tbody> </div><p style="font-size:10px;color:var(--muted);margin-top:8px">Rank circles: 1=best per criterion. Score = weighted average rank — lower is better overall.</p></div>`;
   if (sumKs.length) {
     html += `<div class="sec"><div class="sec-t">Key Metrics Summary — All Loaded Stocks</div><div class="tw"><table><thead>汽<th>Stock</th><th class="tc">Cash/Asset%</th><th class="tc">D/E%</th><th class="tc">RevCAGR%</th><th class="tc">GPMgn%</th><th class="tc">NPCAGR%</th><th class="tc">NPMgn%</th><th class="tc">EPSCAGR%</th><th class="tc">ROE%</th><th class="tc">DivPay%</th><th class="tc">Buff$1%</th> </thead><tbody>${sumRows}</tbody> </div></div>`;
   }
   return html;
 }
 
-// ======================== Insights and remaining functions (unchanged) ========================
+// ======================== Insights and remaining functions (unchanged, included for completeness) ========================
 function markdownToHtml(md) { if (!md) return ''; return md.replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>').replace(/\n/g, '<br>'); }
 const LEADERSHIP = { BHP:{ceo:"Mike Henry (since 2020)",cfo:"David Lamont (since 2021)",track:"Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."}, WDS:{ceo:"Meg O'Neill (since 2021)",cfo:"Graham Tiver (since 2020)",track:"O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."}, CBA:{ceo:"Matt Comyn (since 2018)",cfo:"Alan Docherty (since 2021)",track:"Comyn led cloud migration to AWS, OpenAI partnership, digital transformation. Strong capital returns."}, BBRI:{ceo:"Sunarso (since 2019)",cfo:"Viviana Dyah Ayu (since 2020)",track:"Sunarso drove 'BRIvolution' digital transformation, ultra-micro holding integration, record BRImo adoption."}, ADRO:{ceo:"Garibaldi 'Boy' Thohir (since 2008)",cfo:"Jodhi Pangestu",track:"Thohir led spin-off of thermal coal, pivot to metcoal, aluminum smelter, and renewable energy."}, SMSM:{ceo:"Tony S. Budiman",cfo:"Suryadi",track:"Consistent execution, export growth to 45+ countries, maintained debt-free balance sheet, EV product R&D."}, UNTR:{ceo:"Darma Setiawan (since 2015)",cfo:"Yunus Saifulhak",track:"Maintained Komatsu exclusivity, PAMA largest contractor, diversification into gold and renewables."}, ITMG:{ceo:"M. Qodrat (since 2022)",cfo:"Agus Suhendar",track:"Focused on high dividends, production efficiency, solar hybrid projects. Banpu parent strategy influence."}, POWR:{ceo:"M. Firdaus",cfo:"R. Agus",track:"Conservative management, long-term PPAs, stable operations. Slow to adopt renewables but exploring solar."}, MPMX:{ceo:"Djoko Susanto",cfo:"Iwan Setiawan",track:"Stable Honda distribution, integrated financing and rental. Investing in EV motorcycle transition."}, BTPS:{ceo:"Ridwan Kurniawan",cfo:"Dewi Sartika",track:"Focused on sharia microfinance, digital group meetings, partnership with Baznas. Small scale but niche."}, DMAS:{ceo:"Takeshi Koyama (Sojitz)",cfo:"Santi Widjaja",track:"Japanese parent backing, data centre land sales driving growth. Green estate certification."}, SPTO:{ceo:"Widjaja (family)",cfo:"Lukman",track:"Long-term TOTO exclusivity maintained. Expanding to Tier-2 cities. High dividend yield."}, TSM:{ceo:"C.C. Wei (since 2018)",cfo:"Wendell Huang",track:"Wei led 2nm/3nm ramp, global expansion (Arizona, Japan, Germany). Capital discipline, high R&D."}, V:{ceo:"Ryan McInerney (since 2023)",cfo:"Chris Suh (since 2023)",track:"Focus on tokenisation, cross-border solutions, crypto partnerships. Strong capital returns."}, MA:{ceo:"Michael Miebach (since 2020)",cfo:"Sachin Mehra",track:"Multi-rail expansion, crypto partnerships, B2B payments. Consistent growth."}, "PBR-A":{ceo:"Magda Chambriard (since 2024)",cfo:"Fernando Melgarejo",track:"Focus on pre-salt growth, debt reduction, and shareholder returns. Political interference risk."}, MSFT:{ceo:"Satya Nadella (since 2014)",cfo:"Amy Hood (since 2013)",track:"Cloud and AI leadership, OpenAI partnership, Activision acquisition. Excellent capital allocation."}, AMZN:{ceo:"Andy Jassy (since 2021)",cfo:"Brian Olsavsky (since 2015)",track:"Jassy focused on cost optimisation, AWS growth, AI (Bedrock). Healthcare and satellite long-term bets."}, AAPL:{ceo:"Tim Cook (since 2011)",cfo:"Luca Maestri (since 2014)",track:"Services expansion, ecosystem lock-in, capital returns. Vision Pro and AI integration next."}, META:{ceo:"Mark Zuckerberg (founder)",cfo:"Susan Li (since 2022)",track:"Year of Efficiency, AI (Llama), metaverse long-term bet. Aggressive buybacks."}, NVDA:{ceo:"Jensen Huang (founder)",cfo:"Colette Kress (since 2013)",track:"AI dominance, Blackwell ramp, CUDA moat. Exceptional execution."}, GOOG:{ceo:"Sundar Pichai (since 2015)",cfo:"Ruth Porat (since 2015)",track:"AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds."}, BKNG:{ceo:"Glenn Fogel (since 2017)",cfo:"David Goulden",track:"Merchant model expansion, US growth, connected trip. Strong capital returns."}, NAB:{ceo:"Ross McEwan (since 2019)",cfo:"Gary Lennon (since 2022)",track:"McEwan led digital transformation, cost reduction, and capital management. Focus on business banking and home lending."}, CVX:{ceo:"Mike Wirth (since 2018)",cfo:"Pierre Breber (since 2019)",track:"Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."}, AXP:{ceo:"Stephen Squeri (since 2018)",cfo:"Christophe Le Caillec (since 2023)",track:"Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."}, BAC:{ceo:"Brian Moynihan (since 2010)",cfo:"Alastair Borthwick (since 2019)",track:"Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."} };
 function renderTornadoChart(variables) { if (!variables || !variables.length) return ""; const sorted = [...variables].sort((a,b) => Math.abs(b.high - b.low) - Math.abs(a.high - a.low)); const maxAbs = Math.max(...sorted.flatMap(v => [Math.abs(v.low||0), Math.abs(v.high||0)]), 1); const labelW = 160, barH = 32, gap = 10, axisH = 40, chartW = 400, mid = chartW/2; const scale = v => (Math.abs(v)/maxAbs) * (mid * 0.85); const fmt = v => v != null ? (v>=0 ? "+" : "") + Number(v).toFixed(1) + "%" : "?"; const bars = sorted.map((v,i) => { const y = i * (barH + gap); const nw = scale(v.low||0); const pw = scale(v.high||0); return `<g transform="translate(0,${y})"><rect x="${mid - nw}" y="0" width="${nw}" height="${barH}" fill="#ff4060" rx="4" opacity="0.85"/><rect x="${mid}" y="0" width="${pw}" height="${barH}" fill="#4da0ff" rx="4" opacity="0.85"/><text x="${mid - nw - 6}" y="${barH/2 + 5}" fill="#ff4060" font-size="11" text-anchor="end" font-weight="500">${fmt(v.low)}</text><text x="${mid + pw + 6}" y="${barH/2 + 5}" fill="#4da0ff" font-size="11" text-anchor="start" font-weight="500">${fmt(v.high)}</text><text x="-8" y="${barH/2 + 5}" fill="#7aa0be" font-size="12" text-anchor="end" font-weight="600">${v.name||""}</text></g>`; }).join(""); const h = sorted.length * (barH + gap) + axisH + 10; const ticks = [-75,-50,-25,0,25,50,75].filter(t => Math.abs(t) <= maxAbs * 1.05); const axis = ticks.map(t => { const x = mid + (t / maxAbs) * (mid * 0.85); return `<line x1="${x}" y1="0" x2="${x}" y2="${h - axisH}" stroke="#1a3050" stroke-width="1"/><text x="${x}" y="${h - axisH + 18}" fill="#4e7398" font-size="10" text-anchor="middle">${t>0?"+":""}${t}%</text>`; }).join(""); return `<div class="tornado-svg" style="overflow-x:auto;margin:12px 0;touch-action:pan-x pinch-zoom"><div style="font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;gap:16px;flex-wrap:wrap"><span><span style="color:#ff4060">■</span> Downside risk to net profit</span><span><span style="color:#4da0ff">■</span> Upside potential</span></div><svg viewBox="-${labelW} 0 ${labelW+chartW+70} ${h}" style="width:100%;height:auto;max-width:${labelW+chartW+70}px;font-family:var(--font);cursor:zoom-in" onload="this.style.cursor='zoom-in'" ontouchstart="this.style.cursor='grab'">${axis}${bars}</svg></div>`; }
