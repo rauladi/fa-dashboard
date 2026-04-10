@@ -141,7 +141,7 @@ td.num{font-size:12px;font-weight:500}
 <body>
 <div id="hdr"><div style="display:flex;align-items:center;gap:10px"><div class="h-logo">FA</div><div><div class="h-title">Fundamental Analysis Dashboard</div><div class="h-sub" id="hSub">ASX · IDX · NYSE/NASDAQ — loading...</div></div></div><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="showSync()">🔄 Sync</button><button class="btn btn-green btn-sm" onclick="showAdd()">＋ Add Stock</button></div></div>
 <div id="sBar"><div class="s-list" id="sList"></div></div>
-<div id="tBar"><button class="t-btn on" id="t-data" onclick="setTab('data')">📋 Data</button><button class="t-btn" id="t-ratios" onclick="setTab('ratios')">📐 Ratios</button><button class="t-btn" id="t-chart" onclick="setTab('chart')">📈 Chart</button><button class="t-btn" id="t-rankings" onclick="setTab('rankings')">🏆 Rankings</button><button class="t-btn" id="t-insights" onclick="setTab('insights')">💡 Insights</button></div>
+<div id="tBar"><button class="t-btn on" id="t-data" onclick="setTab('data')">📋 Data</button><button class="t-btn" id="t-ratios" onclick="setTab('ratios')">📐 Ratios</button><button class="t-btn" id="t-chart" onclick="setTab('chart')">📈 Chart</button><button class="t-btn" id="t-rankings" onclick="setTab('rankings')">🏆 Rankings</button><button class="t-btn" id="t-insights" onclick="setTab('insights')">💡 Insights</button><button class="t-btn" id="t-peer" onclick="setTab('peer')">🏭 Peer Comparison</button><button class="t-btn" id="t-scenario" onclick="setTab('scenario')">🎚️ Scenario Analysis</button></div>
 <div id="cont"></div>
 <div id="addModal" class="modal-bg" style="display:none"><div class="modal"><div class="modal-h"><h3>＋ Add New Stock</h3><button class="modal-x" onclick="hideAdd()">×</button></div><div class="modal-b" id="addBody"></div></div></div>
 <div id="syncModal" class="modal-bg" style="display:none"><div class="modal" style="max-width:520px"><div class="modal-h"><h3>🔄 Sync Between Devices</h3><button class="modal-x" onclick="hideSync()">×</button></div><div class="modal-b" id="syncBody"></div></div></div>
@@ -334,6 +334,108 @@ function yearColHeader(sym, yr) {
   return `<th class="tc" style="white-space:nowrap;color:var(--orange)">${yr}<br><span style="font-size:8px;color:var(--orange);opacity:.9">${ann.label}${asOf}</span></th>`;
 }
 
+// ======================== Peer Comparison Tab ========================
+function tabPeer(sym, st) {
+    const stockData = S.data[sym];
+    if (!stockData || !stockData.sector) return `<div class="state-box">Sector data not available for ${sym}</div>`;
+    const sector = stockData.sector;
+    const medians = window.sectorMedians ? window.sectorMedians[sector] : null;
+    if (!medians) return `<div class="state-box">No peer data for sector ${sector}</div>`;
+
+    const m = calcM(sym);
+    const metrics = {
+        'ROE (%)': m.av.roe,
+        'Net Profit Margin (%)': m.av.npm,
+        'Debt/Equity (%)': m.av.debtToEquity,
+        'Revenue CAGR (%)': m.cg.rev
+    };
+    const rows = Object.entries(metrics).map(([label, val]) => {
+        const medKey = label.toLowerCase().replace(' (%)','');
+        const median = medians[medKey];
+        const diff = (val && median) ? val - median : null;
+        const diffClass = diff > 0 ? 'pos' : (diff < 0 ? 'neg' : '');
+        return `<tr><td class="lbl">${label}</td>
+                <td class="num">${isOK(val) ? val.toFixed(1) : 'N/A'}%</td>
+                <td class="num">${isOK(median) ? median.toFixed(1) : 'N/A'}%</td>
+                <td class="num ${diffClass}">${diff ? diff.toFixed(1) : 'N/A'}%</td></tr>`;
+    }).join('');
+    return `<div class="sec">
+        <div class="sec-t">Peer Comparison · ${sym} vs ${sector} Sector Median</div>
+        <div class="tw"><table>
+            <thead><tr><th>Metric</th><th>${sym}</th><th>Sector Median</th><th>Difference</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table></div>
+        <p class="notice" style="margin-top:10px">📊 Sector medians are calculated from all stocks in this dashboard. Positive difference means the stock outperforms its peers.</p>
+    </div>`;
+}
+
+// ======================== Scenario Analysis Tab ========================
+function tabScenario(sym, st) {
+    const m = calcM(sym);
+    if (!m) return '<div class="state-box">No data</div>';
+    // Baseline values (latest year)
+    const lastIdx = m.raw.rv.length - 1;
+    const baseRevenue = m.raw.rv[lastIdx] || 0;
+    const baseGrossProfit = m.raw.gp[lastIdx] || 0;
+    const baseNetProfit = m.raw.np[lastIdx] || 0;
+    const baseGPM = (baseRevenue > 0) ? (baseGrossProfit / baseRevenue * 100) : 0;
+    const baseOpEx = baseRevenue - baseGrossProfit;
+    
+    const html = `<div class="sec">
+        <div class="sec-t">📊 Sensitivity Analysis – Adjust assumptions and see impact on Net Profit</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px">
+            <div><label>Revenue growth (Δ%):</label><input type="range" id="revSlider" min="-30" max="30" value="0" step="5"><span id="revVal">0%</span></div>
+            <div><label>Gross margin (Δ pp):</label><input type="range" id="gpmSlider" min="-15" max="15" value="0" step="1"><span id="gpmVal">0pp</span></div>
+            <div><label>Operating expenses (Δ%):</label><input type="range" id="opexSlider" min="-20" max="20" value="0" step="5"><span id="opexVal">0%</span></div>
+            <div><label>Interest rate (Δ pp on debt):</label><input type="range" id="intSlider" min="-3" max="3" value="0" step="0.5"><span id="intVal">0pp</span></div>
+        </div>
+        <div id="scenarioChartWrap" style="height:300px"><canvas id="scenarioCanvas"></canvas></div>
+        <div id="scenarioResult" class="notice"></div>
+    </div>`;
+    setTimeout(() => {
+        const canvas = document.getElementById('scenarioCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        let chart;
+        const update = () => {
+            const revDelta = parseFloat(document.getElementById('revSlider').value);
+            const gpmDelta = parseFloat(document.getElementById('gpmSlider').value);
+            const opexDelta = parseFloat(document.getElementById('opexSlider').value);
+            const intDelta = parseFloat(document.getElementById('intSlider').value);
+            document.getElementById('revVal').innerText = revDelta + '%';
+            document.getElementById('gpmVal').innerText = (gpmDelta>=0?'+':'') + gpmDelta + 'pp';
+            document.getElementById('opexVal').innerText = opexDelta + '%';
+            document.getElementById('intVal').innerText = (intDelta>=0?'+':'') + intDelta + 'pp';
+
+            const newRevenue = baseRevenue * (1 + revDelta/100);
+            const newGrossProfit = newRevenue * ((baseGPM + gpmDelta)/100);
+            const newOpEx = baseOpEx * (1 + opexDelta/100);
+            const lastDebt = m.raw.td[lastIdx] || 0;
+            const interestCost = lastDebt * (intDelta/100);
+            let newNetProfit = newGrossProfit - newOpEx - interestCost;
+            newNetProfit = Math.max(0, newNetProfit);
+            const changePercent = ((newNetProfit - baseNetProfit)/baseNetProfit*100).toFixed(1);
+            document.getElementById('scenarioResult').innerHTML = `<strong>Projected Net Profit:</strong> ${newNetProfit.toFixed(2)} ${st.currency} (${changePercent}% vs baseline ${baseNetProfit.toFixed(2)})`;
+
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Baseline', 'Scenario'],
+                    datasets: [{ label: 'Net Profit', data: [baseNetProfit, newNetProfit], backgroundColor: ['#4da0ff', '#00d97e'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
+            });
+        };
+        document.getElementById('revSlider').addEventListener('input', update);
+        document.getElementById('gpmSlider').addEventListener('input', update);
+        document.getElementById('opexSlider').addEventListener('input', update);
+        document.getElementById('intSlider').addEventListener('input', update);
+        update();
+    }, 50);
+    return html;
+}
+
 // ======================== Custom tornado charts (symbol-specific) ========================
 function generateCustomTornado(sym, st, m) {
   const customRisks = {
@@ -438,7 +540,51 @@ function renderTornadoChart(variables) { if (!variables || !variables.length) re
 const CO_INFO = { BHP:{sector:"Mining"}, WDS:{sector:"Oil & Gas"}, CBA:{sector:"Banking"}, NAB:{sector:"Banking"}, BBRI:{sector:"Banking"}, ADRO:{sector:"Coal Mining"}, SMSM:{sector:"Auto Parts"}, UNTR:{sector:"Heavy Equipment & Mining"}, ITMG:{sector:"Coal Mining"}, POWR:{sector:"Power & Utilities"}, MPMX:{sector:"Automotive"}, BTPS:{sector:"Islamic Banking"}, DMAS:{sector:"Industrial Real Estate"}, SPTO:{sector:"Building Materials"}, TSM:{sector:"Semiconductors"}, V:{sector:"Payments"}, MA:{sector:"Payments"}, "PBR-A":{sector:"Oil & Gas"}, MSFT:{sector:"Technology"}, AMZN:{sector:"E-Commerce & Cloud"}, AAPL:{sector:"Technology"}, META:{sector:"Social Media"}, NVDA:{sector:"Semiconductors"}, GOOG:{sector:"Technology"}, BKNG:{sector:"Online Travel"}, CVX:{sector:"Oil & Gas"}, AXP:{sector:"Payments"}, BAC:{sector:"Banking"} };
 const SECTOR_RISKS = { "Mining":[{name:"Commodity Price",low:-40,high:30},{name:"Production Volume",low:-20,high:15},{name:"AUD/USD Rate",low:-15,high:10},{name:"Operating Costs",low:-18,high:5},{name:"Regulatory/ESG",low:-12,high:3}], "Oil & Gas":[{name:"Oil/Gas Price",low:-45,high:35},{name:"Production Output",low:-20,high:15},{name:"LNG Contract Terms",low:-12,high:10},{name:"Carbon Policy",low:-20,high:2},{name:"Reserve Life",low:-15,high:8}], "Banking":[{name:"Net Interest Margin",low:-25,high:15},{name:"Loan Loss Provisions",low:-30,high:10},{name:"Credit Growth",low:-15,high:20},{name:"Regulatory Capital",low:-20,high:5},{name:"Digital Competition",low:-18,high:8}], "Islamic Banking":[{name:"Financing Growth",low:-20,high:25},{name:"Credit Quality (NPF)",low:-35,high:8},{name:"Rural Economy",low:-25,high:20},{name:"Regulatory Changes",low:-15,high:5},{name:"Competition",low:-15,high:5}], "Coal Mining":[{name:"Coal Price",low:-50,high:40},{name:"Production Volume",low:-15,high:10},{name:"Energy Transition",low:-25,high:5},{name:"USD/IDR Rate",low:-15,high:10},{name:"Logistics Costs",low:-12,high:3}], "Auto Parts":[{name:"Auto Industry Demand",low:-25,high:20},{name:"Raw Material Costs",low:-20,high:8},{name:"Export Markets",low:-15,high:15},{name:"EV Transition Risk",low:-20,high:5},{name:"IDR/USD Rate",low:-12,high:10}], "Heavy Equipment & Mining":[{name:"Coal/Mining Activity",low:-30,high:25},{name:"Equipment Demand",low:-20,high:18},{name:"Commodity Prices",low:-25,high:20},{name:"IDR/USD Rate",low:-12,high:8},{name:"Competitor Pricing",low:-15,high:5}], "Automotive":[{name:"Motorcycle Demand",low:-25,high:20},{name:"Financing Revenue",low:-20,high:15},{name:"Interest Rates",low:-18,high:8},{name:"Competition",low:-20,high:10},{name:"IDR Stability",low:-10,high:5}], "Power & Utilities":[{name:"Industrial Tenant Demand",low:-20,high:15},{name:"Fuel Costs",low:-15,high:5},{name:"Tariff Policy",low:-25,high:10},{name:"New Market Entry",low:-12,high:5},{name:"USD/IDR Rate",low:-10,high:5}], "Industrial Real Estate":[{name:"Industrial Land Demand",low:-30,high:25},{name:"FDI Inflows",low:-25,high:30},{name:"IDR/USD Rate",low:-15,high:10},{name:"Infrastructure",low:-10,high:20},{name:"Competing Estates",low:-15,high:5}], "Building Materials":[{name:"Property Construction",low:-25,high:20},{name:"Raw Material Costs",low:-18,high:8},{name:"Import Competition",low:-15,high:5},{name:"Urbanization Rate",low:-10,high:15},{name:"Currency",low:-12,high:8}], "Semiconductors":[{name:"AI/Data Centre Demand",low:-40,high:50},{name:"Geopolitical Risk",low:-60,high:10},{name:"Competition",low:-25,high:15},{name:"CapEx Execution",low:-20,high:8},{name:"Cyclical Downturn",low:-35,high:15}], "Payments":[{name:"Payment Volume Growth",low:-15,high:20},{name:"Fintech Disruption",low:-20,high:5},{name:"Regulatory/Interchange",low:-25,high:3},{name:"Consumer Spending",low:-20,high:15},{name:"Cross-Border Volume",low:-15,high:18}], "Technology":[{name:"Cloud Revenue Growth",low:-20,high:30},{name:"AI Monetisation",low:-15,high:40},{name:"Regulatory/Antitrust",low:-25,high:5},{name:"Competition",low:-20,high:15},{name:"CapEx Cycle",low:-15,high:10}], "E-Commerce & Cloud":[{name:"AWS Growth Rate",low:-20,high:25},{name:"Retail Margin",low:-15,high:10},{name:"Advertising Revenue",low:-25,high:20},{name:"Regulatory Antitrust",low:-20,high:5},{name:"Cloud Competition",low:-20,high:10}], "Social Media":[{name:"Advertising Revenue",low:-30,high:25},{name:"Privacy Regulation",low:-25,high:5},{name:"User Engagement",low:-20,high:15},{name:"AI CapEx Burden",low:-18,high:20},{name:"Competition",low:-20,high:10}], "Online Travel":[{name:"Travel Demand",low:-40,high:30},{name:"Hotel/Airline Supply",low:-15,high:15},{name:"Google Competition",low:-20,high:5},{name:"Recession Risk",low:-30,high:10},{name:"AI Booking Disruption",low:-15,high:10}], "General":[{name:"Economic Slowdown",low:-25,high:15},{name:"Competition",low:-20,high:10},{name:"Regulatory Changes",low:-15,high:5},{name:"Cost Inflation",low:-18,high:3},{name:"Currency Risk",low:-12,high:8}] };
 function extractKeyTakeaways(profileText, m, sym) { const takeaways = []; if (m.av.gpm > 40) takeaways.push(`✅ High gross margin (${P1(m.av.gpm)}) – the company has strong pricing power or very low costs. This protects profits even when sales slow.`); else if (m.av.gpm > 20) takeaways.push(`📊 Gross margin of ${P1(m.av.gpm)} is healthy, meaning the business keeps a decent portion of revenue after production costs.`); else takeaways.push(`⚠️ Thin gross margin (${P1(m.av.gpm)}) – small increases in input costs can wipe out profits. Look for cost control measures.`); if (m.av.npm > 20) takeaways.push(`💰 Excellent net profitability (${P1(m.av.npm)}) – every dollar of revenue generates substantial profit after all expenses. A sign of a well‑run business.`); else if (m.av.npm > 10) takeaways.push(`💵 Solid net margin (${P1(m.av.npm)}) – the company is efficient at turning sales into profits.`); else takeaways.push(`📉 Low net margin (${P1(m.av.npm)}) – earnings are sensitive to cost increases or price cuts. Watch for margin improvement efforts.`); if (m.av.roe > 20) takeaways.push(`🚀 Outstanding return on equity (${P1(m.av.roe)}) – management is excellent at generating profits from shareholder capital. This often leads to long‑term wealth creation.`); else if (m.av.roe > 12) takeaways.push(`📈 Good ROE (${P1(m.av.roe)}) – the company earns a solid return on your invested capital.`); else takeaways.push(`🐢 ROE of ${P1(m.av.roe)} is mediocre – capital is not being deployed as effectively as it could be. Look for changes in strategy.`); if (m.buff > 100) takeaways.push(`🧠 Passes the Buffett $1 test – every dollar retained by the company has created more than a dollar of market value. This is a strong sign of intelligent capital allocation.`); else if (m.buff > 0) takeaways.push(`📊 Buffett test score ${P1(m.buff)} – retained earnings create some value, but there is room to improve.`); else if (m.buff !== null) takeaways.push(`⚠️ Buffett test score ${P1(m.buff)} – retained earnings destroy value. The company would be better off paying out more dividends.`); if (m.cg.rev > 10) takeaways.push(`📈 Strong revenue growth (${P1(m.cg.rev)} CAGR) – the top line is expanding rapidly, which can fuel future profits.`); else if (m.cg.rev < 0) takeaways.push(`📉 Revenue is declining (${P1(m.cg.rev)} CAGR) – investigate why. Is it cyclical or structural?`); if (m.av.debtToEquity > 80) takeaways.push(`⚠️ High leverage (D/E ${P1(m.av.debtToEquity)}) – debt increases risk, especially in a rising interest rate environment.`); else if (m.av.debtToEquity < 30) takeaways.push(`✅ Low debt (D/E ${P1(m.av.debtToEquity)}) – the balance sheet is conservative, providing a safety buffer.`); const leader = LEADERSHIP[sym]; if (leader) takeaways.push(`👔 CEO ${leader.ceo} has a track record of ${leader.track.substring(0, 120)}.`); if (profileText) { const bmcMatch = profileText.match(/## Business Model Canvas.*?Value Proposition:\s*(.+?)(?:\n|$)/is); if (bmcMatch) takeaways.push(`🏢 Core advantage: ${bmcMatch[1].trim()}`); const swotStrengthMatch = profileText.match(/## SWOT Analysis.*?Strengths:\s*(.+?)(?:\n|$)/is); if (swotStrengthMatch) takeaways.push(`💪 Key strength: ${swotStrengthMatch[1].trim().substring(0, 120)}`); const swotOppMatch = profileText.match(/Opportunities:\s*(.+?)(?:\n|$)/is); if (swotOppMatch) takeaways.push(`🚀 Growth opportunity: ${swotOppMatch[1].trim().substring(0, 120)}`); } return takeaways; }
-function tabInsights(sym, st) { const stockData = S.data[sym]; if (stockData && stockData.profile && stockData.profile.length > 100) { const profileMd = stockData.profile; const sections = {}; const parts = profileMd.split(/(?=^## )/gm); for (const part of parts) { const match = part.match(/^## (.+)$/m); if (match) { const title = match[1].trim(); sections[title] = part; } } const leftOrder = ["Business Model Canvas", "SWOT Analysis", "PESTLE Analysis", "Porter's Five Forces"]; const rightOrder = ["Management & Decision Making", "Future Outlook"]; let leftHtml = "", rightHtml = ""; for (const title of leftOrder) { if (sections[title]) leftHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`; } for (const title of rightOrder) { if (sections[title]) rightHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`; } const leader = LEADERSHIP[sym]; if (leader && !profileMd.includes("Leadership")) { rightHtml += `<div class="ai-content"><h2>🧠 Leadership</h2><p><strong>CEO:</strong> ${leader.ceo}<br><strong>CFO:</strong> ${leader.cfo}<br><strong>Track Record:</strong> ${leader.track}</p></div>`; } const m = calcM(sym); const tornadoVars = generateCustomTornado(sym, st, m); const tornadoHtml = tornadoVars.length ? `<div class="ai-content"><h2>🌪️ Sensitivity Analysis – Net Profit Impact</h2><p style="font-size:11px;color:var(--muted);">Estimated % change in net profit under different scenarios. Based on company‑specific risks.</p>${renderTornadoChart(tornadoVars)}</div>` : ''; const takeaways = extractKeyTakeaways(profileMd, m, sym); const takeawaysHtml = takeaways.length ? `<div class="ai-content"><h2>🔑 Key Takeaways for Long‑Term Investors</h2><ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul></div>` : ''; rightHtml += tornadoHtml + takeawaysHtml; return `<div class="ai-panel"><div style="margin-bottom:20px;"><div style="font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>${st.name}</span><span style="font-size:11px;font-weight:normal;color:var(--muted);">${sym} · ${st.exchange} · ${st.currency}</span></div><div style="font-size:11px;color:var(--muted);margin-top:4px;">Analysis based on annual reports & market data</div></div><div class="insights-two-col"><div>${leftHtml}</div><div>${rightHtml}</div></div><div class="ai-cache-note">📚 Data sources: IDX/ASX/NYSE filings · Annual Reports · Yahoo Finance · StockAnalysis.com · IDNFinancials · Bloomberg · AFR${stockData.profileDate ? `<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}` : ''}</div></div>`; } const m = calcM(sym); if (!m) return '<div class="state-box"><p>No financial data available for ' + sym + '</p></div>'; return `<div class="ai-panel"><p>Insights not yet available for ${sym}. Please run the GitHub Actions workflow to generate analysis.</p></div>`; }
+function tabInsights(sym, st) { 
+    const stockData = S.data[sym]; 
+    if (stockData && stockData.profile && stockData.profile.length > 100) { 
+        const profileMd = stockData.profile; 
+        const sections = {}; 
+        const parts = profileMd.split(/(?=^## )/gm); 
+        for (const part of parts) { 
+            const match = part.match(/^## (.+)$/m); 
+            if (match) { 
+                const title = match[1].trim(); 
+                sections[title] = part; 
+            } 
+        } 
+        const leftOrder = ["Business Model Canvas", "SWOT Analysis", "PESTLE Analysis", "Porter's Five Forces"]; 
+        const rightOrder = ["Management & Decision Making", "Future Outlook"]; 
+        let leftHtml = "", rightHtml = ""; 
+        for (const title of leftOrder) { 
+            if (sections[title]) leftHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`; 
+        } 
+        for (const title of rightOrder) { 
+            if (sections[title]) rightHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`; 
+        } 
+        const leader = LEADERSHIP[sym]; 
+        if (leader && !profileMd.includes("Leadership")) { 
+            rightHtml += `<div class="ai-content"><h2>🧠 Leadership</h2><p><strong>CEO:</strong> ${leader.ceo}<br><strong>CFO:</strong> ${leader.cfo}<br><strong>Track Record:</strong> ${leader.track}</p></div>`; 
+        } 
+        const m = calcM(sym); 
+        const tornadoVars = generateCustomTornado(sym, st, m); 
+        const tornadoHtml = tornadoVars.length ? `<div class="ai-content"><h2>🌪️ Sensitivity Analysis – Net Profit Impact</h2><p style="font-size:11px;color:var(--muted);">Estimated % change in net profit under different scenarios. Based on company‑specific risks.</p>${renderTornadoChart(tornadoVars)}</div>` : ''; 
+        const takeaways = extractKeyTakeaways(profileMd, m, sym); 
+        const takeawaysHtml = takeaways.length ? `<div class="ai-content"><h2>🔑 Key Takeaways for Long‑Term Investors</h2><ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul></div>` : ''; 
+        rightHtml += tornadoHtml + takeawaysHtml; 
+        
+        // Add AI insight if available
+        const aiInsight = stockData?.ai_insight;
+        if (aiInsight) {
+            rightHtml += `<div class="ai-content"><h2>🤖 AI Investment Thesis</h2><div class="ai-cache-note">Generated on ${new Date(stockData.ai_insight_date).toLocaleString()}</div><div style="font-size:13px; line-height:1.6">${markdownToHtml(aiInsight)}</div></div>`;
+        }
+        
+        return `<div class="ai-panel"><div style="margin-bottom:20px;"><div style="font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span>${st.name}</span><span style="font-size:11px;font-weight:normal;color:var(--muted);">${sym} · ${st.exchange} · ${st.currency}</span></div><div style="font-size:11px;color:var(--muted);margin-top:4px;">Analysis based on annual reports & market data</div></div><div class="insights-two-col"><div>${leftHtml}</div><div>${rightHtml}</div></div><div class="ai-cache-note">📚 Data sources: IDX/ASX/NYSE filings · Annual Reports · Yahoo Finance · StockAnalysis.com · IDNFinancials · Bloomberg · AFR${stockData.profileDate ? `<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}` : ''}</div></div>`; 
+    } 
+    const m = calcM(sym); 
+    if (!m) return '<div class="state-box"><p>No financial data available for ' + sym + '</p></div>'; 
+    return `<div class="ai-panel"><p>Insights not yet available for ${sym}. Please run the GitHub Actions workflow to generate analysis.</p></div>`; 
+}
 function setTab(t){S.tab=t;render();}
 function selStock(k){S.sel=k;render();}
 function setWt(k,v){const n=parseFloat(v);if(!isNaN(n)&&n>=0){S.wts[k]=n;render();}}
@@ -463,11 +609,11 @@ function showManual(sym){const st=S.stocks[sym];MA.sym=sym;MA.vals=Object.fromEn
 function submitManualData(){const sym=MA.sym;const parsed={};for(const r of MKEYS){parsed[r.k]=MA.vals[r.k].map(v=>v===''||v===null||v===undefined?null:parseFloat(v));if(parsed[r.k].some(v=>v!==null&&isNaN(v))){showAErr(`Invalid number in "${r.l}"`);return;}}S.data[sym]={...parsed,fetchedAt:Date.now(),source:'user-edited'};S.status[sym]='ok';saveLS();hideAdd();render();showToast(`✓ ${sym} data saved`,'green');}
 function delStock(k){const isBuiltIn=!!BASE_STOCKS[k];const isConfigStock=!S.custom[k]&&!isBuiltIn;let msg;if(isBuiltIn){msg=`Remove ${k} from the dashboard view?\n\nNote: it will reappear on next page refresh since it's built-in. To permanently remove it you'd need to edit fetch_data.py.`;}else if(isConfigStock){msg=`Remove ${k} from the dashboard?\n\nIMPORTANT: Also remove it from stocks_config.json on GitHub, then run the workflow — otherwise it will reappear next time the page loads from data.json.`;}else{msg=`Remove ${k} from the dashboard?`;}if(!confirm(msg))return;if(!S.deleted)S.deleted={};S.deleted[k]=true;delete S.custom[k];delete S.stocks[k];delete S.data[k];delete S.status[k];if(S.sel===k)S.sel=Object.keys(S.stocks)[0]||'BHP';saveLS();render();showToast(`${k} removed`,'cyan');}
 function renderSBar(){const ks=Object.keys(S.stocks);document.getElementById('sList').innerHTML=ks.map(k=>{const st=S.stocks[k];const ex=(st.exchange||'').toUpperCase();const bc=ex==='ASX'?'x-asx':ex==='IDX'?'x-idx':'x-us';const st2=S.status[k];const dot=st2==='ok'?'<span class="s-dot-ok"></span>':st2==='loading'?'<span class="s-dot-ld"></span>':st2==='error'?'<span class="s-dot-er"></span>':'';return`<button class="s-btn${S.sel===k?' on':''}" onclick="selStock('${k}')">${dot}${k}<span class="xbadge ${bc}">${ex}</span></button>`;}).join('');}
-function renderTabBtns(){['data','ratios','chart','rankings','insights'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
+function renderTabBtns(){['data','ratios','chart','rankings','insights','peer','scenario'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
 function stateBox(st,sym,stock){const ticker=yahooTicker(sym,stock.exchange||'');if(st==='loading'){return`<div class="state-box"><div class="spinner"></div><div class="state-title">Refreshing ${sym} from Yahoo Finance…</div><div class="state-sub">Attempting live refresh for <em>${stock.name}</em><br>Ticker: <code style="background:rgba(0,0,0,.3);padding:1px 7px;border-radius:4px">${ticker}</code><br>Built-in data remains active if refresh fails.</div><span class="data-badge db-ld">⏳ Trying Yahoo Finance…</span></div>`;}const isCustom=!!S.custom[sym];return`<div class="state-box"><div style="font-size:36px;margin-bottom:12px">📋</div><div class="state-title">No data for ${sym}</div><div class="state-sub" style="max-width:500px;margin:0 auto 16px">${isCustom?`<strong>${stock.name}</strong> was added but data hasn't been fetched yet.<br><br>To fetch automatically:<br>1. Make sure <code style="background:rgba(0,0,0,.2);padding:1px 6px;border-radius:3px">${sym}</code> is in your <strong>stocks_config.json</strong> on GitHub<br>2. Go to <strong>Actions → Refresh Financial Data → Run workflow</strong><br>3. Refresh this page after the workflow completes (~1 min)`: `This stock has no data yet.`}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-cyan" onclick="showManual('${sym}')">✏ Enter Data Manually</button>${isCustom?`<button class="btn btn-red btn-sm" onclick="delStock('${sym}')">🗑 Remove ${sym}</button>`:''}</div>${isCustom?`<div style="margin-top:12px"><a href="https://github.com/rauladi/fa-dashboard/actions" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🚀 Open GitHub Actions</a></div>`:''}</div>`;}
-function renderMain(){const cont=document.getElementById('cont');try{if(S.tab==='rankings'){cont.innerHTML=tabRankings();return;}if(S.tab==='insights'){const st=S.stocks[S.sel];cont.innerHTML=tabInsights(S.sel,st);return;}const st=S.stocks[S.sel];const stat=S.status[S.sel]||'idle';if(stat==='loading'){cont.innerHTML=stateBox('loading',S.sel,st);return;}if(!S.data[S.sel]){cont.innerHTML=stateBox('none',S.sel,st);return;}if(S.tab==='data')cont.innerHTML=tabData(S.sel,st);else if(S.tab==='ratios')cont.innerHTML=tabRatios(S.sel,st);else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}}catch(e){console.error('Render error',e);cont.innerHTML=`<div class="state-box"><div class="state-title">⚠️ Render Error</div><div class="state-sub">${e.message}</div></div>`;}}
+function renderMain(){const cont=document.getElementById('cont');try{if(S.tab==='rankings'){cont.innerHTML=tabRankings();return;}if(S.tab==='insights'){const st=S.stocks[S.sel];cont.innerHTML=tabInsights(S.sel,st);return;}if(S.tab==='peer'){const st=S.stocks[S.sel];cont.innerHTML=tabPeer(S.sel,st);return;}if(S.tab==='scenario'){const st=S.stocks[S.sel];cont.innerHTML=tabScenario(S.sel,st);return;}const st=S.stocks[S.sel];const stat=S.status[S.sel]||'idle';if(stat==='loading'){cont.innerHTML=stateBox('loading',S.sel,st);return;}if(!S.data[S.sel]){cont.innerHTML=stateBox('none',S.sel,st);return;}if(S.tab==='data')cont.innerHTML=tabData(S.sel,st);else if(S.tab==='ratios')cont.innerHTML=tabRatios(S.sel,st);else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}}catch(e){console.error('Render error',e);cont.innerHTML=`<div class="state-box"><div class="state-title">⚠️ Render Error</div><div class="state-sub">${e.message}</div></div>`;}}
 function render(){renderSBar();renderTabBtns();renderMain();saveLS();}
-async function boot(){loadLS();initPreloadedData();let liveData=null;if(location.protocol!=='file:'){try{const r=await fetch('./data.json?_='+Date.now());if(r.ok){liveData=await r.json();console.log('Loaded data.json — generated:',liveData.generated);}}catch(e){console.log('data.json not available, using built-in data');}}if(liveData&&liveData.stocks){ANNUALISATION=liveData.annualisation||{};const ts=Date.now();S.stocks={...BASE_STOCKS};S.custom={};S.deleted={};Object.entries(liveData.stocks).forEach(([sym,sd])=>{const hasData=Array.isArray(sd.revenue)&&sd.revenue.some(v=>v!==null);S.stocks[sym]={name:sd.name||sym,exchange:sd.exchange||'NYSE',currency:sd.currency||'B USD'};S.data[sym]={totalAsset:sd.totalAsset,cash:sd.cash,totalDebt:sd.totalDebt,totalEquity:sd.totalEquity,revenue:sd.revenue,grossProfit:sd.grossProfit,netProfit:sd.netProfit,eps:sd.eps,dps:sd.dps,fetchedAt:ts,source:sd.source==='yfinance'?'yfinance':'built-in',ticker:sd.ticker,generated:liveData.generated,profile:sd.profile,profileDate:sd.profileDate,news:sd.news,newsDate:sd.newsDate};S.status[sym]=hasData?'ok':'idle';});const genDate=new Date(liveData.generated).toLocaleDateString();const n=Object.keys(liveData.stocks).length;const hSub=document.getElementById('hSub');if(hSub)hSub.textContent=`ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]}`;if(!S.stocks[S.sel])S.sel=Object.keys(S.stocks)[0]||'BHP';}else{const hSub=document.getElementById('hSub');if(hSub)hSub.textContent=`ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · Host on GitHub Pages for auto-refresh`;if(!S.stocks[S.sel])S.sel='BHP';}Object.keys(S.stocks).forEach(k=>{if(!S.status[k])S.status[k]=S.data[k]?'ok':'idle';});render();}
+async function boot(){loadLS();initPreloadedData();let liveData=null;if(location.protocol!=='file:'){try{const r=await fetch('./data.json?_='+Date.now());if(r.ok){liveData=await r.json();console.log('Loaded data.json — generated:',liveData.generated);}}catch(e){console.log('data.json not available, using built-in data');}}if(liveData&&liveData.stocks){ANNUALISATION=liveData.annualisation||{};window.sectorMedians = liveData.sector_medians || {};const ts=Date.now();S.stocks={...BASE_STOCKS};S.custom={};S.deleted={};Object.entries(liveData.stocks).forEach(([sym,sd])=>{const hasData=Array.isArray(sd.revenue)&&sd.revenue.some(v=>v!==null);S.stocks[sym]={name:sd.name||sym,exchange:sd.exchange||'NYSE',currency:sd.currency||'B USD'};S.data[sym]={totalAsset:sd.totalAsset,cash:sd.cash,totalDebt:sd.totalDebt,totalEquity:sd.totalEquity,revenue:sd.revenue,grossProfit:sd.grossProfit,netProfit:sd.netProfit,eps:sd.eps,dps:sd.dps,fetchedAt:ts,source:sd.source==='yfinance'?'yfinance':'built-in',ticker:sd.ticker,generated:liveData.generated,profile:sd.profile,profileDate:sd.profileDate,news:sd.news,newsDate:sd.newsDate,sector:sd.sector,ai_insight:sd.ai_insight,ai_insight_date:sd.ai_insight_date};S.status[sym]=hasData?'ok':'idle';});const genDate=new Date(liveData.generated).toLocaleDateString();const n=Object.keys(liveData.stocks).length;const hSub=document.getElementById('hSub');if(hSub)hSub.textContent=`ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]}`;if(!S.stocks[S.sel])S.sel=Object.keys(S.stocks)[0]||'BHP';}else{const hSub=document.getElementById('hSub');if(hSub)hSub.textContent=`ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · Host on GitHub Pages for auto-refresh`;if(!S.stocks[S.sel])S.sel='BHP';}Object.keys(S.stocks).forEach(k=>{if(!S.status[k])S.status[k]=S.data[k]?'ok':'idle';});render();}
 boot();
 function fetchAll(){showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan');}
 </script>
