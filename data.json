@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-10T10:50:45.442075+00:00",
+  "generated": "2026-04-10T11:23:58.979684+00:00",
   "years": [
     2021,
     2022,
@@ -18,10 +18,10 @@
   "currentYear": 2026,
   "latestYear": 2025,
   "rates": {
-    "usdToAud": 1.41496,
+    "usdToAud": 1.41438,
     "usdToIdr": 17090.0,
-    "twdToUsd": 0.031484,
-    "audToUsd": 0.706734,
+    "twdToUsd": 0.031492,
+    "audToUsd": 0.707024,
     "idrToUsd": 5.8514e-05
   },
   "fiscalYearEnd": {
@@ -235,82 +235,82 @@
       "sector": "Mining",
       "totalAsset": [
         54.2,
-        134.6561,
-        143.3298,
-        144.8381,
-        153.9335,
+        134.6009,
+        143.271,
+        144.7788,
+        153.8704,
         null
       ],
       "cash": [
         14.9,
-        24.3883,
-        17.4507,
-        17.5299,
-        16.6527,
+        24.3783,
+        17.4435,
+        17.5228,
+        16.6458,
         null
       ],
       "totalDebt": [
         14.5,
-        23.245,
-        31.6173,
-        29.3151,
-        34.6609,
+        23.2354,
+        31.6043,
+        29.3031,
+        34.6467,
         null
       ],
       "totalEquity": [
         26.4,
-        61.5734,
-        60.9211,
-        61.3725,
-        65.4108,
+        61.5482,
+        60.8961,
+        61.3473,
+        65.384,
         null
       ],
       "revenue": [
         60.8,
-        92.1111,
-        76.1489,
-        78.7538,
-        72.5337,
+        92.0733,
+        76.1177,
+        78.7216,
+        72.5039,
         null
       ],
       "grossProfit": [
         36.2,
-        71.0084,
-        53.6326,
-        57.3696,
-        51.9729,
+        70.9792,
+        53.6107,
+        57.346,
+        51.9516,
         null
       ],
       "netProfit": [
         11.3,
-        43.7223,
-        18.2827,
-        11.1739,
-        12.7615,
+        43.7043,
+        18.2752,
+        11.1694,
+        12.7563,
         null
       ],
       "eps": [
         2.21,
-        8.6397,
-        3.611,
-        2.2045,
-        2.5158,
+        8.6362,
+        3.6095,
+        2.2036,
+        2.5148,
         null
       ],
       "dps": [
         3.01,
-        4.9908,
-        3.7073,
-        2.1428,
-        1.7859,
+        4.9888,
+        3.7058,
+        2.1419,
+        1.7852,
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\n**Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.\n**Key Activities:** Large-scale open-cut & underground mining; iron ore extraction & export (Pilbara 263Mt record); copper production (Escondida highest in 17 years); potash development (Jansen); steelmaking coal (Queensland); commodity marketing & trading; exploration & reserve development; mine automation & digital innovation.\n**Key Resources:** WAIO (Western Australia Iron Ore); Escondida (world's largest copper mine); Olympic Dam, Carrapateena; Jansen Potash mine ($7.6B capex); BMA coal assets; ~$55B revenue base; EBITDA margin 51%; strong balance sheet.\n**Value Proposition:** World's lowest-cost major iron ore producer (6+ years); record copper output (2Mt FY2025); EBITDA margin 51% for 8+ years; Jansen potash \u2013 future-facing food security play; consistent shareholder returns (~$7.1B dividends FY2025).\n**Customer Relationships:** Long-term supply agreements (iron ore, copper); annual benchmark pricing with steel mills; strategic marketing in Singapore & Houston; direct sales to Chinese/Japanese steel mills; ESG/sustainability reporting.\n**Channels:** Port Hedland (world's largest bulk export port); BHP Marketing offices (Singapore, Houston); direct long-term contracts; spot market/commodity exchanges; Escondida copper concentrates (pipelines & ships).\n**Customer Segments:** Steel producers (~50%: China Baowu, HBIS, Japan Nippon Steel, South Korea); copper buyers (~29%: wire mills, EV manufacturers); fertiliser/potash buyers (global agriculture); energy & coal buyers (power utilities, Asia/Europe).\n**Cost Structure:** Mining & processing opex: WAIO C1 cash cost ~$18/t iron ore, Escondida ~$1.5/lb copper; Jansen Potash capex $7.6B; sustaining capex ~$6B/yr; royalties & taxes ~41.7%; ESG & decarbonisation $4B plan.\n**Revenue Streams:** Iron Ore (~47%): WAIO export sales, $23B segment revenue; Copper (~29%): Escondida + Olympic Dam + Carrapateena, $18.6B segment revenue, record 2Mt; Coal & Other (~24%): steelmaking coal, exploration income.\n\n## SWOT Analysis\n**Strengths:** Lowest-cost iron ore producer globally; record copper output; 51% EBITDA margin for 8+ years; Jansen potash new revenue stream; strong balance sheet; $7.1B dividends.\n**Weaknesses:** Exposure to China steel demand (80% of iron ore); commodity price cyclicality; high effective tax rate (41.7%); nickel business mothballed; ESG risks in Chile/Australia.\n**Opportunities:** Jansen potash first production 2026; copper demand from electrification; automation/AI productivity gains; potential M&A in copper/potash; green steel partnerships.\n**Threats:** Commodity price volatility; Chinese economic slowdown; carbon taxes; resource nationalism in Chile; competition from Rio Tinto and Glencore; potash market oversupply risk.\n\n## PESTLE Analysis\n**Political:** Australian & Chilean govt relations, resource nationalism. **Economic:** China GDP growth, commodity prices. **Social:** ESG investor pressure, community relations. **Technological:** Automation, AI in mining, carbon capture. **Legal:** Mining permits, tax laws. **Environmental:** Decarbonisation targets, water management.\n\n## Porter's Five Forces\n**Rivalry:** Oligopoly with Rio, Vale, Glencore \u2013 volume competition. **New Entrants:** High barriers (capex, permits). **Supplier Power:** Low (commoditised). **Buyer Power:** High for iron ore (China concentration). **Substitutes:** Limited for iron ore/copper, but steel scrap recycling reduces ore demand.\n\n## Management & Decision Making\nCapital allocation disciplined: returned $7.1B dividends, avoided overpaying for Anglo American. Recent decisions: Jansen potash on track, abandoned Anglo bid. Management quality: industry-leading margins and returns.\n\n## Future Outlook\nJansen potash 2026 first production. Copper demand from electrification. China stimulus potential. Watch commodity prices, China demand, and project execution.\n\n## Leadership\n**CEO:** Mike Henry (since 2020)  \n**CFO:** David Lamont (since 2021)  \n**Track Record:** Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "WDS": {
       "name": "Woodside Energy",
@@ -322,82 +322,82 @@
       "sector": "Oil & Gas",
       "totalAsset": [
         40.3,
-        83.9368,
-        78.3336,
-        86.6861,
-        94.0963,
+        83.9024,
+        78.3015,
+        86.6506,
+        94.0577,
         null
       ],
       "cash": [
         2.8,
-        8.7572,
-        2.462,
-        5.5509,
-        8.0823,
+        8.7536,
+        2.461,
+        5.5486,
+        8.0789,
         null
       ],
       "totalDebt": [
         7.9,
-        9.5821,
-        9.1944,
-        16.4418,
-        19.4161,
+        9.5782,
+        9.1906,
+        16.4351,
+        19.4081,
         null
       ],
       "totalEquity": [
         18.2,
-        51.414,
-        48.6732,
-        50.0882,
-        50.8169,
+        51.3929,
+        48.6533,
+        50.0676,
+        50.796,
         null
       ],
       "revenue": [
         10.0,
-        23.7954,
-        19.801,
-        18.6478,
-        18.3718,
+        23.7856,
+        19.7928,
+        18.6401,
+        18.3643,
         null
       ],
       "grossProfit": [
         5.8,
-        14.5415,
-        9.1619,
-        8.0341,
-        6.4183,
+        14.5356,
+        9.1581,
+        8.0308,
+        6.4156,
         null
       ],
       "netProfit": [
         2.5,
-        9.1944,
-        2.3488,
-        5.0557,
-        3.8459,
+        9.1906,
+        2.3479,
+        5.0536,
+        3.8443,
         null
       ],
       "eps": [
         0.8,
-        6.0843,
-        1.2381,
-        2.6672,
-        2.0291,
+        6.0818,
+        1.2376,
+        2.6661,
+        2.0282,
         null
       ],
       "dps": [
         0.55,
-        2.395,
-        3.1731,
-        1.8279,
-        1.502,
+        2.394,
+        3.1718,
+        1.8272,
+        1.5014,
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\n**Key Partners:** Stonepeak (40% stake in Louisiana LNG, $5.7B), Williams (LNG pipeline), OCI Global (Beaumont ammonia), Japanese and Korean LNG offtakers, Santos (industry peer), government regulators.\n**Key Activities:** LNG production & liquefaction (North West Shelf, Pluto, Wheatstone, Louisiana); oil production (Sangomar); low-carbon ammonia production (Beaumont Texas); exploration & development (Scarborough, Browse); marketing & trading; carbon capture development.\n**Key Resources:** Record 2025 production 198.8 MMboe; Louisiana LNG FID 2025, 22% complete; Beaumont ammonia plant (110ktpa operational Dec 2025); Sangomar oil field; strong balance sheet $2.7B net profit FY2025.\n**Value Proposition:** Record production exceeding guidance; 15% reduction in GHG emissions; Louisiana LNG with Stonepeak partnership; low-carbon ammonia production; resilient operating performance.\n**Customer Relationships:** Long-term LNG SPAs with Asian utilities; spot LNG sales; crude offtake contracts; ammonia supply agreements; direct marketing teams.\n**Channels:** LNG carriers; North West Shelf, Pluto, Wheatstone facilities; Louisiana Gulf Coast; Beaumont ammonia terminal; crude lifting and sales.\n**Customer Segments:** Asian LNG buyers (Japan, Korea, China, India); European LNG buyers; oil refiners; agricultural/industrial ammonia buyers; power utilities.\n**Cost Structure:** LNG liquefaction opex; upstream production costs; shipping & logistics; Louisiana LNG capex; Beaumont integration; carbon management.\n**Revenue Streams:** LNG (~60% of revenue); oil and condensate (~25%); ammonia and other (~10%); marketing income (~5%).\n\n## SWOT Analysis\n**Strengths:** Record production; Louisiana LNG progressing; Beaumont ammonia operational; Sangomar delivering oil; 15% emissions reduction.\n**Weaknesses:** LNG price sensitivity; high capex requirements; project execution risk; still oil & gas focused despite transition pivot.\n**Opportunities:** Louisiana LNG 2026-27 production; low-carbon ammonia demand; LNG as transition fuel; carbon capture development.\n**Threats:** Oil & gas price volatility; energy transition policy; competition from Qatar, US LNG; carbon taxes.\n\n## PESTLE Analysis\n**Political:** Australian and US regulatory support for LNG. **Economic:** LNG prices, oil prices. **Social:** Community acceptance of LNG projects. **Technological:** Carbon capture, low-carbon ammonia. **Legal:** Environmental permits. **Environmental:** Net zero targets.\n\n## Porter's Five Forces\n**Rivalry:** Intense among global LNG players (Qatar, US, Russia). **New Entrants:** High barriers (capex, long-term contracts). **Supplier Power:** Moderate (equipment, contractors). **Buyer Power:** High (Asian utilities have long-term contracts but can switch). **Substitutes:** Renewables, coal.\n\n## Management & Decision Making\nManagement committed to shareholder returns, Louisiana LNG de-risked via Stonepeak partnership. Acquisition of OCI Clean Ammonia shows pivot to low-carbon fuels.\n\n## Future Outlook\nLouisiana LNG 2026-27. Beaumont low-carbon ammonia. LNG as transition fuel. Watch project execution, gas prices, and energy transition policies.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "CBA": {
       "name": "Commonwealth Bank",
@@ -480,11 +480,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\n**Key Partners:** AWS (core banking cloud migration), OpenAI (ChatGPT Enterprise partner), Microsoft, Visa/Mastercard, financial advisers, fintech partners (IPSI eCommerce), regulators.\n**Key Activities:** Retail, business and institutional banking; home lending; digital banking (CommBank app, CommBiz); wealth management; AI-driven fraud detection; core banking on AWS.\n**Key Resources:** Statutory NPAT $10.13B FY2025; AWS core banking; CommBiz mobile; OpenAI partnership; largest mortgage book in Australia.\n**Value Proposition:** #1 retail bank brand; leading digital platform; AI-powered scam detection; AWS cloud scalability; OpenAI genAI banking solutions.\n**Customer Relationships:** Digital-first via CommBank app; branch network; relationship managers; OpenAI innovation.\n**Channels:** CommBank app; CommBiz mobile; branches; call centres; X15 Ventures.\n**Customer Segments:** Retail consumers; SMEs; corporate & institutional; wealth clients; government.\n**Cost Structure:** Technology & digital (AWS, AI); staff; branches; compliance; loan impairment expenses.\n**Revenue Streams:** Net interest income (home loans, business); non-interest income (fees, wealth); digital transaction fees; corporate banking; insurance.\n\n## SWOT Analysis\n**Strengths:** #1 retail bank; leading digital platform; OpenAI partnership; AWS cloud migration complete; strong capital.\n**Weaknesses:** Mortgage book concentration; AI offshoring controversy; digital competition.\n**Opportunities:** AI-powered banking products; cloud innovation; interest rate cuts boosting mortgage demand.\n**Threats:** Digital bank competition (Sea Bank, Jago); NIM compression; regulatory scrutiny.\n\n## PESTLE Analysis\n**Political:** Banking regulation, open banking. **Economic:** Interest rates, housing market. **Social:** Digital adoption, trust. **Technological:** AI, cloud, cybersecurity. **Legal:** Capital requirements, AML. **Environmental:** Green finance, climate risk.\n\n## Porter's Five Forces\n**Rivalry:** High \u2013 Big 4 banks plus digital natives. **New Entrants:** Moderate \u2013 digital bank licences easier but scale hard. **Supplier Power:** Low \u2013 technology vendors have some power. **Buyer Power:** High \u2013 customers can switch banks easily. **Substitutes:** Fintech lenders, neobanks.\n\n## Management & Decision Making\nCompleted AWS migration \u2013 largest system-of-record migration in 114 years. OpenAI partnership for AI banking. Appointed Chief AI Officer. Acquired IPSI eCommerce. Capital allocation disciplined.\n\n## Future Outlook\nAWS cloud enables faster AI integration. OpenAI partnership driving AI products. Interest rate cuts risk NIM compression but boost mortgage demand. Watch tech execution, competition, and credit quality.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "BBRI": {
       "name": "Bank Rakyat Indonesia",
@@ -567,11 +567,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "ADRO": {
       "name": "Alamtri Resources Indonesia",
@@ -654,11 +654,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "SMSM": {
       "name": "Selamat Sempurna",
@@ -741,11 +741,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "UNTR": {
       "name": "United Tractors",
@@ -828,11 +828,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "ITMG": {
       "name": "Indo Tambangraya Megah",
@@ -915,11 +915,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "POWR": {
       "name": "Cikarang Listrindo",
@@ -1002,11 +1002,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "MPMX": {
       "name": "Mitra Pinasthika Mustika",
@@ -1089,11 +1089,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "BTPS": {
       "name": "Bank BTPN Syariah",
@@ -1176,11 +1176,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "DMAS": {
       "name": "Puradelta Lestari",
@@ -1263,11 +1263,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "SPTO": {
       "name": "Surya Toto Indonesia",
@@ -1278,59 +1278,59 @@
       "fyEndMonth": 12,
       "sector": "Building Materials",
       "totalAsset": [
-        3.1435,
+        2.6,
         3.1162,
         3.2377,
         3.4156,
-        null,
+        3.3588,
         null
       ],
       "cash": [
-        0.4231,
+        0.32,
         0.1886,
         0.1689,
         0.2429,
-        null,
+        0.1151,
         null
       ],
       "totalDebt": [
-        0.4035,
+        0.7,
         0.3443,
         0.3245,
         0.2747,
-        null,
+        0.2632,
         null
       ],
       "totalEquity": [
-        1.3167,
+        1.55,
         1.3882,
         1.5075,
         1.634,
-        null,
+        1.7148,
         null
       ],
       "revenue": [
-        2.2385,
+        1.9,
         2.5056,
         2.6055,
         2.9152,
-        null,
+        2.7794,
         null
       ],
       "grossProfit": [
-        0.6373,
+        0.69,
         0.687,
         0.7472,
         0.8439,
-        null,
+        0.8204,
         null
       ],
       "netProfit": [
-        0.197,
+        0.25,
         0.2067,
         0.2547,
         0.2873,
-        null,
+        0.2709,
         null
       ],
       "eps": [
@@ -1342,7 +1342,7 @@
         null
       ],
       "dps": [
-        35.0,
+        139,
         50.0,
         50.0,
         60.0,
@@ -1350,11 +1350,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "TSM": {
       "name": "Taiwan Semiconductor",
@@ -1366,82 +1366,82 @@
       "sector": "Semiconductors",
       "totalAsset": [
         133,
-        156.301,
-        174.1757,
-        210.689,
-        249.7633,
+        156.3407,
+        174.2199,
+        210.7425,
+        249.8268,
         null
       ],
       "cash": [
         40,
-        42.2772,
-        46.1375,
-        66.9862,
-        87.1432,
+        42.2879,
+        46.1493,
+        67.0032,
+        87.1653,
         null
       ],
       "totalDebt": [
         20,
-        27.9633,
-        30.1068,
-        32.9651,
-        33.5173,
+        27.9704,
+        30.1145,
+        32.9735,
+        33.5258,
         null
       ],
       "totalEquity": [
         71,
-        91.3987,
-        107.9751,
-        135.0206,
-        170.6306,
+        91.4219,
+        108.0025,
+        135.0549,
+        170.6739,
         null
       ],
       "revenue": [
         57,
-        71.2764,
-        68.0601,
-        91.1244,
-        119.9243,
+        71.2945,
+        68.0774,
+        91.1475,
+        119.9547,
         null
       ],
       "grossProfit": [
         30,
-        42.4516,
-        36.9972,
-        51.1411,
-        71.8243,
+        42.4624,
+        37.0066,
+        51.1541,
+        71.8425,
         null
       ],
       "netProfit": [
         22,
-        31.2612,
-        26.8162,
-        36.9392,
-        54.0858,
+        31.2691,
+        26.823,
+        36.9485,
+        54.0996,
         null
       ],
       "eps": [
         4.18,
-        6.1709,
-        5.091,
-        7.1233,
-        10.4306,
+        6.1724,
+        5.0923,
+        7.1251,
+        10.4333,
         null
       ],
       "dps": [
         1.72,
-        1.7317,
-        1.7711,
-        2.2043,
-        2.834,
+        1.7321,
+        1.7715,
+        2.2049,
+        2.8347,
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "V": {
       "name": "Visa Inc.",
@@ -1524,11 +1524,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "MA": {
       "name": "Mastercard Inc.",
@@ -1611,11 +1611,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "PBR-A": {
       "name": "Petrobras Pref ADR",
@@ -1629,63 +1629,63 @@
         247,
         187.191,
         217.067,
-        181.9795,
-        223.2788,
+        181.645,
+        222.337,
         null
       ],
       "cash": [
         11,
         7.996,
         12.727,
-        3.2769,
-        6.4988,
+        3.271,
+        6.471,
         null
       ],
       "totalDebt": [
         87,
         53.799,
         62.6,
-        60.4228,
-        70.0878,
+        60.311,
+        69.793,
         null
       ],
       "totalEquity": [
         96,
         69.492,
         78.583,
-        59.2156,
-        75.8844,
+        59.106,
+        75.565,
         null
       ],
       "revenue": [
         77,
         124.474,
         102.409,
-        79.4106,
-        90.8069,
+        91.416,
+        89.195,
         null
       ],
       "grossProfit": [
         38,
         64.988,
         53.974,
-        39.8748,
-        43.2541,
+        45.972,
+        42.459,
         null
       ],
       "netProfit": [
         9,
         36.623,
         24.884,
-        5.9224,
-        20.0995,
+        7.528,
+        19.634,
         null
       ],
       "eps": [
         1.3,
         5.6152,
-        3.9438,
-        0.919,
+        3.82,
+        1.16,
         3.1172,
         null
       ],
@@ -1693,16 +1693,16 @@
         0.6,
         5.7805,
         3.021,
-        2.5182,
-        1.2802,
+        2.8417,
+        1.2591,
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "MSFT": {
       "name": "Microsoft Corp.",
@@ -1785,11 +1785,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "AMZN": {
       "name": "Amazon.com Inc.",
@@ -1872,11 +1872,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "AAPL": {
       "name": "Apple Inc.",
@@ -1959,11 +1959,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "META": {
       "name": "Meta Platforms Inc.",
@@ -2046,11 +2046,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "NVDA": {
       "name": "NVIDIA Corporation",
@@ -2133,11 +2133,11 @@
         0.04
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "GOOG": {
       "name": "Alphabet Inc (Google)",
@@ -2220,11 +2220,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "BKNG": {
       "name": "Booking Holdings Inc",
@@ -2307,11 +2307,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "NAB": {
       "name": "National Australia Bank",
@@ -2394,11 +2394,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "CVX": {
       "name": "Chevron Corporation",
@@ -2481,11 +2481,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "AXP": {
       "name": "American Express",
@@ -2568,11 +2568,11 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     },
     "BAC": {
       "name": "Bank of America",
@@ -2655,24 +2655,24 @@
         null
       ],
       "ai_insight": "AI insights require `google-generativeai` package. Install with `pip install google-generativeai` and set GEMINI_API_KEY environment variable.",
-      "ai_insight_date": "2026-04-10T10:50:45.442075+00:00",
+      "ai_insight_date": "2026-04-10T11:23:58.979684+00:00",
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-10T10:50:45.442075+00:00",
+      "profileDate": "2026-04-10T11:23:58.979684+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-10T10:50:45.442075+00:00"
+      "newsDate": "2026-04-10T11:23:58.979684+00:00"
     }
   },
   "sector_medians": {
     "Mining": {
-      "roe": 36.307674545241326,
-      "npm": 24.368774956514674,
-      "de": 49.06602496771704,
-      "rev_cagr": 4.510292471710975
+      "roe": 36.307678470372316,
+      "npm": 24.36878936235949,
+      "de": 49.06600095317834,
+      "rev_cagr": 4.499556473630584
     },
     "Oil & Gas": {
       "roe": 12.83931246202422,
-      "npm": 19.000288718226404,
-      "de": 30.393491140670683,
+      "npm": 19.131298581850157,
+      "de": 30.393506040721228,
       "rev_cagr": 7.133935817018022
     },
     "Banking": {
@@ -2724,16 +2724,16 @@
       "rev_cagr": -7.652513486377909
     },
     "Building Materials": {
-      "roe": 16.08239340030608,
-      "npm": 9.170193398936842,
-      "de": 23.445976465799006,
-      "rev_cagr": 9.203632686381624
+      "roe": 16.25894399809868,
+      "npm": 10.156968036379869,
+      "de": 24.72982621956141,
+      "rev_cagr": 9.976365510622953
     },
     "Semiconductors": {
-      "roe": 41.59190625343708,
-      "npm": 40.638761166038364,
-      "de": 28.522113815569043,
-      "rev_cagr": 43.642535315543725
+      "roe": 41.59190013590192,
+      "npm": 40.63875380794436,
+      "de": 28.5221211725552,
+      "rev_cagr": 43.64635118236366
     },
     "Payments": {
       "roe": 44.90777559616721,
