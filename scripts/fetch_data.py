@@ -194,21 +194,10 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym=""):
         ep = find_row(inc,"Basic EPS","BasicEPS","Diluted EPS","EPS Diluted")
         sh = find_row(inc,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
 
-        rev_val = safe(rv[ic] if rv is not None else None, div, fx)
-        eps_val = safe(ep[ic] if ep is not None else None, 1, epsfx)
-
-        # REMOVED the strict TTM skip that discarded all fields when EPS missing.
-        # Instead, just log a warning if the fiscal year month mismatches, but still keep the data.
-        if yr == LATEST_YEAR and rev_val is not None and eps_val is None:
-            fy_end = FISCAL_YEAR_END.get(sym, 12)
-            if ic.month != fy_end:
-                print(f"    ⚠ {sym} yr={yr}: col={ic.date()} FY_end={fy_end} → TTM data, EPS missing. Using available fields.", flush=True)
-                # Continue – do not discard
-
-        row["revenue"]     = rev_val
+        row["revenue"]     = safe(rv[ic] if rv is not None else None, div, fx)
         row["grossProfit"] = safe(gp[ic] if gp is not None else None, div, fx)
         row["netProfit"]   = safe(ni[ic] if ni is not None else None, div, fx)
-        row["eps"]         = eps_val
+        row["eps"]         = safe(ep[ic] if ep is not None else None, 1, epsfx)
         row["_sh"]         = safe(sh[ic] if sh is not None else None)
     else:
         row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None)
@@ -235,17 +224,38 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym=""):
     row.pop("_sh", None)
     return row
 
-def annualise_year(tk, yr, div, fx, epsfx):
-    """Try to get data for a specific year (annual first, then quarterly annualisation)."""
-    # First try annual
+def annualise_year(tk, yr, div, fx, epsfx, sym=""):
+    """Try annual first; if invalid, fall back to quarterly annualisation."""
     inc = tk.financials
     bs = tk.balance_sheet
     cf = tk.cashflow
-    if inc is not None and not inc.empty and col_yr(inc, yr) is not None:
-        row = annual_row(inc, bs, cf, yr, div, fx, epsfx)
-        if row.get("revenue") is not None:
-            return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(col_yr(inc, yr).date())}
-    # Fall back to quarterly annualisation
+    use_annual = False
+    row = None
+    ic = None
+
+    # Attempt annual
+    if inc is not None and not inc.empty:
+        ic = col_yr(inc, yr)
+        if ic is not None:
+            row = annual_row(inc, bs, cf, yr, div, fx, epsfx, sym)
+            if row.get("revenue") is not None:
+                # For latest completed year, require EPS and correct fiscal month
+                if yr == LATEST_YEAR:
+                    fy_end = FISCAL_YEAR_END.get(sym, 12)
+                    if row.get("eps") is None:
+                        print(f"    ⚠ {sym} yr={yr}: annual revenue present but EPS missing → fallback to quarterly", flush=True)
+                    elif ic.month != fy_end:
+                        print(f"    ⚠ {sym} yr={yr}: annual column month {ic.month} != FY end {fy_end} (TTM) → fallback to quarterly", flush=True)
+                    else:
+                        use_annual = True
+                else:
+                    # For older years, revenue is enough
+                    use_annual = True
+
+    if use_annual:
+        return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
+
+    # ----- Quarterly annualisation fallback -----
     qi = tk.quarterly_financials
     qb = tk.quarterly_balance_sheet
     qc = tk.quarterly_cashflow
@@ -276,7 +286,8 @@ def annualise_year(tk, yr, div, fx, epsfx):
     eps_sum = sum_q_field("Basic EPS")
     if eps_sum is not None:
         row["eps"] = round(eps_sum * factor, 4)
-    # Balance sheet (point-in-time)
+
+    # Balance sheet (point-in-time from latest quarter)
     qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
     if qbc is not None:
         ta = find_row(qb, "Total Assets")
@@ -287,6 +298,7 @@ def annualise_year(tk, yr, div, fx, epsfx):
         row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
         row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
         row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+
     # DPS annualised
     sh_val = None
     sh = find_row(qi, "Basic Average Shares")
@@ -298,12 +310,14 @@ def annualise_year(tk, yr, div, fx, epsfx):
         ytd = sum_q(dp, cq) if dp is not None else None
         if ytd and sh_val > 0:
             row["dps"] = round(abs(ytd) / sh_val * epsfx * factor, 4)
+
     # Apply scaling and FX
     for k in ["revenue","grossProfit","netProfit"]:
         if row[k] is not None:
             row[k] = round(row[k] / div * fx, 4)
     if row["eps"] is not None:
         row["eps"] = round(row["eps"] * epsfx, 4)
+
     ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
     print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
     return row, ann
@@ -323,20 +337,14 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
 
             yd = {}
             ann = {}
-            # For completed years
-            for yr in COMPLETED:
-                row, ann_yr = annualise_year(tk, yr, div, fx, epsfx)
+            for yr in ALL_YEARS:
+                row, ann_yr = annualise_year(tk, yr, div, fx, epsfx, sym)
                 yd[yr] = row
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
-            # For current year
-            row_cur, ann_cur = annualise_year(tk, CURRENT_YEAR, div, fx, epsfx)
-            yd[CURRENT_YEAR] = row_cur
-            ann["current"] = ann_cur
 
             live = [y for y in COMPLETED if yd[y].get("revenue") is not None]
             print(f"  ✓ live: {live}", flush=True)
-            # For annualisation metadata, pick the most recent non-none (or just store the current year's)
             final_ann = ann.get(CURRENT_YEAR) if ann.get(CURRENT_YEAR) else {"method":"none","label":None}
             return yd, final_ann
         except Exception as e:
@@ -345,7 +353,6 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
 
 def build_arrays(yd, sym):
     out = {}
-    # Find first year with live revenue
     first_live = None
     if yd:
         for yr in ALL_YEARS:
@@ -356,7 +363,6 @@ def build_arrays(yd, sym):
         arr = []
         for i, yr in enumerate(ALL_YEARS):
             lv = yd[yr].get(f) if yd and yr in yd else None
-            # Only use PRELOADED for years before the first live year, or if no live data at all
             if lv is None and sym in PRELOADED and f in PRELOADED[sym]:
                 if first_live is None or yr < first_live:
                     if i < len(PRELOADED[sym][f]):
