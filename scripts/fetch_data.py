@@ -96,9 +96,10 @@ PRELOADED = {
     "BAC": {"totalAsset":[2900.0,3051.4,3180.2,3261.3,3411.7,None],"cash":[220.0,237.5,341.4,296.5,239.3,None],"totalDebt":[280.0,302.9,334.3,326.7,365.9,None],"totalEquity":[260.0,273.2,291.6,294.0,303.2,None],"revenue":[90.0,95.0,102.8,105.9,113.1,None],"grossProfit":[48.0,52.5,56.9,56.1,60.1,None],"netProfit":[26.0,27.5,26.3,27.0,30.5,None],"eps":[3.10,3.21,3.10,3.25,3.86,None],"dps":[0.90,1.06,1.13,1.21,1.27,None]},
 }
 
-# ---------- Pre‑compute actual shares (number of shares) from fallback data ----------
+# ---------- Pre‑compute actual shares from fallback data ----------
 SHARES = {}
 for sym, data in PRELOADED.items():
+    # Determine exchange for scaling
     exchange = None
     for s, (_, ex, _, _, _, _) in STOCKS.items():
         if s == sym:
@@ -209,17 +210,18 @@ def annual_row(inc, bs, cf, yr, div, fx, sym):
 
         rev_raw = safe(rv[ic] if rv is not None else None, 1, 1)
         gp_raw  = safe(gp[ic] if gp is not None else None, 1, 1)
-        np_raw  = safe(ni[ic] if ni is not None else None, 1, 1)
+        np_raw  = safe(ni[ic] if ni is not None else None, 1, 1)  # raw in reporting currency
 
+        # Display values (scaled)
         row["revenue"]     = safe(rev_raw, div, fx)
         row["grossProfit"] = safe(gp_raw, div, fx)
         row["netProfit"]   = safe(np_raw, div, fx)
 
-        if row["netProfit"] is not None:
-            scaling = 1e12 if div == 1e12 else 1e9
+        # EPS: raw netProfit * fx (to convert to local currency) / shares
+        if np_raw is not None:
             shares = SHARES.get(sym, 1.0)
-            eps_raw = (row["netProfit"] * scaling) / shares
-            row["eps"] = round(eps_raw, 4)
+            eps_raw = np_raw * fx  # now in local currency (e.g., IDR)
+            row["eps"] = round(eps_raw / shares, 4)
         else:
             row["eps"] = None
     else:
@@ -279,13 +281,12 @@ def annualise_year(tk, yr, div, fx, sym):
     row = {f: None for f in FIELDS}
     row["revenue"] = sum_q_field("Total Revenue")
     row["grossProfit"] = sum_q_field("Gross Profit")
-    row["netProfit"] = sum_q_field("Net Income")
+    row["netProfit"] = sum_q_field("Net Income")  # raw sum
 
     if row["netProfit"] is not None:
-        scaling = 1e12 if div == 1e12 else 1e9
         shares = SHARES.get(sym, 1.0)
-        eps_raw = (row["netProfit"] * scaling) / shares * factor
-        row["eps"] = round(eps_raw, 4)
+        eps_raw = row["netProfit"] * fx  # convert to local currency if needed
+        row["eps"] = round(eps_raw / shares * factor, 4)
     else:
         row["eps"] = None
 
@@ -330,7 +331,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
 
-            # Fill missing EPS using fallback
+            # Fill missing EPS using fallback (for years where netProfit missing)
             for yr in ALL_YEARS:
                 if yr in yd and yd[yr].get("eps") is None:
                     idx = ALL_YEARS.index(yr)
