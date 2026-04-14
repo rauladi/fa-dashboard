@@ -200,7 +200,6 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym):
     row = {}
     ic = col_yr(inc, yr)
     bc = col_yr(bs, yr)
-    cc = col_yr(cf, yr)
 
     if ic is not None:
         rv = find_row(inc,"Total Revenue","TotalRevenue","Interest Income","InterestIncome")
@@ -235,22 +234,14 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym):
     else:
         row.update(totalAsset=None,cash=None,totalDebt=None,totalEquity=None)
 
-    if cc is not None:
-        dp = find_row(cf,"Cash Dividends Paid","Dividends Paid","Common Stock Dividend Paid","Payment Of Dividends")
-        dv = safe(dp[cc] if dp is not None else None, 1, 1)
-        if dv is not None:
-            shares = SHARES.get(sym, 1.0)
-            row["dps"] = round(abs(dv) / shares * epsfx, 4)
-        else:
-            row["dps"] = None
-    else:
-        row["dps"] = None
+    # DPS is NOT calculated from cash flow – we will use fallback + estimation later
+    row["dps"] = None
     return row
 
 def annualise_year(tk, yr, div, fx, epsfx, sym):
     inc = tk.financials
     bs = tk.balance_sheet
-    cf = tk.cashflow
+    cf = tk.cashflow  # kept for reference but not used for DPS
     row = None
     ic = None
 
@@ -308,13 +299,8 @@ def annualise_year(tk, yr, div, fx, epsfx, sym):
         row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
         row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
 
-    if qc is not None and not qc.empty:
-        cq = cols_yr(qc, yr)
-        dp = find_row(qc, "Cash Dividends Paid")
-        ytd = sum_q(dp, cq) if dp is not None else None
-        if ytd:
-            shares = SHARES.get(sym, 1.0)
-            row["dps"] = round(abs(ytd) / shares * epsfx * factor, 4)
+    # DPS not calculated here – will be set from fallback/estimation later
+    row["dps"] = None
 
     for k in ["revenue","grossProfit","netProfit"]:
         if row[k] is not None:
@@ -345,7 +331,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
 
-            # Fill missing EPS using fallback (for years where netProfit missing)
+            # ----- Fill missing EPS using fallback (if netProfit missing) -----
             for yr in ALL_YEARS:
                 if yr in yd and yd[yr].get("eps") is None:
                     idx = ALL_YEARS.index(yr)
@@ -355,15 +341,26 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                             yd[yr]["eps"] = fb_eps
                             print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
 
-            # Estimate DPS using average payout ratio from fallback
+            # ----- DPS: use fallback for 2021-2024, estimate 2025 using average payout ratio -----
+            # First copy fallback DPS for all years where it exists
+            for i, yr in enumerate(ALL_YEARS):
+                if sym in PRELOADED and "dps" in PRELOADED[sym]:
+                    if i < len(PRELOADED[sym]["dps"]):
+                        fb_dps = PRELOADED[sym]["dps"][i]
+                        if fb_dps is not None:
+                            yd[yr]["dps"] = fb_dps
+                            print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
+
+            # Now estimate missing DPS (typically 2025) using average payout ratio from fallback
             payout_ratios = []
-            if sym in PRELOADED and "eps" in PRELOADED[sym] and "dps" in PRELOADED[sym]:
-                for i, yr in enumerate(ALL_YEARS):
+            for i, yr in enumerate(ALL_YEARS):
+                if sym in PRELOADED and "eps" in PRELOADED[sym] and "dps" in PRELOADED[sym]:
                     if i < len(PRELOADED[sym]["eps"]) and i < len(PRELOADED[sym]["dps"]):
                         eps_fb = PRELOADED[sym]["eps"][i]
                         dps_fb = PRELOADED[sym]["dps"][i]
                         if eps_fb and dps_fb and eps_fb != 0:
                             payout_ratios.append(dps_fb / eps_fb)
+            # Also include live payout ratios if available (though we disabled live DPS, but keep for completeness)
             for yr in COMPLETED:
                 if yr in yd and yd[yr].get("eps") is not None and yd[yr].get("dps") is not None:
                     eps_val = yd[yr]["eps"]
