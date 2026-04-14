@@ -96,6 +96,21 @@ PRELOADED = {
     "BAC": {"totalAsset":[2900.0,3051.4,3180.2,3261.3,3411.7,None],"cash":[220.0,237.5,341.4,296.5,239.3,None],"totalDebt":[280.0,302.9,334.3,326.7,365.9,None],"totalEquity":[260.0,273.2,291.6,294.0,303.2,None],"revenue":[90.0,95.0,102.8,105.9,113.1,None],"grossProfit":[48.0,52.5,56.9,56.1,60.1,None],"netProfit":[26.0,27.5,26.3,27.0,30.5,None],"eps":[3.10,3.21,3.10,3.25,3.86,None],"dps":[0.90,1.06,1.13,1.21,1.27,None]},
 }
 
+# ---------- Pre‑compute shares (native units) from fallback data ----------
+SHARES = {}
+for sym, data in PRELOADED.items():
+    shares = None
+    for i in range(len(data["netProfit"]) - 1, -1, -1):
+        np_val = data["netProfit"][i]
+        eps_val = data["eps"][i]
+        if np_val is not None and eps_val is not None and eps_val != 0:
+            shares = np_val / eps_val
+            break
+    if shares is None:
+        shares = 1.0
+    SHARES[sym] = shares
+    print(f"Pre‑computed shares for {sym}: {shares:.6e}", flush=True)
+
 # ---------- exchange rates ----------
 def get_rates():
     usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031
@@ -181,7 +196,7 @@ def sum_q(series, cols):
         if v is not None: total+=v; found=True
     return total if found else None
 
-def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym=""):
+def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym):
     row = {}
     ic = col_yr(inc, yr)
     bc = col_yr(bs, yr)
@@ -191,20 +206,22 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym=""):
         rv = find_row(inc,"Total Revenue","TotalRevenue","Interest Income","InterestIncome")
         gp = find_row(inc,"Gross Profit","GrossProfit","Net Interest Income","NetInterestIncome")
         ni = find_row(inc,"Net Income","NetIncome","Net Income Common Stockholders")
-        sh = find_row(inc,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
 
-        row["revenue"]     = safe(rv[ic] if rv is not None else None, div, fx)
-        row["grossProfit"] = safe(gp[ic] if gp is not None else None, div, fx)
-        row["netProfit"]   = safe(ni[ic] if ni is not None else None, div, fx)
-        row["_sh"]         = safe(sh[ic] if sh is not None else None)
+        rev_raw = safe(rv[ic] if rv is not None else None, 1, 1)
+        gp_raw  = safe(gp[ic] if gp is not None else None, 1, 1)
+        np_raw  = safe(ni[ic] if ni is not None else None, 1, 1)
 
-        # Always compute EPS from netProfit and shares
-        if row["netProfit"] is not None and row["_sh"] is not None and row["_sh"] > 0:
-            row["eps"] = round(row["netProfit"] / row["_sh"] * epsfx, 4)
+        row["revenue"]     = safe(rev_raw, div, fx)
+        row["grossProfit"] = safe(gp_raw, div, fx)
+        row["netProfit"]   = safe(np_raw, div, fx)
+
+        if row["netProfit"] is not None:
+            shares = SHARES.get(sym, 1.0)
+            row["eps"] = round(row["netProfit"] / shares * epsfx, 4)
         else:
             row["eps"] = None
     else:
-        row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None)
+        row.update(revenue=None,grossProfit=None,netProfit=None,eps=None)
 
     if bc is not None:
         ta = find_row(bs,"Total Assets","TotalAssets")
@@ -218,22 +235,22 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym=""):
     else:
         row.update(totalAsset=None,cash=None,totalDebt=None,totalEquity=None)
 
-    if cc is not None and row.get("_sh"):
+    if cc is not None:
         dp = find_row(cf,"Cash Dividends Paid","Dividends Paid","Common Stock Dividend Paid","Payment Of Dividends")
-        dv = safe(dp[cc] if dp is not None else None)
-        sh = row["_sh"]
-        row["dps"] = round(abs(dv)/sh*epsfx, 4) if dv and sh and sh > 0 else None
+        dv = safe(dp[cc] if dp is not None else None, 1, 1)
+        if dv is not None:
+            shares = SHARES.get(sym, 1.0)
+            row["dps"] = round(abs(dv) / shares * epsfx, 4)
+        else:
+            row["dps"] = None
     else:
         row["dps"] = None
-    row.pop("_sh", None)
     return row
 
-def annualise_year(tk, yr, div, fx, epsfx, sym=""):
-    """Try annual first; if invalid, fall back to quarterly annualisation."""
+def annualise_year(tk, yr, div, fx, epsfx, sym):
     inc = tk.financials
     bs = tk.balance_sheet
     cf = tk.cashflow
-    use_annual = False
     row = None
     ic = None
 
@@ -241,21 +258,10 @@ def annualise_year(tk, yr, div, fx, epsfx, sym=""):
         ic = col_yr(inc, yr)
         if ic is not None:
             row = annual_row(inc, bs, cf, yr, div, fx, epsfx, sym)
-            has_rev = row.get("revenue") is not None
-            # Accept annual if revenue exists and either EPS or netProfit+shares exist
-            if has_rev and (row.get("eps") is not None or (row.get("netProfit") is not None and row.get("_sh") is not None)):
-                if yr == LATEST_YEAR:
-                    fy_end = FISCAL_YEAR_END.get(sym, 12)
-                    if ic.month != fy_end:
-                        print(f"    ⚠ {sym} yr={yr}: annual column month {ic.month} != FY end {fy_end}, using anyway", flush=True)
-                    use_annual = True
-                else:
-                    use_annual = True
+            if row.get("revenue") is not None:
+                return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
-    if use_annual:
-        return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
-
-    # ----- Quarterly annualisation fallback -----
+    # Fallback to quarterly
     qi = tk.quarterly_financials
     qb = tk.quarterly_balance_sheet
     qc = tk.quarterly_cashflow
@@ -284,15 +290,10 @@ def annualise_year(tk, yr, div, fx, epsfx, sym=""):
     row["grossProfit"] = sum_q_field("Gross Profit")
     row["netProfit"] = sum_q_field("Net Income")
 
-    # Compute EPS from quarterly net profit and shares
-    np_sum = row["netProfit"]
-    sh_val = None
-    sh = find_row(qi, "Basic Average Shares")
-    if sh is not None:
-        sh_val = safe(sh[lq])
-    if np_sum is not None and sh_val and sh_val > 0:
-        raw_eps = np_sum / sh_val
-        row["eps"] = round(raw_eps * factor, 4)
+    if row["netProfit"] is not None:
+        shares = SHARES.get(sym, 1.0)
+        raw_eps = row["netProfit"] / shares
+        row["eps"] = round(raw_eps * factor * epsfx, 4)
     else:
         row["eps"] = None
 
@@ -307,22 +308,17 @@ def annualise_year(tk, yr, div, fx, epsfx, sym=""):
         row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
         row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
 
-    sh_val = None
-    sh = find_row(qi, "Basic Average Shares")
-    if sh is not None:
-        sh_val = safe(sh[lq])
-    if qc is not None and not qc.empty and sh_val:
+    if qc is not None and not qc.empty:
         cq = cols_yr(qc, yr)
         dp = find_row(qc, "Cash Dividends Paid")
         ytd = sum_q(dp, cq) if dp is not None else None
-        if ytd and sh_val > 0:
-            row["dps"] = round(abs(ytd) / sh_val * epsfx * factor, 4)
+        if ytd:
+            shares = SHARES.get(sym, 1.0)
+            row["dps"] = round(abs(ytd) / shares * epsfx * factor, 4)
 
     for k in ["revenue","grossProfit","netProfit"]:
         if row[k] is not None:
             row[k] = round(row[k] / div * fx, 4)
-    if row["eps"] is not None:
-        row["eps"] = round(row["eps"] * epsfx, 4)
 
     ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
     print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
@@ -349,39 +345,31 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
 
-            # ----- FILL MISSING SHARES FROM FALLBACK (to enable EPS calculation) -----
+            # Fill missing EPS using fallback (for years where netProfit missing)
             for yr in ALL_YEARS:
-                if yr in yd and yd[yr].get("netProfit") is not None and yd[yr].get("eps") is None:
-                    # Try to get fallback shares or compute from fallback EPS
+                if yr in yd and yd[yr].get("eps") is None:
                     idx = ALL_YEARS.index(yr)
-                    if sym in PRELOADED:
-                        fb_sh = None
-                        if "_sh" not in yd[yr] and "eps" in PRELOADED[sym] and "netProfit" in PRELOADED[sym]:
-                            fb_eps = PRELOADED[sym]["eps"][idx] if idx < len(PRELOADED[sym]["eps"]) else None
-                            fb_np = PRELOADED[sym]["netProfit"][idx] if idx < len(PRELOADED[sym]["netProfit"]) else None
-                            if fb_eps and fb_np and fb_eps != 0:
-                                fb_sh = fb_np / fb_eps
-                        if fb_sh:
-                            yd[yr]["eps"] = round(yd[yr]["netProfit"] / fb_sh * epsfx, 4)
-                            print(f"      computed EPS for {yr} using fallback shares: {yd[yr]['eps']}", flush=True)
+                    if sym in PRELOADED and "eps" in PRELOADED[sym]:
+                        fb_eps = PRELOADED[sym]["eps"][idx] if idx < len(PRELOADED[sym]["eps"]) else None
+                        if fb_eps is not None:
+                            yd[yr]["eps"] = fb_eps
+                            print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
 
-            # ----- DPS estimation for missing years using payout ratio from fallback or live -----
+            # Estimate DPS using average payout ratio from fallback
             payout_ratios = []
-            # Collect from live data where both EPS and DPS are available
-            for yr in COMPLETED:
-                if yr in yd and yd[yr].get("eps") is not None and yd[yr].get("dps") is not None:
-                    eps_val = yd[yr]["eps"]
-                    dps_val = yd[yr]["dps"]
-                    if eps_val != 0 and dps_val != 0:
-                        payout_ratios.append(dps_val / eps_val)
-            # If no live ratios, use fallback data
-            if not payout_ratios and sym in PRELOADED and "eps" in PRELOADED[sym] and "dps" in PRELOADED[sym]:
+            if sym in PRELOADED and "eps" in PRELOADED[sym] and "dps" in PRELOADED[sym]:
                 for i, yr in enumerate(ALL_YEARS):
                     if i < len(PRELOADED[sym]["eps"]) and i < len(PRELOADED[sym]["dps"]):
                         eps_fb = PRELOADED[sym]["eps"][i]
                         dps_fb = PRELOADED[sym]["dps"][i]
                         if eps_fb and dps_fb and eps_fb != 0:
                             payout_ratios.append(dps_fb / eps_fb)
+            for yr in COMPLETED:
+                if yr in yd and yd[yr].get("eps") is not None and yd[yr].get("dps") is not None:
+                    eps_val = yd[yr]["eps"]
+                    dps_val = yd[yr]["dps"]
+                    if eps_val != 0 and dps_val != 0:
+                        payout_ratios.append(dps_val / eps_val)
 
             if payout_ratios:
                 avg_payout = sum(payout_ratios) / len(payout_ratios)
@@ -411,7 +399,6 @@ def build_arrays(yd, sym):
         arr = []
         for i, yr in enumerate(ALL_YEARS):
             lv = yd[yr].get(f) if yd and yr in yd else None
-            # Use fallback only for years before first live year
             if lv is None and sym in PRELOADED and f in PRELOADED[sym]:
                 if first_live is None or yr < first_live:
                     if i < len(PRELOADED[sym][f]):
