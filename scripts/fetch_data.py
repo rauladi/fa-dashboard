@@ -96,20 +96,26 @@ PRELOADED = {
     "BAC": {"totalAsset":[2900.0,3051.4,3180.2,3261.3,3411.7,None],"cash":[220.0,237.5,341.4,296.5,239.3,None],"totalDebt":[280.0,302.9,334.3,326.7,365.9,None],"totalEquity":[260.0,273.2,291.6,294.0,303.2,None],"revenue":[90.0,95.0,102.8,105.9,113.1,None],"grossProfit":[48.0,52.5,56.9,56.1,60.1,None],"netProfit":[26.0,27.5,26.3,27.0,30.5,None],"eps":[3.10,3.21,3.10,3.25,3.86,None],"dps":[0.90,1.06,1.13,1.21,1.27,None]},
 }
 
-# ---------- Pre‑compute shares (native units) from fallback data ----------
+# ---------- Pre‑compute actual shares (number of shares) from fallback data ----------
 SHARES = {}
 for sym, data in PRELOADED.items():
+    exchange = None
+    for s, (_, ex, _, _, _, _) in STOCKS.items():
+        if s == sym:
+            exchange = ex
+            break
+    scaling = 1e12 if exchange == "IDX" else 1e9
     shares = None
     for i in range(len(data["netProfit"]) - 1, -1, -1):
         np_val = data["netProfit"][i]
         eps_val = data["eps"][i]
         if np_val is not None and eps_val is not None and eps_val != 0:
-            shares = np_val / eps_val
+            shares = (np_val * scaling) / eps_val
             break
     if shares is None:
         shares = 1.0
     SHARES[sym] = shares
-    print(f"Pre‑computed shares for {sym}: {shares:.6e}", flush=True)
+    print(f"Actual shares for {sym}: {shares:.0f}", flush=True)
 
 # ---------- exchange rates ----------
 def get_rates():
@@ -156,11 +162,6 @@ def get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd):
     else:
         return 1e9, (twd_usd if fin_cur == "TWD" else 1.0)
 
-def eps_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd):
-    if exchange == "ASX": return usd_aud if fin_cur == "USD" else 1.0
-    if exchange == "IDX": return usd_idr if fin_cur == "USD" else 1.0
-    return twd_usd if fin_cur == "TWD" else 1.0
-
 def safe(val, div=1, fx=1.0):
     if val is None: return None
     try:
@@ -196,7 +197,7 @@ def sum_q(series, cols):
         if v is not None: total+=v; found=True
     return total if found else None
 
-def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym):
+def annual_row(inc, bs, cf, yr, div, fx, sym):
     row = {}
     ic = col_yr(inc, yr)
     bc = col_yr(bs, yr)
@@ -215,8 +216,10 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym):
         row["netProfit"]   = safe(np_raw, div, fx)
 
         if row["netProfit"] is not None:
+            scaling = 1e12 if div == 1e12 else 1e9
             shares = SHARES.get(sym, 1.0)
-            row["eps"] = round(row["netProfit"] / shares * epsfx, 4)
+            eps_raw = (row["netProfit"] * scaling) / shares
+            row["eps"] = round(eps_raw, 4)
         else:
             row["eps"] = None
     else:
@@ -234,28 +237,25 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym):
     else:
         row.update(totalAsset=None,cash=None,totalDebt=None,totalEquity=None)
 
-    # DPS is NOT calculated from cash flow – we will use fallback + estimation later
     row["dps"] = None
     return row
 
-def annualise_year(tk, yr, div, fx, epsfx, sym):
+def annualise_year(tk, yr, div, fx, sym):
     inc = tk.financials
     bs = tk.balance_sheet
-    cf = tk.cashflow  # kept for reference but not used for DPS
     row = None
     ic = None
 
     if inc is not None and not inc.empty:
         ic = col_yr(inc, yr)
         if ic is not None:
-            row = annual_row(inc, bs, cf, yr, div, fx, epsfx, sym)
+            row = annual_row(inc, bs, None, yr, div, fx, sym)
             if row.get("revenue") is not None:
                 return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
     # Fallback to quarterly
     qi = tk.quarterly_financials
     qb = tk.quarterly_balance_sheet
-    qc = tk.quarterly_cashflow
     if qi is None or qi.empty:
         return {f: None for f in FIELDS}, {"method":"none","label":None}
     qtrs = cols_yr(qi, yr)
@@ -282,9 +282,10 @@ def annualise_year(tk, yr, div, fx, epsfx, sym):
     row["netProfit"] = sum_q_field("Net Income")
 
     if row["netProfit"] is not None:
+        scaling = 1e12 if div == 1e12 else 1e9
         shares = SHARES.get(sym, 1.0)
-        raw_eps = row["netProfit"] / shares
-        row["eps"] = round(raw_eps * factor * epsfx, 4)
+        eps_raw = (row["netProfit"] * scaling) / shares * factor
+        row["eps"] = round(eps_raw, 4)
     else:
         row["eps"] = None
 
@@ -299,7 +300,6 @@ def annualise_year(tk, yr, div, fx, epsfx, sym):
         row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
         row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
 
-    # DPS not calculated here – will be set from fallback/estimation later
     row["dps"] = None
 
     for k in ["revenue","grossProfit","netProfit"]:
@@ -320,18 +320,17 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             tk = yf.Ticker(ticker_str)
             fin_cur = detect_cur(tk, hint_cur)
             div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
-            epsfx   = eps_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
-            print(f"  cur={fin_cur} fx={fx:.6f} epsfx={epsfx:.6f}", flush=True)
+            print(f"  cur={fin_cur} fx={fx:.6f}", flush=True)
 
             yd = {}
             ann = {}
             for yr in ALL_YEARS:
-                row, ann_yr = annualise_year(tk, yr, div, fx, epsfx, sym)
+                row, ann_yr = annualise_year(tk, yr, div, fx, sym)
                 yd[yr] = row
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
 
-            # ----- Fill missing EPS using fallback (if netProfit missing) -----
+            # Fill missing EPS using fallback
             for yr in ALL_YEARS:
                 if yr in yd and yd[yr].get("eps") is None:
                     idx = ALL_YEARS.index(yr)
@@ -341,8 +340,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                             yd[yr]["eps"] = fb_eps
                             print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
 
-            # ----- DPS: use fallback for 2021-2024, estimate 2025 using average payout ratio -----
-            # First copy fallback DPS for all years where it exists
+            # DPS: use fallback, then estimate missing
             for i, yr in enumerate(ALL_YEARS):
                 if sym in PRELOADED and "dps" in PRELOADED[sym]:
                     if i < len(PRELOADED[sym]["dps"]):
@@ -351,7 +349,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                             yd[yr]["dps"] = fb_dps
                             print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
 
-            # Now estimate missing DPS (typically 2025) using average payout ratio from fallback
+            # Estimate missing DPS using average payout ratio from fallback
             payout_ratios = []
             for i, yr in enumerate(ALL_YEARS):
                 if sym in PRELOADED and "eps" in PRELOADED[sym] and "dps" in PRELOADED[sym]:
@@ -360,14 +358,6 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                         dps_fb = PRELOADED[sym]["dps"][i]
                         if eps_fb and dps_fb and eps_fb != 0:
                             payout_ratios.append(dps_fb / eps_fb)
-            # Also include live payout ratios if available (though we disabled live DPS, but keep for completeness)
-            for yr in COMPLETED:
-                if yr in yd and yd[yr].get("eps") is not None and yd[yr].get("dps") is not None:
-                    eps_val = yd[yr]["eps"]
-                    dps_val = yd[yr]["dps"]
-                    if eps_val != 0 and dps_val != 0:
-                        payout_ratios.append(dps_val / eps_val)
-
             if payout_ratios:
                 avg_payout = sum(payout_ratios) / len(payout_ratios)
                 for yr in ALL_YEARS:
