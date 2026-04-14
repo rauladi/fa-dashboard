@@ -99,7 +99,6 @@ PRELOADED = {
 # ---------- Pre‑compute actual shares from fallback data ----------
 SHARES = {}
 for sym, data in PRELOADED.items():
-    # Determine exchange for scaling
     exchange = None
     for s, (_, ex, _, _, _, _) in STOCKS.items():
         if s == sym:
@@ -210,20 +209,14 @@ def annual_row(inc, bs, cf, yr, div, fx, sym):
 
         rev_raw = safe(rv[ic] if rv is not None else None, 1, 1)
         gp_raw  = safe(gp[ic] if gp is not None else None, 1, 1)
-        np_raw  = safe(ni[ic] if ni is not None else None, 1, 1)  # raw in reporting currency
+        np_raw  = safe(ni[ic] if ni is not None else None, 1, 1)
 
-        # Display values (scaled)
         row["revenue"]     = safe(rev_raw, div, fx)
         row["grossProfit"] = safe(gp_raw, div, fx)
         row["netProfit"]   = safe(np_raw, div, fx)
 
-        # EPS: raw netProfit * fx (to convert to local currency) / shares
-        if np_raw is not None:
-            shares = SHARES.get(sym, 1.0)
-            eps_raw = np_raw * fx  # now in local currency (e.g., IDR)
-            row["eps"] = round(eps_raw / shares, 4)
-        else:
-            row["eps"] = None
+        # We will NOT compute EPS here – will be overridden by fallback for completed years
+        row["eps"] = None
     else:
         row.update(revenue=None,grossProfit=None,netProfit=None,eps=None)
 
@@ -281,14 +274,8 @@ def annualise_year(tk, yr, div, fx, sym):
     row = {f: None for f in FIELDS}
     row["revenue"] = sum_q_field("Total Revenue")
     row["grossProfit"] = sum_q_field("Gross Profit")
-    row["netProfit"] = sum_q_field("Net Income")  # raw sum
-
-    if row["netProfit"] is not None:
-        shares = SHARES.get(sym, 1.0)
-        eps_raw = row["netProfit"] * fx  # convert to local currency if needed
-        row["eps"] = round(eps_raw / shares * factor, 4)
-    else:
-        row["eps"] = None
+    row["netProfit"] = sum_q_field("Net Income")
+    row["eps"] = None  # will fill later
 
     qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
     if qbc is not None:
@@ -331,17 +318,33 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
 
-            # Fill missing EPS using fallback (for years where netProfit missing)
-            for yr in ALL_YEARS:
-                if yr in yd and yd[yr].get("eps") is None:
-                    idx = ALL_YEARS.index(yr)
-                    if sym in PRELOADED and "eps" in PRELOADED[sym]:
-                        fb_eps = PRELOADED[sym]["eps"][idx] if idx < len(PRELOADED[sym]["eps"]) else None
+            # ----- EPS: Use fallback for all completed years, compute only for latest year if needed -----
+            for i, yr in enumerate(ALL_YEARS):
+                # First, always prefer fallback EPS for years where it exists
+                if sym in PRELOADED and "eps" in PRELOADED[sym]:
+                    if i < len(PRELOADED[sym]["eps"]):
+                        fb_eps = PRELOADED[sym]["eps"][i]
                         if fb_eps is not None:
                             yd[yr]["eps"] = fb_eps
                             print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
+                            continue
+                # If no fallback (only for LATEST_YEAR maybe), compute from live netProfit
+                if yr == LATEST_YEAR and yd[yr].get("eps") is None and yd[yr].get("netProfit") is not None:
+                    # Get raw netProfit from yfinance (before scaling)
+                    # We need to fetch the raw value again because netProfit in row is already scaled to T/B
+                    # Simpler: use fallback shares and live netProfit in scaled form, but need correct scaling.
+                    # Instead, we use the precomputed shares and compute EPS from scaled netProfit * scaling / shares
+                    shares = SHARES.get(sym, 1.0)
+                    scaling = 1e12 if div == 1e12 else 1e9
+                    np_scaled = yd[yr]["netProfit"]  # in T IDR or B USD
+                    eps_computed = (np_scaled * scaling) / shares
+                    # Apply FX if reporting currency is not local (e.g., ADRO reports in USD)
+                    if fin_cur != hint_cur and fin_cur == "USD" and exchange == "IDX":
+                        eps_computed = eps_computed * fx  # convert to IDR
+                    yd[yr]["eps"] = round(eps_computed, 4)
+                    print(f"      computed EPS for {yr}: {yd[yr]['eps']}", flush=True)
 
-            # DPS: use fallback, then estimate missing
+            # ----- DPS: Use fallback for completed years, estimate latest year from average payout -----
             for i, yr in enumerate(ALL_YEARS):
                 if sym in PRELOADED and "dps" in PRELOADED[sym]:
                     if i < len(PRELOADED[sym]["dps"]):
@@ -350,7 +353,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                             yd[yr]["dps"] = fb_dps
                             print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
 
-            # Estimate missing DPS using average payout ratio from fallback
+            # Estimate missing DPS (typically LATEST_YEAR) using average payout ratio from fallback
             payout_ratios = []
             for i, yr in enumerate(ALL_YEARS):
                 if sym in PRELOADED and "eps" in PRELOADED[sym] and "dps" in PRELOADED[sym]:
