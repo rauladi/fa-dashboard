@@ -199,6 +199,10 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym=""):
         row["netProfit"]   = safe(ni[ic] if ni is not None else None, div, fx)
         row["eps"]         = safe(ep[ic] if ep is not None else None, 1, epsfx)
         row["_sh"]         = safe(sh[ic] if sh is not None else None)
+
+        # If EPS missing but net profit and shares exist, compute EPS
+        if row["eps"] is None and row["netProfit"] is not None and row["_sh"] is not None and row["_sh"] > 0:
+            row["eps"] = round(row["netProfit"] / row["_sh"] * epsfx, 4)
     else:
         row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None)
 
@@ -238,18 +242,17 @@ def annualise_year(tk, yr, div, fx, epsfx, sym=""):
         ic = col_yr(inc, yr)
         if ic is not None:
             row = annual_row(inc, bs, cf, yr, div, fx, epsfx, sym)
-            if row.get("revenue") is not None:
-                # For latest completed year, require EPS and correct fiscal month
+            has_rev = row.get("revenue") is not None
+            has_eps_or_can_compute = (row.get("eps") is not None) or (row.get("netProfit") is not None and row.get("_sh") is not None)
+            if has_rev and has_eps_or_can_compute:
+                # For latest completed year, be more permissive about month mismatch
                 if yr == LATEST_YEAR:
                     fy_end = FISCAL_YEAR_END.get(sym, 12)
-                    if row.get("eps") is None:
-                        print(f"    ⚠ {sym} yr={yr}: annual revenue present but EPS missing → fallback to quarterly", flush=True)
-                    elif ic.month != fy_end:
-                        print(f"    ⚠ {sym} yr={yr}: annual column month {ic.month} != FY end {fy_end} (TTM) → fallback to quarterly", flush=True)
-                    else:
-                        use_annual = True
+                    if ic.month != fy_end:
+                        # Still use annual data, just warn
+                        print(f"    ⚠ {sym} yr={yr}: annual column month {ic.month} != FY end {fy_end}, using anyway", flush=True)
+                    use_annual = True
                 else:
-                    # For older years, revenue is enough
                     use_annual = True
 
     if use_annual:
@@ -283,9 +286,24 @@ def annualise_year(tk, yr, div, fx, epsfx, sym=""):
     row["revenue"] = sum_q_field("Total Revenue")
     row["grossProfit"] = sum_q_field("Gross Profit")
     row["netProfit"] = sum_q_field("Net Income")
+
+    # EPS: try Basic EPS first, else compute from net profit and shares
     eps_sum = sum_q_field("Basic EPS")
     if eps_sum is not None:
         row["eps"] = round(eps_sum * factor, 4)
+    else:
+        np_sum = row["netProfit"]  # already annualised sum
+        sh_val = None
+        sh = find_row(qi, "Basic Average Shares")
+        if sh is not None:
+            sh_val = safe(sh[lq])
+        if np_sum is not None and sh_val and sh_val > 0:
+            # netProfit already in total (unscaled) because sum_q_field gives raw sum
+            # we need to apply scaling and FX later; for now keep raw and factor
+            raw_eps = np_sum / sh_val
+            row["eps"] = round(raw_eps * factor, 4)
+        else:
+            row["eps"] = None
 
     # Balance sheet (point-in-time from latest quarter)
     qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
@@ -311,7 +329,7 @@ def annualise_year(tk, yr, div, fx, epsfx, sym=""):
         if ytd and sh_val > 0:
             row["dps"] = round(abs(ytd) / sh_val * epsfx * factor, 4)
 
-    # Apply scaling and FX
+    # Apply scaling and FX for income statement items
     for k in ["revenue","grossProfit","netProfit"]:
         if row[k] is not None:
             row[k] = round(row[k] / div * fx, 4)
