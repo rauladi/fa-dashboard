@@ -225,7 +225,7 @@ def annual_row(inc, bs, cf, yr, div, fx, epsfx, sym=""):
     return row
 
 def annualise_year(tk, yr, div, fx, epsfx, sym=""):
-    """Try annual first; if invalid, fall back to quarterly annualisation."""
+    """Try annual first; if invalid, fall back to TTM for latest year or quarterly annualisation for older years."""
     inc = tk.financials
     bs = tk.balance_sheet
     cf = tk.cashflow
@@ -239,23 +239,83 @@ def annualise_year(tk, yr, div, fx, epsfx, sym=""):
         if ic is not None:
             row = annual_row(inc, bs, cf, yr, div, fx, epsfx, sym)
             if row.get("revenue") is not None:
-                # For latest completed year, require EPS and correct fiscal month
                 if yr == LATEST_YEAR:
                     fy_end = FISCAL_YEAR_END.get(sym, 12)
                     if row.get("eps") is None:
-                        print(f"    ⚠ {sym} yr={yr}: annual revenue present but EPS missing → fallback to quarterly", flush=True)
+                        print(f"    ⚠ {sym} yr={yr}: annual revenue present but EPS missing → fallback to TTM", flush=True)
                     elif ic.month != fy_end:
-                        print(f"    ⚠ {sym} yr={yr}: annual column month {ic.month} != FY end {fy_end} (TTM) → fallback to quarterly", flush=True)
+                        print(f"    ⚠ {sym} yr={yr}: annual column month {ic.month} != FY end {fy_end} (TTM) → fallback to TTM", flush=True)
                     else:
                         use_annual = True
                 else:
-                    # For older years, revenue is enough
                     use_annual = True
 
     if use_annual:
         return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
-    # ----- Quarterly annualisation fallback -----
+    # ----- Fallback: For latest year, use TTM (last 4 quarters) -----
+    if yr == LATEST_YEAR:
+        qi = tk.quarterly_financials
+        qb = tk.quarterly_balance_sheet
+        qc = tk.quarterly_cashflow
+        if qi is not None and not qi.empty:
+            # Get all quarterly columns, sorted, take last 4
+            all_qtrs = sorted(qi.columns, key=lambda x: x, reverse=True)
+            last_4 = all_qtrs[:4]
+            if len(last_4) >= 4:
+                print(f"      {sym} {yr}: using TTM (last 4 quarters) for EPS", flush=True)
+                # Sum TTM values for income statement items
+                def ttm_sum(field_name):
+                    s = find_row(qi, field_name)
+                    if s is None: return None
+                    total = 0.0
+                    for c in last_4:
+                        v = safe(s[c])
+                        if v is not None: total += v
+                    return total if total != 0.0 else None
+                row = {f: None for f in FIELDS}
+                row["revenue"] = ttm_sum("Total Revenue")
+                row["grossProfit"] = ttm_sum("Gross Profit")
+                row["netProfit"] = ttm_sum("Net Income")
+                eps_ttm = ttm_sum("Basic EPS")
+                if eps_ttm is not None:
+                    row["eps"] = round(eps_ttm, 4)
+                # Balance sheet: use latest quarter's point-in-time
+                qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
+                if qbc is not None:
+                    ta = find_row(qb, "Total Assets")
+                    ca = find_row(qb, "Cash And Cash Equivalents")
+                    td = find_row(qb, "Total Debt")
+                    te = find_row(qb, "Stockholders Equity")
+                    row["totalAsset"] = safe(ta[qbc] if ta is not None else None, div, fx)
+                    row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
+                    row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
+                    row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+                # DPS: sum dividends paid over TTM period
+                sh_val = None
+                sh = find_row(qi, "Basic Average Shares")
+                if sh is not None:
+                    sh_val = safe(sh[last_4[-1]])
+                if qc is not None and not qc.empty and sh_val:
+                    cq = sorted(qc.columns, key=lambda x: x, reverse=True)[:4]
+                    dp = find_row(qc, "Cash Dividends Paid")
+                    ytd = 0.0
+                    if dp is not None:
+                        for c in cq:
+                            v = safe(dp[c])
+                            if v is not None: ytd += v
+                    if ytd and sh_val > 0:
+                        row["dps"] = round(abs(ytd) / sh_val, 4)
+                # Apply scaling and FX
+                for k in ["revenue","grossProfit","netProfit"]:
+                    if row[k] is not None:
+                        row[k] = round(row[k] / div * fx, 4)
+                if row["eps"] is not None:
+                    row["eps"] = round(row["eps"] * epsfx, 4)
+                ann = {"method":"ttm","label":"TTM","quarters":4,"asOf":str(last_4[-1].date())}
+                return row, ann
+
+    # ----- For older years, quarterly annualisation within the year -----
     qi = tk.quarterly_financials
     qb = tk.quarterly_balance_sheet
     qc = tk.quarterly_cashflow
@@ -287,7 +347,7 @@ def annualise_year(tk, yr, div, fx, epsfx, sym=""):
     if eps_sum is not None:
         row["eps"] = round(eps_sum * factor, 4)
 
-    # Balance sheet (point-in-time from latest quarter)
+    # Balance sheet (point-in-time)
     qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
     if qbc is not None:
         ta = find_row(qb, "Total Assets")
@@ -370,6 +430,43 @@ def build_arrays(yd, sym):
             arr.append(lv)
         out[f] = arr
     return out
+
+# ---------- AI company history generation ----------
+def generate_company_history(symbol, name, exchange, currency):
+    """Use Anthropic Claude to generate a concise company history."""
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        print(f"  ⚠ No ANTHROPIC_API_KEY set, skipping AI history for {symbol}", flush=True)
+        return "## Company History\nHistorical information not available. Please refer to company announcements and official website."
+
+    prompt = f"""Please write a concise company history for {name} ({symbol}) listed on {exchange} with reporting currency {currency}. 
+Include founding year, key milestones, major acquisitions or mergers, recent strategic shifts, and any notable achievements. 
+Keep it to about 150-200 words. Use plain text, no markdown headings. Write in third person."""
+    
+    import requests
+    headers = {
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json"
+    }
+    data = {
+        "model": "claude-3-haiku-20240307",
+        "max_tokens": 500,
+        "temperature": 0.3,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    try:
+        response = requests.post("https://api.anthropic.com/v1/messages", headers=headers, json=data, timeout=30)
+        if response.status_code == 200:
+            result = response.json()
+            history = result["content"][0]["text"].strip()
+            return f"## Company History\n{history}"
+        else:
+            print(f"  ⚠ API error {response.status_code}: {response.text[:200]}", flush=True)
+            return "## Company History\nHistorical information temporarily unavailable."
+    except Exception as e:
+        print(f"  ⚠ API request failed: {e}", flush=True)
+        return "## Company History\nHistorical information temporarily unavailable."
 
 # ---------- DEEP STATIC PROFILES (all 28 stocks) ----------
 PROFILES = {
@@ -1195,7 +1292,9 @@ def build_profile_with_insights(sym, m, exchange, currency):
     base = PROFILES.get(sym, "## Business Model Canvas\nGeneric analysis for {sym}.")
     leader = LEADERSHIP.get(sym, {"ceo": "N/A", "cfo": "N/A", "track": "No data."})
     leadership_section = f"\n\n## Leadership\n**CEO:** {leader['ceo']}  \n**CFO:** {leader['cfo']}  \n**Track Record:** {leader['track']}"
-    return base + leadership_section
+    # Add AI-generated company history
+    history = generate_company_history(sym, base.split('\n')[0], exchange, currency) if os.environ.get("ANTHROPIC_API_KEY") else "\n## Company History\nHistorical information not available. Please refer to company announcements."
+    return base + leadership_section + "\n" + history
 
 def generate_static_profiles(out):
     for sym, st_data in out["stocks"].items():
