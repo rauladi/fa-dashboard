@@ -96,16 +96,6 @@ PRELOADED = {
     "BAC": {"totalAsset":[2900.0,3051.4,3180.2,3261.3,3411.7,None],"cash":[220.0,237.5,341.4,296.5,239.3,None],"totalDebt":[280.0,302.9,334.3,326.7,365.9,None],"totalEquity":[260.0,273.2,291.6,294.0,303.2,None],"revenue":[90.0,95.0,102.8,105.9,113.1,None],"grossProfit":[48.0,52.5,56.9,56.1,60.1,None],"netProfit":[26.0,27.5,26.3,27.0,30.5,None],"eps":[3.10,3.21,3.10,3.25,3.86,None],"dps":[0.90,1.06,1.13,1.21,1.27,None]},
 }
 
-# ---------- Helper to compute CAGR from list ----------
-def cagr(values):
-    v = [x for x in values if x is not None and x != 0]
-    if len(v) < 2:
-        return None
-    start = v[0]
-    end = v[-1]
-    years = len(v) - 1
-    return (pow(end/start, 1/years) - 1) * 100
-
 # ---------- exchange rates ----------
 def get_rates():
     usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031
@@ -198,27 +188,27 @@ def annual_row(inc, bs, cf, yr, div, fx, sym):
         ep = find_row(inc,"Basic EPS","BasicEPS","Diluted EPS","EPS Diluted")
         sh = find_row(inc,"Basic Average Shares","BasicAverageShares","Diluted Average Shares","Average Dilution Earnings")
 
+        # Raw values (in reporting currency, before scaling)
         rev_raw = safe(rv[ic] if rv is not None else None, 1, 1)
         gp_raw  = safe(gp[ic] if gp is not None else None, 1, 1)
         np_raw  = safe(ni[ic] if ni is not None else None, 1, 1)
         eps_raw = safe(ep[ic] if ep is not None else None, 1, 1)
         sh_raw  = safe(sh[ic] if sh is not None else None, 1, 1)
 
+        # Display values (scaled to T IDR / B USD)
         row["revenue"]     = safe(rev_raw, div, fx)
         row["grossProfit"] = safe(gp_raw, div, fx)
         row["netProfit"]   = safe(np_raw, div, fx)
-        row["_sh"]         = sh_raw
 
-        # EPS: try to use reported Basic EPS first
+        # EPS: use reported Basic EPS if available, else compute from netProfit and shares
         if eps_raw is not None:
             row["eps"] = eps_raw
         elif np_raw is not None and sh_raw is not None and sh_raw != 0:
-            # Compute EPS from netProfit and average shares (raw values)
             row["eps"] = np_raw / sh_raw
         else:
             row["eps"] = None
     else:
-        row.update(revenue=None,grossProfit=None,netProfit=None,eps=None,_sh=None)
+        row.update(revenue=None,grossProfit=None,netProfit=None,eps=None)
 
     if bc is not None:
         ta = find_row(bs,"Total Assets","TotalAssets")
@@ -232,7 +222,6 @@ def annual_row(inc, bs, cf, yr, div, fx, sym):
     else:
         row.update(totalAsset=None,cash=None,totalDebt=None,totalEquity=None)
 
-    # DPS will be set later from fallback or estimation
     row["dps"] = None
     return row
 
@@ -249,7 +238,7 @@ def annualise_year(tk, yr, div, fx, sym):
             if row.get("revenue") is not None:
                 return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
-    # Fallback to quarterly
+    # Fallback to quarterly (rarely used)
     qi = tk.quarterly_financials
     qb = tk.quarterly_balance_sheet
     if qi is None or qi.empty:
@@ -276,8 +265,7 @@ def annualise_year(tk, yr, div, fx, sym):
     row["revenue"] = sum_q_field("Total Revenue")
     row["grossProfit"] = sum_q_field("Gross Profit")
     row["netProfit"] = sum_q_field("Net Income")
-    # For quarterly, we can also try to get EPS but it's often annualised. Safer to leave None and use fallback.
-    row["eps"] = None
+    row["eps"] = None  # EPS from quarterly is unreliable; will be handled later
 
     qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
     if qbc is not None:
@@ -320,32 +308,8 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
 
-            # ----- EPS: Use live if available, otherwise estimate for latest year using netProfit/shares -----
-            for yr in ALL_YEARS:
-                if yr in yd and yd[yr].get("eps") is None:
-                    # Try to get from fallback (only for years before first live)
-                    idx = ALL_YEARS.index(yr)
-                    if sym in PRELOADED and "eps" in PRELOADED[sym]:
-                        fb_eps = PRELOADED[sym]["eps"][idx] if idx < len(PRELOADED[sym]["eps"]) else None
-                        if fb_eps is not None:
-                            yd[yr]["eps"] = fb_eps
-                            print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
-                    # For latest year, try to compute from netProfit and shares (if we have them)
-                    elif yr == LATEST_YEAR and yd[yr].get("netProfit") is not None and yd[yr].get("_sh") is not None:
-                        np_raw = yd[yr]["netProfit"] * div  # reverse scaling to get raw value? Actually netProfit is already scaled.
-                        # Simpler: we already have raw values in annual_row? We stored _sh but netProfit is scaled.
-                        # Instead, we re-fetch the raw values from the annual row? Too complex.
-                        # For now, we trust that if EPS is missing, it's because the company hasn't reported yet.
-                        # We'll leave as None and later use fallback CAGR? But user wants netProfit/shares.
-                        # Let's compute using scaled netProfit * scaling factor / shares.
-                        scaling = 1e12 if div == 1e12 else 1e9
-                        shares = yd[yr].get("_sh", 1.0)
-                        if shares > 0:
-                            eps_computed = (yd[yr]["netProfit"] * scaling) / shares
-                            yd[yr]["eps"] = round(eps_computed, 4)
-                            print(f"      computed EPS for {yr} from netProfit/shares: {yd[yr]['eps']}", flush=True)
-
-            # ----- DPS: Use fallback for completed years, estimate latest year from average payout ratio -----
+            # ----- DPS: use fallback for 2021-2024, estimate 2025 from average payout ratio -----
+            # First, set fallback DPS for years where available
             for i, yr in enumerate(ALL_YEARS):
                 if sym in PRELOADED and "dps" in PRELOADED[sym]:
                     if i < len(PRELOADED[sym]["dps"]):
@@ -354,7 +318,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                             yd[yr]["dps"] = fb_dps
                             print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
 
-            # Estimate missing DPS (typically LATEST_YEAR) using average payout ratio from fallback
+            # Compute average payout ratio from fallback years where both EPS and DPS exist
             payout_ratios = []
             for i, yr in enumerate(ALL_YEARS):
                 if sym in PRELOADED and "eps" in PRELOADED[sym] and "dps" in PRELOADED[sym]:
