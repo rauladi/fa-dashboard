@@ -250,21 +250,41 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 </style>
 </head>
 <body>
-<div id="hdr"><div style="display:flex;align-items:center;gap:12px"><div class="h-logo">FA</div><div><div class="h-title">Fundamental Analysis Dashboard</div><div class="h-sub" id="hSub">ASX · IDX · NYSE/NASDAQ — loading...</div></div></div><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="showSync()">🔄 Sync</button><button class="btn btn-green btn-sm" onclick="showAdd()">＋ Add Stock</button></div></div>
+<div id="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="h-logo">FA</div>
+    <div>
+      <div class="h-title">Fundamental Analysis Dashboard</div>
+      <div class="h-sub" id="hSub">ASX · IDX · NYSE/NASDAQ — loading...</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-ghost btn-sm" onclick="forceRefresh()">🔄 Force Refresh</button>
+    <button class="btn btn-ghost btn-sm" onclick="showSync()">🔄 Sync</button>
+    <button class="btn btn-green btn-sm" onclick="showAdd()">＋ Add Stock</button>
+  </div>
+</div>
 <div id="sBar"><div class="s-list" id="sList"></div></div>
-<div id="tBar"><button class="t-btn on" id="t-data" onclick="setTab('data')">📋 Data</button><button class="t-btn" id="t-ratios" onclick="setTab('ratios')">📐 Ratios</button><button class="t-btn" id="t-chart" onclick="setTab('chart')">📈 Chart</button><button class="t-btn" id="t-rankings" onclick="setTab('rankings')">🏆 Rankings</button><button class="t-btn" id="t-insights" onclick="setTab('insights')">💡 Insights</button></div>
+<div id="tBar">
+  <button class="t-btn on" id="t-data" onclick="setTab('data')">📋 Data</button>
+  <button class="t-btn" id="t-ratios" onclick="setTab('ratios')">📐 Ratios</button>
+  <button class="t-btn" id="t-chart" onclick="setTab('chart')">📈 Chart</button>
+  <button class="t-btn" id="t-rankings" onclick="setTab('rankings')">🏆 Rankings</button>
+  <button class="t-btn" id="t-insights" onclick="setTab('insights')">💡 Insights</button>
+</div>
 <div id="cont"></div>
 <div id="addModal" class="modal-bg" style="display:none"><div class="modal"><div class="modal-h"><h3>＋ Add New Stock</h3><button class="modal-x" onclick="hideAdd()">×</button></div><div class="modal-b" id="addBody"></div></div></div>
 <div id="syncModal" class="modal-bg" style="display:none"><div class="modal" style="max-width:520px"><div class="modal-h"><h3>🔄 Sync Between Devices</h3><button class="modal-x" onclick="hideSync()">×</button></div><div class="modal-b" id="syncBody"></div></div></div>
 
 <script>
-// ======================== ORIGINAL FULL SCRIPT (exactly as in first working version) ========================
+// ======================== ORIGINAL FULL SCRIPT WITH DATA VERSION SYNC FIX ========================
 const CURRENT_YEAR = new Date().getFullYear();
 const LATEST_YEAR = CURRENT_YEAR - 1;
 const YEARS = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
 const N_YEARS = YEARS.length;
 let ANNUALISATION = {};
 const LS_KEY='fa_v5';
+const DATA_VERSION_KEY = 'fa_data_version';
 
 const BASE_STOCKS={
   BHP:{name:"BHP Group",exchange:"ASX",currency:"B AUD"}, WDS:{name:"Woodside Energy",exchange:"ASX",currency:"B AUD"}, CBA:{name:"Commonwealth Bank",exchange:"ASX",currency:"B AUD"},
@@ -290,17 +310,123 @@ const CRITERIA=[
 const MKEYS=[{k:"totalAsset",l:"Total Asset"},{k:"cash",l:"Cash"},{k:"totalDebt",l:"Total Debt"},{k:"totalEquity",l:"Total Equity"},{k:"revenue",l:"Total Revenue"},{k:"grossProfit",l:"Gross Profit"},{k:"netProfit",l:"Net Profit"},{k:"eps",l:"EPS"},{k:"dps",l:"DPS"}];
 let S={stocks:{...BASE_STOCKS},custom:{},deleted:{},data:{},status:{},errmsg:{},sel:"BHP",tab:"data",wts:{...DEF_WTS}};
 
-function saveLS(){try{localStorage.setItem(LS_KEY,JSON.stringify({custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,status:S.status,deleted:S.deleted||{}}));}catch(e){}}
-function loadLS(){try{const h=location.hash;if(h&&h.startsWith('#d=')){applyImport(JSON.parse(atob(decodeURIComponent(h.slice(3)))));history.replaceState(null,'',location.pathname);return;}const raw=localStorage.getItem(LS_KEY);if(raw)applyImport(JSON.parse(raw),true);}catch(e){}}
-function applyImport(d,quiet){if(d.custom){S.custom=d.custom||{};S.stocks={...BASE_STOCKS,...S.custom};}if(d.wts)S.wts={...DEF_WTS,...d.wts};if(d.sel&&S.stocks[d.sel])S.sel=d.sel;if(d.data)S.data={...d.data};if(d.deleted)S.deleted={...d.deleted};if(d.status){Object.keys(d.status).forEach(k=>{S.status[k]=d.status[k]==='ok'?'ok':'idle';});}if(!quiet)saveLS();}
-function exportJSON(){const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,status:S.status,at:new Date().toISOString()};const b=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='FA_Dashboard_sync.json';a.click();URL.revokeObjectURL(u);}
-function importFile(file){const r=new FileReader();r.onload=e=>{try{applyImport(JSON.parse(e.target.result));render();hideSync();showToast('✓ Imported successfully','green');}catch(x){showToast('Error importing file: '+x.message,'red');}};r.readAsText(file);}
-function genLink(){const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data};return location.href.split('#')[0]+'#d='+encodeURIComponent(btoa(JSON.stringify(d)));}
-function showToast(msg,col='cyan'){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 20px;border-radius:40px;font-size:12px;font-weight:600;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);border:1px solid rgba(0,228,255,0.4);color:var(--accent-cyan);font-family:Inter;pointer-events:none;transition:opacity .3s';document.body.appendChild(t);}const colors={green:'#00f5a0',red:'#ff5a7a',cyan:'#00e4ff'};t.style.color=colors[col]||colors.cyan;t.textContent=msg;t.style.opacity='1';clearTimeout(t._tid);t._tid=setTimeout(()=>t.style.opacity='0',3000);}
-const PRELOADED={BHP:{totalAsset:[54.2,51.9,55.7,81.5,null,null],cash:[14.9,12.4,13.9,13.3,null,null],totalDebt:[14.5,12.4,14.8,26.7,null,null],totalEquity:[26.4,28.0,29.7,32.4,null,null],revenue:[60.8,65.1,53.8,55.7,null,null],grossProfit:[36.2,40.5,28.3,28.5,null,null],netProfit:[11.3,30.9,12.9,7.9,null,null],eps:[2.21,6.05,2.55,1.55,null,null],dps:[3.01,5.43,1.70,1.09,null,null]},WDS:{totalAsset:[40.3,50.5,48.3,48.0,null,null],cash:[2.8,3.1,2.5,2.2,null,null],totalDebt:[7.9,15.2,12.8,12.0,null,null],totalEquity:[18.2,22.4,20.1,20.0,null,null],revenue:[10.0,13.9,12.3,12.5,null,null],grossProfit:[5.8,8.6,7.1,7.2,null,null],netProfit:[2.5,6.0,3.5,1.7,null,null],eps:[0.80,1.70,1.00,0.48,null,null],dps:[0.55,1.30,0.90,0.43,null,null]},BBRI:{totalAsset:[1635,1865,1965,2073,null,null],cash:[163,186,196,207,null,null],totalDebt:[1380,1570,1650,1730,null,null],totalEquity:[255,295,315,343,null,null],revenue:[135,150,165,187,null,null],grossProfit:[85,95,104,118,null,null],netProfit:[25,43,51,60,null,null],eps:[1019,1753,2086,2443,null,null],dps:[460,791,940,1100,null,null]},ADRO:{totalAsset:[80,100,85,92,null,null],cash:[10,20,15,16,null,null],totalDebt:[18,25,18,16,null,null],totalEquity:[58,72,62,68,null,null],revenue:[65,120,80,85,null,null],grossProfit:[24,55,35,38,null,null],netProfit:[8,30,15,16,null,null],eps:[256,960,480,510,null,null],dps:[130,480,240,255,null,null]},SMSM:{totalAsset:[2.6,2.8,3.0,3.2,null,null],cash:[0.9,1.0,1.1,1.2,null,null],totalDebt:[0.35,0.30,0.30,0.25,null,null],totalEquity:[2.0,2.2,2.4,2.6,null,null],revenue:[2.5,2.8,3.2,3.4,null,null],grossProfit:[0.82,0.92,1.05,1.12,null,null],netProfit:[0.43,0.51,0.58,0.62,null,null],eps:[183,217,247,264,null,null],dps:[138,164,186,198,null,null]},UNTR:{totalAsset:[118,130,138,145,null,null],cash:[16,18,20,22,null,null],totalDebt:[23,20,18,16,null,null],totalEquity:[78,88,97,105,null,null],revenue:[108,125,130,135,null,null],grossProfit:[25,30,32,33,null,null],netProfit:[13,16,17,18,null,null],eps:[3510,4320,4590,4860,null,null],dps:[1580,1944,2065,2187,null,null]},ITMG:{totalAsset:[19,26,20,21,null,null],cash:[6,12,8,7,null,null],totalDebt:[0.8,1.0,0.8,0.7,null,null],totalEquity:[16,22,17,18,null,null],revenue:[36,65,42,45,null,null],grossProfit:[10,25,14,13,null,null],netProfit:[5,16,8,7,null,null],eps:[4530,14493,7246,6344,null,null],dps:[4000,13000,6500,5710,null,null]},POWR:{totalAsset:[9.5,10.0,10.5,11.0,null,null],cash:[1.3,1.4,1.5,1.6,null,null],totalDebt:[2.0,1.8,1.6,1.4,null,null],totalEquity:[5.8,6.5,7.2,7.8,null,null],revenue:[5.0,5.2,5.5,5.8,null,null],grossProfit:[2.0,2.1,2.2,2.3,null,null],netProfit:[0.95,1.00,1.10,1.15,null,null],eps:[95,100,110,115,null,null],dps:[57,60,66,69,null,null]},MPMX:{totalAsset:[9.0,9.5,10.0,10.5,null,null],cash:[1.5,1.6,1.7,1.8,null,null],totalDebt:[2.4,2.2,2.0,1.8,null,null],totalEquity:[4.8,5.3,5.8,6.3,null,null],revenue:[12.5,13.0,13.5,14.0,null,null],grossProfit:[2.1,2.2,2.3,2.4,null,null],netProfit:[0.40,0.45,0.50,0.55,null,null],eps:[93,105,116,128,null,null],dps:[40,45,50,55,null,null]},BTPS:{totalAsset:[24,27,30,32,null,null],cash:[2.4,2.7,3.0,3.2,null,null],totalDebt:[19,21,23.5,25,null,null],totalEquity:[5.0,6.0,6.5,7.0,null,null],revenue:[7.0,8.0,9.0,9.5,null,null],grossProfit:[4.2,4.8,5.4,5.7,null,null],netProfit:[1.2,1.8,2.0,2.1,null,null],eps:[413,557,618,650,null,null],dps:[124,167,185,195,null,null]},DMAS:{totalAsset:[7.0,7.5,8.0,8.5,null,null],cash:[1.8,2.0,2.2,2.4,null,null],totalDebt:[1.0,0.9,0.8,0.7,null,null],totalEquity:[5.5,6.0,6.5,7.0,null,null],revenue:[1.8,2.2,2.8,2.5,null,null],grossProfit:[1.2,1.6,2.0,1.8,null,null],netProfit:[0.7,0.9,1.1,1.0,null,null],eps:[35,45,55,50,null,null],dps:[24,32,38,35,null,null]},SPTO:{totalAsset:[2.6,2.7,2.8,2.9,null,null],cash:[0.32,0.35,0.38,0.40,null,null],totalDebt:[0.70,0.65,0.60,0.55,null,null],totalEquity:[1.55,1.70,1.85,1.98,null,null],revenue:[1.9,2.0,2.1,2.2,null,null],grossProfit:[0.69,0.73,0.77,0.80,null,null],netProfit:[0.25,0.27,0.30,0.32,null,null],eps:[278,300,333,356,null,null],dps:[139,150,167,178,null,null]},TSM:{totalAsset:[133,175,206,209,248,null],cash:[40,52,54,57,87,null],totalDebt:[20,30,38,40,33,null],totalEquity:[71,92,107,134,170,null],revenue:[57,77,70,91,119,null],grossProfit:[30,42,37,51,71,null],netProfit:[22,31,27,37,53,null],eps:[4.18,6.14,5.07,7.09,10.36,null],dps:[1.72,1.72,1.76,2.19,2.82,null]},V:{totalAsset:[82.9,85.5,90.5,94.5,92.6,null],cash:[15.7,16.3,11.9,11.6,17.2,null],totalDebt:[22.4,20.5,20.5,20.8,25.2,null],totalEquity:[35.6,38.7,38.3,38.0,32.9,null],revenue:[24.1,29.3,32.7,35.9,40.0,null],grossProfit:[20.1,24.9,28.1,31.4,35.1,null],netProfit:[12.3,15.0,17.3,19.7,20.1,null],eps:[5.74,7.12,8.23,9.74,10.22,null],dps:[1.28,1.50,1.80,2.08,2.34,null]},MA:{totalAsset:[43.0,46.4,46.8,46.5,47.0,null],cash:[8.0,7.8,7.4,8.0,8.5,null],totalDebt:[14.2,15.7,15.8,16.6,17.0,null],totalEquity:[6.0,5.5,5.3,5.0,5.5,null],revenue:[18.9,22.2,25.1,28.2,31.0,null],grossProfit:[13.3,16.0,18.4,21.1,23.5,null],netProfit:[8.7,10.5,11.2,12.9,14.6,null],eps:[8.76,10.61,11.44,13.89,15.60,null],dps:[1.76,2.00,2.28,2.64,2.97,null]},"PBR-A":{totalAsset:[247,280,279,264,null,null],cash:[11,18,16,15,null,null],totalDebt:[87,80,69,62,null,null],totalEquity:[96,124,128,118,null,null],revenue:[77,115,90,88,null,null],grossProfit:[38,68,48,44,null,null],netProfit:[9,37,24,19,null,null],eps:[1.30,5.35,3.46,2.74,null,null],dps:[0.60,3.80,2.60,2.10,null,null]},MSFT:{totalAsset:[333.8,364.8,411.9,484.3,523.0,null],cash:[130.3,104.8,111.3,80.0,71.6,null],totalDebt:[67.8,61.3,69.9,97.9,97.2,null],totalEquity:[141.9,166.5,166.5,233.0,287.0,null],revenue:[168.1,198.3,211.9,245.1,279.6,null],grossProfit:[115.9,135.6,146.1,171.0,195.1,null],netProfit:[61.3,72.7,72.4,88.1,106.0,null],eps:[8.12,9.65,9.72,11.45,14.16,null],dps:[2.24,2.48,2.72,3.00,3.32,null]},AMZN:{totalAsset:[420.5,462.7,527.9,527.5,624.9,null],cash:[96.1,70.0,73.9,86.8,101.2,null],totalDebt:[116.4,155.6,161.5,164.8,173.0,null],totalEquity:[138.2,146.0,143.3,171.3,236.9,null],revenue:[469.8,514.0,524.9,637.0,760.0,null],grossProfit:[197.5,226.2,240.6,283.0,351.0,null],netProfit:[33.4,-2.7,20.1,59.2,64.0,null],eps:[64.81,-5.36,3.99,11.53,12.10,null],dps:[null,null,null,null,null,null]},AAPL:{totalAsset:[351.0,352.8,352.6,353.5,364.9,null],cash:[69.0,48.3,55.2,65.2,53.8,null],totalDebt:[136.5,132.5,123.9,128.5,97.3,null],totalEquity:[63.1,50.7,62.1,74.2,56.9,null],revenue:[365.8,394.3,383.3,391.0,436.0,null],grossProfit:[152.8,170.8,169.1,180.7,203.0,null],netProfit:[94.7,99.8,97.0,101.0,94.0,null],eps:[5.61,6.11,6.13,6.43,6.08,null],dps:[0.85,0.91,0.94,0.97,1.00,null]},META:{totalAsset:[165.9,185.7,185.7,229.6,276.1,null],cash:[47.9,40.7,31.8,49.3,77.8,null],totalDebt:[10.2,27.5,18.4,28.8,28.8,null],totalEquity:[124.9,125.1,128.3,153.2,182.6,null],revenue:[117.9,116.6,134.9,185.0,235.0,null],grossProfit:[100.1,97.3,113.0,156.9,200.0,null],netProfit:[39.4,23.2,39.1,62.4,78.0,null],eps:[13.77,8.59,14.87,23.86,31.00,null],dps:[null,null,null,null,2.00,null]},NVDA:{totalAsset:[28.8,44.2,41.2,65.7,111.6,null],cash:[11.6,19.3,13.3,25.0,43.2,null],totalDebt:[6.9,11.7,11.0,10.0,8.5,null],totalEquity:[16.9,26.1,26.1,42.6,65.7,null],revenue:[16.7,26.9,27.0,60.9,130.5,null],grossProfit:[10.4,17.5,15.4,42.0,97.9,null],netProfit:[4.3,9.8,4.4,29.8,72.9,null],eps:[1.73,3.85,1.74,11.93,29.24,null],dps:[0.016,0.016,0.016,0.016,0.01,null]},GOOG:{totalAsset:[359.3,391.4,402.0,430.3,450.0,null],cash:[142.0,139.6,115.0,108.1,95.7,null],totalDebt:[14.8,15.1,14.7,14.7,15.0,null],totalEquity:[251.6,256.1,272.3,314.1,360.0,null],revenue:[257.6,282.8,307.4,350.0,385.0,null],grossProfit:[146.7,156.6,174.1,208.1,237.0,null],netProfit:[76.0,60.0,73.8,100.1,115.0,null],eps:[5.61,4.56,5.80,7.79,9.27,null],dps:[null,null,null,null,null,null]},BKNG:{totalAsset:[25.5,26.8,30.7,31.8,33.0,null],cash:[11.2,12.4,15.1,16.8,17.5,null],totalDebt:[15.4,13.8,14.0,12.0,11.0,null],totalEquity:[0.5,1.4,4.0,7.0,9.0,null],revenue:[11.0,17.1,21.4,23.7,26.0,null],grossProfit:[9.7,15.2,19.0,21.2,23.1,null],netProfit:[1.1,3.0,4.3,4.8,6.0,null],eps:[25.0,72.0,110.0,130.0,165.0,null],dps:[null,null,null,null,null,null]},NAB:{totalAsset:[null,null,null,null,null,null],cash:[null,null,null,null,null,null],totalDebt:[null,null,null,null,null,null],totalEquity:[null,null,null,null,null,null],revenue:[null,null,null,null,null,null],grossProfit:[null,null,null,null,null,null],netProfit:[null,null,null,null,null,null],eps:[null,null,null,null,null,null],dps:[null,null,null,null,null,null]},CVX:{totalAsset:[null,null,null,null,null,null],cash:[null,null,null,null,null,null],totalDebt:[null,null,null,null,null,null],totalEquity:[null,null,null,null,null,null],revenue:[null,null,null,null,null,null],grossProfit:[null,null,null,null,null,null],netProfit:[null,null,null,null,null,null],eps:[null,null,null,null,null,null],dps:[null,null,null,null,null,null]},AXP:{totalAsset:[null,null,null,null,null,null],cash:[null,null,null,null,null,null],totalDebt:[null,null,null,null,null,null],totalEquity:[null,null,null,null,null,null],revenue:[null,null,null,null,null,null],grossProfit:[null,null,null,null,null,null],netProfit:[null,null,null,null,null,null],eps:[null,null,null,null,null,null],dps:[null,null,null,null,null,null]},BAC:{totalAsset:[null,null,null,null,null,null],cash:[null,null,null,null,null,null],totalDebt:[null,null,null,null,null,null],totalEquity:[null,null,null,null,null,null],revenue:[null,null,null,null,null,null],grossProfit:[null,null,null,null,null,null],netProfit:[null,null,null,null,null,null],eps:[null,null,null,null,null,null],dps:[null,null,null,null,null,null]}};
+function saveLS(){
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify({custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,status:S.status,deleted:S.deleted||{}}));
+  }catch(e){}
+}
+function loadLS(){
+  try{
+    const h=location.hash;
+    if(h&&h.startsWith('#d=')){
+      applyImport(JSON.parse(atob(decodeURIComponent(h.slice(3)))));
+      history.replaceState(null,'',location.pathname);
+      return;
+    }
+    const raw=localStorage.getItem(LS_KEY);
+    if(raw) applyImport(JSON.parse(raw),true);
+  }catch(e){}
+}
+function applyImport(d,quiet){
+  if(d.custom){
+    S.custom=d.custom||{};
+    S.stocks={...BASE_STOCKS,...S.custom};
+  }
+  if(d.wts) S.wts={...DEF_WTS,...d.wts};
+  if(d.sel&&S.stocks[d.sel]) S.sel=d.sel;
+  if(d.data) S.data={...d.data};
+  if(d.deleted) S.deleted={...d.deleted};
+  if(d.status){
+    Object.keys(d.status).forEach(k=>{S.status[k]=d.status[k]==='ok'?'ok':'idle';});
+  }
+  if(!quiet) saveLS();
+}
+function exportJSON(){
+  const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,status:S.status,at:new Date().toISOString()};
+  const b=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});
+  const u=URL.createObjectURL(b),a=document.createElement('a');
+  a.href=u;a.download='FA_Dashboard_sync.json';a.click();URL.revokeObjectURL(u);
+}
+function importFile(file){
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      applyImport(JSON.parse(e.target.result));
+      render();hideSync();
+      showToast('✓ Imported successfully','green');
+    }catch(x){
+      showToast('Error importing file: '+x.message,'red');
+    }
+  };
+  r.readAsText(file);
+}
+function genLink(){
+  const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data};
+  return location.href.split('#')[0]+'#d='+encodeURIComponent(btoa(JSON.stringify(d)));
+}
+function showToast(msg,col='cyan'){
+  let t=document.getElementById('toast');
+  if(!t){
+    t=document.createElement('div');
+    t.id='toast';
+    t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 20px;border-radius:40px;font-size:12px;font-weight:600;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);border:1px solid rgba(0,228,255,0.4);color:var(--accent-cyan);font-family:Inter;pointer-events:none;transition:opacity .3s';
+    document.body.appendChild(t);
+  }
+  const colors={green:'#00f5a0',red:'#ff5a7a',cyan:'#00e4ff'};
+  t.style.color=colors[col]||colors.cyan;
+  t.textContent=msg;
+  t.style.opacity='1';
+  clearTimeout(t._tid);
+  t._tid=setTimeout(()=>t.style.opacity='0',3000);
+}
+const PRELOADED={
+  BHP:{totalAsset:[54.2,51.9,55.7,81.5,null,null],cash:[14.9,12.4,13.9,13.3,null,null],totalDebt:[14.5,12.4,14.8,26.7,null,null],totalEquity:[26.4,28.0,29.7,32.4,null,null],revenue:[60.8,65.1,53.8,55.7,null,null],grossProfit:[36.2,40.5,28.3,28.5,null,null],netProfit:[11.3,30.9,12.9,7.9,null,null],eps:[2.21,6.05,2.55,1.55,null,null],dps:[3.01,5.43,1.70,1.09,null,null]},
+  WDS:{totalAsset:[40.3,50.5,48.3,48.0,null,null],cash:[2.8,3.1,2.5,2.2,null,null],totalDebt:[7.9,15.2,12.8,12.0,null,null],totalEquity:[18.2,22.4,20.1,20.0,null,null],revenue:[10.0,13.9,12.3,12.5,null,null],grossProfit:[5.8,8.6,7.1,7.2,null,null],netProfit:[2.5,6.0,3.5,1.7,null,null],eps:[0.80,1.70,1.00,0.48,null,null],dps:[0.55,1.30,0.90,0.43,null,null]},
+  BBRI:{totalAsset:[1635,1865,1965,2073,null,null],cash:[163,186,196,207,null,null],totalDebt:[1380,1570,1650,1730,null,null],totalEquity:[255,295,315,343,null,null],revenue:[135,150,165,187,null,null],grossProfit:[85,95,104,118,null,null],netProfit:[25,43,51,60,null,null],eps:[1019,1753,2086,2443,null,null],dps:[460,791,940,1100,null,null]},
+  ADRO:{totalAsset:[80,100,85,92,null,null],cash:[10,20,15,16,null,null],totalDebt:[18,25,18,16,null,null],totalEquity:[58,72,62,68,null,null],revenue:[65,120,80,85,null,null],grossProfit:[24,55,35,38,null,null],netProfit:[8,30,15,16,null,null],eps:[256,960,480,510,null,null],dps:[130,480,240,255,null,null]},
+  SMSM:{totalAsset:[2.6,2.8,3.0,3.2,null,null],cash:[0.9,1.0,1.1,1.2,null,null],totalDebt:[0.35,0.30,0.30,0.25,null,null],totalEquity:[2.0,2.2,2.4,2.6,null,null],revenue:[2.5,2.8,3.2,3.4,null,null],grossProfit:[0.82,0.92,1.05,1.12,null,null],netProfit:[0.43,0.51,0.58,0.62,null,null],eps:[183,217,247,264,null,null],dps:[138,164,186,198,null,null]},
+  UNTR:{totalAsset:[118,130,138,145,null,null],cash:[16,18,20,22,null,null],totalDebt:[23,20,18,16,null,null],totalEquity:[78,88,97,105,null,null],revenue:[108,125,130,135,null,null],grossProfit:[25,30,32,33,null,null],netProfit:[13,16,17,18,null,null],eps:[3510,4320,4590,4860,null,null],dps:[1580,1944,2065,2187,null,null]},
+  ITMG:{totalAsset:[19,26,20,21,null,null],cash:[6,12,8,7,null,null],totalDebt:[0.8,1.0,0.8,0.7,null,null],totalEquity:[16,22,17,18,null,null],revenue:[36,65,42,45,null,null],grossProfit:[10,25,14,13,null,null],netProfit:[5,16,8,7,null,null],eps:[4530,14493,7246,6344,null,null],dps:[4000,13000,6500,5710,null,null]},
+  POWR:{totalAsset:[9.5,10.0,10.5,11.0,null,null],cash:[1.3,1.4,1.5,1.6,null,null],totalDebt:[2.0,1.8,1.6,1.4,null,null],totalEquity:[5.8,6.5,7.2,7.8,null,null],revenue:[5.0,5.2,5.5,5.8,null,null],grossProfit:[2.0,2.1,2.2,2.3,null,null],netProfit:[0.95,1.00,1.10,1.15,null,null],eps:[95,100,110,115,null,null],dps:[57,60,66,69,null,null]},
+  MPMX:{totalAsset:[9.0,9.5,10.0,10.5,null,null],cash:[1.5,1.6,1.7,1.8,null,null],totalDebt:[2.4,2.2,2.0,1.8,null,null],totalEquity:[4.8,5.3,5.8,6.3,null,null],revenue:[12.5,13.0,13.5,14.0,null,null],grossProfit:[2.1,2.2,2.3,2.4,null,null],netProfit:[0.40,0.45,0.50,0.55,null,null],eps:[93,105,116,128,null,null],dps:[40,45,50,55,null,null]},
+  BTPS:{totalAsset:[24,27,30,32,null,null],cash:[2.4,2.7,3.0,3.2,null,null],totalDebt:[19,21,23.5,25,null,null],totalEquity:[5.0,6.0,6.5,7.0,null,null],revenue:[7.0,8.0,9.0,9.5,null,null],grossProfit:[4.2,4.8,5.4,5.7,null,null],netProfit:[1.2,1.8,2.0,2.1,null,null],eps:[413,557,618,650,null,null],dps:[124,167,185,195,null,null]},
+  DMAS:{totalAsset:[7.0,7.5,8.0,8.5,null,null],cash:[1.8,2.0,2.2,2.4,null,null],totalDebt:[1.0,0.9,0.8,0.7,null,null],totalEquity:[5.5,6.0,6.5,7.0,null,null],revenue:[1.8,2.2,2.8,2.5,null,null],grossProfit:[1.2,1.6,2.0,1.8,null,null],netProfit:[0.7,0.9,1.1,1.0,null,null],eps:[35,45,55,50,null,null],dps:[24,32,38,35,null,null]},
+  SPTO:{totalAsset:[2.6,2.7,2.8,2.9,null,null],cash:[0.32,0.35,0.38,0.40,null,null],totalDebt:[0.70,0.65,0.60,0.55,null,null],totalEquity:[1.55,1.70,1.85,1.98,null,null],revenue:[1.9,2.0,2.1,2.2,null,null],grossProfit:[0.69,0.73,0.77,0.80,null,null],netProfit:[0.25,0.27,0.30,0.32,null,null],eps:[278,300,333,356,null,null],dps:[139,150,167,178,null,null]},
+  TSM:{totalAsset:[133,175,206,209,248,null],cash:[40,52,54,57,87,null],totalDebt:[20,30,38,40,33,null],totalEquity:[71,92,107,134,170,null],revenue:[57,77,70,91,119,null],grossProfit:[30,42,37,51,71,null],netProfit:[22,31,27,37,53,null],eps:[4.18,6.14,5.07,7.09,10.36,null],dps:[1.72,1.72,1.76,2.19,2.82,null]},
+  V:{totalAsset:[82.9,85.5,90.5,94.5,92.6,null],cash:[15.7,16.3,11.9,11.6,17.2,null],totalDebt:[22.4,20.5,20.5,20.8,25.2,null],totalEquity:[35.6,38.7,38.3,38.0,32.9,null],revenue:[24.1,29.3,32.7,35.9,40.0,null],grossProfit:[20.1,24.9,28.1,31.4,35.1,null],netProfit:[12.3,15.0,17.3,19.7,20.1,null],eps:[5.74,7.12,8.23,9.74,10.22,null],dps:[1.28,1.50,1.80,2.08,2.34,null]},
+  MA:{totalAsset:[43.0,46.4,46.8,46.5,47.0,null],cash:[8.0,7.8,7.4,8.0,8.5,null],totalDebt:[14.2,15.7,15.8,16.6,17.0,null],totalEquity:[6.0,5.5,5.3,5.0,5.5,null],revenue:[18.9,22.2,25.1,28.2,31.0,null],grossProfit:[13.3,16.0,18.4,21.1,23.5,null],netProfit:[8.7,10.5,11.2,12.9,14.6,null],eps:[8.76,10.61,11.44,13.89,15.60,null],dps:[1.76,2.00,2.28,2.64,2.97,null]},
+  "PBR-A":{totalAsset:[247,280,279,264,null,null],cash:[11,18,16,15,null,null],totalDebt:[87,80,69,62,null,null],totalEquity:[96,124,128,118,null,null],revenue:[77,115,90,88,null,null],grossProfit:[38,68,48,44,null,null],netProfit:[9,37,24,19,null,null],eps:[1.30,5.35,3.46,2.74,null,null],dps:[0.60,3.80,2.60,2.10,null,null]},
+  MSFT:{totalAsset:[333.8,364.8,411.9,484.3,523.0,null],cash:[130.3,104.8,111.3,80.0,71.6,null],totalDebt:[67.8,61.3,69.9,97.9,97.2,null],totalEquity:[141.9,166.5,166.5,233.0,287.0,null],revenue:[168.1,198.3,211.9,245.1,279.6,null],grossProfit:[115.9,135.6,146.1,171.0,195.1,null],netProfit:[61.3,72.7,72.4,88.1,106.0,null],eps:[8.12,9.65,9.72,11.45,14.16,null],dps:[2.24,2.48,2.72,3.00,3.32,null]},
+  AMZN:{totalAsset:[420.5,462.7,527.9,527.5,624.9,null],cash:[96.1,70.0,73.9,86.8,101.2,null],totalDebt:[116.4,155.6,161.5,164.8,173.0,null],totalEquity:[138.2,146.0,143.3,171.3,236.9,null],revenue:[469.8,514.0,524.9,637.0,760.0,null],grossProfit:[197.5,226.2,240.6,283.0,351.0,null],netProfit:[33.4,-2.7,20.1,59.2,64.0,null],eps:[64.81,-5.36,3.99,11.53,12.10,null],dps:[null,null,null,null,null,null]},
+  AAPL:{totalAsset:[351.0,352.8,352.6,353.5,364.9,null],cash:[69.0,48.3,55.2,65.2,53.8,null],totalDebt:[136.5,132.5,123.9,128.5,97.3,null],totalEquity:[63.1,50.7,62.1,74.2,56.9,null],revenue:[365.8,394.3,383.3,391.0,436.0,null],grossProfit:[152.8,170.8,169.1,180.7,203.0,null],netProfit:[94.7,99.8,97.0,101.0,94.0,null],eps:[5.61,6.11,6.13,6.43,6.08,null],dps:[0.85,0.91,0.94,0.97,1.00,null]},
+  META:{totalAsset:[165.9,185.7,185.7,229.6,276.1,null],cash:[47.9,40.7,31.8,49.3,77.8,null],totalDebt:[10.2,27.5,18.4,28.8,28.8,null],totalEquity:[124.9,125.1,128.3,153.2,182.6,null],revenue:[117.9,116.6,134.9,185.0,235.0,null],grossProfit:[100.1,97.3,113.0,156.9,200.0,null],netProfit:[39.4,23.2,39.1,62.4,78.0,null],eps:[13.77,8.59,14.87,23.86,31.00,null],dps:[null,null,null,null,2.00,null]},
+  NVDA:{totalAsset:[28.8,44.2,41.2,65.7,111.6,null],cash:[11.6,19.3,13.3,25.0,43.2,null],totalDebt:[6.9,11.7,11.0,10.0,8.5,null],totalEquity:[16.9,26.1,26.1,42.6,65.7,null],revenue:[16.7,26.9,27.0,60.9,130.5,null],grossProfit:[10.4,17.5,15.4,42.0,97.9,null],netProfit:[4.3,9.8,4.4,29.8,72.9,null],eps:[1.73,3.85,1.74,11.93,29.24,null],dps:[0.016,0.016,0.016,0.016,0.01,null]},
+  GOOG:{totalAsset:[359.3,391.4,402.0,430.3,450.0,null],cash:[142.0,139.6,115.0,108.1,95.7,null],totalDebt:[14.8,15.1,14.7,14.7,15.0,null],totalEquity:[251.6,256.1,272.3,314.1,360.0,null],revenue:[257.6,282.8,307.4,350.0,385.0,null],grossProfit:[146.7,156.6,174.1,208.1,237.0,null],netProfit:[76.0,60.0,73.8,100.1,115.0,null],eps:[5.61,4.56,5.80,7.79,9.27,null],dps:[null,null,null,null,null,null]},
+  BKNG:{totalAsset:[25.5,26.8,30.7,31.8,33.0,null],cash:[11.2,12.4,15.1,16.8,17.5,null],totalDebt:[15.4,13.8,14.0,12.0,11.0,null],totalEquity:[0.5,1.4,4.0,7.0,9.0,null],revenue:[11.0,17.1,21.4,23.7,26.0,null],grossProfit:[9.7,15.2,19.0,21.2,23.1,null],netProfit:[1.1,3.0,4.3,4.8,6.0,null],eps:[25.0,72.0,110.0,130.0,165.0,null],dps:[null,null,null,null,null,null]},
+  NAB:{totalAsset:[925.0,1005.0,1059.0,1080.0,1105.0,null],cash:[109.0,125.0,120.0,113.0,118.0,null],totalDebt:[172.0,185.0,198.0,214.0,220.0,null],totalEquity:[62.8,59.0,61.2,61.5,62.0,null],revenue:[16.7,18.3,20.6,20.6,21.1,null],grossProfit:[13.8,14.8,16.8,16.8,17.2,null],netProfit:[6.4,6.9,7.4,7.0,7.2,null],eps:[1.93,2.14,2.36,2.25,2.31,null],dps:[0.82,1.24,1.38,1.52,1.56,null]},
+  CVX:{totalAsset:[253.0,257.7,261.6,256.9,324.0,null],cash:[12.5,17.7,8.2,6.8,6.3,null],totalDebt:[28.0,23.3,20.8,24.5,40.8,null],totalEquity:[151.0,159.3,161.0,152.3,186.5,null],revenue:[140.0,235.7,196.9,193.4,184.4,null],grossProfit:[45.0,74.0,60.4,56.9,56.1,null],netProfit:[15.8,35.5,21.4,17.7,12.3,null],eps:[8.20,18.36,11.41,9.76,6.65,null],dps:[5.10,5.68,6.05,6.52,6.90,null]},
+  AXP:{totalAsset:[200.0,228.4,261.1,271.5,300.1,null],cash:[28.0,33.5,46.5,40.6,47.7,null],totalDebt:[38.0,43.9,49.2,51.1,57.8,null],totalEquity:[22.0,24.7,28.1,30.3,33.5,null],revenue:[45.0,52.9,60.5,65.9,72.2,null],grossProfit:[8.5,9.9,13.1,15.5,17.4,null],netProfit:[6.5,7.5,8.4,10.1,10.8,null],eps:[8.50,9.86,11.23,14.04,15.41,null],dps:[1.80,2.08,2.42,2.81,3.27,null]},
+  BAC:{totalAsset:[2900.0,3051.4,3180.2,3261.3,3411.7,null],cash:[220.0,237.5,341.4,296.5,239.3,null],totalDebt:[280.0,302.9,334.3,326.7,365.9,null],totalEquity:[260.0,273.2,291.6,294.0,303.2,null],revenue:[90.0,95.0,102.8,105.9,113.1,null],grossProfit:[48.0,52.5,56.9,56.1,60.1,null],netProfit:[26.0,27.5,26.3,27.0,30.5,null],eps:[3.10,3.21,3.10,3.25,3.86,null],dps:[0.90,1.06,1.13,1.21,1.27,null]},
+};
 
-function initPreloadedData(){const ts=Date.now();for(const sym in BASE_STOCKS){if(PRELOADED[sym]&&(!S.data[sym]||S.data[sym].source==='built-in')){S.data[sym]={...PRELOADED[sym],fetchedAt:ts,source:'built-in',ticker:yahooTicker(sym,BASE_STOCKS[sym].exchange)};S.status[sym]='ok';}else if(!PRELOADED[sym]&&!S.data[sym]){const emptyArr=Array(N_YEARS).fill(null);S.data[sym]={totalAsset:emptyArr.slice(),cash:emptyArr.slice(),totalDebt:emptyArr.slice(),totalEquity:emptyArr.slice(),revenue:emptyArr.slice(),grossProfit:emptyArr.slice(),netProfit:emptyArr.slice(),eps:emptyArr.slice(),dps:emptyArr.slice(),fetchedAt:ts,source:'built-in',ticker:yahooTicker(sym,BASE_STOCKS[sym].exchange)};S.status[sym]='idle';}}}
-function yahooTicker(symbol,exchange){if(exchange==='ASX')return symbol+'.AX';if(exchange==='IDX')return symbol+'.JK';return symbol;}
+function initPreloadedData(){
+  const ts=Date.now();
+  for(const sym in BASE_STOCKS){
+    if(PRELOADED[sym]&&(!S.data[sym]||S.data[sym].source==='built-in')){
+      S.data[sym]={...PRELOADED[sym],fetchedAt:ts,source:'built-in',ticker:yahooTicker(sym,BASE_STOCKS[sym].exchange)};
+      S.status[sym]='ok';
+    }else if(!PRELOADED[sym]&&!S.data[sym]){
+      const emptyArr=Array(N_YEARS).fill(null);
+      S.data[sym]={totalAsset:emptyArr.slice(),cash:emptyArr.slice(),totalDebt:emptyArr.slice(),totalEquity:emptyArr.slice(),revenue:emptyArr.slice(),grossProfit:emptyArr.slice(),netProfit:emptyArr.slice(),eps:emptyArr.slice(),dps:emptyArr.slice(),fetchedAt:ts,source:'built-in',ticker:yahooTicker(sym,BASE_STOCKS[sym].exchange)};
+      S.status[sym]='idle';
+    }
+  }
+}
+function yahooTicker(symbol,exchange){
+  if(exchange==='ASX') return symbol+'.AX';
+  if(exchange==='IDX') return symbol+'.JK';
+  return symbol;
+}
 const isOK=v=>v!==null&&v!==undefined&&isFinite(v)&&!isNaN(v);
 const avg=a=>{const v=a.filter(isOK);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
 const N2=(v,d=2)=>isOK(v)?Number(v).toFixed(d):'N/A';
@@ -370,54 +496,539 @@ function yearColHeader(sym, yr) {
   const asOf = ann.asOf ? ` ${ann.asOf.slice(5)}` : '';
   return `<th class="tc" style="white-space:nowrap;color:#ffaa44">${yr}<br><span style="font-size:8px;">${ann.label}${asOf}</span></th>`;
 }
-function srcBar(sym,st){const d=S.data[sym];const isCustom=!!S.custom[sym];const ticker=d?.ticker||yahooTicker(sym,st.exchange||'');const src=d?.source||'built-in';let badge,note;if(src==='yfinance'){const gen=d?.generated?new Date(d.generated).toLocaleDateString():'—';badge=`<span>✓ Auto-refreshed</span>`;note=`Live via yfinance · Refreshed: ${gen}`;}else{badge=`<span>📋 Built-in data</span>`;note=`Embedded from annual reports`;}return`<div class="src-bar"><div class="src-info">${badge}<div class="src-meta"><strong>${st.name}</strong> · ${st.exchange} · ${st.currency} · <code style="background:rgba(0,0,0,.2);padding:0 5px;border-radius:3px;font-size:9px">${ticker}</code><br>${note}</div></div><div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-xs" onclick="showManual('${sym}')">✏ Edit</button>${isCustom?`<button class="btn btn-red btn-xs" onclick="delStock('${sym}')">🗑 Remove</button>`:''}</div></div>`;}
-function tabData(sym,st){const m=calcM(sym);if(!m) return '<p>No data</p>';const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');const rows=MKEYS.map((r,i)=>{const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${N2(v,2)}</td>`;}).join('');const a=avg(m.Y.map(y=>y[r.k]));const cg=cagr(m.Y.map(y=>y[r.k]));return`<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="background:rgba(0,196,224,.04)">${N2(a,2)}</td><td class="tc num ${!isOK(cg)?'':cg>=0?'pos':'neg'}" style="background:rgba(0,217,126,.03)">${isOK(cg)?N2(cg,1)+'%':'N/A'}</td></tr>`;}).join('');return`${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead><tr><th style="min-width:150px">Metric (${st.currency})</th>${yH}<th class="tc" style="color:var(--accent-cyan);min-width:75px">Avg</th><th class="tc" style="color:var(--accent-green);min-width:70px">CAGR</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;}
-function tabRatios(sym, st){const m=calcM(sym);if(!m) return `<div class="state-box"><p>Unable to calculate ratios.</p></div>`;const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');const rDefs=[{k:'cashToAsset',l:'Cash / Total Asset %',p:true},{k:'debtToEquity',l:'Debt / Equity %',p:true},{k:'gpm',l:'Gross Profit Margin %',p:true},{k:'npm',l:'Net Profit Margin %',p:true},{k:'roa',l:'Return on Asset %',p:true},{k:'roe',l:'Return on Equity %',p:true},{k:'divPayout',l:'Dividend Payout %',p:true},{k:'valLow',l:'Valuation Low (DPS×10)',p:false},{k:'valHigh',l:'Valuation High (DPS×20)',p:false},{k:'retEps',l:'Retained EPS (EPS−DPS)',p:false}];const rows=rDefs.map((r,i)=>{const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${r.p?P1(v):N2(v,2)}</td>`;}).join('');const a=avg(m.Y.map(y=>y[r.k]));return`<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="background:rgba(0,196,224,.04);font-weight:600">${r.p?P1(a):N2(a,2)}</td></tr>`;}).join('');const cards=[{l:'Revenue CAGR',v:P1(m.cg.rev),c:'var(--accent-green)'},{l:'Net Profit CAGR',v:P1(m.cg.np),c:'var(--accent-green)'},{l:'EPS CAGR',v:P1(m.cg.eps),c:'var(--accent-green)'},{l:`EPS Increase (${LATEST_YEAR-YEARS[0]}yr)`,v:N2(m.epsInc,2),c:'var(--accent-cyan)'},{l:'Total Retained EPS',v:N2(m.totRet,2),c:'var(--accent-cyan)'},{l:'Buffett $1 Test',v:P1(m.buff),c:m.buff>=100?'var(--accent-gold)':m.buff>=50?'var(--accent-green)':'var(--accent-red)'},{l:'Avg ROE',v:P1(m.av.roe),c:'var(--accent-purple)'},{l:'Avg NP Margin',v:P1(m.av.npm),c:'var(--accent-blue)'}].map(c=>`<div class="card"><div class="card-l">${c.l}</div><div class="card-v" style="color:${c.c}">${c.v}</div></div>`).join('');return`${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead><tr><th style="min-width:200px">Ratio</th>${yH}<th class="tc" style="color:var(--accent-cyan);min-width:80px">Average</th></tr></thead><tbody>${rows}</tbody></table></div></div><div class="sec"><div class="sec-t">Key Metrics Summary</div><div class="cards">${cards}</div></div>`;}
-function tabChartHTML(sym,st){return`${srcBar(sym,st)}<div class="sec"><div class="chart-box"><div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Revenue · Gross Profit · Net Profit <strong style="color:var(--accent-cyan)">(bars, left axis)</strong> &nbsp;|&nbsp;GP Margin % · NP Margin % <strong style="color:var(--accent-cyan)">(lines, right axis)</strong></div><div id="chartWrap"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted)">Building chart…</div></div></div></div>`;}
+function srcBar(sym,st){
+  const d=S.data[sym];
+  const isCustom=!!S.custom[sym];
+  const ticker=d?.ticker||yahooTicker(sym,st.exchange||'');
+  const src=d?.source||'built-in';
+  let badge,note;
+  if(src==='yfinance'){
+    const gen=d?.generated?new Date(d.generated).toLocaleDateString():'—';
+    badge=`<span>✓ Auto-refreshed</span>`;
+    note=`Live via yfinance · Refreshed: ${gen}`;
+  }else{
+    badge=`<span>📋 Built-in data</span>`;
+    note=`Embedded from annual reports`;
+  }
+  return `<div class="src-bar"><div class="src-info">${badge}<div class="src-meta"><strong>${st.name}</strong> · ${st.exchange} · ${st.currency} · <code style="background:rgba(0,0,0,.2);padding:0 5px;border-radius:3px;font-size:9px">${ticker}</code><br>${note}</div></div><div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-xs" onclick="showManual('${sym}')">✏ Edit</button>${isCustom?`<button class="btn btn-red btn-xs" onclick="delStock('${sym}')">🗑 Remove</button>`:''}</div></div>`;
+}
+function tabData(sym,st){
+  const m=calcM(sym);
+  if(!m) return '<p>No data</p>';
+  const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');
+  const rows=MKEYS.map((r,i)=>{
+    const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${N2(v,2)}</td>`;}).join('');
+    const a=avg(m.Y.map(y=>y[r.k]));
+    const cg=cagr(m.Y.map(y=>y[r.k]));
+    return `<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="background:rgba(0,196,224,.04)">${N2(a,2)}</td><td class="tc num ${!isOK(cg)?'':cg>=0?'pos':'neg'}" style="background:rgba(0,217,126,.03)">${isOK(cg)?N2(cg,1)+'%':'N/A'}</td></tr>`;
+  }).join('');
+  return `${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead><tr><th style="min-width:150px">Metric (${st.currency})</th>${yH}<th class="tc" style="color:var(--accent-cyan);min-width:75px">Avg</th><th class="tc" style="color:var(--accent-green);min-width:70px">CAGR</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
+function tabRatios(sym, st){
+  const m=calcM(sym);
+  if(!m) return `<div class="state-box"><p>Unable to calculate ratios.</p></div>`;
+  const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');
+  const rDefs=[
+    {k:'cashToAsset',l:'Cash / Total Asset %',p:true},{k:'debtToEquity',l:'Debt / Equity %',p:true},
+    {k:'gpm',l:'Gross Profit Margin %',p:true},{k:'npm',l:'Net Profit Margin %',p:true},
+    {k:'roa',l:'Return on Asset %',p:true},{k:'roe',l:'Return on Equity %',p:true},
+    {k:'divPayout',l:'Dividend Payout %',p:true},{k:'valLow',l:'Valuation Low (DPS×10)',p:false},
+    {k:'valHigh',l:'Valuation High (DPS×20)',p:false},{k:'retEps',l:'Retained EPS (EPS−DPS)',p:false}
+  ];
+  const rows=rDefs.map((r,i)=>{
+    const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}">${r.p?P1(v):N2(v,2)}</td>`;}).join('');
+    const a=avg(m.Y.map(y=>y[r.k]));
+    return `<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="background:rgba(0,196,224,.04);font-weight:600">${r.p?P1(a):N2(a,2)}</td></tr>`;
+  }).join('');
+  const cards=[
+    {l:'Revenue CAGR',v:P1(m.cg.rev),c:'var(--accent-green)'},{l:'Net Profit CAGR',v:P1(m.cg.np),c:'var(--accent-green)'},
+    {l:'EPS CAGR',v:P1(m.cg.eps),c:'var(--accent-green)'},{l:`EPS Increase (${LATEST_YEAR-YEARS[0]}yr)`,v:N2(m.epsInc,2),c:'var(--accent-cyan)'},
+    {l:'Total Retained EPS',v:N2(m.totRet,2),c:'var(--accent-cyan)'},{l:'Buffett $1 Test',v:P1(m.buff),c:m.buff>=100?'var(--accent-gold)':m.buff>=50?'var(--accent-green)':'var(--accent-red)'},
+    {l:'Avg ROE',v:P1(m.av.roe),c:'var(--accent-purple)'},{l:'Avg NP Margin',v:P1(m.av.npm),c:'var(--accent-blue)'}
+  ].map(c=>`<div class="card"><div class="card-l">${c.l}</div><div class="card-v" style="color:${c.c}">${c.v}</div></div>`).join('');
+  return `${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead><tr><th style="min-width:200px">Ratio</th>${yH}<th class="tc" style="color:var(--accent-cyan);min-width:80px">Average</th></tr></thead><tbody>${rows}</tbody></table></div></div><div class="sec"><div class="sec-t">Key Metrics Summary</div><div class="cards">${cards}</div></div>`;
+}
+function tabChartHTML(sym,st){
+  return `${srcBar(sym,st)}<div class="sec"><div class="chart-box"><div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Revenue · Gross Profit · Net Profit <strong style="color:var(--accent-cyan)">(bars, left axis)</strong> &nbsp;|&nbsp;GP Margin % · NP Margin % <strong style="color:var(--accent-cyan)">(lines, right axis)</strong></div><div id="chartWrap"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted)">Building chart…</div></div></div></div>`;
+}
 let chartInst=null;
-function makeChart(symbol){const el=document.getElementById('chartWrap');if(!el)return;if(chartInst){try{chartInst.destroy();}catch(e){}chartInst=null;}el.innerHTML='<canvas id="mainC"></canvas>';const m=calcM(symbol);if(!m)return;const years=YEARS.map(String);const st=S.stocks[symbol];const safeArr=a=>a.map(v=>isOK(v)?v:0);chartInst=new Chart(document.getElementById('mainC').getContext('2d'),{data:{labels:years,datasets:[{type:'bar',label:'Revenue',data:safeArr(m.raw.rv),backgroundColor:'rgba(90,158,255,0.75)',borderRadius:4,yAxisID:'y'},{type:'bar',label:'Gross Profit',data:safeArr(m.raw.gp),backgroundColor:'rgba(0,245,160,0.7)',borderRadius:4,yAxisID:'y'},{type:'bar',label:'Net Profit',data:safeArr(m.raw.np),backgroundColor:'rgba(255,207,74,0.75)',borderRadius:4,yAxisID:'y'},{type:'line',label:'GP Margin %',data:m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.gp[i])?m.raw.gp[i]/v*100:null),borderColor:'#ff5a7a',borderWidth:2.5,pointRadius:4,fill:false,yAxisID:'y1',tension:.3,pointBackgroundColor:'#ff5a7a',spanGaps:true},{type:'line',label:'NP Margin %',data:m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.np[i])?m.raw.np[i]/v*100:null),borderColor:'#c0a5ff',borderWidth:2.5,pointRadius:4,fill:false,yAxisID:'y1',tension:.3,borderDash:[5,3],pointBackgroundColor:'#c0a5ff',spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#b8d0ea',font:{size:11,family:'Inter'},padding:14,usePointStyle:true}},tooltip:{backgroundColor:'rgba(15,25,35,0.97)',borderColor:'#00e4ff',borderWidth:1,titleColor:'#f0f6ff',bodyColor:'#b8d0ea'}},scales:{x:{ticks:{color:'#6c8db0',font:{family:'Inter'}},grid:{color:'rgba(72,110,144,0.3)'}},y:{position:'left',ticks:{color:'#6c8db0',font:{family:'Inter',size:10}},grid:{color:'rgba(72,110,144,0.3)'},title:{display:true,text:st.currency,color:'#5a9eff',font:{size:10,family:'Inter'}}},y1:{position:'right',ticks:{color:'#6c8db0',callback:v=>v?.toFixed(1)+'%',font:{family:'Inter'}},grid:{drawOnChartArea:false},title:{display:true,text:'Margin %',color:'#5a9eff',font:{size:10,family:'Inter'}}}}}});}
-function calcRanks(wts){const ks=Object.keys(S.stocks).filter(k=>S.status[k]==='ok');const N=ks.length;if(!N)return{ranks:{},scores:{},fr:{}};const allM=Object.fromEntries(ks.map(k=>[k,calcM(k)]));const ranks=Object.fromEntries(ks.map(k=>[k,{}]));CRITERIA.forEach(c=>{const vs=ks.map(k=>({k,v:allM[k]?.rm[c.key]}));vs.sort((a,b)=>{if(!isOK(a.v)&&!isOK(b.v))return 0;if(!isOK(a.v))return 1;if(!isOK(b.v))return -1;return c.hi?b.v-a.v:a.v-b.v;});vs.forEach((x,i)=>{ranks[x.k][c.key]=i+1;});});const scores=Object.fromEntries(ks.map(k=>{const ws=CRITERIA.reduce((s,c)=>s+(ranks[k][c.key]||N)*(wts[c.wKey]||0)/100,0);return[k,{ranks:ranks[k],ws,m:allM[k]}];}));const sorted=[...ks].sort((a,b)=>scores[a].ws-scores[b].ws);const fr=Object.fromEntries(sorted.map((k,i)=>[k,i+1]));return{ranks,scores,fr};}
-function tabRankings(){const {ranks,scores,fr}=calcRanks(S.wts);const rankedKs=Object.keys(fr);const unrankedKs=Object.keys(S.stocks).filter(k=>!fr[k]);const CAT_GROUPS=[{id:'risk',label:'🛡 Risk',color:'var(--accent-blue)',bg:'rgba(90,158,255,0.07)',border:'rgba(90,158,255,0.3)',keys:['cashToAsset','debtToEquity']},{id:'profgrow',label:'📈 Profitability & Growth',color:'var(--accent-green)',bg:'rgba(0,245,160,0.06)',border:'rgba(0,245,160,0.25)',keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr','dpsCagr']},{id:'mgmt',label:'🎯 Management Effectiveness',color:'var(--accent-purple)',bg:'rgba(192,165,255,0.06)',border:'rgba(192,165,255,0.25)',keys:['roeAvg','dividendPayout','buffettTest']}];const CRIT_MAP=Object.fromEntries(CRITERIA.map(c=>[c.wKey,c]));function catSubtotal(keys){return keys.reduce((s,k)=>s+(S.wts[k]||0),0);}const wCatBlocks=CAT_GROUPS.map(g=>{const sub=catSubtotal(g.keys);const cards=g.keys.map(wk=>{const c=CRIT_MAP[wk];const w=S.wts[wk]||0;const ov=w>5;return`<div class="wt-card${ov?' ov':''}" style="flex:1;min-width:100px"><div class="wt-l">${c.label}${ov?'<br><span style="font-size:9px;color:var(--accent-gold)">⚠ High weight</span>':''}</div><div class="wt-row"><input type="number" min="0" max="100" step="1" value="${w}" class="wt-inp${ov?' ov':''}" oninput="setWt('${wk}',this.value)"/><span class="wt-u">%</span></div></div>`;}).join('');return`<div style="border:1px solid ${g.border};background:${g.bg};border-radius:20px;padding:12px;flex:1;min-width:200px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:11px;font-weight:700;color:${g.color}">${g.label}</span><span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:${g.bg};border:1px solid ${g.border};color:${g.color}">${sub.toFixed(0)}%</span></div><div style="display:flex;flex-wrap:wrap;gap:8px">${cards}</div></div>`;}).join('');const riskSub=catSubtotal(CAT_GROUPS[0].keys),profSub=catSubtotal(CAT_GROUPS[1].keys),mgmtSub=catSubtotal(CAT_GROUPS[2].keys);const totalW=riskSub+profSub+mgmtSub,tot100=Math.abs(totalW-100)<0.01;const sumRow=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light)">${[{l:'🛡 Risk',v:riskSub,c:'var(--accent-blue)'},{l:'📈 Profitability & Growth',v:profSub,c:'var(--accent-green)'},{l:'🎯 Management Effectiveness',v:mgmtSub,c:'var(--accent-purple)'}].map(x=>`<div style="flex:1;min-width:120px;background:var(--bg-surface-1);border:1px solid var(--border-light);border-radius:16px;padding:8px 12px;display:flex;justify-content:space-between;"><span style="font-size:10px;font-weight:600">${x.l}</span><span style="font-size:15px;font-weight:700;color:${x.c}">${x.v.toFixed(0)}%</span></div>`).join('')}<div style="min-width:110px;padding:8px 14px;border-radius:16px;display:flex;justify-content:space-between;font-weight:700;background:${tot100?'rgba(0,245,160,0.15)':'rgba(255,90,122,0.15)'};border:1px solid ${tot100?'rgba(0,245,160,0.4)':'rgba(255,90,122,0.5)'};color:${tot100?'var(--accent-green)':'var(--accent-red)'}"><span style="font-size:10px;">Total</span>${totalW.toFixed(0)}% ${tot100?'✓':totalW>100?'▲':'▼'}</div></div>`;const thCrit=CRITERIA.map(c=>`<th class="tc" style="min-width:50px;font-size:9px">${c.label}<br><span style="color:var(--accent-cyan)">${S.wts[c.wKey]||0}%</span></th>`).join('');const rRows=rankedKs.map(k=>{const r=fr[k];const medal=r===1?'🥇':r===2?'🥈':r===3?'🥉':r===4?'🎖️':r===5?'🏅':r;const medalFontSize=r<=5?'18':'13';const rc=r===1?'fr1':r<=3?'fr2':r<=5?'fr4':r>Math.floor(rankedKs.length*0.65)?'frb':'';const rcells=CRITERIA.map(c=>{const rk=ranks[k][c.key]||'?';const mv=scores[k]?.m?.rm[c.key];const cls=rk===1?'rc1':rk===2?'rc2':rk===3?'rc3':rk===4?'rc4':rk===5?'rc5':rk<=Math.ceil(rankedKs.length/3)?'rc-g':'rc-m';return`<td class="tc" style="padding:5px 3px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span class="rc ${cls}">${rk}</span><span style="font-size:9px;color:var(--text-muted)">${isOK(mv)?N2(mv,1):'-'}</span></div></td>`;}).join('');return`<tr class="${rc}"><td class="tc" style="font-size:${medalFontSize}px;font-weight:900;padding:8px">${medal}</td><td style="padding:8px"><div style="font-weight:700">${k}</div><div style="font-size:10px;color:var(--text-muted)">${S.stocks[k].name}</div></td>${rcells}<td class="tc num" style="font-weight:700">${scores[k].ws.toFixed(2)}</td></tr>`;}).join('');const uRows=unrankedKs.length?`<tr><td colspan="17" style="padding:10px;font-size:11px;color:var(--text-muted)">Not yet ranked (data not loaded): ${unrankedKs.map(k=>`<button class="btn btn-ghost btn-xs" onclick="selStock('${k}');setTab('data')">${k}</button>`).join('')}</td></tr>`:'';const sumKs=Object.keys(S.stocks).filter(k=>S.status[k]==='ok'),sumRows=sumKs.map((k,i)=>{const m=calcM(k);if(!m)return'';const vals=[m.rm.cashToAsset,m.rm.debtToEquity,m.rm.revenueCagr,m.rm.gpmAvg,m.rm.netProfitCagr,m.rm.npmAvg,m.rm.epsCagr,m.rm.roeAvg,m.rm.dividendPayout,m.rm.buffettTest];const cells=vals.map(v=>`<td class="tc num ${isOK(v)&&v>0?'pos':isOK(v)&&v<0?'neg':''}">${isOK(v)?N2(v,1):'N/A'}</td>`).join('');return`<tr class="${i%2?'ev':''}"><td style="font-weight:700;padding:6px 11px">${k}</td>${cells}</tr>`;}).join('');return`<div class="sec"><div class="sec-t">Scoring Weights</div><div class="wt-wrap" style="border:1px solid ${tot100?'rgba(0,245,160,0.3)':'var(--accent-red)'};background:${tot100?'rgba(0,245,160,0.02)':'rgba(255,90,122,0.04)'}"><div style="display:flex;gap:10px;flex-wrap:wrap">${wCatBlocks}</div>${sumRow}${!tot100?`<p class="err" style="margin-top:10px">⛔ Weights must sum to exactly 100%. Current total: ${totalW.toFixed(1)}%</p>`:''}</div></div><div class="sec"><div class="sec-t">Multi-Criteria Rankings · ${YEARS[0]}–${LATEST_YEAR} (completed) + ${CURRENT_YEAR} annualised</div><div class="tw"><table><thead><tr><th style="min-width:38px">Rank</th><th style="min-width:140px">Stock</th>${thCrit}<th class="tc" style="color:var(--accent-cyan);min-width:55px">Score</th></tr></thead><tbody>${rankedKs.length?rRows:'<tr><td colspan="13" style="padding:20px;text-align:center;color:var(--text-muted)">No ranked stocks yet — load data for stocks first</td></tr>'}${uRows}</tbody></table></div><p style="font-size:10px;color:var(--text-muted);margin-top:8px">Rank circles: 1=best per criterion. Score = weighted average rank — lower is better overall.</p></div>${sumKs.length?`<div class="sec"><div class="sec-t">Key Metrics Summary — All Loaded Stocks</div><div class="tw"><table><thead><tr><th>Stock</th><th class="tc">Cash/Asset%</th><th class="tc">D/E%</th><th class="tc">RevCAGR%</th><th class="tc">GPMgn%</th><th class="tc">NPCAGR%</th><th class="tc">NPMgn%</th><th class="tc">EPSCAGR%</th><th class="tc">ROE%</th><th class="tc">DivPay%</th><th class="tc">Buff$1%</th></tr></thead><tbody>${sumRows}</tbody></table></div></div>`:''}`;}
+function makeChart(symbol){
+  const el=document.getElementById('chartWrap');
+  if(!el)return;
+  if(chartInst){try{chartInst.destroy();}catch(e){}chartInst=null;}
+  el.innerHTML='<canvas id="mainC"></canvas>';
+  const m=calcM(symbol);
+  if(!m)return;
+  const years=YEARS.map(String);
+  const st=S.stocks[symbol];
+  const safeArr=a=>a.map(v=>isOK(v)?v:0);
+  chartInst=new Chart(document.getElementById('mainC').getContext('2d'),{
+    data:{labels:years,datasets:[
+      {type:'bar',label:'Revenue',data:safeArr(m.raw.rv),backgroundColor:'rgba(90,158,255,0.75)',borderRadius:4,yAxisID:'y'},
+      {type:'bar',label:'Gross Profit',data:safeArr(m.raw.gp),backgroundColor:'rgba(0,245,160,0.7)',borderRadius:4,yAxisID:'y'},
+      {type:'bar',label:'Net Profit',data:safeArr(m.raw.np),backgroundColor:'rgba(255,207,74,0.75)',borderRadius:4,yAxisID:'y'},
+      {type:'line',label:'GP Margin %',data:m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.gp[i])?m.raw.gp[i]/v*100:null),borderColor:'#ff5a7a',borderWidth:2.5,pointRadius:4,fill:false,yAxisID:'y1',tension:.3,pointBackgroundColor:'#ff5a7a',spanGaps:true},
+      {type:'line',label:'NP Margin %',data:m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.np[i])?m.raw.np[i]/v*100:null),borderColor:'#c0a5ff',borderWidth:2.5,pointRadius:4,fill:false,yAxisID:'y1',tension:.3,borderDash:[5,3],pointBackgroundColor:'#c0a5ff',spanGaps:true}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#b8d0ea',font:{size:11,family:'Inter'},padding:14,usePointStyle:true}},tooltip:{backgroundColor:'rgba(15,25,35,0.97)',borderColor:'#00e4ff',borderWidth:1,titleColor:'#f0f6ff',bodyColor:'#b8d0ea'}},scales:{x:{ticks:{color:'#6c8db0',font:{family:'Inter'}},grid:{color:'rgba(72,110,144,0.3)'}},y:{position:'left',ticks:{color:'#6c8db0',font:{family:'Inter',size:10}},grid:{color:'rgba(72,110,144,0.3)'},title:{display:true,text:st.currency,color:'#5a9eff',font:{size:10,family:'Inter'}}},y1:{position:'right',ticks:{color:'#6c8db0',callback:v=>v?.toFixed(1)+'%',font:{family:'Inter'}},grid:{drawOnChartArea:false},title:{display:true,text:'Margin %',color:'#5a9eff',font:{size:10,family:'Inter'}}}}}
+  });
+}
+function calcRanks(wts){
+  const ks=Object.keys(S.stocks).filter(k=>S.status[k]==='ok');
+  const N=ks.length;
+  if(!N)return{ranks:{},scores:{},fr:{}};
+  const allM=Object.fromEntries(ks.map(k=>[k,calcM(k)]));
+  const ranks=Object.fromEntries(ks.map(k=>[k,{}]));
+  CRITERIA.forEach(c=>{
+    const vs=ks.map(k=>({k,v:allM[k]?.rm[c.key]}));
+    vs.sort((a,b)=>{
+      if(!isOK(a.v)&&!isOK(b.v))return 0;
+      if(!isOK(a.v))return 1;
+      if(!isOK(b.v))return -1;
+      return c.hi?b.v-a.v:a.v-b.v;
+    });
+    vs.forEach((x,i)=>{ranks[x.k][c.key]=i+1;});
+  });
+  const scores=Object.fromEntries(ks.map(k=>{
+    const ws=CRITERIA.reduce((s,c)=>s+(ranks[k][c.key]||N)*(wts[c.wKey]||0)/100,0);
+    return[k,{ranks:ranks[k],ws,m:allM[k]}];
+  }));
+  const sorted=[...ks].sort((a,b)=>scores[a].ws-scores[b].ws);
+  const fr=Object.fromEntries(sorted.map((k,i)=>[k,i+1]));
+  return{ranks,scores,fr};
+}
+function tabRankings(){
+  const {ranks,scores,fr}=calcRanks(S.wts);
+  const rankedKs=Object.keys(fr);
+  const unrankedKs=Object.keys(S.stocks).filter(k=>!fr[k]);
+  const CAT_GROUPS=[
+    {id:'risk',label:'🛡 Risk',color:'var(--accent-blue)',bg:'rgba(90,158,255,0.07)',border:'rgba(90,158,255,0.3)',keys:['cashToAsset','debtToEquity']},
+    {id:'profgrow',label:'📈 Profitability & Growth',color:'var(--accent-green)',bg:'rgba(0,245,160,0.06)',border:'rgba(0,245,160,0.25)',keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr','dpsCagr']},
+    {id:'mgmt',label:'🎯 Management Effectiveness',color:'var(--accent-purple)',bg:'rgba(192,165,255,0.06)',border:'rgba(192,165,255,0.25)',keys:['roeAvg','dividendPayout','buffettTest']}
+  ];
+  const CRIT_MAP=Object.fromEntries(CRITERIA.map(c=>[c.wKey,c]));
+  function catSubtotal(keys){return keys.reduce((s,k)=>s+(S.wts[k]||0),0);}
+  const wCatBlocks=CAT_GROUPS.map(g=>{
+    const sub=catSubtotal(g.keys);
+    const cards=g.keys.map(wk=>{
+      const c=CRIT_MAP[wk];
+      const w=S.wts[wk]||0;
+      const ov=w>5;
+      return `<div class="wt-card${ov?' ov':''}" style="flex:1;min-width:100px"><div class="wt-l">${c.label}${ov?'<br><span style="font-size:9px;color:var(--accent-gold)">⚠ High weight</span>':''}</div><div class="wt-row"><input type="number" min="0" max="100" step="1" value="${w}" class="wt-inp${ov?' ov':''}" oninput="setWt('${wk}',this.value)"/><span class="wt-u">%</span></div></div>`;
+    }).join('');
+    return `<div style="border:1px solid ${g.border};background:${g.bg};border-radius:20px;padding:12px;flex:1;min-width:200px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:11px;font-weight:700;color:${g.color}">${g.label}</span><span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:${g.bg};border:1px solid ${g.border};color:${g.color}">${sub.toFixed(0)}%</span></div><div style="display:flex;flex-wrap:wrap;gap:8px">${cards}</div></div>`;
+  }).join('');
+  const riskSub=catSubtotal(CAT_GROUPS[0].keys),profSub=catSubtotal(CAT_GROUPS[1].keys),mgmtSub=catSubtotal(CAT_GROUPS[2].keys);
+  const totalW=riskSub+profSub+mgmtSub,tot100=Math.abs(totalW-100)<0.01;
+  const sumRow=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light)">${[{l:'🛡 Risk',v:riskSub,c:'var(--accent-blue)'},{l:'📈 Profitability & Growth',v:profSub,c:'var(--accent-green)'},{l:'🎯 Management Effectiveness',v:mgmtSub,c:'var(--accent-purple)'}].map(x=>`<div style="flex:1;min-width:120px;background:var(--bg-surface-1);border:1px solid var(--border-light);border-radius:16px;padding:8px 12px;display:flex;justify-content:space-between;"><span style="font-size:10px;font-weight:600">${x.l}</span><span style="font-size:15px;font-weight:700;color:${x.c}">${x.v.toFixed(0)}%</span></div>`).join('')}<div style="min-width:110px;padding:8px 14px;border-radius:16px;display:flex;justify-content:space-between;font-weight:700;background:${tot100?'rgba(0,245,160,0.15)':'rgba(255,90,122,0.15)'};border:1px solid ${tot100?'rgba(0,245,160,0.4)':'rgba(255,90,122,0.5)'};color:${tot100?'var(--accent-green)':'var(--accent-red)'}"><span style="font-size:10px;">Total</span>${totalW.toFixed(0)}% ${tot100?'✓':totalW>100?'▲':'▼'}</div></div>`;
+  const thCrit=CRITERIA.map(c=>`<th class="tc" style="min-width:50px;font-size:9px">${c.label}<br><span style="color:var(--accent-cyan)">${S.wts[c.wKey]||0}%</span></th>`).join('');
+  const rRows=rankedKs.map(k=>{
+    const r=fr[k];
+    const medal=r===1?'🥇':r===2?'🥈':r===3?'🥉':r===4?'🎖️':r===5?'🏅':r;
+    const medalFontSize=r<=5?'18':'13';
+    const rc=r===1?'fr1':r<=3?'fr2':r<=5?'fr4':r>Math.floor(rankedKs.length*0.65)?'frb':'';
+    const rcells=CRITERIA.map(c=>{
+      const rk=ranks[k][c.key]||'?';
+      const mv=scores[k]?.m?.rm[c.key];
+      const cls=rk===1?'rc1':rk===2?'rc2':rk===3?'rc3':rk===4?'rc4':rk===5?'rc5':rk<=Math.ceil(rankedKs.length/3)?'rc-g':'rc-m';
+      return `<td class="tc" style="padding:5px 3px"><div style="display:flex;flex-direction:column;align-items:center;gap:2px"><span class="rc ${cls}">${rk}</span><span style="font-size:9px;color:var(--text-muted)">${isOK(mv)?N2(mv,1):'-'}</span></div></td>`;
+    }).join('');
+    return `<tr class="${rc}"><td class="tc" style="font-size:${medalFontSize}px;font-weight:900;padding:8px">${medal}</td><td style="padding:8px"><div style="font-weight:700">${k}</div><div style="font-size:10px;color:var(--text-muted)">${S.stocks[k].name}</div></td>${rcells}<td class="tc num" style="font-weight:700">${scores[k].ws.toFixed(2)}</td></tr>`;
+  }).join('');
+  const uRows=unrankedKs.length?`<tr><td colspan="17" style="padding:10px;font-size:11px;color:var(--text-muted)">Not yet ranked (data not loaded): ${unrankedKs.map(k=>`<button class="btn btn-ghost btn-xs" onclick="selStock('${k}');setTab('data')">${k}</button>`).join('')}</td></tr>`:'';
+  const sumKs=Object.keys(S.stocks).filter(k=>S.status[k]==='ok'),sumRows=sumKs.map((k,i)=>{
+    const m=calcM(k);
+    if(!m)return'';
+    const vals=[m.rm.cashToAsset,m.rm.debtToEquity,m.rm.revenueCagr,m.rm.gpmAvg,m.rm.netProfitCagr,m.rm.npmAvg,m.rm.epsCagr,m.rm.roeAvg,m.rm.dividendPayout,m.rm.buffettTest];
+    const cells=vals.map(v=>`<td class="tc num ${isOK(v)&&v>0?'pos':isOK(v)&&v<0?'neg':''}">${isOK(v)?N2(v,1):'N/A'}</td>`).join('');
+    return `<tr class="${i%2?'ev':''}"><td style="font-weight:700;padding:6px 11px">${k}</td>${cells}</tr>`;
+  }).join('');
+  return `<div class="sec"><div class="sec-t">Scoring Weights</div><div class="wt-wrap" style="border:1px solid ${tot100?'rgba(0,245,160,0.3)':'var(--accent-red)'};background:${tot100?'rgba(0,245,160,0.02)':'rgba(255,90,122,0.04)'}"><div style="display:flex;gap:10px;flex-wrap:wrap">${wCatBlocks}</div>${sumRow}${!tot100?`<p class="err" style="margin-top:10px">⛔ Weights must sum to exactly 100%. Current total: ${totalW.toFixed(1)}%</p>`:''}</div></div><div class="sec"><div class="sec-t">Multi-Criteria Rankings · ${YEARS[0]}–${LATEST_YEAR} (completed) + ${CURRENT_YEAR} annualised</div><div class="tw"><table><thead><tr><th style="min-width:38px">Rank</th><th style="min-width:140px">Stock</th>${thCrit}<th class="tc" style="color:var(--accent-cyan);min-width:55px">Score</th></tr></thead><tbody>${rankedKs.length?rRows:'<tr><td colspan="13" style="padding:20px;text-align:center;color:var(--text-muted)">No ranked stocks yet — load data for stocks first</td></tr>'}${uRows}</tbody></table></div><p style="font-size:10px;color:var(--text-muted);margin-top:8px">Rank circles: 1=best per criterion. Score = weighted average rank — lower is better overall.</p></div>${sumKs.length?`<div class="sec"><div class="sec-t">Key Metrics Summary — All Loaded Stocks</div><div class="tw"><table><thead><tr><th>Stock</th><th class="tc">Cash/Asset%</th><th class="tc">D/E%</th><th class="tc">RevCAGR%</th><th class="tc">GPMgn%</th><th class="tc">NPCAGR%</th><th class="tc">NPMgn%</th><th class="tc">EPSCAGR%</th><th class="tc">ROE%</th><th class="tc">DivPay%</th><th class="tc">Buff$1%</th></tr></thead><tbody>${sumRows}</tbody></table></div></div>`:''}`;
+}
 function setTab(t){S.tab=t;render();}
 function selStock(k){S.sel=k;render();}
 function setWt(k,v){const n=parseFloat(v);if(!isNaN(n)&&n>=0){S.wts[k]=n;render();}}
-function showSync(){document.getElementById('syncBody').innerHTML=`<div class="notice"><strong>📱 ↔ 💻 Cross-Device Sync</strong><br>Your portfolio (custom stocks, weights, cached data) is auto-saved locally. Use one of these methods to sync to another device.</div><div class="sec"><div class="sec-t">Method 1 · Download & Import File</div><p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Downloads a JSON file with your full portfolio including all cached financial data.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-cyan" onclick="exportJSON()">⬇ Download Portfolio JSON</button><input type="file" accept=".json" id="impFile" style="display:none" onchange="importFile(this.files[0])"/><button class="btn btn-ghost" onclick="document.getElementById('impFile').click()">⬆ Import JSON File</button></div></div><div class="sec" style="margin-top:18px"><div class="sec-t">Method 2 · Share Link</div><p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Generates a URL with your full configuration. Copy and open on any device.</p><button class="btn btn-green" onclick="doGenLink()" style="margin-bottom:10px">🔗 Generate Link</button><div id="linkOut" style="display:none"><textarea id="linkTxt" readonly style="width:100%;background:var(--bg-deep);border:1px solid var(--border-light);border-radius:12px;padding:10px;color:var(--text-muted);font-size:10px;resize:vertical;min-height:70px;"></textarea><div style="display:flex;align-items:center;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="copyLink()">📋 Copy Link</button><span id="cpMsg" style="font-size:11px;color:var(--accent-green);display:none">✓ Copied!</span></div></div></div><div style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn btn-ghost" onclick="hideSync()">Close</button></div>`;document.getElementById('syncModal').style.display='flex';}
+function showSync(){
+  document.getElementById('syncBody').innerHTML=`
+    <div class="notice"><strong>📱 ↔ 💻 Cross-Device Sync</strong><br>Your portfolio (custom stocks, weights, cached data) is auto-saved locally. Use one of these methods to sync to another device.</div>
+    <div class="sec"><div class="sec-t">Method 1 · Download & Import File</div><p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Downloads a JSON file with your full portfolio including all cached financial data.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-cyan" onclick="exportJSON()">⬇ Download Portfolio JSON</button><input type="file" accept=".json" id="impFile" style="display:none" onchange="importFile(this.files[0])"/><button class="btn btn-ghost" onclick="document.getElementById('impFile').click()">⬆ Import JSON File</button></div></div>
+    <div class="sec" style="margin-top:18px"><div class="sec-t">Method 2 · Share Link</div><p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Generates a URL with your full configuration. Copy and open on any device.</p><button class="btn btn-green" onclick="doGenLink()" style="margin-bottom:10px">🔗 Generate Link</button><div id="linkOut" style="display:none"><textarea id="linkTxt" readonly style="width:100%;background:var(--bg-deep);border:1px solid var(--border-light);border-radius:12px;padding:10px;color:var(--text-muted);font-size:10px;resize:vertical;min-height:70px;"></textarea><div style="display:flex;align-items:center;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="copyLink()">📋 Copy Link</button><span id="cpMsg" style="font-size:11px;color:var(--accent-green);display:none">✓ Copied!</span></div></div></div>
+    <div style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn btn-ghost" onclick="hideSync()">Close</button></div>`;
+  document.getElementById('syncModal').style.display='flex';
+}
 function hideSync(){document.getElementById('syncModal').style.display='none';}
 function doGenLink(){const u=genLink();document.getElementById('linkOut').style.display='block';document.getElementById('linkTxt').value=u;}
 function copyLink(){const t=document.getElementById('linkTxt');navigator.clipboard.writeText(t.value).then(()=>{const m=document.getElementById('cpMsg');m.style.display='inline';setTimeout(()=>m.style.display='none',3000);}).catch(()=>{t.select();document.execCommand('copy');});}
 function showAdd(){AF={sym:'',name:'',exch:'ASX',cur:'B AUD',ticker:'',hintCur:'AUD'};renderAddForm();document.getElementById('addModal').style.display='flex';}
 function hideAdd(){document.getElementById('addModal').style.display='none';}
 let AF={sym:'',name:'',exch:'ASX',cur:'B AUD',ticker:'',hintCur:'AUD'};
-function renderAddForm(){document.getElementById('addBody').innerHTML=`<div class="notice" style="margin-bottom:14px"><strong>How adding a stock works:</strong><br>1. Fill in the stock details below<br>2. Copy the generated <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">stocks_config.json</code> entry<br>3. Add it to <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">stocks_config.json</code> in your GitHub repo<br>4. Go to <strong>Actions → Refresh Financial Data → Run workflow</strong><br>Data will be fetched automatically and your dashboard will update.</div><div class="fg" style="margin-bottom:12px"><div class="fld"><label>Ticker Symbol *</label><input id="aSym" placeholder="e.g. CBA, TSM, TLKM" oninput="AF.sym=this.value.toUpperCase();this.value=AF.sym;updateTickerDefault();updateConfigPreview()"/></div><div class="fld"><label>Company Name *</label><input id="aName" placeholder="e.g. Commonwealth Bank" oninput="AF.name=this.value;updateConfigPreview()"/></div><div class="fld"><label>Exchange</label><select id="aExch" onchange="AF.exch=this.value;updateCurDefault();updateTickerDefault();updateConfigPreview()">${['ASX','IDX','NYSE','NASDAQ'].map(e=>`<option${e===AF.exch?' selected':''}>${e}</option>`).join('')}</select></div><div class="fld"><label>Display Currency</label><input id="aCur" value="${AF.cur}" oninput="AF.cur=this.value;updateConfigPreview()"/></div><div class="fld"><label>Yahoo Finance Ticker</label><input id="aTicker" placeholder="e.g. CBA.AX" oninput="AF.ticker=this.value;updateConfigPreview()"/></div></div><div style="background:var(--bg-deep);border:1px solid var(--border-light);border-radius:16px;padding:12px;margin-bottom:12px"><div style="font-size:10px;color:var(--accent-cyan);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Copy this into <code>stocks_config.json</code> in your GitHub repo → "custom_stocks" array:</div><pre id="cfgPreview" style="font-size:11px;color:var(--text-muted);line-height:1.6;white-space:pre;overflow-x:auto;margin:0"></pre><button class="btn btn-ghost btn-xs" style="margin-top:8px" onclick="copyCfgEntry()">📋 Copy to clipboard</button><span id="cfgCopyMsg" style="font-size:10px;color:var(--accent-green);display:none;margin-left:8px">✓ Copied!</span></div><div id="aErr" class="err" style="display:none;margin-bottom:10px"></div><div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px"><a href="https://github.com/rauladi/fa-dashboard/blob/main/stocks_config.json" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📂 Open stocks_config.json on GitHub</a><div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="hideAdd()">Cancel</button><button class="btn btn-ghost btn-sm" onclick="submitManualShell()">✏ Enter Data Manually</button><button class="btn btn-cyan" onclick="submitAddStock()">＋ Add to Dashboard</button></div></div>`;updateTickerDefault();updateConfigPreview();}
+function renderAddForm(){
+  document.getElementById('addBody').innerHTML=`
+    <div class="notice" style="margin-bottom:14px"><strong>How adding a stock works:</strong><br>1. Fill in the stock details below<br>2. Copy the generated <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">stocks_config.json</code> entry<br>3. Add it to <code style="background:rgba(0,0,0,.3);padding:1px 5px;border-radius:3px">stocks_config.json</code> in your GitHub repo<br>4. Go to <strong>Actions → Refresh Financial Data → Run workflow</strong><br>Data will be fetched automatically and your dashboard will update.</div>
+    <div class="fg" style="margin-bottom:12px">
+      <div class="fld"><label>Ticker Symbol *</label><input id="aSym" placeholder="e.g. CBA, TSM, TLKM" oninput="AF.sym=this.value.toUpperCase();this.value=AF.sym;updateTickerDefault();updateConfigPreview()"/></div>
+      <div class="fld"><label>Company Name *</label><input id="aName" placeholder="e.g. Commonwealth Bank" oninput="AF.name=this.value;updateConfigPreview()"/></div>
+      <div class="fld"><label>Exchange</label><select id="aExch" onchange="AF.exch=this.value;updateCurDefault();updateTickerDefault();updateConfigPreview()">${['ASX','IDX','NYSE','NASDAQ'].map(e=>`<option${e===AF.exch?' selected':''}>${e}</option>`).join('')}</select></div>
+      <div class="fld"><label>Display Currency</label><input id="aCur" value="${AF.cur}" oninput="AF.cur=this.value;updateConfigPreview()"/></div>
+      <div class="fld"><label>Yahoo Finance Ticker</label><input id="aTicker" placeholder="e.g. CBA.AX" oninput="AF.ticker=this.value;updateConfigPreview()"/></div>
+    </div>
+    <div style="background:var(--bg-deep);border:1px solid var(--border-light);border-radius:16px;padding:12px;margin-bottom:12px"><div style="font-size:10px;color:var(--accent-cyan);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📋 Copy this into <code>stocks_config.json</code> in your GitHub repo → "custom_stocks" array:</div><pre id="cfgPreview" style="font-size:11px;color:var(--text-muted);line-height:1.6;white-space:pre;overflow-x:auto;margin:0"></pre><button class="btn btn-ghost btn-xs" style="margin-top:8px" onclick="copyCfgEntry()">📋 Copy to clipboard</button><span id="cfgCopyMsg" style="font-size:10px;color:var(--accent-green);display:none;margin-left:8px">✓ Copied!</span></div>
+    <div id="aErr" class="err" style="display:none;margin-bottom:10px"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:4px"><a href="https://github.com/rauladi/fa-dashboard/blob/main/stocks_config.json" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">📂 Open stocks_config.json on GitHub</a><div style="display:flex;gap:8px"><button class="btn btn-ghost" onclick="hideAdd()">Cancel</button><button class="btn btn-ghost btn-sm" onclick="submitManualShell()">✏ Enter Data Manually</button><button class="btn btn-cyan" onclick="submitAddStock()">＋ Add to Dashboard</button></div></div>`;
+  updateTickerDefault();updateConfigPreview();
+}
 function updateCurDefault(){const m={IDX:'T IDR',ASX:'B AUD',NYSE:'B USD',NASDAQ:'B USD'};const v=m[AF.exch]||'B USD';const el=document.getElementById('aCur');if(el){el.value=v;AF.cur=v;}}
 function updateTickerDefault(){const sym=AF.sym;if(!sym)return;let ticker=sym;if(AF.exch==='ASX')ticker=sym+'.AX';else if(AF.exch==='IDX')ticker=sym+'.JK';AF.ticker=ticker;const el=document.getElementById('aTicker');if(el)el.value=ticker;AF.hintCur=(AF.exch==='IDX')?'IDR':'USD';if(AF.exch==='ASX')AF.hintCur='AUD';}
-function updateConfigPreview(){const sym=(document.getElementById('aSym')?.value||'').toUpperCase()||'SYMBOL';const name=document.getElementById('aName')?.value||'Company Name';const exch=document.getElementById('aExch')?.value||'ASX';const cur=document.getElementById('aCur')?.value||'B AUD';const ticker=document.getElementById('aTicker')?.value||(sym+(exch==='ASX'?'.AX':exch==='IDX'?'.JK':''));const hintCur=exch==='IDX'?'IDR':exch==='ASX'?'AUD':'USD';const entry=`    {\n      "symbol": "${sym}",\n      "name": "${name}",\n      "exchange": "${exch}",\n      "currency": "${cur}",\n      "ticker": "${ticker}",\n      "hint_cur": "${hintCur}"\n    }`;const pre=document.getElementById('cfgPreview');if(pre)pre.textContent=entry;}
+function updateConfigPreview(){
+  const sym=(document.getElementById('aSym')?.value||'').toUpperCase()||'SYMBOL';
+  const name=document.getElementById('aName')?.value||'Company Name';
+  const exch=document.getElementById('aExch')?.value||'ASX';
+  const cur=document.getElementById('aCur')?.value||'B AUD';
+  const ticker=document.getElementById('aTicker')?.value||(sym+(exch==='ASX'?'.AX':exch==='IDX'?'.JK':''));
+  const hintCur=exch==='IDX'?'IDR':exch==='ASX'?'AUD':'USD';
+  const entry=`    {\n      "symbol": "${sym}",\n      "name": "${name}",\n      "exchange": "${exch}",\n      "currency": "${cur}",\n      "ticker": "${ticker}",\n      "hint_cur": "${hintCur}"\n    }`;
+  const pre=document.getElementById('cfgPreview');if(pre)pre.textContent=entry;
+}
 function copyCfgEntry(){const pre=document.getElementById('cfgPreview');if(!pre)return;navigator.clipboard.writeText(pre.textContent).then(()=>{const m=document.getElementById('cfgCopyMsg');if(m){m.style.display='inline';setTimeout(()=>m.style.display='none',2500);}}).catch(()=>{const r=document.createRange();r.selectNode(pre);window.getSelection().removeAllRanges();window.getSelection().addRange(r);document.execCommand('copy');});}
 function validateAddForm(){const sym=(document.getElementById('aSym')?.value||'').trim().toUpperCase();const name=(document.getElementById('aName')?.value||'').trim();const exch=document.getElementById('aExch')?.value;const cur=document.getElementById('aCur')?.value||'';if(!sym||!name){showAErr('Ticker symbol and company name are required.');return null;}return{sym,name,exch,cur};}
 function showAErr(m){const e=document.getElementById('aErr');if(e){e.textContent='⚠ '+m;e.style.display='block';}}
 function submitAddStock(){const f=validateAddForm();if(!f)return;const sd={name:f.name,exchange:f.exch,currency:f.cur};S.custom[f.sym]=sd;S.stocks[f.sym]=sd;S.sel=f.sym;S.tab='data';S.status[f.sym]='idle';saveLS();hideAdd();render();showToast(`✓ ${f.sym} added. Add it to stocks_config.json and run the GitHub Actions workflow to fetch data.`,'cyan');}
 function submitManualShell(){const f=validateAddForm();if(!f)return;const sd={name:f.name,exchange:f.exch,currency:f.cur};S.custom[f.sym]=sd;S.stocks[f.sym]=sd;S.sel=f.sym;S.tab='data';hideAdd();showManual(f.sym);}
 let MA={sym:'',vals:{}};
-function showManual(sym){const st=S.stocks[sym];MA.sym=sym;MA.vals=Object.fromEntries(MKEYS.map(m=>[m.k,S.data[sym]?[...S.data[sym][m.k]]:Array(N_YEARS).fill('')]));const yH=YEARS.map(y=>`<th class="tc" style="min-width:60px">${y}</th>`).join('');const rows=MKEYS.map((r,i)=>{const cells=YEARS.map((_,j)=>`<td style="padding:2px 2px"><input type="number" value="${isOK(MA.vals[r.k][j])?MA.vals[r.k][j]:''}" oninput="MA.vals['${r.k}'][${j}]=this.value" style="width:58px;background:var(--bg-deep);border:1px solid var(--border-light);border-radius:8px;padding:3px 5px;font-size:11px;color:var(--text-primary);text-align:center"/></td>`).join('');return`<tr class="${i%2?'ev':''}"><td class="lbl" style="padding:5px 10px;font-size:11px">${r.l}</td>${cells}</tr>`;}).join('');document.getElementById('addBody').innerHTML=`<p style="font-size:12px;color:var(--text-muted);margin-bottom:12px"><strong style="color:var(--text-primary)">${sym} — ${st.name}</strong> · ${st.exchange} · ${st.currency}<br>Enter data for ${YEARS[0]}–${YEARS[YEARS.length-1]}. Leave blank for unavailable years.</p><div class="tw"><table><thead><tr><th style="min-width:150px">Metric</th>${yH}</tr></thead><tbody>${rows}</tbody></table></div><div id="aErr" class="err" style="display:none"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-ghost" onclick="hideAdd()">Cancel</button><button class="btn btn-cyan" onclick="submitManualData()">✓ Save Data</button></div>`;document.getElementById('addModal').style.display='flex';}
-function submitManualData(){const sym=MA.sym;const parsed={};for(const r of MKEYS){parsed[r.k]=MA.vals[r.k].map(v=>v===''||v===null||v===undefined?null:parseFloat(v));if(parsed[r.k].some(v=>v!==null&&isNaN(v))){showAErr(`Invalid number in "${r.l}"`);return;}}S.data[sym]={...parsed,fetchedAt:Date.now(),source:'user-edited'};S.status[sym]='ok';saveLS();hideAdd();render();showToast(`✓ ${sym} data saved`,'green');}
-function delStock(k){const isBuiltIn=!!BASE_STOCKS[k];const isConfigStock=!S.custom[k]&&!isBuiltIn;let msg;if(isBuiltIn){msg=`Remove ${k} from the dashboard view?\n\nNote: it will reappear on next page refresh since it's built-in. To permanently remove it you'd need to edit fetch_data.py.`;}else if(isConfigStock){msg=`Remove ${k} from the dashboard?\n\nIMPORTANT: Also remove it from stocks_config.json on GitHub, then run the workflow — otherwise it will reappear next time the page loads from data.json.`;}else{msg=`Remove ${k} from the dashboard?`;}if(!confirm(msg))return;if(!S.deleted)S.deleted={};S.deleted[k]=true;delete S.custom[k];delete S.stocks[k];delete S.data[k];delete S.status[k];if(S.sel===k)S.sel=Object.keys(S.stocks)[0]||'BHP';saveLS();render();showToast(`${k} removed`,'cyan');}
-function renderSBar(){const ks=Object.keys(S.stocks);document.getElementById('sList').innerHTML=ks.map(k=>{const st=S.stocks[k];const ex=(st.exchange||'').toUpperCase();const bc=ex==='ASX'?'x-asx':ex==='IDX'?'x-idx':'x-us';const st2=S.status[k];const dot=st2==='ok'?'<span class="s-dot-ok"></span>':st2==='loading'?'<span class="s-dot-ld"></span>':st2==='error'?'<span class="s-dot-er"></span>':'';return`<button class="s-btn${S.sel===k?' on':''}" onclick="selStock('${k}')">${dot}${k}<span class="xbadge ${bc}">${ex}</span></button>`;}).join('');}
+function showManual(sym){
+  const st=S.stocks[sym];
+  MA.sym=sym;
+  MA.vals=Object.fromEntries(MKEYS.map(m=>[m.k,S.data[sym]?[...S.data[sym][m.k]]:Array(N_YEARS).fill('')]));
+  const yH=YEARS.map(y=>`<th class="tc" style="min-width:60px">${y}</th>`).join('');
+  const rows=MKEYS.map((r,i)=>{
+    const cells=YEARS.map((_,j)=>`<td style="padding:2px 2px"><input type="number" value="${isOK(MA.vals[r.k][j])?MA.vals[r.k][j]:''}" oninput="MA.vals['${r.k}'][${j}]=this.value" style="width:58px;background:var(--bg-deep);border:1px solid var(--border-light);border-radius:8px;padding:3px 5px;font-size:11px;color:var(--text-primary);text-align:center"/></td>`).join('');
+    return `<tr class="${i%2?'ev':''}"><td class="lbl" style="padding:5px 10px;font-size:11px">${r.l}</td>${cells}</tr>`;
+  }).join('');
+  document.getElementById('addBody').innerHTML=`<p style="font-size:12px;color:var(--text-muted);margin-bottom:12px"><strong style="color:var(--text-primary)">${sym} — ${st.name}</strong> · ${st.exchange} · ${st.currency}<br>Enter data for ${YEARS[0]}–${YEARS[YEARS.length-1]}. Leave blank for unavailable years.</p><div class="tw"><table><thead><tr><th style="min-width:150px">Metric</th>${yH}</tr></thead><tbody>${rows}</tbody></table></div><div id="aErr" class="err" style="display:none"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-ghost" onclick="hideAdd()">Cancel</button><button class="btn btn-cyan" onclick="submitManualData()">✓ Save Data</button></div>`;
+  document.getElementById('addModal').style.display='flex';
+}
+function submitManualData(){
+  const sym=MA.sym;
+  const parsed={};
+  for(const r of MKEYS){
+    parsed[r.k]=MA.vals[r.k].map(v=>v===''||v===null||v===undefined?null:parseFloat(v));
+    if(parsed[r.k].some(v=>v!==null&&isNaN(v))){showAErr(`Invalid number in "${r.l}"`);return;}
+  }
+  S.data[sym]={...parsed,fetchedAt:Date.now(),source:'user-edited'};
+  S.status[sym]='ok';
+  saveLS();
+  hideAdd();
+  render();
+  showToast(`✓ ${sym} data saved`,'green');
+}
+function delStock(k){
+  const isBuiltIn=!!BASE_STOCKS[k];
+  const isConfigStock=!S.custom[k]&&!isBuiltIn;
+  let msg;
+  if(isBuiltIn){msg=`Remove ${k} from the dashboard view?\n\nNote: it will reappear on next page refresh since it's built-in. To permanently remove it you'd need to edit fetch_data.py.`;}
+  else if(isConfigStock){msg=`Remove ${k} from the dashboard?\n\nIMPORTANT: Also remove it from stocks_config.json on GitHub, then run the workflow — otherwise it will reappear next time the page loads from data.json.`;}
+  else{msg=`Remove ${k} from the dashboard?`;}
+  if(!confirm(msg))return;
+  if(!S.deleted)S.deleted={};
+  S.deleted[k]=true;
+  delete S.custom[k];
+  delete S.stocks[k];
+  delete S.data[k];
+  delete S.status[k];
+  if(S.sel===k)S.sel=Object.keys(S.stocks)[0]||'BHP';
+  saveLS();
+  render();
+  showToast(`${k} removed`,'cyan');
+}
+function renderSBar(){
+  const ks=Object.keys(S.stocks);
+  document.getElementById('sList').innerHTML=ks.map(k=>{
+    const st=S.stocks[k];
+    const ex=(st.exchange||'').toUpperCase();
+    const bc=ex==='ASX'?'x-asx':ex==='IDX'?'x-idx':'x-us';
+    const st2=S.status[k];
+    const dot=st2==='ok'?'<span class="s-dot-ok"></span>':st2==='loading'?'<span class="s-dot-ld"></span>':st2==='error'?'<span class="s-dot-er"></span>':'';
+    return `<button class="s-btn${S.sel===k?' on':''}" onclick="selStock('${k}')">${dot}${k}<span class="xbadge ${bc}">${ex}</span></button>`;
+  }).join('');
+}
 function renderTabBtns(){['data','ratios','chart','rankings','insights'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
-function renderMain(){const cont=document.getElementById('cont');if(S.tab==='rankings'){cont.innerHTML=tabRankings();return;}if(S.tab==='insights'){const st=S.stocks[S.sel];cont.innerHTML=tabInsights(S.sel,st);return;}const st=S.stocks[S.sel];const stat=S.status[S.sel]||'idle';if(stat==='loading'){cont.innerHTML=`<div class="state-box"><div class="spinner"></div><div class="state-title">Refreshing ${S.sel} from Yahoo Finance…</div><div class="state-sub">Attempting live refresh for <em>${st.name}</em><br>Ticker: <code style="background:rgba(0,0,0,.3);padding:1px 7px;border-radius:4px">${yahooTicker(S.sel,st.exchange||'')}</code><br>Built-in data remains active if refresh fails.</div><span class="data-badge db-ld">⏳ Trying Yahoo Finance…</span></div>`;return;}if(!S.data[S.sel]){cont.innerHTML=`<div class="state-box"><div style="font-size:36px;margin-bottom:12px">📋</div><div class="state-title">No data for ${S.sel}</div><div class="state-sub" style="max-width:500px;margin:0 auto 16px">${!!S.custom[S.sel]?`<strong>${st.name}</strong> was added but data hasn't been fetched yet.<br><br>To fetch automatically:<br>1. Make sure <code style="background:rgba(0,0,0,.2);padding:1px 6px;border-radius:3px">${S.sel}</code> is in your <strong>stocks_config.json</strong> on GitHub<br>2. Go to <strong>Actions → Refresh Financial Data → Run workflow</strong><br>3. Refresh this page after the workflow completes (~1 min)`: `This stock has no data yet.`}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-cyan" onclick="showManual('${S.sel}')">✏ Enter Data Manually</button>${!!S.custom[S.sel]?`<button class="btn btn-red btn-sm" onclick="delStock('${S.sel}')">🗑 Remove ${S.sel}</button>`:''}</div>${!!S.custom[S.sel]?`<div style="margin-top:12px"><a href="https://github.com/rauladi/fa-dashboard/actions" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🚀 Open GitHub Actions</a></div>`:''}</div>`;return;}if(S.tab==='data')cont.innerHTML=tabData(S.sel,st);else if(S.tab==='ratios')cont.innerHTML=tabRatios(S.sel,st);else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}}
+function renderMain(){
+  const cont=document.getElementById('cont');
+  if(S.tab==='rankings'){cont.innerHTML=tabRankings();return;}
+  if(S.tab==='insights'){const st=S.stocks[S.sel];cont.innerHTML=tabInsights(S.sel,st);return;}
+  const st=S.stocks[S.sel];
+  const stat=S.status[S.sel]||'idle';
+  if(stat==='loading'){
+    cont.innerHTML=`<div class="state-box"><div class="spinner"></div><div class="state-title">Refreshing ${S.sel} from Yahoo Finance…</div><div class="state-sub">Attempting live refresh for <em>${st.name}</em><br>Ticker: <code style="background:rgba(0,0,0,.3);padding:1px 7px;border-radius:4px">${yahooTicker(S.sel,st.exchange||'')}</code><br>Built-in data remains active if refresh fails.</div><span class="data-badge db-ld">⏳ Trying Yahoo Finance…</span></div>`;
+    return;
+  }
+  if(!S.data[S.sel]){
+    cont.innerHTML=`<div class="state-box"><div style="font-size:36px;margin-bottom:12px">📋</div><div class="state-title">No data for ${S.sel}</div><div class="state-sub" style="max-width:500px;margin:0 auto 16px">${!!S.custom[S.sel]?`<strong>${st.name}</strong> was added but data hasn't been fetched yet.<br><br>To fetch automatically:<br>1. Make sure <code style="background:rgba(0,0,0,.2);padding:1px 6px;border-radius:3px">${S.sel}</code> is in your <strong>stocks_config.json</strong> on GitHub<br>2. Go to <strong>Actions → Refresh Financial Data → Run workflow</strong><br>3. Refresh this page after the workflow completes (~1 min)`: `This stock has no data yet.`}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-cyan" onclick="showManual('${S.sel}')">✏ Enter Data Manually</button>${!!S.custom[S.sel]?`<button class="btn btn-red btn-sm" onclick="delStock('${S.sel}')">🗑 Remove ${S.sel}</button>`:''}</div>${!!S.custom[S.sel]?`<div style="margin-top:12px"><a href="https://github.com/rauladi/fa-dashboard/actions" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🚀 Open GitHub Actions</a></div>`:''}</div>`;
+    return;
+  }
+  if(S.tab==='data')cont.innerHTML=tabData(S.sel,st);
+  else if(S.tab==='ratios')cont.innerHTML=tabRatios(S.sel,st);
+  else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}
+}
 function render(){renderSBar();renderTabBtns();renderMain();saveLS();}
-async function boot(){loadLS();initPreloadedData();let liveData=null;if(location.protocol!=='file:'){try{const r=await fetch('./data.json?_='+Date.now());if(r.ok){liveData=await r.json();console.log('Loaded data.json — generated:',liveData.generated);}}catch(e){console.log('data.json not available, using built-in data');}}if(liveData&&liveData.stocks){ANNUALISATION=liveData.annualisation||{};const ts=Date.now();S.stocks={...BASE_STOCKS};S.custom={};S.deleted={};Object.entries(liveData.stocks).forEach(([sym,sd])=>{const hasData=Array.isArray(sd.revenue)&&sd.revenue.some(v=>v!==null);S.stocks[sym]={name:sd.name||sym,exchange:sd.exchange||'NYSE',currency:sd.currency||'B USD'};S.data[sym]={totalAsset:sd.totalAsset,cash:sd.cash,totalDebt:sd.totalDebt,totalEquity:sd.totalEquity,revenue:sd.revenue,grossProfit:sd.grossProfit,netProfit:sd.netProfit,eps:sd.eps,dps:sd.dps,fetchedAt:ts,source:sd.source==='yfinance'?'yfinance':'built-in',ticker:sd.ticker,generated:liveData.generated,profile:sd.profile,profileDate:sd.profileDate,news:sd.news,newsDate:sd.newsDate};S.status[sym]=hasData?'ok':'idle';});const genDate=new Date(liveData.generated).toLocaleDateString();const n=Object.keys(liveData.stocks).length;const hSub=document.getElementById('hSub');if(hSub)hSub.textContent=`ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]}`;if(!S.stocks[S.sel])S.sel=Object.keys(S.stocks)[0]||'BHP';}else{const hSub=document.getElementById('hSub');if(hSub)hSub.textContent=`ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · Host on GitHub Pages for auto-refresh`;if(!S.stocks[S.sel])S.sel='BHP';}Object.keys(S.stocks).forEach(k=>{if(!S.status[k])S.status[k]=S.data[k]?'ok':'idle';});render();}
+
+// ----- FORCE REFRESH (clears data cache) -----
+function forceRefresh(){
+  if(confirm('Force refresh will clear all cached financial data and reload the page. Your custom stocks and weights will be preserved.')){
+    S.data = {};
+    S.status = {};
+    localStorage.removeItem(DATA_VERSION_KEY);
+    saveLS();
+    location.reload();
+  }
+}
+
+// ----- BOOT WITH VERSION CHECK -----
+async function boot(){
+  loadLS();
+  let liveData = null;
+  let dataSource = 'built-in';
+  let generatedTimestamp = null;
+
+  if(location.protocol !== 'file:'){
+    try{
+      const res = await fetch('./data.json?_=' + Date.now(), { cache: 'no-store' });
+      if(res.ok){
+        liveData = await res.json();
+        generatedTimestamp = liveData.generated;
+        const storedTimestamp = localStorage.getItem(DATA_VERSION_KEY);
+        // If we have new data, clear the old cached data in localStorage
+        if(generatedTimestamp && generatedTimestamp !== storedTimestamp){
+          // Keep user weights and custom stocks, but reset data/status
+          S.data = {};
+          S.status = {};
+          localStorage.setItem(DATA_VERSION_KEY, generatedTimestamp);
+          saveLS();
+        }
+        dataSource = 'yfinance';
+      }
+    } catch(e){
+      console.warn('data.json not available, using built-in data');
+    }
+  }
+
+  initPreloadedData();  // fills built-in where missing
+
+  if(liveData && liveData.stocks){
+    ANNUALISATION = liveData.annualisation || {};
+    const ts = Date.now();
+    // Merge live data into S.data, but preserve user-edited data if newer (simple: overwrite only if source is yfinance or built-in)
+    Object.entries(liveData.stocks).forEach(([sym, sd]) => {
+      const hasData = Array.isArray(sd.revenue) && sd.revenue.some(v => v !== null);
+      S.stocks[sym] = {
+        name: sd.name || sym,
+        exchange: sd.exchange || 'NYSE',
+        currency: sd.currency || 'B USD'
+      };
+      // Only overwrite if we don't have user-edited data (source !== 'user-edited')
+      const existing = S.data[sym];
+      if(!existing || existing.source !== 'user-edited'){
+        S.data[sym] = {
+          totalAsset: sd.totalAsset,
+          cash: sd.cash,
+          totalDebt: sd.totalDebt,
+          totalEquity: sd.totalEquity,
+          revenue: sd.revenue,
+          grossProfit: sd.grossProfit,
+          netProfit: sd.netProfit,
+          eps: sd.eps,
+          dps: sd.dps,
+          fetchedAt: ts,
+          source: sd.source === 'yfinance' ? 'yfinance' : 'built-in',
+          ticker: sd.ticker,
+          generated: liveData.generated,
+          profile: sd.profile,
+          profileDate: sd.profileDate,
+          news: sd.news,
+          newsDate: sd.newsDate
+        };
+        S.status[sym] = hasData ? 'ok' : 'idle';
+      }
+    });
+    const genDate = new Date(liveData.generated).toLocaleDateString();
+    const n = Object.keys(liveData.stocks).length;
+    const hSub = document.getElementById('hSub');
+    if(hSub) hSub.textContent = `ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]} · ${dataSource === 'yfinance' ? '📡 Live' : '📋 Built-in'}`;
+    if(!S.stocks[S.sel]) S.sel = Object.keys(S.stocks)[0] || 'BHP';
+  } else {
+    const hSub = document.getElementById('hSub');
+    if(hSub) hSub.textContent = `ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · 📋 Built-in · Host on GitHub Pages for auto-refresh`;
+    if(!S.stocks[S.sel]) S.sel = 'BHP';
+  }
+
+  Object.keys(S.stocks).forEach(k => {
+    if(!S.status[k]) S.status[k] = S.data[k] ? 'ok' : 'idle';
+  });
+
+  render();
+}
 boot();
+
 function fetchAll(){showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan');}
 
 // ======================== INSIGHTS TAB (original full implementation) ========================
 function markdownToHtml(md) { if (!md) return ''; return md.replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>').replace(/\n/g, '<br>'); }
-const LEADERSHIP = { BHP:{ceo:"Mike Henry (since 2020)",cfo:"David Lamont (since 2021)",track:"Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."}, WDS:{ceo:"Meg O'Neill (since 2021)",cfo:"Graham Tiver (since 2020)",track:"O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."}, CBA:{ceo:"Matt Comyn (since 2018)",cfo:"Alan Docherty (since 2021)",track:"Comyn led cloud migration to AWS, OpenAI partnership, digital transformation. Strong capital returns."}, BBRI:{ceo:"Sunarso (since 2019)",cfo:"Viviana Dyah Ayu (since 2020)",track:"Sunarso drove 'BRIvolution' digital transformation, ultra-micro holding integration, record BRImo adoption."}, ADRO:{ceo:"Garibaldi 'Boy' Thohir (since 2008)",cfo:"Jodhi Pangestu",track:"Thohir led spin-off of thermal coal, pivot to metcoal, aluminum smelter, and renewable energy."}, SMSM:{ceo:"Tony S. Budiman",cfo:"Suryadi",track:"Consistent execution, export growth to 45+ countries, maintained debt-free balance sheet, EV product R&D."}, UNTR:{ceo:"Darma Setiawan (since 2015)",cfo:"Yunus Saifulhak",track:"Maintained Komatsu exclusivity, PAMA largest contractor, diversification into gold and renewables."}, ITMG:{ceo:"M. Qodrat (since 2022)",cfo:"Agus Suhendar",track:"Focused on high dividends, production efficiency, solar hybrid projects. Banpu parent strategy influence."}, POWR:{ceo:"M. Firdaus",cfo:"R. Agus",track:"Conservative management, long-term PPAs, stable operations. Slow to adopt renewables but exploring solar."}, MPMX:{ceo:"Djoko Susanto",cfo:"Iwan Setiawan",track:"Stable Honda distribution, integrated financing and rental. Investing in EV motorcycle transition."}, BTPS:{ceo:"Ridwan Kurniawan",cfo:"Dewi Sartika",track:"Focused on sharia microfinance, digital group meetings, partnership with Baznas. Small scale but niche."}, DMAS:{ceo:"Takeshi Koyama (Sojitz)",cfo:"Santi Widjaja",track:"Japanese parent backing, data centre land sales driving growth. Green estate certification."}, SPTO:{ceo:"Widjaja (family)",cfo:"Lukman",track:"Long-term TOTO exclusivity maintained. Expanding to Tier-2 cities. High dividend yield."}, TSM:{ceo:"C.C. Wei (since 2018)",cfo:"Wendell Huang",track:"Wei led 2nm/3nm ramp, global expansion (Arizona, Japan, Germany). Capital discipline, high R&D."}, V:{ceo:"Ryan McInerney (since 2023)",cfo:"Chris Suh (since 2023)",track:"Focus on tokenisation, cross-border solutions, crypto partnerships. Strong capital returns."}, MA:{ceo:"Michael Miebach (since 2020)",cfo:"Sachin Mehra",track:"Multi-rail expansion, crypto partnerships, B2B payments. Consistent growth."}, "PBR-A":{ceo:"Magda Chambriard (since 2024)",cfo:"Fernando Melgarejo",track:"Focus on pre-salt growth, debt reduction, and shareholder returns. Political interference risk."}, MSFT:{ceo:"Satya Nadella (since 2014)",cfo:"Amy Hood (since 2013)",track:"Cloud and AI leadership, OpenAI partnership, Activision acquisition. Excellent capital allocation."}, AMZN:{ceo:"Andy Jassy (since 2021)",cfo:"Brian Olsavsky (since 2015)",track:"Jassy focused on cost optimisation, AWS growth, AI (Bedrock). Healthcare and satellite long-term bets."}, AAPL:{ceo:"Tim Cook (since 2011)",cfo:"Luca Maestri (since 2014)",track:"Services expansion, ecosystem lock-in, capital returns. Vision Pro and AI integration next."}, META:{ceo:"Mark Zuckerberg (founder)",cfo:"Susan Li (since 2022)",track:"Year of Efficiency, AI (Llama), metaverse long-term bet. Aggressive buybacks."}, NVDA:{ceo:"Jensen Huang (founder)",cfo:"Colette Kress (since 2013)",track:"AI dominance, Blackwell ramp, CUDA moat. Exceptional execution."}, GOOG:{ceo:"Sundar Pichai (since 2015)",cfo:"Ruth Porat (since 2015)",track:"AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds."}, BKNG:{ceo:"Glenn Fogel (since 2017)",cfo:"David Goulden",track:"Merchant model expansion, US growth, connected trip. Strong capital returns."}, NAB:{ceo:"Ross McEwan (since 2019)",cfo:"Gary Lennon (since 2022)",track:"McEwan led digital transformation, cost reduction, and capital management. Focus on business banking and home lending."}, CVX:{ceo:"Mike Wirth (since 2018)",cfo:"Pierre Breber (since 2019)",track:"Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."}, AXP:{ceo:"Stephen Squeri (since 2018)",cfo:"Christophe Le Caillec (since 2023)",track:"Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."}, BAC:{ceo:"Brian Moynihan (since 2010)",cfo:"Alastair Borthwick (since 2019)",track:"Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."} };
-const SECTOR_RISKS = { "Mining":[{name:"Commodity Price",low:-40,high:30},{name:"Production Volume",low:-20,high:15},{name:"AUD/USD Rate",low:-15,high:10},{name:"Operating Costs",low:-18,high:5},{name:"Regulatory/ESG",low:-12,high:3}], "Oil & Gas":[{name:"Oil/Gas Price",low:-45,high:35},{name:"Production Output",low:-20,high:15},{name:"LNG Contract Terms",low:-12,high:10},{name:"Carbon Policy",low:-20,high:2},{name:"Reserve Life",low:-15,high:8}], "Banking":[{name:"Net Interest Margin",low:-25,high:15},{name:"Loan Loss Provisions",low:-30,high:10},{name:"Credit Growth",low:-15,high:20},{name:"Regulatory Capital",low:-20,high:5},{name:"Digital Competition",low:-18,high:8}], "Islamic Banking":[{name:"Financing Growth",low:-20,high:25},{name:"Credit Quality (NPF)",low:-35,high:8},{name:"Rural Economy",low:-25,high:20},{name:"Regulatory Changes",low:-15,high:5},{name:"Competition",low:-15,high:5}], "Coal Mining":[{name:"Coal Price",low:-50,high:40},{name:"Production Volume",low:-15,high:10},{name:"Energy Transition",low:-25,high:5},{name:"USD/IDR Rate",low:-15,high:10},{name:"Logistics Costs",low:-12,high:3}], "Auto Parts":[{name:"Auto Industry Demand",low:-25,high:20},{name:"Raw Material Costs",low:-20,high:8},{name:"Export Markets",low:-15,high:15},{name:"EV Transition Risk",low:-20,high:5},{name:"IDR/USD Rate",low:-12,high:10}], "Heavy Equipment & Mining":[{name:"Coal/Mining Activity",low:-30,high:25},{name:"Equipment Demand",low:-20,high:18},{name:"Commodity Prices",low:-25,high:20},{name:"IDR/USD Rate",low:-12,high:8},{name:"Competitor Pricing",low:-15,high:5}], "Automotive":[{name:"Motorcycle Demand",low:-25,high:20},{name:"Financing Revenue",low:-20,high:15},{name:"Interest Rates",low:-18,high:8},{name:"Competition",low:-20,high:10},{name:"IDR Stability",low:-10,high:5}], "Power & Utilities":[{name:"Industrial Tenant Demand",low:-20,high:15},{name:"Fuel Costs",low:-15,high:5},{name:"Tariff Policy",low:-25,high:10},{name:"New Market Entry",low:-12,high:5},{name:"USD/IDR Rate",low:-10,high:5}], "Industrial Real Estate":[{name:"Industrial Land Demand",low:-30,high:25},{name:"FDI Inflows",low:-25,high:30},{name:"IDR/USD Rate",low:-15,high:10},{name:"Infrastructure",low:-10,high:20},{name:"Competing Estates",low:-15,high:5}], "Building Materials":[{name:"Property Construction",low:-25,high:20},{name:"Raw Material Costs",low:-18,high:8},{name:"Import Competition",low:-15,high:5},{name:"Urbanization Rate",low:-10,high:15},{name:"Currency",low:-12,high:8}], "Semiconductors":[{name:"AI/Data Centre Demand",low:-40,high:50},{name:"Geopolitical Risk",low:-60,high:10},{name:"Competition",low:-25,high:15},{name:"CapEx Execution",low:-20,high:8},{name:"Cyclical Downturn",low:-35,high:15}], "Payments":[{name:"Payment Volume Growth",low:-15,high:20},{name:"Fintech Disruption",low:-20,high:5},{name:"Regulatory/Interchange",low:-25,high:3},{name:"Consumer Spending",low:-20,high:15},{name:"Cross-Border Volume",low:-15,high:18}], "Technology":[{name:"Cloud Revenue Growth",low:-20,high:30},{name:"AI Monetisation",low:-15,high:40},{name:"Regulatory/Antitrust",low:-25,high:5},{name:"Competition",low:-20,high:15},{name:"CapEx Cycle",low:-15,high:10}], "E-Commerce & Cloud":[{name:"AWS Growth Rate",low:-20,high:25},{name:"Retail Margin",low:-15,high:10},{name:"Advertising Revenue",low:-25,high:20},{name:"Regulatory Antitrust",low:-20,high:5},{name:"Cloud Competition",low:-20,high:10}], "Social Media":[{name:"Advertising Revenue",low:-30,high:25},{name:"Privacy Regulation",low:-25,high:5},{name:"User Engagement",low:-20,high:15},{name:"AI CapEx Burden",low:-18,high:20},{name:"Competition",low:-20,high:10}], "Online Travel":[{name:"Travel Demand",low:-40,high:30},{name:"Hotel/Airline Supply",low:-15,high:15},{name:"Google Competition",low:-20,high:5},{name:"Recession Risk",low:-30,high:10},{name:"AI Booking Disruption",low:-15,high:10}], "General":[{name:"Economic Slowdown",low:-25,high:15},{name:"Competition",low:-20,high:10},{name:"Regulatory Changes",low:-15,high:5},{name:"Cost Inflation",low:-18,high:3},{name:"Currency Risk",low:-12,high:8}] };
-const CO_INFO = { BHP:{sector:"Mining"}, WDS:{sector:"Oil & Gas"}, CBA:{sector:"Banking"}, NAB:{sector:"Banking"}, BBRI:{sector:"Banking"}, ADRO:{sector:"Coal Mining"}, SMSM:{sector:"Auto Parts"}, UNTR:{sector:"Heavy Equipment & Mining"}, ITMG:{sector:"Coal Mining"}, POWR:{sector:"Power & Utilities"}, MPMX:{sector:"Automotive"}, BTPS:{sector:"Islamic Banking"}, DMAS:{sector:"Industrial Real Estate"}, SPTO:{sector:"Building Materials"}, TSM:{sector:"Semiconductors"}, V:{sector:"Payments"}, MA:{sector:"Payments"}, "PBR-A":{sector:"Oil & Gas"}, MSFT:{sector:"Technology"}, AMZN:{sector:"E-Commerce & Cloud"}, AAPL:{sector:"Technology"}, META:{sector:"Social Media"}, NVDA:{sector:"Semiconductors"}, GOOG:{sector:"Technology"}, BKNG:{sector:"Online Travel"}, CVX:{sector:"Oil & Gas"}, AXP:{sector:"Payments"}, BAC:{sector:"Banking"} };
-function generateCustomTornado(sym, st, m) { const customRisks = { "CBA":[{name:"Net Interest Margin (NIM) compression", low:-20, high:10},{name:"Mortgage delinquencies (bad debts)", low:-25, high:5},{name:"Housing market downturn", low:-30, high:8},{name:"Digital competition (neobanks)", low:-15, high:5},{name:"Regulatory capital requirements", low:-12, high:3}], "WDS":[{name:"LNG spot price volatility", low:-40, high:35},{name:"Project execution risk (Louisiana LNG)", low:-25, high:15},{name:"Carbon tax / energy transition", low:-20, high:5},{name:"Asian LNG demand slowdown", low:-30, high:20},{name:"AUD/USD exchange rate", low:-15, high:10}], "BBRI":[{name:"Microfinance NPL (non-performing loans)", low:-35, high:8},{name:"Rupiah depreciation (IDR)", low:-20, high:10},{name:"Government KUR program changes", low:-25, high:5},{name:"Digital bank competition (SeaBank, Jago)", low:-15, high:10},{name:"Rural economic downturn", low:-28, high:12}] }; if (customRisks[sym]) return customRisks[sym]; const sector = CO_INFO[sym]?.sector || 'General'; let risks = (SECTOR_RISKS[sector] || SECTOR_RISKS['General']).map(r => ({...r})); if (m.av.debtToEquity > 80) risks.push({ name: 'Interest Rate Sensitivity', low: -15, high: 5 }); if (m.cg.rev < 0) risks.push({ name: 'Revenue Decline Persistence', low: -20, high: 5 }); if (m.av.gpm > 40 && m.av.npm < 15) risks.push({ name: 'Operating Cost Inflation', low: -12, high: 3 }); if (m.cg.np < 0 && m.cg.np < -10) risks.push({ name: 'Profit Margin Compression', low: -18, high: 4 }); risks = risks.slice(0,7); risks.sort((a,b) => Math.abs(b.high - b.low) - Math.abs(a.high - a.low)); return risks; }
-function renderTornadoChart(variables) { if (!variables || !variables.length) return ""; const sorted = [...variables].sort((a,b) => Math.abs(b.high - b.low) - Math.abs(a.high - a.low)); const maxAbs = Math.max(...sorted.flatMap(v => [Math.abs(v.low||0), Math.abs(v.high||0)]), 1); const labelW = 160, barH = 28, gap = 8, axisH = 30, chartW = 380, mid = chartW/2; const scale = v => (Math.abs(v)/maxAbs) * (mid * 0.90); const fmt = v => v != null ? (v>=0 ? "+" : "") + Number(v).toFixed(1) + "%" : "?"; const bars = sorted.map((v,i) => { const y = i * (barH + gap); const nw = scale(v.low||0); const pw = scale(v.high||0); return `<g transform="translate(0,${y})"><rect x="${mid - nw}" y="0" width="${nw}" height="${barH}" fill="#ff5a7a" rx="3" opacity="0.85"/><rect x="${mid}" y="0" width="${pw}" height="${barH}" fill="#5a9eff" rx="3" opacity="0.85"/><text x="${mid - nw - 4}" y="${barH/2 + 4}" fill="#ff5a7a" font-size="9" text-anchor="end">${fmt(v.low)}</text><text x="${mid + pw + 4}" y="${barH/2 + 4}" fill="#5a9eff" font-size="9" text-anchor="start">${fmt(v.high)}</text><text x="-4" y="${barH/2 + 4}" fill="#b8d0ea" font-size="10" text-anchor="end" font-weight="500">${v.name||""}</text></g>`; }).join(""); const h = sorted.length * (barH + gap) + axisH; const ticks = [-75,-50,-25,0,25,50,75].filter(t => Math.abs(t) <= maxAbs * 1.05); const axis = ticks.map(t => { const x = mid + (t / maxAbs) * (mid * 0.90); return `<line x1="${x}" y1="0" x2="${x}" y2="${h - axisH}" stroke="rgba(72,110,144,0.5)" stroke-width="1"/><text x="${x}" y="${h - axisH + 13}" fill="#6c8db0" font-size="8" text-anchor="middle">${t>0?"+":""}${t}%</text>`; }).join(""); return `<div style="overflow-x:auto;margin:12px 0"><div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;display:flex;gap:14px"><span><span style="color:#ff5a7a">■</span> Downside risk to net profit</span><span><span style="color:#5a9eff">■</span> Upside potential</span></div><svg viewBox="-${labelW} 0 ${labelW+chartW+60} ${h}" style="width:100%;max-width:${labelW+chartW+60}px;height:${h}px;font-family:Inter">${axis}${bars}</svg></div>`; }
-function extractKeyTakeaways(profileText, m, sym) { const takeaways = []; if (m.av.gpm > 40) takeaways.push(`✅ High gross margin (${P1(m.av.gpm)}) – the company has strong pricing power or very low costs. This protects profits even when sales slow.`); else if (m.av.gpm > 20) takeaways.push(`📊 Gross margin of ${P1(m.av.gpm)} is healthy, meaning the business keeps a decent portion of revenue after production costs.`); else takeaways.push(`⚠️ Thin gross margin (${P1(m.av.gpm)}) – small increases in input costs can wipe out profits. Look for cost control measures.`); if (m.av.npm > 20) takeaways.push(`💰 Excellent net profitability (${P1(m.av.npm)}) – every dollar of revenue generates substantial profit after all expenses. A sign of a well‑run business.`); else if (m.av.npm > 10) takeaways.push(`💵 Solid net margin (${P1(m.av.npm)}) – the company is efficient at turning sales into profits.`); else takeaways.push(`📉 Low net margin (${P1(m.av.npm)}) – earnings are sensitive to cost increases or price cuts. Watch for margin improvement efforts.`); if (m.av.roe > 20) takeaways.push(`🚀 Outstanding return on equity (${P1(m.av.roe)}) – management is excellent at generating profits from shareholder capital. This often leads to long‑term wealth creation.`); else if (m.av.roe > 12) takeaways.push(`📈 Good ROE (${P1(m.av.roe)}) – the company earns a solid return on your invested capital.`); else takeaways.push(`🐢 ROE of ${P1(m.av.roe)} is mediocre – capital is not being deployed as effectively as it could be. Look for changes in strategy.`); if (m.buff > 100) takeaways.push(`🧠 Passes the Buffett $1 test – every dollar retained by the company has created more than a dollar of market value. This is a strong sign of intelligent capital allocation.`); else if (m.buff > 0) takeaways.push(`📊 Buffett test score ${P1(m.buff)} – retained earnings create some value, but there is room to improve.`); else if (m.buff !== null) takeaways.push(`⚠️ Buffett test score ${P1(m.buff)} – retained earnings destroy value. The company would be better off paying out more dividends.`); if (m.cg.rev > 10) takeaways.push(`📈 Strong revenue growth (${P1(m.cg.rev)} CAGR) – the top line is expanding rapidly, which can fuel future profits.`); else if (m.cg.rev < 0) takeaways.push(`📉 Revenue is declining (${P1(m.cg.rev)} CAGR) – investigate why. Is it cyclical or structural?`); if (m.av.debtToEquity > 80) takeaways.push(`⚠️ High leverage (D/E ${P1(m.av.debtToEquity)}) – debt increases risk, especially in a rising interest rate environment.`); else if (m.av.debtToEquity < 30) takeaways.push(`✅ Low debt (D/E ${P1(m.av.debtToEquity)}) – the balance sheet is conservative, providing a safety buffer.`); const leader = LEADERSHIP[sym]; if (leader) takeaways.push(`👔 CEO ${leader.ceo} has a track record of ${leader.track.substring(0, 120)}.`); if (profileText) { const bmcMatch = profileText.match(/## Business Model Canvas.*?Value Proposition:\s*(.+?)(?:\n|$)/is); if (bmcMatch) takeaways.push(`🏢 Core advantage: ${bmcMatch[1].trim()}`); const swotStrengthMatch = profileText.match(/## SWOT Analysis.*?Strengths:\s*(.+?)(?:\n|$)/is); if (swotStrengthMatch) takeaways.push(`💪 Key strength: ${swotStrengthMatch[1].trim().substring(0, 120)}`); const swotOppMatch = profileText.match(/Opportunities:\s*(.+?)(?:\n|$)/is); if (swotOppMatch) takeaways.push(`🚀 Growth opportunity: ${swotOppMatch[1].trim().substring(0, 120)}`); } return takeaways; }
-function tabInsights(sym, st) { const stockData = S.data[sym]; const profileMd = stockData?.profile || ""; const m = calcM(sym); if (!m) return `<div class="state-box"><p>No financial data available for ${sym}</p></div>`; let leftHtml = "", rightHtml = ""; if (profileMd && profileMd.length > 100) { const sections = {}; const parts = profileMd.split(/(?=^## )/gm); for (const part of parts) { const match = part.match(/^## (.+)$/m); if (match) sections[match[1].trim()] = part; } const leftOrder = ["Business Model Canvas", "SWOT Analysis", "PESTLE Analysis", "Porter's Five Forces"]; const rightOrder = ["Management & Decision Making", "Future Outlook"]; for (const title of leftOrder) if (sections[title]) leftHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`; for (const title of rightOrder) if (sections[title]) rightHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`; } const leader = LEADERSHIP[sym]; if (leader && !profileMd.includes("Leadership")) { rightHtml += `<div class="ai-content"><h2>🧠 Leadership</h2><p><strong>CEO:</strong> ${leader.ceo}<br><strong>CFO:</strong> ${leader.cfo}<br><strong>Track Record:</strong> ${leader.track}</p></div>`; } const tornadoVars = generateCustomTornado(sym, st, m); if (tornadoVars.length) { rightHtml += `<div class="ai-content"><h2>🌪️ Sensitivity Analysis – Net Profit Impact</h2><p style="font-size:11px;color:var(--text-muted);">Estimated % change in net profit under different scenarios. Based on company‑specific risks.</p>${renderTornadoChart(tornadoVars)}</div>`; } const takeaways = extractKeyTakeaways(profileMd, m, sym); if (takeaways.length) { rightHtml += `<div class="ai-content"><h2>🔑 Key Takeaways for Long‑Term Investors</h2><ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul></div>`; } if (!leftHtml && !rightHtml) { return `<div class="state-box"><p>Insights not yet available for ${sym}. Please run the GitHub Actions workflow to generate analysis.</p></div>`; } return `<div class="ai-panel"><div style="margin-bottom:20px;"><div style="font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px;"><span>${st.name}</span><span style="font-size:12px;color:var(--text-muted);">${sym} · ${st.exchange} · ${st.currency}</span></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Analysis based on annual reports & market data</div></div><div class="insights-two-col"><div>${leftHtml || '<div class="ai-content"><p>Business model and strategic analysis will appear after data refresh.</p></div>'}</div><div>${rightHtml}</div></div><div class="ai-cache-note" style="font-size:10px;color:var(--text-muted);margin-top:12px;">📚 Data sources: IDX/ASX/NYSE filings · Annual Reports · Yahoo Finance · StockAnalysis.com · IDNFinancials · Bloomberg · AFR${stockData?.profileDate ? `<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}` : ''}</div></div>`; }
+const LEADERSHIP = {
+  BHP:{ceo:"Mike Henry (since 2020)",cfo:"David Lamont (since 2021)",track:"Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
+  WDS:{ceo:"Meg O'Neill (since 2021)",cfo:"Graham Tiver (since 2020)",track:"O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
+  CBA:{ceo:"Matt Comyn (since 2018)",cfo:"Alan Docherty (since 2021)",track:"Comyn led cloud migration to AWS, OpenAI partnership, digital transformation. Strong capital returns."},
+  BBRI:{ceo:"Sunarso (since 2019)",cfo:"Viviana Dyah Ayu (since 2020)",track:"Sunarso drove 'BRIvolution' digital transformation, ultra-micro holding integration, record BRImo adoption."},
+  ADRO:{ceo:"Garibaldi 'Boy' Thohir (since 2008)",cfo:"Jodhi Pangestu",track:"Thohir led spin-off of thermal coal, pivot to metcoal, aluminum smelter, and renewable energy."},
+  SMSM:{ceo:"Tony S. Budiman",cfo:"Suryadi",track:"Consistent execution, export growth to 45+ countries, maintained debt-free balance sheet, EV product R&D."},
+  UNTR:{ceo:"Darma Setiawan (since 2015)",cfo:"Yunus Saifulhak",track:"Maintained Komatsu exclusivity, PAMA largest contractor, diversification into gold and renewables."},
+  ITMG:{ceo:"M. Qodrat (since 2022)",cfo:"Agus Suhendar",track:"Focused on high dividends, production efficiency, solar hybrid projects. Banpu parent strategy influence."},
+  POWR:{ceo:"M. Firdaus",cfo:"R. Agus",track:"Conservative management, long-term PPAs, stable operations. Slow to adopt renewables but exploring solar."},
+  MPMX:{ceo:"Djoko Susanto",cfo:"Iwan Setiawan",track:"Stable Honda distribution, integrated financing and rental. Investing in EV motorcycle transition."},
+  BTPS:{ceo:"Ridwan Kurniawan",cfo:"Dewi Sartika",track:"Focused on sharia microfinance, digital group meetings, partnership with Baznas. Small scale but niche."},
+  DMAS:{ceo:"Takeshi Koyama (Sojitz)",cfo:"Santi Widjaja",track:"Japanese parent backing, data centre land sales driving growth. Green estate certification."},
+  SPTO:{ceo:"Widjaja (family)",cfo:"Lukman",track:"Long-term TOTO exclusivity maintained. Expanding to Tier-2 cities. High dividend yield."},
+  TSM:{ceo:"C.C. Wei (since 2018)",cfo:"Wendell Huang",track:"Wei led 2nm/3nm ramp, global expansion (Arizona, Japan, Germany). Capital discipline, high R&D."},
+  V:{ceo:"Ryan McInerney (since 2023)",cfo:"Chris Suh (since 2023)",track:"Focus on tokenisation, cross-border solutions, crypto partnerships. Strong capital returns."},
+  MA:{ceo:"Michael Miebach (since 2020)",cfo:"Sachin Mehra",track:"Multi-rail expansion, crypto partnerships, B2B payments. Consistent growth."},
+  "PBR-A":{ceo:"Magda Chambriard (since 2024)",cfo:"Fernando Melgarejo",track:"Focus on pre-salt growth, debt reduction, and shareholder returns. Political interference risk."},
+  MSFT:{ceo:"Satya Nadella (since 2014)",cfo:"Amy Hood (since 2013)",track:"Cloud and AI leadership, OpenAI partnership, Activision acquisition. Excellent capital allocation."},
+  AMZN:{ceo:"Andy Jassy (since 2021)",cfo:"Brian Olsavsky (since 2015)",track:"Jassy focused on cost optimisation, AWS growth, AI (Bedrock). Healthcare and satellite long-term bets."},
+  AAPL:{ceo:"Tim Cook (since 2011)",cfo:"Luca Maestri (since 2014)",track:"Services expansion, ecosystem lock-in, capital returns. Vision Pro and AI integration next."},
+  META:{ceo:"Mark Zuckerberg (founder)",cfo:"Susan Li (since 2022)",track:"Year of Efficiency, AI (Llama), metaverse long-term bet. Aggressive buybacks."},
+  NVDA:{ceo:"Jensen Huang (founder)",cfo:"Colette Kress (since 2013)",track:"AI dominance, Blackwell ramp, CUDA moat. Exceptional execution."},
+  GOOG:{ceo:"Sundar Pichai (since 2015)",cfo:"Ruth Porat (since 2015)",track:"AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds."},
+  BKNG:{ceo:"Glenn Fogel (since 2017)",cfo:"David Goulden",track:"Merchant model expansion, US growth, connected trip. Strong capital returns."},
+  NAB:{ceo:"Ross McEwan (since 2019)",cfo:"Gary Lennon (since 2022)",track:"McEwan led digital transformation, cost reduction, and capital management. Focus on business banking and home lending."},
+  CVX:{ceo:"Mike Wirth (since 2018)",cfo:"Pierre Breber (since 2019)",track:"Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."},
+  AXP:{ceo:"Stephen Squeri (since 2018)",cfo:"Christophe Le Caillec (since 2023)",track:"Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."},
+  BAC:{ceo:"Brian Moynihan (since 2010)",cfo:"Alastair Borthwick (since 2019)",track:"Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."}
+};
+const SECTOR_RISKS = {
+  "Mining":[{name:"Commodity Price",low:-40,high:30},{name:"Production Volume",low:-20,high:15},{name:"AUD/USD Rate",low:-15,high:10},{name:"Operating Costs",low:-18,high:5},{name:"Regulatory/ESG",low:-12,high:3}],
+  "Oil & Gas":[{name:"Oil/Gas Price",low:-45,high:35},{name:"Production Output",low:-20,high:15},{name:"LNG Contract Terms",low:-12,high:10},{name:"Carbon Policy",low:-20,high:2},{name:"Reserve Life",low:-15,high:8}],
+  "Banking":[{name:"Net Interest Margin",low:-25,high:15},{name:"Loan Loss Provisions",low:-30,high:10},{name:"Credit Growth",low:-15,high:20},{name:"Regulatory Capital",low:-20,high:5},{name:"Digital Competition",low:-18,high:8}],
+  "Islamic Banking":[{name:"Financing Growth",low:-20,high:25},{name:"Credit Quality (NPF)",low:-35,high:8},{name:"Rural Economy",low:-25,high:20},{name:"Regulatory Changes",low:-15,high:5},{name:"Competition",low:-15,high:5}],
+  "Coal Mining":[{name:"Coal Price",low:-50,high:40},{name:"Production Volume",low:-15,high:10},{name:"Energy Transition",low:-25,high:5},{name:"USD/IDR Rate",low:-15,high:10},{name:"Logistics Costs",low:-12,high:3}],
+  "Auto Parts":[{name:"Auto Industry Demand",low:-25,high:20},{name:"Raw Material Costs",low:-20,high:8},{name:"Export Markets",low:-15,high:15},{name:"EV Transition Risk",low:-20,high:5},{name:"IDR/USD Rate",low:-12,high:10}],
+  "Heavy Equipment & Mining":[{name:"Coal/Mining Activity",low:-30,high:25},{name:"Equipment Demand",low:-20,high:18},{name:"Commodity Prices",low:-25,high:20},{name:"IDR/USD Rate",low:-12,high:8},{name:"Competitor Pricing",low:-15,high:5}],
+  "Automotive":[{name:"Motorcycle Demand",low:-25,high:20},{name:"Financing Revenue",low:-20,high:15},{name:"Interest Rates",low:-18,high:8},{name:"Competition",low:-20,high:10},{name:"IDR Stability",low:-10,high:5}],
+  "Power & Utilities":[{name:"Industrial Tenant Demand",low:-20,high:15},{name:"Fuel Costs",low:-15,high:5},{name:"Tariff Policy",low:-25,high:10},{name:"New Market Entry",low:-12,high:5},{name:"USD/IDR Rate",low:-10,high:5}],
+  "Industrial Real Estate":[{name:"Industrial Land Demand",low:-30,high:25},{name:"FDI Inflows",low:-25,high:30},{name:"IDR/USD Rate",low:-15,high:10},{name:"Infrastructure",low:-10,high:20},{name:"Competing Estates",low:-15,high:5}],
+  "Building Materials":[{name:"Property Construction",low:-25,high:20},{name:"Raw Material Costs",low:-18,high:8},{name:"Import Competition",low:-15,high:5},{name:"Urbanization Rate",low:-10,high:15},{name:"Currency",low:-12,high:8}],
+  "Semiconductors":[{name:"AI/Data Centre Demand",low:-40,high:50},{name:"Geopolitical Risk",low:-60,high:10},{name:"Competition",low:-25,high:15},{name:"CapEx Execution",low:-20,high:8},{name:"Cyclical Downturn",low:-35,high:15}],
+  "Payments":[{name:"Payment Volume Growth",low:-15,high:20},{name:"Fintech Disruption",low:-20,high:5},{name:"Regulatory/Interchange",low:-25,high:3},{name:"Consumer Spending",low:-20,high:15},{name:"Cross-Border Volume",low:-15,high:18}],
+  "Technology":[{name:"Cloud Revenue Growth",low:-20,high:30},{name:"AI Monetisation",low:-15,high:40},{name:"Regulatory/Antitrust",low:-25,high:5},{name:"Competition",low:-20,high:15},{name:"CapEx Cycle",low:-15,high:10}],
+  "E-Commerce & Cloud":[{name:"AWS Growth Rate",low:-20,high:25},{name:"Retail Margin",low:-15,high:10},{name:"Advertising Revenue",low:-25,high:20},{name:"Regulatory Antitrust",low:-20,high:5},{name:"Cloud Competition",low:-20,high:10}],
+  "Social Media":[{name:"Advertising Revenue",low:-30,high:25},{name:"Privacy Regulation",low:-25,high:5},{name:"User Engagement",low:-20,high:15},{name:"AI CapEx Burden",low:-18,high:20},{name:"Competition",low:-20,high:10}],
+  "Online Travel":[{name:"Travel Demand",low:-40,high:30},{name:"Hotel/Airline Supply",low:-15,high:15},{name:"Google Competition",low:-20,high:5},{name:"Recession Risk",low:-30,high:10},{name:"AI Booking Disruption",low:-15,high:10}],
+  "General":[{name:"Economic Slowdown",low:-25,high:15},{name:"Competition",low:-20,high:10},{name:"Regulatory Changes",low:-15,high:5},{name:"Cost Inflation",low:-18,high:3},{name:"Currency Risk",low:-12,high:8}]
+};
+const CO_INFO = {
+  BHP:{sector:"Mining"}, WDS:{sector:"Oil & Gas"}, CBA:{sector:"Banking"}, NAB:{sector:"Banking"}, BBRI:{sector:"Banking"}, ADRO:{sector:"Coal Mining"}, SMSM:{sector:"Auto Parts"}, UNTR:{sector:"Heavy Equipment & Mining"}, ITMG:{sector:"Coal Mining"}, POWR:{sector:"Power & Utilities"}, MPMX:{sector:"Automotive"}, BTPS:{sector:"Islamic Banking"}, DMAS:{sector:"Industrial Real Estate"}, SPTO:{sector:"Building Materials"}, TSM:{sector:"Semiconductors"}, V:{sector:"Payments"}, MA:{sector:"Payments"}, "PBR-A":{sector:"Oil & Gas"}, MSFT:{sector:"Technology"}, AMZN:{sector:"E-Commerce & Cloud"}, AAPL:{sector:"Technology"}, META:{sector:"Social Media"}, NVDA:{sector:"Semiconductors"}, GOOG:{sector:"Technology"}, BKNG:{sector:"Online Travel"}, CVX:{sector:"Oil & Gas"}, AXP:{sector:"Payments"}, BAC:{sector:"Banking"}
+};
+function generateCustomTornado(sym, st, m) {
+  const customRisks = {
+    "CBA":[{name:"Net Interest Margin (NIM) compression", low:-20, high:10},{name:"Mortgage delinquencies (bad debts)", low:-25, high:5},{name:"Housing market downturn", low:-30, high:8},{name:"Digital competition (neobanks)", low:-15, high:5},{name:"Regulatory capital requirements", low:-12, high:3}],
+    "WDS":[{name:"LNG spot price volatility", low:-40, high:35},{name:"Project execution risk (Louisiana LNG)", low:-25, high:15},{name:"Carbon tax / energy transition", low:-20, high:5},{name:"Asian LNG demand slowdown", low:-30, high:20},{name:"AUD/USD exchange rate", low:-15, high:10}],
+    "BBRI":[{name:"Microfinance NPL (non-performing loans)", low:-35, high:8},{name:"Rupiah depreciation (IDR)", low:-20, high:10},{name:"Government KUR program changes", low:-25, high:5},{name:"Digital bank competition (SeaBank, Jago)", low:-15, high:10},{name:"Rural economic downturn", low:-28, high:12}]
+  };
+  if (customRisks[sym]) return customRisks[sym];
+  const sector = CO_INFO[sym]?.sector || 'General';
+  let risks = (SECTOR_RISKS[sector] || SECTOR_RISKS['General']).map(r => ({...r}));
+  if (m.av.debtToEquity > 80) risks.push({ name: 'Interest Rate Sensitivity', low: -15, high: 5 });
+  if (m.cg.rev < 0) risks.push({ name: 'Revenue Decline Persistence', low: -20, high: 5 });
+  if (m.av.gpm > 40 && m.av.npm < 15) risks.push({ name: 'Operating Cost Inflation', low: -12, high: 3 });
+  if (m.cg.np < 0 && m.cg.np < -10) risks.push({ name: 'Profit Margin Compression', low: -18, high: 4 });
+  risks = risks.slice(0,7);
+  risks.sort((a,b) => Math.abs(b.high - b.low) - Math.abs(a.high - a.low));
+  return risks;
+}
+function renderTornadoChart(variables) {
+  if (!variables || !variables.length) return "";
+  const sorted = [...variables].sort((a,b) => Math.abs(b.high - b.low) - Math.abs(a.high - a.low));
+  const maxAbs = Math.max(...sorted.flatMap(v => [Math.abs(v.low||0), Math.abs(v.high||0)]), 1);
+  const labelW = 160, barH = 28, gap = 8, axisH = 30, chartW = 380, mid = chartW/2;
+  const scale = v => (Math.abs(v)/maxAbs) * (mid * 0.90);
+  const fmt = v => v != null ? (v>=0 ? "+" : "") + Number(v).toFixed(1) + "%" : "?";
+  const bars = sorted.map((v,i) => {
+    const y = i * (barH + gap);
+    const nw = scale(v.low||0);
+    const pw = scale(v.high||0);
+    return `<g transform="translate(0,${y})"><rect x="${mid - nw}" y="0" width="${nw}" height="${barH}" fill="#ff5a7a" rx="3" opacity="0.85"/><rect x="${mid}" y="0" width="${pw}" height="${barH}" fill="#5a9eff" rx="3" opacity="0.85"/><text x="${mid - nw - 4}" y="${barH/2 + 4}" fill="#ff5a7a" font-size="9" text-anchor="end">${fmt(v.low)}</text><text x="${mid + pw + 4}" y="${barH/2 + 4}" fill="#5a9eff" font-size="9" text-anchor="start">${fmt(v.high)}</text><text x="-4" y="${barH/2 + 4}" fill="#b8d0ea" font-size="10" text-anchor="end" font-weight="500">${v.name||""}</text></g>`;
+  }).join("");
+  const h = sorted.length * (barH + gap) + axisH;
+  const ticks = [-75,-50,-25,0,25,50,75].filter(t => Math.abs(t) <= maxAbs * 1.05);
+  const axis = ticks.map(t => {
+    const x = mid + (t / maxAbs) * (mid * 0.90);
+    return `<line x1="${x}" y1="0" x2="${x}" y2="${h - axisH}" stroke="rgba(72,110,144,0.5)" stroke-width="1"/><text x="${x}" y="${h - axisH + 13}" fill="#6c8db0" font-size="8" text-anchor="middle">${t>0?"+":""}${t}%</text>`;
+  }).join("");
+  return `<div style="overflow-x:auto;margin:12px 0"><div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;display:flex;gap:14px"><span><span style="color:#ff5a7a">■</span> Downside risk to net profit</span><span><span style="color:#5a9eff">■</span> Upside potential</span></div><svg viewBox="-${labelW} 0 ${labelW+chartW+60} ${h}" style="width:100%;max-width:${labelW+chartW+60}px;height:${h}px;font-family:Inter">${axis}${bars}</svg></div>`;
+}
+function extractKeyTakeaways(profileText, m, sym) {
+  const takeaways = [];
+  if (m.av.gpm > 40) takeaways.push(`✅ High gross margin (${P1(m.av.gpm)}) – the company has strong pricing power or very low costs. This protects profits even when sales slow.`);
+  else if (m.av.gpm > 20) takeaways.push(`📊 Gross margin of ${P1(m.av.gpm)} is healthy, meaning the business keeps a decent portion of revenue after production costs.`);
+  else takeaways.push(`⚠️ Thin gross margin (${P1(m.av.gpm)}) – small increases in input costs can wipe out profits. Look for cost control measures.`);
+  if (m.av.npm > 20) takeaways.push(`💰 Excellent net profitability (${P1(m.av.npm)}) – every dollar of revenue generates substantial profit after all expenses. A sign of a well‑run business.`);
+  else if (m.av.npm > 10) takeaways.push(`💵 Solid net margin (${P1(m.av.npm)}) – the company is efficient at turning sales into profits.`);
+  else takeaways.push(`📉 Low net margin (${P1(m.av.npm)}) – earnings are sensitive to cost increases or price cuts. Watch for margin improvement efforts.`);
+  if (m.av.roe > 20) takeaways.push(`🚀 Outstanding return on equity (${P1(m.av.roe)}) – management is excellent at generating profits from shareholder capital. This often leads to long‑term wealth creation.`);
+  else if (m.av.roe > 12) takeaways.push(`📈 Good ROE (${P1(m.av.roe)}) – the company earns a solid return on your invested capital.`);
+  else takeaways.push(`🐢 ROE of ${P1(m.av.roe)} is mediocre – capital is not being deployed as effectively as it could be. Look for changes in strategy.`);
+  if (m.buff > 100) takeaways.push(`🧠 Passes the Buffett $1 test – every dollar retained by the company has created more than a dollar of market value. This is a strong sign of intelligent capital allocation.`);
+  else if (m.buff > 0) takeaways.push(`📊 Buffett test score ${P1(m.buff)} – retained earnings create some value, but there is room to improve.`);
+  else if (m.buff !== null) takeaways.push(`⚠️ Buffett test score ${P1(m.buff)} – retained earnings destroy value. The company would be better off paying out more dividends.`);
+  if (m.cg.rev > 10) takeaways.push(`📈 Strong revenue growth (${P1(m.cg.rev)} CAGR) – the top line is expanding rapidly, which can fuel future profits.`);
+  else if (m.cg.rev < 0) takeaways.push(`📉 Revenue is declining (${P1(m.cg.rev)} CAGR) – investigate why. Is it cyclical or structural?`);
+  if (m.av.debtToEquity > 80) takeaways.push(`⚠️ High leverage (D/E ${P1(m.av.debtToEquity)}) – debt increases risk, especially in a rising interest rate environment.`);
+  else if (m.av.debtToEquity < 30) takeaways.push(`✅ Low debt (D/E ${P1(m.av.debtToEquity)}) – the balance sheet is conservative, providing a safety buffer.`);
+  const leader = LEADERSHIP[sym];
+  if (leader) takeaways.push(`👔 CEO ${leader.ceo} has a track record of ${leader.track.substring(0, 120)}.`);
+  if (profileText) {
+    const bmcMatch = profileText.match(/## Business Model Canvas.*?Value Proposition:\s*(.+?)(?:\n|$)/is);
+    if (bmcMatch) takeaways.push(`🏢 Core advantage: ${bmcMatch[1].trim()}`);
+    const swotStrengthMatch = profileText.match(/## SWOT Analysis.*?Strengths:\s*(.+?)(?:\n|$)/is);
+    if (swotStrengthMatch) takeaways.push(`💪 Key strength: ${swotStrengthMatch[1].trim().substring(0, 120)}`);
+    const swotOppMatch = profileText.match(/Opportunities:\s*(.+?)(?:\n|$)/is);
+    if (swotOppMatch) takeaways.push(`🚀 Growth opportunity: ${swotOppMatch[1].trim().substring(0, 120)}`);
+  }
+  return takeaways;
+}
+function tabInsights(sym, st) {
+  const stockData = S.data[sym];
+  const profileMd = stockData?.profile || "";
+  const m = calcM(sym);
+  if (!m) return `<div class="state-box"><p>No financial data available for ${sym}</p></div>`;
+  let leftHtml = "", rightHtml = "";
+  if (profileMd && profileMd.length > 100) {
+    const sections = {};
+    const parts = profileMd.split(/(?=^## )/gm);
+    for (const part of parts) {
+      const match = part.match(/^## (.+)$/m);
+      if (match) sections[match[1].trim()] = part;
+    }
+    const leftOrder = ["Business Model Canvas", "SWOT Analysis", "PESTLE Analysis", "Porter's Five Forces"];
+    const rightOrder = ["Management & Decision Making", "Future Outlook"];
+    for (const title of leftOrder) if (sections[title]) leftHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`;
+    for (const title of rightOrder) if (sections[title]) rightHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`;
+  }
+  const leader = LEADERSHIP[sym];
+  if (leader && !profileMd.includes("Leadership")) {
+    rightHtml += `<div class="ai-content"><h2>🧠 Leadership</h2><p><strong>CEO:</strong> ${leader.ceo}<br><strong>CFO:</strong> ${leader.cfo}<br><strong>Track Record:</strong> ${leader.track}</p></div>`;
+  }
+  const tornadoVars = generateCustomTornado(sym, st, m);
+  if (tornadoVars.length) {
+    rightHtml += `<div class="ai-content"><h2>🌪️ Sensitivity Analysis – Net Profit Impact</h2><p style="font-size:11px;color:var(--text-muted);">Estimated % change in net profit under different scenarios. Based on company‑specific risks.</p>${renderTornadoChart(tornadoVars)}</div>`;
+  }
+  const takeaways = extractKeyTakeaways(profileMd, m, sym);
+  if (takeaways.length) {
+    rightHtml += `<div class="ai-content"><h2>🔑 Key Takeaways for Long‑Term Investors</h2><ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul></div>`;
+  }
+  if (!leftHtml && !rightHtml) {
+    return `<div class="state-box"><p>Insights not yet available for ${sym}. Please run the GitHub Actions workflow to generate analysis.</p></div>`;
+  }
+  return `<div class="ai-panel"><div style="margin-bottom:20px;"><div style="font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px;"><span>${st.name}</span><span style="font-size:12px;color:var(--text-muted);">${sym} · ${st.exchange} · ${st.currency}</span></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Analysis based on annual reports & market data</div></div><div class="insights-two-col"><div>${leftHtml || '<div class="ai-content"><p>Business model and strategic analysis will appear after data refresh.</p></div>'}</div><div>${rightHtml}</div></div><div class="ai-cache-note" style="font-size:10px;color:var(--text-muted);margin-top:12px;">📚 Data sources: IDX/ASX/NYSE filings · Annual Reports · Yahoo Finance · StockAnalysis.com · IDNFinancials · Bloomberg · AFR${stockData?.profileDate ? `<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}` : ''}</div></div>`;
+}
 </script>
 </body>
 </html>
