@@ -247,6 +247,15 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .pur { color: var(--accent-purple); }
 .blu { color: var(--accent-blue); }
 .src-bar { background: rgba(8, 16, 24, 0.7); backdrop-filter: blur(8px); border-radius: 20px; padding: 12px 20px; margin-bottom: 20px; border: 1px solid rgba(0,228,255,0.2); }
+/* Debug panel */
+#debugPanel {
+  position: fixed; bottom: 10px; right: 10px;
+  background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+  border: 1px solid var(--accent-cyan); border-radius: 12px;
+  padding: 10px 15px; font-size: 10px; color: var(--text-muted);
+  z-index: 9999; display: none;
+}
+#debugPanel.visible { display: block; }
 </style>
 </head>
 <body>
@@ -275,9 +284,10 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 <div id="cont"></div>
 <div id="addModal" class="modal-bg" style="display:none"><div class="modal"><div class="modal-h"><h3>＋ Add New Stock</h3><button class="modal-x" onclick="hideAdd()">×</button></div><div class="modal-b" id="addBody"></div></div></div>
 <div id="syncModal" class="modal-bg" style="display:none"><div class="modal" style="max-width:520px"><div class="modal-h"><h3>🔄 Sync Between Devices</h3><button class="modal-x" onclick="hideSync()">×</button></div><div class="modal-b" id="syncBody"></div></div></div>
+<div id="debugPanel"></div>
 
 <script>
-// ======================== ORIGINAL FULL SCRIPT WITH DATA VERSION SYNC FIX ========================
+// ======================== FULL SCRIPT WITH ENHANCED SYNC & DEBUG ========================
 const CURRENT_YEAR = new Date().getFullYear();
 const LATEST_YEAR = CURRENT_YEAR - 1;
 const YEARS = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
@@ -653,12 +663,20 @@ function showSync(){
     <div class="notice"><strong>📱 ↔ 💻 Cross-Device Sync</strong><br>Your portfolio (custom stocks, weights, cached data) is auto-saved locally. Use one of these methods to sync to another device.</div>
     <div class="sec"><div class="sec-t">Method 1 · Download & Import File</div><p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Downloads a JSON file with your full portfolio including all cached financial data.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-cyan" onclick="exportJSON()">⬇ Download Portfolio JSON</button><input type="file" accept=".json" id="impFile" style="display:none" onchange="importFile(this.files[0])"/><button class="btn btn-ghost" onclick="document.getElementById('impFile').click()">⬆ Import JSON File</button></div></div>
     <div class="sec" style="margin-top:18px"><div class="sec-t">Method 2 · Share Link</div><p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Generates a URL with your full configuration. Copy and open on any device.</p><button class="btn btn-green" onclick="doGenLink()" style="margin-bottom:10px">🔗 Generate Link</button><div id="linkOut" style="display:none"><textarea id="linkTxt" readonly style="width:100%;background:var(--bg-deep);border:1px solid var(--border-light);border-radius:12px;padding:10px;color:var(--text-muted);font-size:10px;resize:vertical;min-height:70px;"></textarea><div style="display:flex;align-items:center;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="copyLink()">📋 Copy Link</button><span id="cpMsg" style="font-size:11px;color:var(--accent-green);display:none">✓ Copied!</span></div></div></div>
+    <div class="sec" style="margin-top:18px;border-top:1px solid var(--border-light);padding-top:16px"><div class="sec-t">🛠 Troubleshooting</div><p style="font-size:12px;color:var(--text-muted);">If rankings differ between devices, reset all local data and reload.</p><button class="btn btn-red btn-sm" onclick="resetAndReload()">🗑 Reset All Data & Reload</button></div>
     <div style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn btn-ghost" onclick="hideSync()">Close</button></div>`;
   document.getElementById('syncModal').style.display='flex';
 }
 function hideSync(){document.getElementById('syncModal').style.display='none';}
 function doGenLink(){const u=genLink();document.getElementById('linkOut').style.display='block';document.getElementById('linkTxt').value=u;}
 function copyLink(){const t=document.getElementById('linkTxt');navigator.clipboard.writeText(t.value).then(()=>{const m=document.getElementById('cpMsg');m.style.display='inline';setTimeout(()=>m.style.display='none',3000);}).catch(()=>{t.select();document.execCommand('copy');});}
+function resetAndReload(){
+  if(confirm('This will delete ALL locally saved data (custom stocks, weights, cache) and reload the page. Are you sure?')){
+    localStorage.removeItem(LS_KEY);
+    localStorage.removeItem(DATA_VERSION_KEY);
+    location.reload();
+  }
+}
 function showAdd(){AF={sym:'',name:'',exch:'ASX',cur:'B AUD',ticker:'',hintCur:'AUD'};renderAddForm();document.getElementById('addModal').style.display='flex';}
 function hideAdd(){document.getElementById('addModal').style.display='none';}
 let AF={sym:'',name:'',exch:'ASX',cur:'B AUD',ticker:'',hintCur:'AUD'};
@@ -770,9 +788,7 @@ function renderMain(){
   else if(S.tab==='ratios')cont.innerHTML=tabRatios(S.sel,st);
   else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}
 }
-function render(){renderSBar();renderTabBtns();renderMain();saveLS();}
-
-// ----- FORCE REFRESH (clears data cache) -----
+function render(){renderSBar();renderTabBtns();renderMain();saveLS();updateDebugInfo();}
 function forceRefresh(){
   if(confirm('Force refresh will clear all cached financial data and reload the page. Your custom stocks and weights will be preserved.')){
     S.data = {};
@@ -782,42 +798,52 @@ function forceRefresh(){
     location.reload();
   }
 }
+function updateDebugInfo(){
+  if(!location.search.includes('debug')) return;
+  const panel=document.getElementById('debugPanel');
+  panel.classList.add('visible');
+  const {scores,fr}=calcRanks(S.wts);
+  const ks=Object.keys(fr).sort((a,b)=>fr[a]-fr[b]);
+  const checksum=ks.map(k=>`${k}:${fr[k]}`).join('|');
+  const liveCount=Object.values(S.data).filter(d=>d?.source==='yfinance').length;
+  panel.innerHTML=`<strong>🐞 Debug</strong><br>Source: ${liveCount>0?'📡 Live':'📋 Built-in'}<br>Stocks: ${Object.keys(S.stocks).length}<br>Ranked: ${ks.length}<br>Checksum: ${checksum.slice(0,30)}...`;
+}
 
-// ----- BOOT WITH VERSION CHECK -----
 async function boot(){
   loadLS();
   let liveData = null;
   let dataSource = 'built-in';
   let generatedTimestamp = null;
+  let fetchError = null;
 
   if(location.protocol !== 'file:'){
     try{
-      const res = await fetch('./data.json?_=' + Date.now(), { cache: 'no-store' });
+      const res = await fetch('./data.json?_=' + Date.now(), { cache: 'reload' });
       if(res.ok){
         liveData = await res.json();
         generatedTimestamp = liveData.generated;
         const storedTimestamp = localStorage.getItem(DATA_VERSION_KEY);
-        // If we have new data, clear the old cached data in localStorage
         if(generatedTimestamp && generatedTimestamp !== storedTimestamp){
-          // Keep user weights and custom stocks, but reset data/status
           S.data = {};
           S.status = {};
           localStorage.setItem(DATA_VERSION_KEY, generatedTimestamp);
           saveLS();
         }
         dataSource = 'yfinance';
+      } else {
+        fetchError = `HTTP ${res.status}`;
       }
     } catch(e){
-      console.warn('data.json not available, using built-in data');
+      fetchError = e.message;
+      console.warn('data.json fetch failed:', e);
     }
   }
 
-  initPreloadedData();  // fills built-in where missing
+  initPreloadedData();
 
   if(liveData && liveData.stocks){
     ANNUALISATION = liveData.annualisation || {};
     const ts = Date.now();
-    // Merge live data into S.data, but preserve user-edited data if newer (simple: overwrite only if source is yfinance or built-in)
     Object.entries(liveData.stocks).forEach(([sym, sd]) => {
       const hasData = Array.isArray(sd.revenue) && sd.revenue.some(v => v !== null);
       S.stocks[sym] = {
@@ -825,7 +851,6 @@ async function boot(){
         exchange: sd.exchange || 'NYSE',
         currency: sd.currency || 'B USD'
       };
-      // Only overwrite if we don't have user-edited data (source !== 'user-edited')
       const existing = S.data[sym];
       if(!existing || existing.source !== 'user-edited'){
         S.data[sym] = {
@@ -853,11 +878,13 @@ async function boot(){
     const genDate = new Date(liveData.generated).toLocaleDateString();
     const n = Object.keys(liveData.stocks).length;
     const hSub = document.getElementById('hSub');
-    if(hSub) hSub.textContent = `ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]} · ${dataSource === 'yfinance' ? '📡 Live' : '📋 Built-in'}`;
+    if(hSub) hSub.textContent = `ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]} · 📡 Live`;
     if(!S.stocks[S.sel]) S.sel = Object.keys(S.stocks)[0] || 'BHP';
   } else {
     const hSub = document.getElementById('hSub');
-    if(hSub) hSub.textContent = `ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · 📋 Built-in · Host on GitHub Pages for auto-refresh`;
+    let msg = `ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · 📋 Built-in`;
+    if(fetchError) msg += ` (fetch failed: ${fetchError})`;
+    if(hSub) hSub.textContent = msg;
     if(!S.stocks[S.sel]) S.sel = 'BHP';
   }
 
@@ -871,7 +898,7 @@ boot();
 
 function fetchAll(){showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan');}
 
-// ======================== INSIGHTS TAB (original full implementation) ========================
+// ======================== INSIGHTS TAB (unchanged) ========================
 function markdownToHtml(md) { if (!md) return ''; return md.replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>').replace(/\n/g, '<br>'); }
 const LEADERSHIP = {
   BHP:{ceo:"Mike Henry (since 2020)",cfo:"David Lamont (since 2021)",track:"Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
