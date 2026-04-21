@@ -28,6 +28,7 @@
     "BHP": 6,
     "WDS": 12,
     "CBA": 6,
+    "NAB": 9,
     "BBRI": 12,
     "ADRO": 12,
     "SMSM": 12,
@@ -48,11 +49,11 @@
     "NVDA": 1,
     "GOOG": 12,
     "BKNG": 12,
-    "PBR-A": 12,
-    "NAB": 9,
+    "AVGO": 12,
     "CVX": 12,
     "AXP": 12,
-    "BAC": 12
+    "BAC": 12,
+    "PBR-A": 12
   },
   "annualisation": {
     "BHP": {
