@@ -107,4 +107,12 @@
       "ticker": "BKNG",
       "hint_cur": "USD"
     }
+    {
+    "symbol": "AVGO",
+      "name": "Broadcom Inc",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "AVGO",
+      "hint_cur": "USD"
+    }
 }
