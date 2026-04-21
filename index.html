@@ -287,7 +287,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 <div id="debugPanel"></div>
 
 <script>
-// ======================== FULL SCRIPT WITH ENHANCED SYNC & DEBUG ========================
+// ======================== FULL SCRIPT WITH CORRECTED LEADERSHIP & WEIGHT INPUT FIX ========================
 const CURRENT_YEAR = new Date().getFullYear();
 const LATEST_YEAR = CURRENT_YEAR - 1;
 const YEARS = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
@@ -624,7 +624,8 @@ function tabRankings(){
       const c=CRIT_MAP[wk];
       const w=S.wts[wk]||0;
       const ov=w>5;
-      return `<div class="wt-card${ov?' ov':''}" style="flex:1;min-width:100px"><div class="wt-l">${c.label}${ov?'<br><span style="font-size:9px;color:var(--accent-gold)">⚠ High weight</span>':''}</div><div class="wt-row"><input type="number" min="0" max="100" step="1" value="${w}" class="wt-inp${ov?' ov':''}" oninput="setWt('${wk}',this.value)"/><span class="wt-u">%</span></div></div>`;
+      // Use onchange to avoid re-render on every keystroke
+      return `<div class="wt-card${ov?' ov':''}" style="flex:1;min-width:100px"><div class="wt-l">${c.label}${ov?'<br><span style="font-size:9px;color:var(--accent-gold)">⚠ High weight</span>':''}</div><div class="wt-row"><input type="number" min="0" max="100" step="1" value="${w}" class="wt-inp${ov?' ov':''}" onchange="setWt('${wk}',this.value)"/><span class="wt-u">%</span></div></div>`;
     }).join('');
     return `<div style="border:1px solid ${g.border};background:${g.bg};border-radius:20px;padding:12px;flex:1;min-width:200px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:11px;font-weight:700;color:${g.color}">${g.label}</span><span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:${g.bg};border:1px solid ${g.border};color:${g.color}">${sub.toFixed(0)}%</span></div><div style="display:flex;flex-wrap:wrap;gap:8px">${cards}</div></div>`;
   }).join('');
@@ -657,7 +658,13 @@ function tabRankings(){
 }
 function setTab(t){S.tab=t;render();}
 function selStock(k){S.sel=k;render();}
-function setWt(k,v){const n=parseFloat(v);if(!isNaN(n)&&n>=0){S.wts[k]=n;render();}}
+function setWt(k,v){
+  const n=parseFloat(v);
+  if(!isNaN(n)&&n>=0){
+    S.wts[k]=n;
+    render(); // re-render rankings with new weights
+  }
+}
 function showSync(){
   document.getElementById('syncBody').innerHTML=`
     <div class="notice"><strong>📱 ↔ 💻 Cross-Device Sync</strong><br>Your portfolio (custom stocks, weights, cached data) is auto-saved locally. Use one of these methods to sync to another device.</div>
@@ -898,11 +905,12 @@ boot();
 
 function fetchAll(){showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan');}
 
-// ======================== INSIGHTS TAB (unchanged) ========================
+// ======================== INSIGHTS TAB WITH CORRECTED LEADERSHIP ========================
 function markdownToHtml(md) { if (!md) return ''; return md.replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>').replace(/\n/g, '<br>'); }
+// CORRECTED LEADERSHIP (2026)
 const LEADERSHIP = {
-  BHP:{ceo:"Mike Henry (since 2020)",cfo:"David Lamont (since 2021)",track:"Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
-  WDS:{ceo:"Meg O'Neill (since 2021)",cfo:"Graham Tiver (since 2020)",track:"O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
+  BHP:{ceo:"Brandon Craig (incoming, effective 1 July 2026)",cfo:"David Lamont (since 2021)",track:"Craig succeeds Mike Henry after six and a half years. A veteran of over 25 years at BHP, he previously led the Americas division and Western Australia iron ore. Focused on copper growth and potash."},
+  WDS:{ceo:"Elizabeth (Liz) Westcott (since March 2026)",cfo:"Graham Tiver (since 2020)",track:"Westcott served as acting CEO from December 2025 following Meg O'Neill's departure to BP. With over 30 years in the energy industry, she leads the company's LNG and new energy portfolio."},
   CBA:{ceo:"Matt Comyn (since 2018)",cfo:"Alan Docherty (since 2021)",track:"Comyn led cloud migration to AWS, OpenAI partnership, digital transformation. Strong capital returns."},
   BBRI:{ceo:"Sunarso (since 2019)",cfo:"Viviana Dyah Ayu (since 2020)",track:"Sunarso drove 'BRIvolution' digital transformation, ultra-micro holding integration, record BRImo adoption."},
   ADRO:{ceo:"Garibaldi 'Boy' Thohir (since 2008)",cfo:"Jodhi Pangestu",track:"Thohir led spin-off of thermal coal, pivot to metcoal, aluminum smelter, and renewable energy."},
@@ -920,7 +928,7 @@ const LEADERSHIP = {
   "PBR-A":{ceo:"Magda Chambriard (since 2024)",cfo:"Fernando Melgarejo",track:"Focus on pre-salt growth, debt reduction, and shareholder returns. Political interference risk."},
   MSFT:{ceo:"Satya Nadella (since 2014)",cfo:"Amy Hood (since 2013)",track:"Cloud and AI leadership, OpenAI partnership, Activision acquisition. Excellent capital allocation."},
   AMZN:{ceo:"Andy Jassy (since 2021)",cfo:"Brian Olsavsky (since 2015)",track:"Jassy focused on cost optimisation, AWS growth, AI (Bedrock). Healthcare and satellite long-term bets."},
-  AAPL:{ceo:"Tim Cook (since 2011)",cfo:"Luca Maestri (since 2014)",track:"Services expansion, ecosystem lock-in, capital returns. Vision Pro and AI integration next."},
+  AAPL:{ceo:"John Ternus (incoming, effective 1 Sept 2026)",cfo:"Kevan Parekh (since 2025)",track:"Ternus, a 25-year Apple veteran and current head of Hardware Engineering, will succeed Tim Cook as CEO. Cook will become executive chairman. This follows a long-term succession plan."},
   META:{ceo:"Mark Zuckerberg (founder)",cfo:"Susan Li (since 2022)",track:"Year of Efficiency, AI (Llama), metaverse long-term bet. Aggressive buybacks."},
   NVDA:{ceo:"Jensen Huang (founder)",cfo:"Colette Kress (since 2013)",track:"AI dominance, Blackwell ramp, CUDA moat. Exceptional execution."},
   GOOG:{ceo:"Sundar Pichai (since 2015)",cfo:"Ruth Porat (since 2015)",track:"AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds."},
