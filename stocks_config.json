@@ -19,6 +19,14 @@
       "hint_cur": "AUD"
     }
     {
+      "symbol": "ANZ",
+      "name": "ANZ Group Holdings Ltd",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "ANZ.AX",
+      "hint_cur": "AUD"
+    }
+    {
       "symbol": "PBR-A",
       "name": "Petroleo Brasileiro S.A. ADR",
       "exchange": "NYSE",
