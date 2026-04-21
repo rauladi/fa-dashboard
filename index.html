@@ -287,7 +287,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 <div id="debugPanel"></div>
 
 <script>
-// ======================== FULL SCRIPT WITH CORRECTED LEADERSHIP & WEIGHT INPUT FIX ========================
+// ======================== FULL SCRIPT WITH UPDATED LEADERSHIP & WEIGHT INPUT FIX ========================
 const CURRENT_YEAR = new Date().getFullYear();
 const LATEST_YEAR = CURRENT_YEAR - 1;
 const YEARS = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
@@ -905,38 +905,38 @@ boot();
 
 function fetchAll(){showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan');}
 
-// ======================== INSIGHTS TAB WITH CORRECTED LEADERSHIP ========================
+// ======================== INSIGHTS TAB WITH UPDATED LEADERSHIP ========================
 function markdownToHtml(md) { if (!md) return ''; return md.replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>').replace(/\n/g, '<br>'); }
-// CORRECTED LEADERSHIP (2026)
+// UPDATED LEADERSHIP (2026) with verified data and refreshed track records
 const LEADERSHIP = {
-  BHP:{ceo:"Brandon Craig (incoming, effective 1 July 2026)",cfo:"David Lamont (since 2021)",track:"Craig succeeds Mike Henry after six and a half years. A veteran of over 25 years at BHP, he previously led the Americas division and Western Australia iron ore. Focused on copper growth and potash."},
-  WDS:{ceo:"Elizabeth (Liz) Westcott (since March 2026)",cfo:"Graham Tiver (since 2020)",track:"Westcott served as acting CEO from December 2025 following Meg O'Neill's departure to BP. With over 30 years in the energy industry, she leads the company's LNG and new energy portfolio."},
-  CBA:{ceo:"Matt Comyn (since 2018)",cfo:"Alan Docherty (since 2021)",track:"Comyn led cloud migration to AWS, OpenAI partnership, digital transformation. Strong capital returns."},
-  BBRI:{ceo:"Sunarso (since 2019)",cfo:"Viviana Dyah Ayu (since 2020)",track:"Sunarso drove 'BRIvolution' digital transformation, ultra-micro holding integration, record BRImo adoption."},
-  ADRO:{ceo:"Garibaldi 'Boy' Thohir (since 2008)",cfo:"Jodhi Pangestu",track:"Thohir led spin-off of thermal coal, pivot to metcoal, aluminum smelter, and renewable energy."},
-  SMSM:{ceo:"Tony S. Budiman",cfo:"Suryadi",track:"Consistent execution, export growth to 45+ countries, maintained debt-free balance sheet, EV product R&D."},
-  UNTR:{ceo:"Darma Setiawan (since 2015)",cfo:"Yunus Saifulhak",track:"Maintained Komatsu exclusivity, PAMA largest contractor, diversification into gold and renewables."},
-  ITMG:{ceo:"M. Qodrat (since 2022)",cfo:"Agus Suhendar",track:"Focused on high dividends, production efficiency, solar hybrid projects. Banpu parent strategy influence."},
-  POWR:{ceo:"M. Firdaus",cfo:"R. Agus",track:"Conservative management, long-term PPAs, stable operations. Slow to adopt renewables but exploring solar."},
-  MPMX:{ceo:"Djoko Susanto",cfo:"Iwan Setiawan",track:"Stable Honda distribution, integrated financing and rental. Investing in EV motorcycle transition."},
-  BTPS:{ceo:"Ridwan Kurniawan",cfo:"Dewi Sartika",track:"Focused on sharia microfinance, digital group meetings, partnership with Baznas. Small scale but niche."},
-  DMAS:{ceo:"Takeshi Koyama (Sojitz)",cfo:"Santi Widjaja",track:"Japanese parent backing, data centre land sales driving growth. Green estate certification."},
-  SPTO:{ceo:"Widjaja (family)",cfo:"Lukman",track:"Long-term TOTO exclusivity maintained. Expanding to Tier-2 cities. High dividend yield."},
-  TSM:{ceo:"C.C. Wei (since 2018)",cfo:"Wendell Huang",track:"Wei led 2nm/3nm ramp, global expansion (Arizona, Japan, Germany). Capital discipline, high R&D."},
-  V:{ceo:"Ryan McInerney (since 2023)",cfo:"Chris Suh (since 2023)",track:"Focus on tokenisation, cross-border solutions, crypto partnerships. Strong capital returns."},
-  MA:{ceo:"Michael Miebach (since 2020)",cfo:"Sachin Mehra",track:"Multi-rail expansion, crypto partnerships, B2B payments. Consistent growth."},
-  "PBR-A":{ceo:"Magda Chambriard (since 2024)",cfo:"Fernando Melgarejo",track:"Focus on pre-salt growth, debt reduction, and shareholder returns. Political interference risk."},
-  MSFT:{ceo:"Satya Nadella (since 2014)",cfo:"Amy Hood (since 2013)",track:"Cloud and AI leadership, OpenAI partnership, Activision acquisition. Excellent capital allocation."},
-  AMZN:{ceo:"Andy Jassy (since 2021)",cfo:"Brian Olsavsky (since 2015)",track:"Jassy focused on cost optimisation, AWS growth, AI (Bedrock). Healthcare and satellite long-term bets."},
-  AAPL:{ceo:"John Ternus (incoming, effective 1 Sept 2026)",cfo:"Kevan Parekh (since 2025)",track:"Ternus, a 25-year Apple veteran and current head of Hardware Engineering, will succeed Tim Cook as CEO. Cook will become executive chairman. This follows a long-term succession plan."},
-  META:{ceo:"Mark Zuckerberg (founder)",cfo:"Susan Li (since 2022)",track:"Year of Efficiency, AI (Llama), metaverse long-term bet. Aggressive buybacks."},
-  NVDA:{ceo:"Jensen Huang (founder)",cfo:"Colette Kress (since 2013)",track:"AI dominance, Blackwell ramp, CUDA moat. Exceptional execution."},
-  GOOG:{ceo:"Sundar Pichai (since 2015)",cfo:"Ruth Porat (since 2015)",track:"AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds."},
-  BKNG:{ceo:"Glenn Fogel (since 2017)",cfo:"David Goulden",track:"Merchant model expansion, US growth, connected trip. Strong capital returns."},
-  NAB:{ceo:"Ross McEwan (since 2019)",cfo:"Gary Lennon (since 2022)",track:"McEwan led digital transformation, cost reduction, and capital management. Focus on business banking and home lending."},
-  CVX:{ceo:"Mike Wirth (since 2018)",cfo:"Pierre Breber (since 2019)",track:"Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."},
-  AXP:{ceo:"Stephen Squeri (since 2018)",cfo:"Christophe Le Caillec (since 2023)",track:"Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."},
-  BAC:{ceo:"Brian Moynihan (since 2010)",cfo:"Alastair Borthwick (since 2019)",track:"Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."}
+  BHP:{ceo:"Brandon Craig (incoming, effective 1 July 2026)",cfo:"David Lamont (since 2021)",track:"Craig succeeds Mike Henry. A 25+ year BHP veteran, he previously led the Americas and WA iron ore. Focused on copper growth and the Jansen potash project."},
+  WDS:{ceo:"Elizabeth (Liz) Westcott (since March 2026)",cfo:"Graham Tiver (since 2020)",track:"Westcott served as acting CEO following Meg O'Neill's departure to BP. With over 30 years in the energy industry, she leads the company's LNG and new energy portfolio."},
+  CBA:{ceo:"Matt Comyn (since 2018)",cfo:"Alan Docherty (since 2021)",track:"Comyn led cloud migration to AWS, OpenAI partnership, and digital transformation. Appointed a Chief AI Officer in 2026 to accelerate AI integration."},
+  BBRI:{ceo:"Hery Gunardi (since March 2025)",cfo:"Viviana Dyah Ayu (since 2020)",track:"Gunardi, a 34-year banking veteran, drives 'BRIvolution 2.0' focused on ultra-micro expansion and digital acceleration via the BRImo super-app."},
+  ADRO:{ceo:"Iwan Dewono Budiyuwono (since 2025)",cfo:"Jodhi Pangestu",track:"Budiyuwono succeeded Garibaldi Thohir, leading the company's strategic pivot from thermal coal to green aluminum and renewable energy."},
+  SMSM:{ceo:"Djojo Hartono",cfo:"Suryadi",track:"Consistent execution, export growth to 45+ countries, and maintained a debt-free balance sheet. The company is advancing EV thermal management R&D."},
+  UNTR:{ceo:"Frans Kesuma",cfo:"Yunus Saifulhak",track:"Kesuma maintains Komatsu exclusivity while diversifying into gold and renewables. PAMA remains Indonesia's largest mining contractor."},
+  ITMG:{ceo:"Mulianto",cfo:"Agus Suhendar",track:"Focused on high dividends and production efficiency, with solar hybrid projects underway. The Banpu parent strategy remains influential."},
+  POWR:{ceo:"Andrew K. Labbaika",cfo:"Christanto Pranata",track:"Conservative management focused on long-term PPAs and grid reliability. The company is exploring solar and battery storage to serve data center clients."},
+  MPMX:{ceo:"Suwito Mawarwati",cfo:"Beatrice Kartika Busono",track:"Leads the integrated Honda distribution and financing ecosystem. The group is investing in EV motorcycle transition and digital platforms."},
+  BTPS:{ceo:"Hadi Wibowo",cfo:"Dewi Sartika",track:"Focused on sharia microfinance with a unique group solidarity model. The bank is digitizing community meetings to reduce field officer costs."},
+  DMAS:{ceo:"Hongky Nantung",cfo:"Santi Widjaja",track:"Japanese parent backing (Sojitz) provides a strong FDI pipeline. Growth is driven by data centre land sales and green estate certification."},
+  SPTO:{ceo:"Hanafi Atmadiredja",cfo:"Lukman",track:"Long-term TOTO exclusivity maintained. The company is expanding its showroom network to Tier-2 cities and strengthening its B2B specification team."},
+  TSM:{ceo:"C.C. Wei (since 2018)",cfo:"Wendell Huang",track:"Wei leads the 2nm/3nm ramp and global expansion (Arizona, Japan, Germany). Capital discipline remains high amid the AI-driven semiconductor boom."},
+  V:{ceo:"Ryan McInerney (since 2023)",cfo:"Chris Suh (since 2023)",track:"Focus on tokenisation, cross-border solutions, and stablecoin partnerships. Strong capital returns continue."},
+  MA:{ceo:"Michael Miebach (since 2020)",cfo:"Sachin Mehra",track:"Multi-rail expansion, crypto partnerships, and B2B payments are key growth drivers. The company is navigating geopolitical uncertainty with confidence."},
+  "PBR-A":{ceo:"Magda Chambriard (since 2024)",cfo:"Fernando Melgarejo",track:"Focus on pre-salt growth and debt reduction. The company balances shareholder returns with political interference risks."},
+  MSFT:{ceo:"Satya Nadella (since 2014)",cfo:"Amy Hood (since 2013)",track:"Cloud and AI leadership, with a deep partnership with OpenAI. The Activision acquisition strengthens its gaming and metaverse position."},
+  AMZN:{ceo:"Andy Jassy (since 2021)",cfo:"Brian Olsavsky (since 2015)",track:"Jassy is focused on cost optimisation and AWS growth, with massive AI investments (Project Bedrock). Long-term bets include healthcare and Project Kuiper."},
+  AAPL:{ceo:"John Ternus (incoming, effective 1 Sept 2026)",cfo:"Kevan Parekh (since 2025)",track:"Ternus, a 25-year Apple veteran and head of Hardware Engineering, will succeed Tim Cook. The transition is part of a long-term succession plan."},
+  META:{ceo:"Mark Zuckerberg (founder)",cfo:"Susan Li (since 2022)",track:"The 'Year of Efficiency' has transitioned into an AI investment supercycle (Llama). Aggressive buybacks and metaverse bets continue."},
+  NVDA:{ceo:"Jensen Huang (founder)",cfo:"Colette Kress (since 2013)",track:"AI dominance continues with the Blackwell and Rubin platforms. The CUDA software moat remains a key competitive advantage."},
+  GOOG:{ceo:"Sundar Pichai (since 2015)",cfo:"Ruth Porat (since 2015)",track:"AI-first strategy (Gemini, DeepMind) drives cloud growth. The company faces antitrust headwinds but maintains strong search dominance."},
+  BKNG:{ceo:"Glenn Fogel (since 2017)",cfo:"Ewout Steenbergen",track:"Merchant model expansion and US growth are key focuses. The 'connected trip' vision and AI personalisation are long-term drivers."},
+  NAB:{ceo:"Andrew Irvine",cfo:"Inder Singh (effective March 2026)",track:"Irvine focuses on business banking and digital transformation. The bank is investing in AI and data capabilities to improve efficiency."},
+  CVX:{ceo:"Mike Wirth (since 2018)",cfo:"Eimear Bonner",track:"Wirth focuses on oil and gas production growth and lower-carbon investments (renewables, hydrogen). The Hess acquisition strengthens its portfolio."},
+  AXP:{ceo:"Stephen J. Squeri (since 2018)",cfo:"Christophe Le Caillec (since 2023)",track:"Squeri has expanded premium card offerings and leveraged AI for data and digital capabilities, maintaining strong credit discipline."},
+  BAC:{ceo:"Brian Moynihan (since 2010)",cfo:"Alastair Borthwick (since 2019)",track:"Moynihan transformed BAC post-2008, reducing expenses and building capital. The bank is focused on digital banking and ESG."}
 };
 const SECTOR_RISKS = {
   "Mining":[{name:"Commodity Price",low:-40,high:30},{name:"Production Volume",low:-20,high:15},{name:"AUD/USD Rate",low:-15,high:10},{name:"Operating Costs",low:-18,high:5},{name:"Regulatory/ESG",low:-12,high:3}],
