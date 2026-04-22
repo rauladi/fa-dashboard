@@ -68,7 +68,7 @@ STOCKS = {
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-# ---------- FALLBACK DATA (used only when yfinance returns nothing) ----------
+# ---------- FALLBACK DATA ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,1.20,None]},
     "WDS": {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,0.50,None]},
@@ -233,122 +233,54 @@ def annualise_year(tk, yr, div, fx, sym):
             if row.get("revenue") is not None:
                 return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
-    # Fallback to quarterly for years before LATEST_YEAR
-    if yr < LATEST_YEAR:
-        qi = tk.quarterly_financials
-        qb = tk.quarterly_balance_sheet
-        if qi is None or qi.empty:
-            return {f: None for f in FIELDS}, {"method":"none","label":None}
-        qtrs = cols_yr(qi, yr)
-        if not qtrs:
-            return {f: None for f in FIELDS}, {"method":"none","label":None}
-        n = len(qtrs)
-        months = n * 3
-        factor = 12.0 / months
-        lq = qtrs[-1]
-        label = "FY" if months >= 12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
+    # Fallback to quarterly
+    qi = tk.quarterly_financials
+    qb = tk.quarterly_balance_sheet
+    if qi is None or qi.empty:
+        return {f: None for f in FIELDS}, {"method":"none","label":None}
+    qtrs = cols_yr(qi, yr)
+    if not qtrs:
+        return {f: None for f in FIELDS}, {"method":"none","label":None}
+    n = len(qtrs)
+    months = n * 3
+    factor = 12.0 / months
+    lq = qtrs[-1]
+    label = "FY" if months >= 12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
 
-        def sum_q_field(field_name):
-            s = find_row(qi, field_name)
-            if s is None: return None
-            total = 0.0
-            for c in qtrs:
-                v = safe(s[c])
-                if v is not None: total += v
-            return total if total != 0.0 else None
+    def sum_q_field(field_name):
+        s = find_row(qi, field_name)
+        if s is None: return None
+        total = 0.0
+        for c in qtrs:
+            v = safe(s[c])
+            if v is not None: total += v
+        return total if total != 0.0 else None
 
-        row = {f: None for f in FIELDS}
-        row["revenue"] = sum_q_field("Total Revenue")
-        row["grossProfit"] = sum_q_field("Gross Profit")
-        row["netProfit"] = sum_q_field("Net Income")
-        row["eps"] = None
-        row["dps"] = None
+    row = {f: None for f in FIELDS}
+    row["revenue"] = sum_q_field("Total Revenue")
+    row["grossProfit"] = sum_q_field("Gross Profit")
+    row["netProfit"] = sum_q_field("Net Income")
+    row["eps"] = None
+    row["dps"] = None
 
-        qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
-        if qbc is not None:
-            ta = find_row(qb, "Total Assets")
-            ca = find_row(qb, "Cash And Cash Equivalents")
-            td = find_row(qb, "Total Debt")
-            te = find_row(qb, "Stockholders Equity")
-            row["totalAsset"] = safe(ta[qbc] if ta is not None else None, div, fx)
-            row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
-            row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
-            row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+    qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
+    if qbc is not None:
+        ta = find_row(qb, "Total Assets")
+        ca = find_row(qb, "Cash And Cash Equivalents")
+        td = find_row(qb, "Total Debt")
+        te = find_row(qb, "Stockholders Equity")
+        row["totalAsset"] = safe(ta[qbc] if ta is not None else None, div, fx)
+        row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
+        row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
+        row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
 
-        for k in ["revenue","grossProfit","netProfit"]:
-            if row[k] is not None:
-                row[k] = round(row[k] / div * fx, 4)
+    for k in ["revenue","grossProfit","netProfit"]:
+        if row[k] is not None:
+            row[k] = round(row[k] / div * fx, 4)
 
-        ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
-        print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
-        return row, ann
-
-    # For LATEST_YEAR, use fiscal‑year‑aware TTM if full year missing
-    if yr == LATEST_YEAR:
-        qi = tk.quarterly_financials
-        qb = tk.quarterly_balance_sheet
-        if qi is not None and not qi.empty:
-            all_qtrs = sorted(qi.columns, reverse=True)
-            if all_qtrs:
-                fy_end_month = FISCAL_YEAR_END.get(sym, 12)
-                target_qtrs = []
-                for q in all_qtrs:
-                    q_year = q.year
-                    q_month = q.month
-                    fiscal_year = q_year if q_month <= fy_end_month else q_year + 1
-                    if fiscal_year == yr:
-                        target_qtrs.append(q)
-                if target_qtrs:
-                    target_qtrs = sorted(target_qtrs, reverse=True)[:4]
-                    n = len(target_qtrs)
-                    months = n * 3
-                    factor = 12.0 / months
-                    lq = target_qtrs[0]
-                    label = "FY" if months >= 12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
-
-                    def sum_q_field(field_name):
-                        s = find_row(qi, field_name)
-                        if s is None: return None
-                        total = 0.0
-                        for c in target_qtrs:
-                            v = safe(s[c])
-                            if v is not None: total += v
-                        return total if total != 0.0 else None
-
-                    row = {f: None for f in FIELDS}
-                    row["revenue"] = sum_q_field("Total Revenue")
-                    row["grossProfit"] = sum_q_field("Gross Profit")
-                    row["netProfit"] = sum_q_field("Net Income")
-                    eps_field = find_row(qi, "Basic EPS", "Diluted EPS", "EPS Diluted", "BasicEPS")
-                    row["eps"] = None
-                    if eps_field is not None:
-                        total_eps = 0.0
-                        for c in target_qtrs:
-                            v = safe(eps_field[c])
-                            if v is not None: total_eps += v
-                        row["eps"] = total_eps if total_eps != 0.0 else None
-                    row["dps"] = None
-
-                    qbc = target_qtrs[0]
-                    if qb is not None and not qb.empty and qbc in qb.columns:
-                        ta = find_row(qb, "Total Assets")
-                        ca = find_row(qb, "Cash And Cash Equivalents")
-                        td = find_row(qb, "Total Debt")
-                        te = find_row(qb, "Stockholders Equity")
-                        row["totalAsset"] = safe(ta[qbc] if ta is not None else None, div, fx)
-                        row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
-                        row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
-                        row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
-
-                    for k in ["revenue","grossProfit","netProfit","eps"]:
-                        if row[k] is not None:
-                            row[k] = round(row[k] / div * fx, 4)
-
-                    ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
-                    print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
-                    return row, ann
-
-    return {f: None for f in FIELDS}, {"method":"none","label":None}
+    ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
+    print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
+    return row, ann
 
 def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] {ticker_str}", flush=True)
@@ -370,31 +302,35 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
 
-            # ----- EPS and DPS fallback logic (only when live value is None) -----
             if exchange == "IDX":
                 for i, yr in enumerate(ALL_YEARS):
                     if yr in COMPLETED:
-                        if yd[yr].get("eps") is None and sym in PRELOADED and "eps" in PRELOADED[sym]:
+                        if sym in PRELOADED and "eps" in PRELOADED[sym]:
                             if i < len(PRELOADED[sym]["eps"]):
                                 fb_eps = PRELOADED[sym]["eps"][i]
                                 if fb_eps is not None:
                                     yd[yr]["eps"] = fb_eps
                                     print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
-                        if yd[yr].get("dps") is None and sym in PRELOADED and "dps" in PRELOADED[sym]:
+                        if sym in PRELOADED and "dps" in PRELOADED[sym]:
                             if i < len(PRELOADED[sym]["dps"]):
                                 fb_dps = PRELOADED[sym]["dps"][i]
                                 if fb_dps is not None:
                                     yd[yr]["dps"] = fb_dps
                                     print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
+                    if yr == LATEST_YEAR:
+                        yd[yr]["eps"] = None
+                        yd[yr]["dps"] = None
             else:
                 for i, yr in enumerate(ALL_YEARS):
                     if yr in COMPLETED:
-                        if yd[yr].get("dps") is None and sym in PRELOADED and "dps" in PRELOADED[sym]:
+                        if sym in PRELOADED and "dps" in PRELOADED[sym]:
                             if i < len(PRELOADED[sym]["dps"]):
                                 fb_dps = PRELOADED[sym]["dps"][i]
                                 if fb_dps is not None:
                                     yd[yr]["dps"] = fb_dps
                                     print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
+                    if yr == LATEST_YEAR:
+                        yd[yr]["dps"] = None
 
             live = [y for y in COMPLETED if yd[y].get("revenue") is not None]
             print(f"  ✓ live: {live}", flush=True)
@@ -424,7 +360,7 @@ def build_arrays(yd, sym):
         out[f] = arr
     return out
 
-# ---------- DEEP STATIC PROFILES (full content) ----------
+# ---------- PROFILES ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -1268,7 +1204,7 @@ CEO Hock Tan is renowned for disciplined M&A and cost management. The VMware acq
 AI networking demand is a major tailwind. VMware subscription transition will smooth revenue. Watch debt reduction progress and competitive dynamics in AI chips.""",
 }
 
-# ---------- LEADERSHIP DATA ----------
+# ---------- LEADERSHIP ----------
 LEADERSHIP = {
     "BHP": {"ceo": "Mike Henry (since 2020)", "cfo": "David Lamont (since 2021)", "track": "Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
     "WDS": {"ceo": "Meg O'Neill (since 2021)", "cfo": "Graham Tiver (since 2020)", "track": "O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
