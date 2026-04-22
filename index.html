@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-/* ========== MODERN GLASS DESIGN (preserves original layout) ========== */
+/* ========== MODERN GLASS DESIGN ========== */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
   --bg-deep: #0a0c12;
@@ -247,7 +247,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .pur { color: var(--accent-purple); }
 .blu { color: var(--accent-blue); }
 .src-bar { background: rgba(8, 16, 24, 0.7); backdrop-filter: blur(8px); border-radius: 20px; padding: 12px 20px; margin-bottom: 20px; border: 1px solid rgba(0,228,255,0.2); }
-/* Debug panel */
 #debugPanel {
   position: fixed; bottom: 10px; right: 10px;
   background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
@@ -287,7 +286,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 <div id="debugPanel"></div>
 
 <script>
-// ======================== FULL SCRIPT WITH UPDATED LEADERSHIP & WEIGHT INPUT FIX ========================
+// ======================== FULL SCRIPT WITH ANZ & AVGO + WEIGHT INPUT FIX ========================
 const CURRENT_YEAR = new Date().getFullYear();
 const LATEST_YEAR = CURRENT_YEAR - 1;
 const YEARS = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
@@ -298,6 +297,7 @@ const DATA_VERSION_KEY = 'fa_data_version';
 
 const BASE_STOCKS={
   BHP:{name:"BHP Group",exchange:"ASX",currency:"B AUD"}, WDS:{name:"Woodside Energy",exchange:"ASX",currency:"B AUD"}, CBA:{name:"Commonwealth Bank",exchange:"ASX",currency:"B AUD"},
+  NAB:{name:"National Australia Bank",exchange:"ASX",currency:"B AUD"}, ANZ:{name:"ANZ Group Holdings Ltd",exchange:"ASX",currency:"B AUD"},
   BBRI:{name:"Bank Rakyat Indonesia",exchange:"IDX",currency:"T IDR"}, ADRO:{name:"Alamtri Resources Indonesia",exchange:"IDX",currency:"T IDR"}, SMSM:{name:"Selamat Sempurna",exchange:"IDX",currency:"T IDR"},
   UNTR:{name:"United Tractors",exchange:"IDX",currency:"T IDR"}, ITMG:{name:"Indo Tambangraya Megah",exchange:"IDX",currency:"T IDR"}, POWR:{name:"Cikarang Listrindo",exchange:"IDX",currency:"T IDR"},
   MPMX:{name:"Mitra Pinasthika Mustika",exchange:"IDX",currency:"T IDR"}, BTPS:{name:"Bank BTPN Syariah",exchange:"IDX",currency:"T IDR"}, DMAS:{name:"Puradelta Lestari",exchange:"IDX",currency:"T IDR"},
@@ -305,7 +305,7 @@ const BASE_STOCKS={
   MA:{name:"Mastercard Inc.",exchange:"NYSE",currency:"B USD"}, "PBR-A":{name:"Petrobras Pref ADR",exchange:"NYSE",currency:"B USD"}, MSFT:{name:"Microsoft Corp.",exchange:"NASDAQ",currency:"B USD"},
   AMZN:{name:"Amazon.com Inc.",exchange:"NASDAQ",currency:"B USD"}, AAPL:{name:"Apple Inc.",exchange:"NASDAQ",currency:"B USD"}, META:{name:"Meta Platforms Inc.",exchange:"NASDAQ",currency:"B USD"},
   NVDA:{name:"NVIDIA Corporation",exchange:"NASDAQ",currency:"B USD"}, GOOG:{name:"Alphabet Inc (Google)",exchange:"NASDAQ",currency:"B USD"}, BKNG:{name:"Booking Holdings Inc",exchange:"NASDAQ",currency:"B USD"},
-  NAB:{name:"National Australia Bank",exchange:"ASX",currency:"B AUD"}, CVX:{name:"Chevron Corporation",exchange:"NYSE",currency:"B USD"},
+  AVGO:{name:"Broadcom Inc",exchange:"NASDAQ",currency:"B USD"}, CVX:{name:"Chevron Corporation",exchange:"NYSE",currency:"B USD"},
   AXP:{name:"American Express",exchange:"NYSE",currency:"B USD"}, BAC:{name:"Bank of America",exchange:"NYSE",currency:"B USD"}
 };
 const DEF_WTS={cashToAsset:10,debtToEquity:5,revenueCagr:5,gpmAvg:0,netProfitCagr:5,npmAvg:30,epsCagr:5,dpsCagr:0,roeAvg:25,dividendPayout:0,buffettTest:15};
@@ -392,6 +392,9 @@ function showToast(msg,col='cyan'){
 const PRELOADED={
   BHP:{totalAsset:[54.2,51.9,55.7,81.5,null,null],cash:[14.9,12.4,13.9,13.3,null,null],totalDebt:[14.5,12.4,14.8,26.7,null,null],totalEquity:[26.4,28.0,29.7,32.4,null,null],revenue:[60.8,65.1,53.8,55.7,null,null],grossProfit:[36.2,40.5,28.3,28.5,null,null],netProfit:[11.3,30.9,12.9,7.9,null,null],eps:[2.21,6.05,2.55,1.55,null,null],dps:[3.01,5.43,1.70,1.09,null,null]},
   WDS:{totalAsset:[40.3,50.5,48.3,48.0,null,null],cash:[2.8,3.1,2.5,2.2,null,null],totalDebt:[7.9,15.2,12.8,12.0,null,null],totalEquity:[18.2,22.4,20.1,20.0,null,null],revenue:[10.0,13.9,12.3,12.5,null,null],grossProfit:[5.8,8.6,7.1,7.2,null,null],netProfit:[2.5,6.0,3.5,1.7,null,null],eps:[0.80,1.70,1.00,0.48,null,null],dps:[0.55,1.30,0.90,0.43,null,null]},
+  CBA:{totalAsset:[925.0,1012.0,1085.0,1150.0,null,null],cash:[98.0,105.0,112.0,120.0,null,null],totalDebt:[165.0,172.0,180.0,195.0,null,null],totalEquity:[62.0,65.0,68.0,72.0,null,null],revenue:[23.5,24.1,25.2,26.5,null,null],grossProfit:[19.8,20.4,21.3,22.4,null,null],netProfit:[9.6,10.2,10.5,10.7,null,null],eps:[5.6,5.9,6.1,6.2,null,null],dps:[3.5,3.7,3.9,4.1,null,null]},
+  NAB:{totalAsset:[925.968,1055.126,1059.083,1080.248,null,null],cash:[109.214,144.527,120.197,112.937,null,null],totalDebt:[172.164,191.725,197.792,214.292,null,null],totalEquity:[62.779,59.032,61.154,61.455,null,null],revenue:[16.682,18.329,20.63,20.632,null,null],grossProfit:[13.793,14.84,16.807,16.757,null,null],netProfit:[6.364,6.891,7.414,6.96,null,null],eps:[1.963,2.141,2.364,2.246,null,null],dps:[0.82,1.24,1.38,1.52,null,null]},
+  ANZ:{totalAsset:[978.0,1085.729,1105.643,1229.115,1297.108,null],cash:[120.0,157.53,146.438,112.991,122.718,null],totalDebt:[140.0,133.996,150.076,205.087,219.824,null],totalEquity:[60.0,65.907,69.495,69.857,71.128,null],revenue:[17.5,19.004,20.189,20.355,22.307,null],grossProfit:[14.0,14.874,16.574,16.069,17.961,null],netProfit:[6.0,7.119,7.106,6.535,5.891,null],eps:[2.0,2.5,2.371,2.179,1.982,null],dps:[null,null,null,null,null,null]},
   BBRI:{totalAsset:[1635,1865,1965,2073,null,null],cash:[163,186,196,207,null,null],totalDebt:[1380,1570,1650,1730,null,null],totalEquity:[255,295,315,343,null,null],revenue:[135,150,165,187,null,null],grossProfit:[85,95,104,118,null,null],netProfit:[25,43,51,60,null,null],eps:[1019,1753,2086,2443,null,null],dps:[460,791,940,1100,null,null]},
   ADRO:{totalAsset:[80,100,85,92,null,null],cash:[10,20,15,16,null,null],totalDebt:[18,25,18,16,null,null],totalEquity:[58,72,62,68,null,null],revenue:[65,120,80,85,null,null],grossProfit:[24,55,35,38,null,null],netProfit:[8,30,15,16,null,null],eps:[256,960,480,510,null,null],dps:[130,480,240,255,null,null]},
   SMSM:{totalAsset:[2.6,2.8,3.0,3.2,null,null],cash:[0.9,1.0,1.1,1.2,null,null],totalDebt:[0.35,0.30,0.30,0.25,null,null],totalEquity:[2.0,2.2,2.4,2.6,null,null],revenue:[2.5,2.8,3.2,3.4,null,null],grossProfit:[0.82,0.92,1.05,1.12,null,null],netProfit:[0.43,0.51,0.58,0.62,null,null],eps:[183,217,247,264,null,null],dps:[138,164,186,198,null,null]},
@@ -413,7 +416,7 @@ const PRELOADED={
   NVDA:{totalAsset:[28.8,44.2,41.2,65.7,111.6,null],cash:[11.6,19.3,13.3,25.0,43.2,null],totalDebt:[6.9,11.7,11.0,10.0,8.5,null],totalEquity:[16.9,26.1,26.1,42.6,65.7,null],revenue:[16.7,26.9,27.0,60.9,130.5,null],grossProfit:[10.4,17.5,15.4,42.0,97.9,null],netProfit:[4.3,9.8,4.4,29.8,72.9,null],eps:[1.73,3.85,1.74,11.93,29.24,null],dps:[0.016,0.016,0.016,0.016,0.01,null]},
   GOOG:{totalAsset:[359.3,391.4,402.0,430.3,450.0,null],cash:[142.0,139.6,115.0,108.1,95.7,null],totalDebt:[14.8,15.1,14.7,14.7,15.0,null],totalEquity:[251.6,256.1,272.3,314.1,360.0,null],revenue:[257.6,282.8,307.4,350.0,385.0,null],grossProfit:[146.7,156.6,174.1,208.1,237.0,null],netProfit:[76.0,60.0,73.8,100.1,115.0,null],eps:[5.61,4.56,5.80,7.79,9.27,null],dps:[null,null,null,null,null,null]},
   BKNG:{totalAsset:[25.5,26.8,30.7,31.8,33.0,null],cash:[11.2,12.4,15.1,16.8,17.5,null],totalDebt:[15.4,13.8,14.0,12.0,11.0,null],totalEquity:[0.5,1.4,4.0,7.0,9.0,null],revenue:[11.0,17.1,21.4,23.7,26.0,null],grossProfit:[9.7,15.2,19.0,21.2,23.1,null],netProfit:[1.1,3.0,4.3,4.8,6.0,null],eps:[25.0,72.0,110.0,130.0,165.0,null],dps:[null,null,null,null,null,null]},
-  NAB:{totalAsset:[925.0,1005.0,1059.0,1080.0,1105.0,null],cash:[109.0,125.0,120.0,113.0,118.0,null],totalDebt:[172.0,185.0,198.0,214.0,220.0,null],totalEquity:[62.8,59.0,61.2,61.5,62.0,null],revenue:[16.7,18.3,20.6,20.6,21.1,null],grossProfit:[13.8,14.8,16.8,16.8,17.2,null],netProfit:[6.4,6.9,7.4,7.0,7.2,null],eps:[1.93,2.14,2.36,2.25,2.31,null],dps:[0.82,1.24,1.38,1.52,1.56,null]},
+  AVGO:{totalAsset:[null,73.249,72.861,165.645,171.092,169.903],cash:[null,12.416,14.189,9.348,16.178,14.174],totalDebt:[null,39.515,39.229,67.566,65.136,66.057],totalEquity:[null,22.709,23.988,67.678,81.292,79.872],revenue:[null,33.203,35.819,51.574,63.887,19.311],grossProfit:[null,22.095,24.69,32.509,43.294,13.157],netProfit:[null,11.495,14.082,5.895,23.126,7.349],eps:[null,2.744,3.393,1.27,4.91,null],dps:[null,null,null,null,null,null]},
   CVX:{totalAsset:[253.0,257.7,261.6,256.9,324.0,null],cash:[12.5,17.7,8.2,6.8,6.3,null],totalDebt:[28.0,23.3,20.8,24.5,40.8,null],totalEquity:[151.0,159.3,161.0,152.3,186.5,null],revenue:[140.0,235.7,196.9,193.4,184.4,null],grossProfit:[45.0,74.0,60.4,56.9,56.1,null],netProfit:[15.8,35.5,21.4,17.7,12.3,null],eps:[8.20,18.36,11.41,9.76,6.65,null],dps:[5.10,5.68,6.05,6.52,6.90,null]},
   AXP:{totalAsset:[200.0,228.4,261.1,271.5,300.1,null],cash:[28.0,33.5,46.5,40.6,47.7,null],totalDebt:[38.0,43.9,49.2,51.1,57.8,null],totalEquity:[22.0,24.7,28.1,30.3,33.5,null],revenue:[45.0,52.9,60.5,65.9,72.2,null],grossProfit:[8.5,9.9,13.1,15.5,17.4,null],netProfit:[6.5,7.5,8.4,10.1,10.8,null],eps:[8.50,9.86,11.23,14.04,15.41,null],dps:[1.80,2.08,2.42,2.81,3.27,null]},
   BAC:{totalAsset:[2900.0,3051.4,3180.2,3261.3,3411.7,null],cash:[220.0,237.5,341.4,296.5,239.3,null],totalDebt:[280.0,302.9,334.3,326.7,365.9,null],totalEquity:[260.0,273.2,291.6,294.0,303.2,null],revenue:[90.0,95.0,102.8,105.9,113.1,null],grossProfit:[48.0,52.5,56.9,56.1,60.1,null],netProfit:[26.0,27.5,26.3,27.0,30.5,null],eps:[3.10,3.21,3.10,3.25,3.86,null],dps:[0.90,1.06,1.13,1.21,1.27,null]},
@@ -624,7 +627,6 @@ function tabRankings(){
       const c=CRIT_MAP[wk];
       const w=S.wts[wk]||0;
       const ov=w>5;
-      // Use onchange to avoid re-render on every keystroke
       return `<div class="wt-card${ov?' ov':''}" style="flex:1;min-width:100px"><div class="wt-l">${c.label}${ov?'<br><span style="font-size:9px;color:var(--accent-gold)">⚠ High weight</span>':''}</div><div class="wt-row"><input type="number" min="0" max="100" step="1" value="${w}" class="wt-inp${ov?' ov':''}" onchange="setWt('${wk}',this.value)"/><span class="wt-u">%</span></div></div>`;
     }).join('');
     return `<div style="border:1px solid ${g.border};background:${g.bg};border-radius:20px;padding:12px;flex:1;min-width:200px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:11px;font-weight:700;color:${g.color}">${g.label}</span><span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:${g.bg};border:1px solid ${g.border};color:${g.color}">${sub.toFixed(0)}%</span></div><div style="display:flex;flex-wrap:wrap;gap:8px">${cards}</div></div>`;
@@ -662,7 +664,7 @@ function setWt(k,v){
   const n=parseFloat(v);
   if(!isNaN(n)&&n>=0){
     S.wts[k]=n;
-    render(); // re-render rankings with new weights
+    render();
   }
 }
 function showSync(){
@@ -907,11 +909,12 @@ function fetchAll(){showToast('Manual refresh not needed – data is built‑in.
 
 // ======================== INSIGHTS TAB WITH UPDATED LEADERSHIP ========================
 function markdownToHtml(md) { if (!md) return ''; return md.replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>').replace(/\n/g, '<br>'); }
-// UPDATED LEADERSHIP (2026) with verified data and refreshed track records
 const LEADERSHIP = {
   BHP:{ceo:"Brandon Craig (incoming, effective 1 July 2026)",cfo:"David Lamont (since 2021)",track:"Craig succeeds Mike Henry. A 25+ year BHP veteran, he previously led the Americas and WA iron ore. Focused on copper growth and the Jansen potash project."},
   WDS:{ceo:"Elizabeth (Liz) Westcott (since March 2026)",cfo:"Graham Tiver (since 2020)",track:"Westcott served as acting CEO following Meg O'Neill's departure to BP. With over 30 years in the energy industry, she leads the company's LNG and new energy portfolio."},
   CBA:{ceo:"Matt Comyn (since 2018)",cfo:"Alan Docherty (since 2021)",track:"Comyn led cloud migration to AWS, OpenAI partnership, and digital transformation. Appointed a Chief AI Officer in 2026 to accelerate AI integration."},
+  NAB:{ceo:"Andrew Irvine",cfo:"Inder Singh (effective March 2026)",track:"Irvine focuses on business banking and digital transformation. The bank is investing in AI and data capabilities to improve efficiency."},
+  ANZ:{ceo:"Shayne Elliott",cfo:"Farhan Faruqui",track:"Elliott has led ANZ's simplification strategy, focusing on core banking in Australia and New Zealand while exiting underperforming Asian retail businesses. The bank is investing heavily in digital platforms and AI."},
   BBRI:{ceo:"Hery Gunardi (since March 2025)",cfo:"Viviana Dyah Ayu (since 2020)",track:"Gunardi, a 34-year banking veteran, drives 'BRIvolution 2.0' focused on ultra-micro expansion and digital acceleration via the BRImo super-app."},
   ADRO:{ceo:"Iwan Dewono Budiyuwono (since 2025)",cfo:"Jodhi Pangestu",track:"Budiyuwono succeeded Garibaldi Thohir, leading the company's strategic pivot from thermal coal to green aluminum and renewable energy."},
   SMSM:{ceo:"Djojo Hartono",cfo:"Suryadi",track:"Consistent execution, export growth to 45+ countries, and maintained a debt-free balance sheet. The company is advancing EV thermal management R&D."},
@@ -933,7 +936,7 @@ const LEADERSHIP = {
   NVDA:{ceo:"Jensen Huang (founder)",cfo:"Colette Kress (since 2013)",track:"AI dominance continues with the Blackwell and Rubin platforms. The CUDA software moat remains a key competitive advantage."},
   GOOG:{ceo:"Sundar Pichai (since 2015)",cfo:"Ruth Porat (since 2015)",track:"AI-first strategy (Gemini, DeepMind) drives cloud growth. The company faces antitrust headwinds but maintains strong search dominance."},
   BKNG:{ceo:"Glenn Fogel (since 2017)",cfo:"Ewout Steenbergen",track:"Merchant model expansion and US growth are key focuses. The 'connected trip' vision and AI personalisation are long-term drivers."},
-  NAB:{ceo:"Andrew Irvine",cfo:"Inder Singh (effective March 2026)",track:"Irvine focuses on business banking and digital transformation. The bank is investing in AI and data capabilities to improve efficiency."},
+  AVGO:{ceo:"Hock Tan",cfo:"Kirsten Spears",track:"Tan has built Broadcom into a semiconductor and infrastructure software powerhouse through a disciplined acquisition strategy (VMware, CA Technologies). The company is a key beneficiary of the AI infrastructure build-out."},
   CVX:{ceo:"Mike Wirth (since 2018)",cfo:"Eimear Bonner",track:"Wirth focuses on oil and gas production growth and lower-carbon investments (renewables, hydrogen). The Hess acquisition strengthens its portfolio."},
   AXP:{ceo:"Stephen J. Squeri (since 2018)",cfo:"Christophe Le Caillec (since 2023)",track:"Squeri has expanded premium card offerings and leveraged AI for data and digital capabilities, maintaining strong credit discipline."},
   BAC:{ceo:"Brian Moynihan (since 2010)",cfo:"Alastair Borthwick (since 2019)",track:"Moynihan transformed BAC post-2008, reducing expenses and building capital. The bank is focused on digital banking and ESG."}
@@ -959,7 +962,7 @@ const SECTOR_RISKS = {
   "General":[{name:"Economic Slowdown",low:-25,high:15},{name:"Competition",low:-20,high:10},{name:"Regulatory Changes",low:-15,high:5},{name:"Cost Inflation",low:-18,high:3},{name:"Currency Risk",low:-12,high:8}]
 };
 const CO_INFO = {
-  BHP:{sector:"Mining"}, WDS:{sector:"Oil & Gas"}, CBA:{sector:"Banking"}, NAB:{sector:"Banking"}, BBRI:{sector:"Banking"}, ADRO:{sector:"Coal Mining"}, SMSM:{sector:"Auto Parts"}, UNTR:{sector:"Heavy Equipment & Mining"}, ITMG:{sector:"Coal Mining"}, POWR:{sector:"Power & Utilities"}, MPMX:{sector:"Automotive"}, BTPS:{sector:"Islamic Banking"}, DMAS:{sector:"Industrial Real Estate"}, SPTO:{sector:"Building Materials"}, TSM:{sector:"Semiconductors"}, V:{sector:"Payments"}, MA:{sector:"Payments"}, "PBR-A":{sector:"Oil & Gas"}, MSFT:{sector:"Technology"}, AMZN:{sector:"E-Commerce & Cloud"}, AAPL:{sector:"Technology"}, META:{sector:"Social Media"}, NVDA:{sector:"Semiconductors"}, GOOG:{sector:"Technology"}, BKNG:{sector:"Online Travel"}, CVX:{sector:"Oil & Gas"}, AXP:{sector:"Payments"}, BAC:{sector:"Banking"}
+  BHP:{sector:"Mining"}, WDS:{sector:"Oil & Gas"}, CBA:{sector:"Banking"}, NAB:{sector:"Banking"}, ANZ:{sector:"Banking"}, BBRI:{sector:"Banking"}, ADRO:{sector:"Coal Mining"}, SMSM:{sector:"Auto Parts"}, UNTR:{sector:"Heavy Equipment & Mining"}, ITMG:{sector:"Coal Mining"}, POWR:{sector:"Power & Utilities"}, MPMX:{sector:"Automotive"}, BTPS:{sector:"Islamic Banking"}, DMAS:{sector:"Industrial Real Estate"}, SPTO:{sector:"Building Materials"}, TSM:{sector:"Semiconductors"}, V:{sector:"Payments"}, MA:{sector:"Payments"}, "PBR-A":{sector:"Oil & Gas"}, MSFT:{sector:"Technology"}, AMZN:{sector:"E-Commerce & Cloud"}, AAPL:{sector:"Technology"}, META:{sector:"Social Media"}, NVDA:{sector:"Semiconductors"}, GOOG:{sector:"Technology"}, BKNG:{sector:"Online Travel"}, AVGO:{sector:"Semiconductors"}, CVX:{sector:"Oil & Gas"}, AXP:{sector:"Payments"}, BAC:{sector:"Banking"}
 };
 function generateCustomTornado(sym, st, m) {
   const customRisks = {
