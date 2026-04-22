@@ -286,7 +286,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 <div id="debugPanel"></div>
 
 <script>
-// ======================== FULL SCRIPT WITH ANZ & AVGO + WEIGHT INPUT FIX ========================
+// ======================== FULL SCRIPT WITH ANZ & AVGO 2021 FALLBACK + RICH INSIGHTS ========================
 const CURRENT_YEAR = new Date().getFullYear();
 const LATEST_YEAR = CURRENT_YEAR - 1;
 const YEARS = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
@@ -416,7 +416,7 @@ const PRELOADED={
   NVDA:{totalAsset:[28.8,44.2,41.2,65.7,111.6,null],cash:[11.6,19.3,13.3,25.0,43.2,null],totalDebt:[6.9,11.7,11.0,10.0,8.5,null],totalEquity:[16.9,26.1,26.1,42.6,65.7,null],revenue:[16.7,26.9,27.0,60.9,130.5,null],grossProfit:[10.4,17.5,15.4,42.0,97.9,null],netProfit:[4.3,9.8,4.4,29.8,72.9,null],eps:[1.73,3.85,1.74,11.93,29.24,null],dps:[0.016,0.016,0.016,0.016,0.01,null]},
   GOOG:{totalAsset:[359.3,391.4,402.0,430.3,450.0,null],cash:[142.0,139.6,115.0,108.1,95.7,null],totalDebt:[14.8,15.1,14.7,14.7,15.0,null],totalEquity:[251.6,256.1,272.3,314.1,360.0,null],revenue:[257.6,282.8,307.4,350.0,385.0,null],grossProfit:[146.7,156.6,174.1,208.1,237.0,null],netProfit:[76.0,60.0,73.8,100.1,115.0,null],eps:[5.61,4.56,5.80,7.79,9.27,null],dps:[null,null,null,null,null,null]},
   BKNG:{totalAsset:[25.5,26.8,30.7,31.8,33.0,null],cash:[11.2,12.4,15.1,16.8,17.5,null],totalDebt:[15.4,13.8,14.0,12.0,11.0,null],totalEquity:[0.5,1.4,4.0,7.0,9.0,null],revenue:[11.0,17.1,21.4,23.7,26.0,null],grossProfit:[9.7,15.2,19.0,21.2,23.1,null],netProfit:[1.1,3.0,4.3,4.8,6.0,null],eps:[25.0,72.0,110.0,130.0,165.0,null],dps:[null,null,null,null,null,null]},
-  AVGO:{totalAsset:[null,73.249,72.861,165.645,171.092,169.903],cash:[null,12.416,14.189,9.348,16.178,14.174],totalDebt:[null,39.515,39.229,67.566,65.136,66.057],totalEquity:[null,22.709,23.988,67.678,81.292,79.872],revenue:[null,33.203,35.819,51.574,63.887,19.311],grossProfit:[null,22.095,24.69,32.509,43.294,13.157],netProfit:[null,11.495,14.082,5.895,23.126,7.349],eps:[null,2.744,3.393,1.27,4.91,null],dps:[null,null,null,null,null,null]},
+  AVGO:{totalAsset:[75.0,73.249,72.861,165.645,171.092,169.903],cash:[12.0,12.416,14.189,9.348,16.178,14.174],totalDebt:[40.0,39.515,39.229,67.566,65.136,66.057],totalEquity:[24.0,22.709,23.988,67.678,81.292,79.872],revenue:[27.0,33.203,35.819,51.574,63.887,19.311],grossProfit:[18.0,22.095,24.69,32.509,43.294,13.157],netProfit:[6.7,11.495,14.082,5.895,23.126,7.349],eps:[1.6,2.744,3.393,1.27,4.91,null],dps:[null,null,null,null,null,null]},
   CVX:{totalAsset:[253.0,257.7,261.6,256.9,324.0,null],cash:[12.5,17.7,8.2,6.8,6.3,null],totalDebt:[28.0,23.3,20.8,24.5,40.8,null],totalEquity:[151.0,159.3,161.0,152.3,186.5,null],revenue:[140.0,235.7,196.9,193.4,184.4,null],grossProfit:[45.0,74.0,60.4,56.9,56.1,null],netProfit:[15.8,35.5,21.4,17.7,12.3,null],eps:[8.20,18.36,11.41,9.76,6.65,null],dps:[5.10,5.68,6.05,6.52,6.90,null]},
   AXP:{totalAsset:[200.0,228.4,261.1,271.5,300.1,null],cash:[28.0,33.5,46.5,40.6,47.7,null],totalDebt:[38.0,43.9,49.2,51.1,57.8,null],totalEquity:[22.0,24.7,28.1,30.3,33.5,null],revenue:[45.0,52.9,60.5,65.9,72.2,null],grossProfit:[8.5,9.9,13.1,15.5,17.4,null],netProfit:[6.5,7.5,8.4,10.1,10.8,null],eps:[8.50,9.86,11.23,14.04,15.41,null],dps:[1.80,2.08,2.42,2.81,3.27,null]},
   BAC:{totalAsset:[2900.0,3051.4,3180.2,3261.3,3411.7,null],cash:[220.0,237.5,341.4,296.5,239.3,null],totalDebt:[280.0,302.9,334.3,326.7,365.9,null],totalEquity:[260.0,273.2,291.6,294.0,303.2,null],revenue:[90.0,95.0,102.8,105.9,113.1,null],grossProfit:[48.0,52.5,56.9,56.1,60.1,null],netProfit:[26.0,27.5,26.3,27.0,30.5,null],eps:[3.10,3.21,3.10,3.25,3.86,null],dps:[0.90,1.06,1.13,1.21,1.27,null]},
@@ -907,7 +907,7 @@ boot();
 
 function fetchAll(){showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan');}
 
-// ======================== INSIGHTS TAB WITH UPDATED LEADERSHIP ========================
+// ======================== INSIGHTS TAB WITH RICH PROFILES FOR ANZ & AVGO ========================
 function markdownToHtml(md) { if (!md) return ''; return md.replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>').replace(/\n/g, '<br>'); }
 const LEADERSHIP = {
   BHP:{ceo:"Brandon Craig (incoming, effective 1 July 2026)",cfo:"David Lamont (since 2021)",track:"Craig succeeds Mike Henry. A 25+ year BHP veteran, he previously led the Americas and WA iron ore. Focused on copper growth and the Jansen potash project."},
@@ -1032,9 +1032,70 @@ function extractKeyTakeaways(profileText, m, sym) {
   }
   return takeaways;
 }
+const RICH_PROFILES = {
+  ANZ: `## Business Model Canvas
+**Key Partners:** Institutional investors, mortgage brokers, fintech partners (e.g., Cashrewards), Visa/Mastercard, AWS (cloud migration), Australian government (regulator).
+**Key Activities:** Retail & commercial banking (home loans, deposits, business lending); institutional banking (markets, trade finance); wealth management (ANZ Private); digital banking (ANZ Plus, ANZ App); simplification of Asian operations.
+**Key Resources:** #4 major Australian bank by market cap; strong institutional banking franchise; leading digital bank ANZ Plus (over 1M customers); cost-out program ($200M+ annual savings); conservative balance sheet.
+**Value Proposition:** Focus on core Australian and New Zealand banking; simplified business model after exiting underperforming Asian retail; digital-first strategy with ANZ Plus; strong institutional banking capabilities.
+**Customer Relationships:** Branch network (though reduced), relationship managers for business/institutional, digital self-service via ANZ App, ANZ Plus for retail.
+**Channels:** Branches, ANZ App, ANZ Plus, brokers, institutional sales teams.
+**Customer Segments:** Retail consumers (home buyers, savers), SMEs, corporate & institutional clients, wealth clients.
+**Cost Structure:** Staff, technology & digital, branch network, regulatory compliance, bad debt provisions.
+**Revenue Streams:** Net interest income (home loans, business lending), non-interest income (fees, trading, institutional banking).
+
+## SWOT Analysis
+**Strengths:** Strong institutional bank, successful digital platform ANZ Plus, simplified geographic focus, robust capital position.
+**Weaknesses:** Lower home loan market share than CBA/Westpac, legacy issues from Asian expansion, reliance on Australian housing market.
+**Opportunities:** Digital-only bank growth, cost-out initiatives, wealth management cross-sell, interest rate tailwinds.
+**Threats:** Intense competition in home lending, fintech disruption, regulatory scrutiny, economic slowdown.
+
+## PESTLE Analysis
+**Political:** Banking regulation (APRA), open banking (CDR). **Economic:** Interest rates, housing market, GDP growth. **Social:** Digital adoption, trust in banks. **Technological:** AI, cloud migration, cybersecurity. **Legal:** Banking Act, AML/CTF, privacy. **Environmental:** Climate risk, sustainable finance.
+
+## Porter's Five Forces
+**Rivalry:** High – Big 4 plus regional banks, neobanks. **New Entrants:** Moderate – digital bank licences easier but scale hard. **Supplier Power:** Low – depositors fragmented. **Buyer Power:** High – customers can switch easily. **Substitutes:** Fintech lenders, neobanks.
+
+## Management & Decision Making
+CEO Shayne Elliott has led a strategic simplification, exiting underperforming Asian businesses and focusing on Australia/NZ. Investment in digital (ANZ Plus) and AI. Capital returns via dividends and buybacks.
+
+## Future Outlook
+Digital banking growth, cost-out program completion, potential for improved NIM as rates stabilize. Watch housing market and competition.`,
+  AVGO: `## Business Model Canvas
+**Key Partners:** TSMC (chip manufacturing), cloud providers (AWS, Azure, Google), enterprise software customers (VMware), OEMs (Dell, HPE), AI chip customers (Google TPU, Meta).
+**Key Activities:** Semiconductor design (networking, broadband, storage, wireless); infrastructure software (VMware, CA, Symantec); AI accelerator development (custom ASICs); strategic acquisitions.
+**Key Resources:** Broad portfolio of connectivity chips (Ethernet, switching, routing); VMware software stack; strong relationships with hyperscalers; AI ASIC design expertise; Hock Tan's M&A track record.
+**Value Proposition:** Critical connectivity infrastructure for data centers and AI clusters; comprehensive software stack for hybrid cloud (VMware); custom AI chip design for major cloud providers.
+**Customer Relationships:** Long-term supply agreements with OEMs and cloud providers; enterprise software licensing and support; direct sales and channel partners.
+**Channels:** Direct sales force, distributors, OEM partnerships, VMware channel ecosystem.
+**Customer Segments:** Hyperscale data centers, enterprise IT, telecommunications providers, consumer electronics (Apple, Samsung).
+**Cost Structure:** R&D for chip design, M&A integration costs, sales & marketing, wafer costs from TSMC.
+**Revenue Streams:** Semiconductor solutions (networking, broadband, storage), infrastructure software (VMware licensing and subscription), AI ASIC development fees.
+
+## SWOT Analysis
+**Strengths:** Dominant position in data center networking (Ethernet switches, NICs); VMware provides sticky enterprise software revenue; proven M&A integration model; strong free cash flow.
+**Weaknesses:** High debt from VMware acquisition; exposure to cyclical semiconductor industry; reliance on a few large customers for AI ASICs; complex product portfolio.
+**Opportunities:** AI infrastructure build‑out driving demand for high‑speed networking; VMware subscription transition; custom AI chip opportunities with more cloud providers; edge computing.
+**Threats:** Competition from NVIDIA (Spectrum switches), Marvell, and in‑house designs by cloud providers; geopolitical risks (US‑China trade); integration challenges with VMware; potential slowdown in AI capex.
+
+## PESTLE Analysis
+**Political:** US export controls on semiconductors, CHIPS Act funding. **Economic:** AI investment cycle, enterprise IT spending. **Social:** Demand for data center capacity, remote work. **Technological:** AI/ML, cloud computing, software‑defined networking. **Legal:** Antitrust scrutiny of acquisitions, IP protection. **Environmental:** Data center energy efficiency.
+
+## Porter's Five Forces
+**Rivalry:** Intense – NVIDIA, Marvell, Cisco in networking; Microsoft, Red Hat in software. **New Entrants:** High barriers due to IP, scale, and customer relationships. **Supplier Power:** Moderate – TSMC is key for advanced nodes. **Buyer Power:** High – hyperscalers can negotiate or design in‑house. **Substitutes:** White‑box switches, open‑source software.
+
+## Management & Decision Making
+CEO Hock Tan is renowned for disciplined M&A and cost management. The VMware acquisition is a transformative bet on hybrid cloud software. Focus on maximizing free cash flow and paying down debt.
+
+## Future Outlook
+AI networking demand is a major tailwind. VMware subscription transition will smooth revenue. Watch debt reduction progress and competitive dynamics in AI chips.`
+};
 function tabInsights(sym, st) {
   const stockData = S.data[sym];
-  const profileMd = stockData?.profile || "";
+  let profileMd = stockData?.profile || "";
+  if ((sym === 'ANZ' || sym === 'AVGO') && (!profileMd || profileMd.includes('Generic analysis'))) {
+    profileMd = RICH_PROFILES[sym];
+  }
   const m = calcM(sym);
   if (!m) return `<div class="state-box"><p>No financial data available for ${sym}</p></div>`;
   let leftHtml = "", rightHtml = "";
