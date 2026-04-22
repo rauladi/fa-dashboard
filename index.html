@@ -286,7 +286,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 <div id="debugPanel"></div>
 
 <script>
-// ======================== FULL SCRIPT WITH ANZ & AVGO 2021 FALLBACK + RICH INSIGHTS ========================
+// ======================== FULL SCRIPT WITH FIXED 2021 DATA MERGE ========================
 const CURRENT_YEAR = new Date().getFullYear();
 const LATEST_YEAR = CURRENT_YEAR - 1;
 const YEARS = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
@@ -862,16 +862,23 @@ async function boot(){
       };
       const existing = S.data[sym];
       if(!existing || existing.source !== 'user-edited'){
+        // Start with existing (fallback) data if available, then overlay live non-null values
+        const base = existing ? {...existing} : {};
+        const fields = ['totalAsset','cash','totalDebt','totalEquity','revenue','grossProfit','netProfit','eps','dps'];
+        fields.forEach(f => {
+          const liveArr = sd[f];
+          const baseArr = base[f] || Array(N_YEARS).fill(null);
+          // Only overwrite with non-null live values
+          const merged = baseArr.map((v, idx) => {
+            if (idx < liveArr.length && liveArr[idx] !== null && liveArr[idx] !== undefined) {
+              return liveArr[idx];
+            }
+            return v;
+          });
+          base[f] = merged;
+        });
         S.data[sym] = {
-          totalAsset: sd.totalAsset,
-          cash: sd.cash,
-          totalDebt: sd.totalDebt,
-          totalEquity: sd.totalEquity,
-          revenue: sd.revenue,
-          grossProfit: sd.grossProfit,
-          netProfit: sd.netProfit,
-          eps: sd.eps,
-          dps: sd.dps,
+          ...base,
           fetchedAt: ts,
           source: sd.source === 'yfinance' ? 'yfinance' : 'built-in',
           ticker: sd.ticker,
@@ -907,7 +914,7 @@ boot();
 
 function fetchAll(){showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan');}
 
-// ======================== INSIGHTS TAB WITH RICH PROFILES FOR ANZ & AVGO ========================
+// ======================== INSIGHTS TAB WITH RICH PROFILES ========================
 function markdownToHtml(md) { if (!md) return ''; return md.replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>').replace(/\n/g, '<br>'); }
 const LEADERSHIP = {
   BHP:{ceo:"Brandon Craig (incoming, effective 1 July 2026)",cfo:"David Lamont (since 2021)",track:"Craig succeeds Mike Henry. A 25+ year BHP veteran, he previously led the Americas and WA iron ore. Focused on copper growth and the Jansen potash project."},
