@@ -975,7 +975,9 @@ function generateCustomTornado(sym, st, m) {
   const customRisks = {
     "CBA":[{name:"Net Interest Margin (NIM) compression", low:-20, high:10},{name:"Mortgage delinquencies (bad debts)", low:-25, high:5},{name:"Housing market downturn", low:-30, high:8},{name:"Digital competition (neobanks)", low:-15, high:5},{name:"Regulatory capital requirements", low:-12, high:3}],
     "WDS":[{name:"LNG spot price volatility", low:-40, high:35},{name:"Project execution risk (Louisiana LNG)", low:-25, high:15},{name:"Carbon tax / energy transition", low:-20, high:5},{name:"Asian LNG demand slowdown", low:-30, high:20},{name:"AUD/USD exchange rate", low:-15, high:10}],
-    "BBRI":[{name:"Microfinance NPL (non-performing loans)", low:-35, high:8},{name:"Rupiah depreciation (IDR)", low:-20, high:10},{name:"Government KUR program changes", low:-25, high:5},{name:"Digital bank competition (SeaBank, Jago)", low:-15, high:10},{name:"Rural economic downturn", low:-28, high:12}]
+    "BBRI":[{name:"Microfinance NPL (non-performing loans)", low:-35, high:8},{name:"Rupiah depreciation (IDR)", low:-20, high:10},{name:"Government KUR program changes", low:-25, high:5},{name:"Digital bank competition (SeaBank, Jago)", low:-15, high:10},{name:"Rural economic downturn", low:-28, high:12}],
+    "ANZ":[{name:"Net Interest Margin (NIM) compression", low:-20, high:10},{name:"Institutional banking credit risk", low:-25, high:15},{name:"Housing market downturn", low:-25, high:8},{name:"Digital-only bank competition", low:-15, high:5},{name:"Asian exit residual risks", low:-10, high:2}],
+    "NAB":[{name:"Business credit cycle downturn", low:-30, high:15},{name:"Net Interest Margin (NIM) compression", low:-20, high:10},{name:"Home loan competition (market share erosion)", low:-15, high:5},{name:"Technology & digital execution risk", low:-18, high:8},{name:"Regulatory capital changes", low:-12, high:3}]
   };
   if (customRisks[sym]) return customRisks[sym];
   const sector = CO_INFO[sym]?.sector || 'General';
@@ -988,7 +990,7 @@ function generateCustomTornado(sym, st, m) {
   risks.sort((a,b) => Math.abs(b.high - b.low) - Math.abs(a.high - a.low));
   return risks;
 }
-function renderTornadoChart(variables) {
+  function renderTornadoChart(variables) {
   if (!variables || !variables.length) return "";
   const sorted = [...variables].sort((a,b) => Math.abs(b.high - b.low) - Math.abs(a.high - a.low));
   const maxAbs = Math.max(...sorted.flatMap(v => [Math.abs(v.low||0), Math.abs(v.high||0)]), 1);
