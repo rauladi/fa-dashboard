@@ -262,7 +262,7 @@ def annualise_year(tk, yr, div, fx, sym):
                     label = "FY" if months >= 12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
 
                     # Use multiple row names for banks
-                    def sum_q_field(field_name, *names):
+                    def sum_q_field(*names):
                         s = find_row(qi, *names)
                         if s is None: return None
                         total = 0.0
@@ -272,9 +272,9 @@ def annualise_year(tk, yr, div, fx, sym):
                         return total if total != 0.0 else None
 
                     row = {f: None for f in FIELDS}
-                    row["revenue"] = sum_q_field("Total Revenue", "Total Revenue", "TotalRevenue", "Interest Income", "InterestIncome")
-                    row["grossProfit"] = sum_q_field("Gross Profit", "Gross Profit", "GrossProfit", "Net Interest Income", "NetInterestIncome")
-                    row["netProfit"] = sum_q_field("Net Income", "Net Income", "NetIncome", "Net Income Common Stockholders")
+                    row["revenue"] = sum_q_field("Total Revenue", "TotalRevenue", "Interest Income", "InterestIncome")
+                    row["grossProfit"] = sum_q_field("Gross Profit", "GrossProfit", "Net Interest Income", "NetInterestIncome")
+                    row["netProfit"] = sum_q_field("Net Income", "NetIncome", "Net Income Common Stockholders")
                     eps_field = find_row(qi, "Basic EPS", "Diluted EPS", "EPS Diluted", "BasicEPS")
                     row["eps"] = None
                     if eps_field is not None:
@@ -375,38 +375,25 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
 
-            # ----- EPS and DPS fallback logic (apply only when live value is None) -----
+            # ----- EPS and DPS fallback logic -----
             if exchange == "IDX":
+                # For IDX stocks, always use PRELOADED EPS/DPS for all completed years (including LATEST_YEAR)
                 for i, yr in enumerate(ALL_YEARS):
                     if yr in COMPLETED:
-                        # For years before LATEST_YEAR, always use PRELOADED EPS/DPS
-                        if yr < LATEST_YEAR:
-                            if sym in PRELOADED and "eps" in PRELOADED[sym]:
-                                if i < len(PRELOADED[sym]["eps"]):
-                                    fb_eps = PRELOADED[sym]["eps"][i]
-                                    if fb_eps is not None:
-                                        yd[yr]["eps"] = fb_eps
-                                        print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
-                            if sym in PRELOADED and "dps" in PRELOADED[sym]:
-                                if i < len(PRELOADED[sym]["dps"]):
-                                    fb_dps = PRELOADED[sym]["dps"][i]
-                                    if fb_dps is not None:
-                                        yd[yr]["dps"] = fb_dps
-                                        print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
-                        else:  # LATEST_YEAR: use fallback only if live data is None
-                            if yd[yr].get("eps") is None and sym in PRELOADED and "eps" in PRELOADED[sym]:
-                                if i < len(PRELOADED[sym]["eps"]):
-                                    fb_eps = PRELOADED[sym]["eps"][i]
-                                    if fb_eps is not None:
-                                        yd[yr]["eps"] = fb_eps
-                                        print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
-                            if yd[yr].get("dps") is None and sym in PRELOADED and "dps" in PRELOADED[sym]:
-                                if i < len(PRELOADED[sym]["dps"]):
-                                    fb_dps = PRELOADED[sym]["dps"][i]
-                                    if fb_dps is not None:
-                                        yd[yr]["dps"] = fb_dps
-                                        print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
+                        if sym in PRELOADED and "eps" in PRELOADED[sym]:
+                            if i < len(PRELOADED[sym]["eps"]):
+                                fb_eps = PRELOADED[sym]["eps"][i]
+                                if fb_eps is not None:
+                                    yd[yr]["eps"] = fb_eps
+                                    print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
+                        if sym in PRELOADED and "dps" in PRELOADED[sym]:
+                            if i < len(PRELOADED[sym]["dps"]):
+                                fb_dps = PRELOADED[sym]["dps"][i]
+                                if fb_dps is not None:
+                                    yd[yr]["dps"] = fb_dps
+                                    print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
             else:
+                # For ASX and NYSE/NASDAQ, yfinance EPS is reliable; DPS uses fallback if missing
                 for i, yr in enumerate(ALL_YEARS):
                     if yr in COMPLETED:
                         if yd[yr].get("dps") is None and sym in PRELOADED and "dps" in PRELOADED[sym]:
