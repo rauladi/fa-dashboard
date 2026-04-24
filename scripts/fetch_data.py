@@ -73,8 +73,8 @@ PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,1.20,None]},
     "WDS": {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,0.50,None]},
     "CBA": {"totalAsset":[925.0,1012.0,1085.0,1150.0,None,None],"cash":[98.0,105.0,112.0,120.0,None,None],"totalDebt":[165.0,172.0,180.0,195.0,None,None],"totalEquity":[62.0,65.0,68.0,72.0,None,None],"revenue":[23.5,24.1,25.2,26.5,None,None],"grossProfit":[19.8,20.4,21.3,22.4,None,None],"netProfit":[9.6,10.2,10.5,10.7,None,None],"eps":[5.6,5.9,6.1,6.2,None,None],"dps":[3.50,3.70,3.90,4.10,4.30,None]},
-    "NAB": {"totalAsset":[925.0,1005.0,1059.0,1080.0,1105.0,None],"cash":[109.0,125.0,120.0,113.0,118.0,None],"totalDebt":[172.0,185.0,198.0,214.0,220.0,None],"totalEquity":[62.8,59.0,61.2,61.5,62.0,None],"revenue":[16.7,18.3,20.6,20.6,21.1,None],"grossProfit":[13.8,14.8,16.8,16.8,17.2,None],"netProfit":[6.4,6.9,7.4,7.0,7.2,None],"eps":[1.93,2.14,2.36,2.25,2.31,None],"dps":[0.82,1.24,1.38,1.52,1.56,None]},
-    "ANZ": {"totalAsset":[978.0,1085.7,1105.6,1229.1,1297.1,None],"cash":[120.0,157.5,146.4,113.0,122.7,None],"totalDebt":[140.0,134.0,150.1,205.1,219.8,None],"totalEquity":[60.0,65.9,69.5,69.9,71.1,None],"revenue":[17.5,19.0,20.2,20.4,22.3,None],"grossProfit":[14.0,14.9,16.6,16.1,18.0,None],"netProfit":[6.0,7.1,7.1,6.5,5.9,None],"eps":[2.00,2.50,2.37,2.18,1.98,None],"dps":[1.20,1.46,1.62,1.66,1.70,None]},
+    "NAB": {"totalAsset":[925.0,1005.0,1059.0,1080.0,None,None],"cash":[109.0,125.0,120.0,113.0,None,None],"totalDebt":[172.0,185.0,198.0,214.0,None,None],"totalEquity":[62.8,59.0,61.2,61.5,None,None],"revenue":[16.7,18.3,20.6,20.6,None,None],"grossProfit":[13.8,14.8,16.8,16.8,None,None],"netProfit":[6.4,6.9,7.4,7.0,None,None],"eps":[1.93,2.14,2.36,2.25,None,None],"dps":[0.82,1.24,1.38,1.52,None,None]},
+    "ANZ": {"totalAsset":[978.0,1085.7,1105.6,1229.1,None,None],"cash":[120.0,157.5,146.4,113.0,None,None],"totalDebt":[140.0,134.0,150.1,205.1,None,None],"totalEquity":[60.0,65.9,69.5,69.9,None,None],"revenue":[17.5,19.0,20.2,20.4,None,None],"grossProfit":[14.0,14.9,16.6,16.1,None,None],"netProfit":[6.0,7.1,7.1,6.5,None,None],"eps":[2.00,2.50,2.37,2.18,None,None],"dps":[1.20,1.46,1.62,1.66,None,None]},
     "BBRI": {"totalAsset":[1635,1865,1965,2073,None,None],"cash":[163,186,196,207,None,None],"totalDebt":[1380,1570,1650,1730,None,None],"totalEquity":[255,295,315,343,None,None],"revenue":[135,150,165,187,None,None],"grossProfit":[85,95,104,118,None,None],"netProfit":[25,43,51,60,None,None],"eps":[1019,1753,2086,2443,None,None],"dps":[460,791,940,1100,1150,None]},
     "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],"eps":[256,960,480,510,None,None],"dps":[130,480,240,255,260,None]},
     "SMSM": {"totalAsset":[2.6,2.8,3.0,3.2,None,None],"cash":[0.9,1.0,1.1,1.2,None,None],"totalDebt":[0.35,0.30,0.30,0.25,None,None],"totalEquity":[2.0,2.2,2.4,2.6,None,None],"revenue":[2.5,2.8,3.2,3.4,None,None],"grossProfit":[0.82,0.92,1.05,1.12,None,None],"netProfit":[0.43,0.51,0.58,0.62,None,None],"eps":[183,217,247,264,None,None],"dps":[138,164,186,198,200,None]},
@@ -226,6 +226,7 @@ def annualise_year(tk, yr, div, fx, sym):
     row = None
     ic = None
 
+    # 1) Try full fiscal year from annual financials
     if inc is not None and not inc.empty:
         ic = col_yr(inc, yr)
         if ic is not None:
@@ -233,7 +234,72 @@ def annualise_year(tk, yr, div, fx, sym):
             if row.get("revenue") is not None:
                 return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
-    # Fallback to quarterly
+    # 2) For LATEST_YEAR, construct TTM from quarterly data respecting fiscal year
+    if yr == LATEST_YEAR:
+        qi = tk.quarterly_financials
+        qb = tk.quarterly_balance_sheet
+        if qi is not None and not qi.empty:
+            all_qtrs = sorted(qi.columns, reverse=True)
+            if all_qtrs:
+                fy_end_month = FISCAL_YEAR_END.get(sym, 12)
+                target_qtrs = []
+                for q in all_qtrs:
+                    q_year = q.year
+                    q_month = q.month
+                    fiscal_year = q_year if q_month <= fy_end_month else q_year + 1
+                    if fiscal_year == yr:
+                        target_qtrs.append(q)
+                if target_qtrs:
+                    target_qtrs = sorted(target_qtrs, reverse=True)[:4]
+                    n = len(target_qtrs)
+                    months = n * 3
+                    factor = 12.0 / months
+                    lq = target_qtrs[0]
+                    label = "FY" if months >= 12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
+
+                    def sum_q_field(field_name):
+                        s = find_row(qi, field_name)
+                        if s is None: return None
+                        total = 0.0
+                        for c in target_qtrs:
+                            v = safe(s[c])
+                            if v is not None: total += v
+                        return total if total != 0.0 else None
+
+                    row = {f: None for f in FIELDS}
+                    row["revenue"] = sum_q_field("Total Revenue")
+                    row["grossProfit"] = sum_q_field("Gross Profit")
+                    row["netProfit"] = sum_q_field("Net Income")
+                    eps_field = find_row(qi, "Basic EPS", "Diluted EPS", "EPS Diluted", "BasicEPS")
+                    row["eps"] = None
+                    if eps_field is not None:
+                        total_eps = 0.0
+                        for c in target_qtrs:
+                            v = safe(eps_field[c])
+                            if v is not None: total_eps += v
+                        row["eps"] = total_eps if total_eps != 0.0 else None
+                    row["dps"] = None
+
+                    qbc = target_qtrs[0]
+                    if qb is not None and not qb.empty and qbc in qb.columns:
+                        ta = find_row(qb, "Total Assets")
+                        ca = find_row(qb, "Cash And Cash Equivalents")
+                        td = find_row(qb, "Total Debt")
+                        te = find_row(qb, "Stockholders Equity")
+                        row["totalAsset"] = safe(ta[qbc] if ta is not None else None, div, fx)
+                        row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
+                        row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
+                        row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+
+                    for k in ["revenue","grossProfit","netProfit","eps"]:
+                        if row[k] is not None:
+                            row[k] = round(row[k] / div * fx, 4)
+
+                    ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
+                    print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
+                    return row, ann
+
+    # 3) Fallback to generic quarterly (for older years)
     qi = tk.quarterly_financials
     qb = tk.quarterly_balance_sheet
     if qi is None or qi.empty:
@@ -302,35 +368,31 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 if ann_yr["method"] != "none":
                     ann[yr] = ann_yr
 
+            # ----- EPS and DPS fallback logic (apply only when live value is None) -----
             if exchange == "IDX":
                 for i, yr in enumerate(ALL_YEARS):
                     if yr in COMPLETED:
-                        if sym in PRELOADED and "eps" in PRELOADED[sym]:
+                        if yd[yr].get("eps") is None and sym in PRELOADED and "eps" in PRELOADED[sym]:
                             if i < len(PRELOADED[sym]["eps"]):
                                 fb_eps = PRELOADED[sym]["eps"][i]
                                 if fb_eps is not None:
                                     yd[yr]["eps"] = fb_eps
                                     print(f"      using fallback EPS for {yr}: {fb_eps}", flush=True)
-                        if sym in PRELOADED and "dps" in PRELOADED[sym]:
+                        if yd[yr].get("dps") is None and sym in PRELOADED and "dps" in PRELOADED[sym]:
                             if i < len(PRELOADED[sym]["dps"]):
                                 fb_dps = PRELOADED[sym]["dps"][i]
                                 if fb_dps is not None:
                                     yd[yr]["dps"] = fb_dps
                                     print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
-                    if yr == LATEST_YEAR:
-                        yd[yr]["eps"] = None
-                        yd[yr]["dps"] = None
             else:
                 for i, yr in enumerate(ALL_YEARS):
                     if yr in COMPLETED:
-                        if sym in PRELOADED and "dps" in PRELOADED[sym]:
+                        if yd[yr].get("dps") is None and sym in PRELOADED and "dps" in PRELOADED[sym]:
                             if i < len(PRELOADED[sym]["dps"]):
                                 fb_dps = PRELOADED[sym]["dps"][i]
                                 if fb_dps is not None:
                                     yd[yr]["dps"] = fb_dps
                                     print(f"      using fallback DPS for {yr}: {fb_dps}", flush=True)
-                    if yr == LATEST_YEAR:
-                        yd[yr]["dps"] = None
 
             live = [y for y in COMPLETED if yd[y].get("revenue") is not None]
             print(f"  ✓ live: {live}", flush=True)
@@ -360,7 +422,7 @@ def build_arrays(yd, sym):
         out[f] = arr
     return out
 
-# ---------- PROFILES ----------
+# ---------- FULL PROFILES (no omissions) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
