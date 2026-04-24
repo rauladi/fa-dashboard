@@ -234,7 +234,7 @@ def annualise_year(tk, yr, div, fx, sym):
             if row.get("revenue") is not None:
                 return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
-    # 2) For LATEST_YEAR, construct TTM from quarterly data respecting fiscal year
+    # 2) For LATEST_YEAR, attempt fiscal-year TTM; if that fails, fall back to generic quarterly
     if yr == LATEST_YEAR:
         qi = tk.quarterly_financials
         qb = tk.quarterly_balance_sheet
@@ -250,9 +250,9 @@ def annualise_year(tk, yr, div, fx, sym):
                     fiscal_year = q_year if q_month <= fy_end_month else q_year + 1
                     if fiscal_year == yr:
                         target_qtrs.append(q)
-                # If no quarters found for this fiscal year, fall back to the most recent 4 quarters (generic TTM)
+                # If no quarters found for this fiscal year, use the most recent 4 quarters as fallback
                 if not target_qtrs:
-                    target_qtrs = all_qtrs[:4]  # up to 4 most recent quarters
+                    target_qtrs = all_qtrs[:4]
                 if target_qtrs:
                     target_qtrs = sorted(target_qtrs, reverse=True)[:4]
                     n = len(target_qtrs)
@@ -284,26 +284,28 @@ def annualise_year(tk, yr, div, fx, sym):
                         row["eps"] = total_eps if total_eps != 0.0 else None
                     row["dps"] = None
 
-                    qbc = target_qtrs[0]
-                    if qb is not None and not qb.empty and qbc in qb.columns:
-                        ta = find_row(qb, "Total Assets")
-                        ca = find_row(qb, "Cash And Cash Equivalents")
-                        td = find_row(qb, "Total Debt")
-                        te = find_row(qb, "Stockholders Equity")
-                        row["totalAsset"] = safe(ta[qbc] if ta is not None else None, div, fx)
-                        row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
-                        row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
-                        row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+                    # Only return TTM row if we actually got some revenue data
+                    if row["revenue"] is not None:
+                        qbc = target_qtrs[0]
+                        if qb is not None and not qb.empty and qbc in qb.columns:
+                            ta = find_row(qb, "Total Assets")
+                            ca = find_row(qb, "Cash And Cash Equivalents")
+                            td = find_row(qb, "Total Debt")
+                            te = find_row(qb, "Stockholders Equity")
+                            row["totalAsset"] = safe(ta[qbc] if ta is not None else None, div, fx)
+                            row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
+                            row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
+                            row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
 
-                    for k in ["revenue","grossProfit","netProfit","eps"]:
-                        if row[k] is not None:
-                            row[k] = round(row[k] / div * fx, 4)
+                        for k in ["revenue","grossProfit","netProfit","eps"]:
+                            if row[k] is not None:
+                                row[k] = round(row[k] / div * fx, 4)
 
-                    ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
-                    print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
-                    return row, ann
+                        ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
+                        print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
+                        return row, ann
 
-    # 3) Fallback to generic quarterly (for older years)
+    # 3) Fallback to generic quarterly (for years before LATEST_YEAR, or if TTM failed)
     qi = tk.quarterly_financials
     qb = tk.quarterly_balance_sheet
     if qi is None or qi.empty:
@@ -441,7 +443,7 @@ def build_arrays(yd, sym):
         out[f] = arr
     return out
 
-# ---------- FULL PROFILES (no omissions) ----------
+# ---------- FULL PROFILES ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
