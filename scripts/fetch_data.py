@@ -223,8 +223,6 @@ def annual_row(inc, bs, cf, yr, div, fx, sym):
 def annualise_year(tk, yr, div, fx, sym):
     inc = tk.financials
     bs = tk.balance_sheet
-    row = None
-    ic = None
 
     # 1) Try full fiscal year from annual financials
     if inc is not None and not inc.empty:
@@ -234,8 +232,7 @@ def annualise_year(tk, yr, div, fx, sym):
             if row.get("revenue") is not None:
                 return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
-    # 2) For LATEST_YEAR, attempt fiscal-year TTM; if that fails, fall back to generic quarterly,
-    #    and if still nothing, use the previous year's annual data as an estimate.
+    # 2) For LATEST_YEAR, attempt fiscal-year TTM from quarterly
     if yr == LATEST_YEAR:
         qi = tk.quarterly_financials
         qb = tk.quarterly_balance_sheet
@@ -286,7 +283,6 @@ def annualise_year(tk, yr, div, fx, sym):
                         row["eps"] = total_eps if total_eps != 0.0 else None
                     row["dps"] = None
 
-                    # Only return TTM row if we actually got some revenue data
                     if row["revenue"] is not None:
                         qbc = target_qtrs[0]
                         if qb is not None and not qb.empty and qbc in qb.columns:
@@ -307,70 +303,65 @@ def annualise_year(tk, yr, div, fx, sym):
                         print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
                         return row, ann
 
-        # --- FALLBACK for LATEST_YEAR when quarterly data is empty ---
-        # Use the previous completed year's annual data as an estimate,
-        # clearly marked.
-        print(f"      No quarterly data for {yr}. Trying annual fallback from {yr-1} ...", flush=True)
-        prev_year_row = annual_row(inc, bs, None, yr-1, div, fx, sym)
-        # Only fallback if we got something useful
-        if any(prev_year_row.get(f) is not None for f in FIELDS if f != "dps"):
+    # 3) Fallback to generic quarterly (for any year, if we didn't already return)
+    qi = tk.quarterly_financials
+    qb = tk.quarterly_balance_sheet
+    if qi is not None and not qi.empty:
+        qtrs = cols_yr(qi, yr)
+        if qtrs:
+            n = len(qtrs)
+            months = n * 3
+            factor = 12.0 / months
+            lq = qtrs[-1]
+            label = "FY" if months >= 12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
+
+            def sum_q_field(*names):
+                s = find_row(qi, *names)
+                if s is None: return None
+                total = 0.0
+                for c in qtrs:
+                    v = safe(s[c])
+                    if v is not None: total += v
+                return total if total != 0.0 else None
+
+            row = {f: None for f in FIELDS}
+            row["revenue"] = sum_q_field("Total Revenue", "TotalRevenue", "Interest Income", "InterestIncome")
+            row["grossProfit"] = sum_q_field("Gross Profit", "GrossProfit", "Net Interest Income", "NetInterestIncome")
+            row["netProfit"] = sum_q_field("Net Income", "NetIncome", "Net Income Common Stockholders")
+            row["eps"] = None
+            row["dps"] = None
+
+            qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
+            if qbc is not None:
+                ta = find_row(qb, "Total Assets")
+                ca = find_row(qb, "Cash And Cash Equivalents")
+                td = find_row(qb, "Total Debt")
+                te = find_row(qb, "Stockholders Equity")
+                row["totalAsset"] = safe(ta[qbc] if ta is not None else None, div, fx)
+                row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
+                row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
+                row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+
+            for k in ["revenue","grossProfit","netProfit"]:
+                if row[k] is not None:
+                    row[k] = round(row[k] / div * fx, 4)
+
+            ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
+            print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
+            return row, ann
+
+    # 4) ULTIMATE FALLBACK for LATEST_YEAR: use previous year's annual data
+    if yr == LATEST_YEAR:
+        print(f"      No data for {yr}. Using previous year ({yr-1}) as estimate ...", flush=True)
+        prev_row = annual_row(inc, bs, None, yr-1, div, fx, sym)
+        if any(prev_row.get(f) is not None for f in FIELDS if f != "dps"):
             ann = {"method":"estimated_from_previous_year",
                    "label":f"Est. from {yr-1}",
                    "quarters":0, "months":0, "factor":1.0,
                    "asOf":str(datetime.now())}
-            # DPS stays None unless manually filled
-            return prev_year_row, ann
+            return prev_row, ann
 
-    # 3) Fallback to generic quarterly (for years before LATEST_YEAR, or if TTM failed)
-    qi = tk.quarterly_financials
-    qb = tk.quarterly_balance_sheet
-    if qi is None or qi.empty:
-        # If even this fails and it's LATEST_YEAR, we already tried the annual fallback above,
-        # so for non-LATEST_YEAR we return Nones.
-        return {f: None for f in FIELDS}, {"method":"none","label":None}
-    qtrs = cols_yr(qi, yr)
-    if not qtrs:
-        return {f: None for f in FIELDS}, {"method":"none","label":None}
-    n = len(qtrs)
-    months = n * 3
-    factor = 12.0 / months
-    lq = qtrs[-1]
-    label = "FY" if months >= 12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
-
-    def sum_q_field(*names):
-        s = find_row(qi, *names)
-        if s is None: return None
-        total = 0.0
-        for c in qtrs:
-            v = safe(s[c])
-            if v is not None: total += v
-        return total if total != 0.0 else None
-
-    row = {f: None for f in FIELDS}
-    row["revenue"] = sum_q_field("Total Revenue", "TotalRevenue", "Interest Income", "InterestIncome")
-    row["grossProfit"] = sum_q_field("Gross Profit", "GrossProfit", "Net Interest Income", "NetInterestIncome")
-    row["netProfit"] = sum_q_field("Net Income", "NetIncome", "Net Income Common Stockholders")
-    row["eps"] = None
-    row["dps"] = None
-
-    qbc = col_yr(qb, yr) if qb is not None and not qb.empty else None
-    if qbc is not None:
-        ta = find_row(qb, "Total Assets")
-        ca = find_row(qb, "Cash And Cash Equivalents")
-        td = find_row(qb, "Total Debt")
-        te = find_row(qb, "Stockholders Equity")
-        row["totalAsset"] = safe(ta[qbc] if ta is not None else None, div, fx)
-        row["cash"] = safe(ca[qbc] if ca is not None else None, div, fx)
-        row["totalDebt"] = safe(td[qbc] if td is not None else None, div, fx)
-        row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
-
-    for k in ["revenue","grossProfit","netProfit"]:
-        if row[k] is not None:
-            row[k] = round(row[k] / div * fx, 4)
-
-    ann = {"method":"annualised","label":label,"quarters":n,"months":months,"factor":round(factor,4),"asOf":str(lq.date())}
-    print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
-    return row, ann
+    return {f: None for f in FIELDS}, {"method":"none","label":None}
 
 def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] {ticker_str}", flush=True)
@@ -434,7 +425,6 @@ def build_arrays(yd, sym):
         arr = []
         for i, yr in enumerate(ALL_YEARS):
             lv = yd[yr].get(f) if yd and yr in yd else None
-            # Use PRELOADED fallback whenever live data is missing (for any year)
             if lv is None and sym in PRELOADED and f in PRELOADED[sym]:
                 if i < len(PRELOADED[sym][f]):
                     lv = PRELOADED[sym][f][i]
