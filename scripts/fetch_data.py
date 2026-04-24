@@ -234,7 +234,8 @@ def annualise_year(tk, yr, div, fx, sym):
             if row.get("revenue") is not None:
                 return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
 
-    # 2) For LATEST_YEAR, attempt fiscal-year TTM; if that fails, fall back to generic quarterly
+    # 2) For LATEST_YEAR, attempt fiscal-year TTM; if that fails, fall back to generic quarterly,
+    #    and if still nothing, use the previous year's annual data as an estimate.
     if yr == LATEST_YEAR:
         qi = tk.quarterly_financials
         qb = tk.quarterly_balance_sheet
@@ -306,10 +307,26 @@ def annualise_year(tk, yr, div, fx, sym):
                         print(f"      {yr}: {n}Q → {label} as of {lq.date()}", flush=True)
                         return row, ann
 
+        # --- FALLBACK for LATEST_YEAR when quarterly data is empty ---
+        # Use the previous completed year's annual data as an estimate,
+        # clearly marked.
+        print(f"      No quarterly data for {yr}. Trying annual fallback from {yr-1} ...", flush=True)
+        prev_year_row = annual_row(inc, bs, None, yr-1, div, fx, sym)
+        # Only fallback if we got something useful
+        if any(prev_year_row.get(f) is not None for f in FIELDS if f != "dps"):
+            ann = {"method":"estimated_from_previous_year",
+                   "label":f"Est. from {yr-1}",
+                   "quarters":0, "months":0, "factor":1.0,
+                   "asOf":str(datetime.now())}
+            # DPS stays None unless manually filled
+            return prev_year_row, ann
+
     # 3) Fallback to generic quarterly (for years before LATEST_YEAR, or if TTM failed)
     qi = tk.quarterly_financials
     qb = tk.quarterly_balance_sheet
     if qi is None or qi.empty:
+        # If even this fails and it's LATEST_YEAR, we already tried the annual fallback above,
+        # so for non-LATEST_YEAR we return Nones.
         return {f: None for f in FIELDS}, {"method":"none","label":None}
     qtrs = cols_yr(qi, yr)
     if not qtrs:
@@ -413,20 +430,14 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
 
 def build_arrays(yd, sym):
     out = {}
-    first_live = None
-    if yd:
-        for yr in ALL_YEARS:
-            if yr in yd and yd[yr].get("revenue") is not None:
-                first_live = yr
-                break
     for f in FIELDS:
         arr = []
         for i, yr in enumerate(ALL_YEARS):
             lv = yd[yr].get(f) if yd and yr in yd else None
+            # Use PRELOADED fallback whenever live data is missing (for any year)
             if lv is None and sym in PRELOADED and f in PRELOADED[sym]:
-                if first_live is None or yr < first_live:
-                    if i < len(PRELOADED[sym][f]):
-                        lv = PRELOADED[sym][f][i]
+                if i < len(PRELOADED[sym][f]):
+                    lv = PRELOADED[sym][f][i]
             arr.append(lv)
         out[f] = arr
     return out
