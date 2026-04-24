@@ -261,8 +261,9 @@ def annualise_year(tk, yr, div, fx, sym):
                     lq = target_qtrs[0]
                     label = "FY" if months >= 12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
 
-                    def sum_q_field(field_name):
-                        s = find_row(qi, field_name)
+                    # Use multiple row names for banks
+                    def sum_q_field(field_name, *names):
+                        s = find_row(qi, *names)
                         if s is None: return None
                         total = 0.0
                         for c in target_qtrs:
@@ -271,9 +272,9 @@ def annualise_year(tk, yr, div, fx, sym):
                         return total if total != 0.0 else None
 
                     row = {f: None for f in FIELDS}
-                    row["revenue"] = sum_q_field("Total Revenue")
-                    row["grossProfit"] = sum_q_field("Gross Profit")
-                    row["netProfit"] = sum_q_field("Net Income")
+                    row["revenue"] = sum_q_field("Total Revenue", "Total Revenue", "TotalRevenue", "Interest Income", "InterestIncome")
+                    row["grossProfit"] = sum_q_field("Gross Profit", "Gross Profit", "GrossProfit", "Net Interest Income", "NetInterestIncome")
+                    row["netProfit"] = sum_q_field("Net Income", "Net Income", "NetIncome", "Net Income Common Stockholders")
                     eps_field = find_row(qi, "Basic EPS", "Diluted EPS", "EPS Diluted", "BasicEPS")
                     row["eps"] = None
                     if eps_field is not None:
@@ -319,8 +320,8 @@ def annualise_year(tk, yr, div, fx, sym):
     lq = qtrs[-1]
     label = "FY" if months >= 12 else f"{months}M x{int(factor) if factor==int(factor) else round(factor,3)}"
 
-    def sum_q_field(field_name):
-        s = find_row(qi, field_name)
+    def sum_q_field(*names):
+        s = find_row(qi, *names)
         if s is None: return None
         total = 0.0
         for c in qtrs:
@@ -329,9 +330,9 @@ def annualise_year(tk, yr, div, fx, sym):
         return total if total != 0.0 else None
 
     row = {f: None for f in FIELDS}
-    row["revenue"] = sum_q_field("Total Revenue")
-    row["grossProfit"] = sum_q_field("Gross Profit")
-    row["netProfit"] = sum_q_field("Net Income")
+    row["revenue"] = sum_q_field("Total Revenue", "TotalRevenue", "Interest Income", "InterestIncome")
+    row["grossProfit"] = sum_q_field("Gross Profit", "GrossProfit", "Net Interest Income", "NetInterestIncome")
+    row["netProfit"] = sum_q_field("Net Income", "NetIncome", "Net Income Common Stockholders")
     row["eps"] = None
     row["dps"] = None
 
