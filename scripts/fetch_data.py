@@ -7,7 +7,7 @@ NOW = datetime.now(timezone.utc)
 CURRENT_YEAR = NOW.year
 LATEST_YEAR = CURRENT_YEAR - 1
 COMPLETED = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))   # e.g. 2021..2025
-ALL_YEARS = COMPLETED + [CURRENT_YEAR]                       # 2026 added
+ALL_YEARS = COMPLETED + [CURRENT_YEAR]                       # add 2026
 
 print(f"FA Dashboard fetch – {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
@@ -63,7 +63,7 @@ STOCKS = {
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-# ---------- STATIC PRE‑LOADED DATA (2021–2024) – unchanged ----------
+# ---------- STATIC PRE‑LOADED DATA (2021–2024) ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,1.20,None]},
     "WDS": {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,0.50,None]},
@@ -190,7 +190,7 @@ def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
         row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, fx)
         row["netProfit"]   = safe(ni[ic_col] if ni is not None else None, div, fx)
         row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, 1)   # EPS never scaled
-        row["dps"] = None   # will be filled if available later
+        row["dps"] = None   # will be filled later from info
     if bs is not None and bc_col is not None:
         ta = find_row(bs,"Total Assets","TotalAssets")
         ca = find_row(bs,"Cash And Cash Equivalents","Cash","CashAndCashEquivalents",
@@ -214,7 +214,6 @@ def annualise_quarterly(qi, qb, yr, div, fx):
     if not qtrs:
         return row
     n = len(qtrs)
-    months = n * 3
     factor = 4.0 / n   # multiply sum by factor to annualise
 
     def sum_q_field(*names):
@@ -226,10 +225,9 @@ def annualise_quarterly(qi, qb, yr, div, fx):
             if v is not None: total += v
         return total if total != 0.0 else None
 
-    row["revenue"]     = safe(sum_q_field("Total Revenue","TotalRevenue","Interest Income","InterestIncome"), 1, 1)  # raw sum
+    row["revenue"]     = safe(sum_q_field("Total Revenue","TotalRevenue","Interest Income","InterestIncome"), 1, 1)
     row["grossProfit"] = safe(sum_q_field("Gross Profit","GrossProfit","Net Interest Income","NetInterestIncome"), 1, 1)
     row["netProfit"]   = safe(sum_q_field("Net Income","NetIncome","Net Income Common Stockholders"), 1, 1)
-    # EPS: sum quarterly EPS values if available
     eps_field = find_row(qi, "Basic EPS","Diluted EPS","EPS Diluted","BasicEPS")
     if eps_field is not None:
         eps_sum = 0.0
@@ -239,7 +237,6 @@ def annualise_quarterly(qi, qb, yr, div, fx):
         row["eps"] = eps_sum if eps_sum != 0.0 else None
     else:
         row["eps"] = None
-    # DPS: sum quarterly if available (rare)
     dps_field = find_row(qi, "Dividends Per Share","DPS")
     if dps_field is not None:
         dps_sum = 0.0
@@ -249,9 +246,8 @@ def annualise_quarterly(qi, qb, yr, div, fx):
         row["dps"] = dps_sum if dps_sum != 0.0 else None
     else:
         row["dps"] = None
-
     # Balance sheet: use the latest quarter available for the year
-    qbc = qtrs[-1]   # last quarter in this year among available
+    qbc = qtrs[-1]
     if qb is not None and not qb.empty and qbc in qb.columns:
         ta = find_row(qb, "Total Assets","TotalAssets")
         ca = find_row(qb, "Cash And Cash Equivalents","Cash","CashAndCashEquivalents",
@@ -264,58 +260,14 @@ def annualise_quarterly(qi, qb, yr, div, fx):
         row["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
         row["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
         row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
-
-    # Apply annualisation factor to income items and EPS
+    # Apply annualisation factor to income items and EPS/DPS
     for k in ["revenue","grossProfit","netProfit","eps","dps"]:
         if row[k] is not None:
             row[k] = round(row[k] * factor, 4)
-    # Now apply scaling (div, fx) for revenue/gross/net
     for k in ["revenue","grossProfit","netProfit"]:
         if row[k] is not None:
             row[k] = round(row[k] / div * fx, 4)
-
     return row
-
-def annualise_year(tk, yr, div, fx, sym):
-    inc = tk.financials
-    bs = tk.balance_sheet
-    qi = tk.quarterly_financials
-    qb = tk.quarterly_balance_sheet
-
-    # ---------- 2025 (latest completed year): use TTM from annual statements ----------
-    if yr == LATEST_YEAR:
-        inc_ttm = get_ttm_col(inc)
-        bs_ttm = get_ttm_col(bs) if bs is not None else None
-        if inc_ttm is not None:
-            print(f"      {yr}: using annual TTM column '{inc_ttm}'", flush=True)
-            row = annual_row(inc, bs, div, fx, sym, ic_col=inc_ttm, bc_col=bs_ttm)
-            return row, {"method":"ttm_annual","label":"TTM","quarters":4,"asOf":str(inc_ttm)}
-
-        # Fallback: if no TTM, try the single fiscal year column
-        ic = col_yr(inc, yr)
-        if ic is not None:
-            row = annual_row(inc, bs, div, fx, sym, ic_col=ic, bc_col=col_yr(bs, yr))
-            if row.get("revenue") is not None:
-                return row, {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
-
-        # Last resort: nothing → all None
-        print(f"      {yr}: no annual data, returning empty", flush=True)
-        return {f: None for f in FIELDS}, {"method":"none","label":None}
-
-    # ---------- 2026 (current year): annualised quarterly ----------
-    if yr == CURRENT_YEAR:
-        row = annualise_quarterly(qi, qb, yr, div, fx)
-        n = len(cols_yr(qi, yr))
-        months = n * 3
-        factor = 4.0 / n if n else 0
-        label = f"{months}M x{round(factor,2)}" if n else "no data"
-        ann = {"method":"annualised_quarterly","label":label,"quarters":n,
-               "months":months,"factor":round(factor,4),"asOf":datetime.now().isoformat()}
-        print(f"      {yr}: {n}Q → {label}", flush=True)
-        return row, ann
-
-    # Should never hit here because 2021-2024 are not fetched live
-    return {f: None for f in FIELDS}, {"method":"none","label":None}
 
 def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] {ticker_str}", flush=True)
@@ -331,12 +283,48 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
 
             yd = {}
             ann = {}
-            # Only fetch 2025 and 2026 live
-            for yr in [LATEST_YEAR, CURRENT_YEAR]:
-                row, ann_yr = annualise_year(tk, yr, div, fx, sym)
-                yd[yr] = row
-                if ann_yr["method"] != "none":
-                    ann[yr] = ann_yr
+
+            # ---------- 2025 (latest completed year): use TTM from annual statements ----------
+            inc = tk.financials
+            bs = tk.balance_sheet
+            inc_ttm = get_ttm_col(inc)
+            bs_ttm = get_ttm_col(bs) if bs is not None else None
+            if inc_ttm is not None:
+                row = annual_row(inc, bs, div, fx, sym, ic_col=inc_ttm, bc_col=bs_ttm)
+                # DPS from statistics page (trailing annual dividend)
+                try:
+                    info = tk.info
+                    dps_val = info.get('trailingAnnualDividendRate')
+                    if dps_val is not None:
+                        row["dps"] = round(float(dps_val), 4)
+                        print(f"      DPS from stats: {dps_val}", flush=True)
+                except Exception as e:
+                    print(f"      Could not fetch DPS: {e}", flush=True)
+                yd[LATEST_YEAR] = row
+                ann[LATEST_YEAR] = {"method":"ttm_annual","label":"TTM","quarters":4,"asOf":str(inc_ttm)}
+                print(f"      {LATEST_YEAR}: TTM row fetched", flush=True)
+            else:
+                print(f"      {LATEST_YEAR}: no TTM column, trying full year...", flush=True)
+                ic = col_yr(inc, LATEST_YEAR)
+                if ic is not None:
+                    row = annual_row(inc, bs, div, fx, sym, ic_col=ic, bc_col=col_yr(bs, LATEST_YEAR))
+                    yd[LATEST_YEAR] = row
+                    ann[LATEST_YEAR] = {"method":"full_year","label":"FY","quarters":4,"asOf":str(ic.date())}
+                else:
+                    yd[LATEST_YEAR] = {f: None for f in FIELDS}
+
+            # ---------- 2026 (current year): annualised quarterly ----------
+            qi = tk.quarterly_financials
+            qb = tk.quarterly_balance_sheet
+            row_2026 = annualise_quarterly(qi, qb, CURRENT_YEAR, div, fx)
+            n = len(cols_yr(qi, CURRENT_YEAR)) if qi is not None else 0
+            months = n * 3
+            factor = 4.0 / n if n else 0
+            label = f"{months}M x{round(factor,2)}" if n else "no data"
+            yd[CURRENT_YEAR] = row_2026
+            ann[CURRENT_YEAR] = {"method":"annualised_quarterly","label":label,"quarters":n,
+                                 "months":months,"factor":round(factor,4),"asOf":datetime.now().isoformat()}
+            print(f"      {CURRENT_YEAR}: {n}Q → {label}", flush=True)
 
             live = [y for y in [LATEST_YEAR, CURRENT_YEAR] if yd[y].get("revenue") is not None]
             print(f"  ✓ live years: {live}", flush=True)
@@ -345,20 +333,26 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
     return {}, {"method":"none","label":None}
 
-def build_arrays(yd, sym):
-    """Combine static pre‑loaded data (2021‑2024) with live data (2025‑2026)."""
+def build_arrays(yd, sym, rates):
+    """Combine static pre‑loaded data (2021‑2024) with live data (2025‑2026).
+    For IDX stocks with USD reporting (ADRO, ITMG, POWR), the preloaded EPS/DPS
+    are in IDR and must be converted to USD."""
     out = {}
+    # symbols where preloaded per‑share values are in IDR but reporting currency is USD
+    convert_per_share = sym in ("ADRO", "ITMG", "POWR")
+    # conversion rate: divide IDR value by usd_idr to get USD
+    idr_to_usd = 1.0 / rates["usd_idr"] if rates["usd_idr"] else 0
+
     for f in FIELDS:
         arr = []
         for i, yr in enumerate(ALL_YEARS):
             if yr in yd and yd[yr].get(f) is not None:
                 arr.append(yd[yr][f])
             elif yr in COMPLETED[:4]:   # 2021‑2024
-                # use preloaded static data
-                if sym in PRELOADED and f in PRELOADED[sym]:
-                    arr.append(PRELOADED[sym][f][i])
-                else:
-                    arr.append(None)
+                val = PRELOADED.get(sym, {}).get(f, [None]*len(ALL_YEARS))[i]
+                if convert_per_share and f in ("eps", "dps") and val is not None:
+                    val = round(val * idr_to_usd, 4) if idr_to_usd else None
+                arr.append(val)
             else:
                 arr.append(None)
         out[f] = arr
@@ -366,12 +360,12 @@ def build_arrays(yd, sym):
 
 # ---------- FULL PROFILES (unchanged) ----------
 PROFILES = {
-    # ... (all profiles as originally provided) ...
+    # ... all profiles ...
 }
 
 # ---------- LEADERSHIP (unchanged) ----------
 LEADERSHIP = {
-    # ... (all leadership entries) ...
+    # ... all leadership entries ...
 }
 
 def build_profile_with_insights(sym, m, exchange, currency):
@@ -422,6 +416,7 @@ def generate_static_profiles(out):
 # ---------- main ----------
 def main():
     usd_aud, usd_idr, twd_usd = get_rates()
+    rates = {"usd_aud": usd_aud, "usd_idr": usd_idr, "twd_usd": twd_usd}
     all_stocks = {**STOCKS}
     print(f"\nTotal stocks: {len(all_stocks)}\n{'='*50}", flush=True)
 
@@ -441,13 +436,13 @@ def main():
             time.sleep(1)
         try:
             yd, cur_ann = fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
-            arrs = build_arrays(yd, sym)
+            arrs = build_arrays(yd, sym, rates)
             src = "yfinance" if any(yd.values()) else "fallback"
             if any(yd.values()):
                 ok += 1
         except Exception as e:
             print(f"  [{sym}] Exception: {e}", flush=True)
-            arrs = build_arrays({}, sym)
+            arrs = build_arrays({}, sym, rates)
             src = "fallback"
             cur_ann = {"method":"none","label":None}
 
@@ -460,7 +455,6 @@ def main():
 
     generate_static_profiles(out)
 
-    # Output path works both locally and in GitHub Actions
     base_dir = os.environ.get("GITHUB_WORKSPACE", os.path.dirname(__file__))
     path = os.path.join(base_dir, "data.json")
     with open(path, "w") as f:
