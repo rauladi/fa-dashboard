@@ -63,7 +63,7 @@ STOCKS = {
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-# ---------- STATIC PRE‑LOADED DATA (2021–2024) ----------
+# ---------- STATIC PRE‑LOADED DATA (2021–2024) – unchanged ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],"eps":[2.21,6.05,2.55,1.55,None,None],"dps":[3.01,5.43,1.70,1.09,1.20,None]},
     "WDS": {"totalAsset":[40.3,50.5,48.3,48.0,None,None],"cash":[2.8,3.1,2.5,2.2,None,None],"totalDebt":[7.9,15.2,12.8,12.0,None,None],"totalEquity":[18.2,22.4,20.1,20.0,None,None],"revenue":[10.0,13.9,12.3,12.5,None,None],"grossProfit":[5.8,8.6,7.1,7.2,None,None],"netProfit":[2.5,6.0,3.5,1.7,None,None],"eps":[0.80,1.70,1.00,0.48,None,None],"dps":[0.55,1.30,0.90,0.43,0.50,None]},
@@ -151,12 +151,12 @@ def safe(val, div=1, fx=1.0):
     except Exception: return None
 
 def find_row(df, *names):
-    """Case-insensitive row lookup."""
+    """Case‑insensitive row lookup."""
     if df is None or df.empty:
         return None
-    lower_idx = {str(idx).lower(): idx for idx in df.index}
+    lower_idx = {str(idx).strip().lower(): idx for idx in df.index}
     for n in names:
-        key = n.lower()
+        key = n.strip().lower()
         if key in lower_idx:
             return df.loc[lower_idx[key]]
     return None
@@ -176,12 +176,11 @@ def cols_yr(df, yr):
     return sorted([c for c in df.columns if hasattr(c,"year") and c.year==yr])
 
 def get_ttm_col(df):
-    """Return first column whose name (converted to lower string) contains 'ttm'."""
+    """Return the first column whose string representation (lowercased) contains 'ttm'."""
     if df is None or df.empty:
         return None
     for c in df.columns:
-        col_str = str(c).lower()
-        if 'ttm' in col_str:
+        if 'ttm' in str(c).lower():
             return c
     return None
 
@@ -193,10 +192,12 @@ def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
         ni = find_row(inc,"net income","netincome","net income common stockholders","net income common stockholders")
         ep = find_row(inc,
             "basic eps","basiceps","diluted eps","eps diluted",
+            "basic eps (common)","diluted eps (common)",
+            "basic eps (idr)","diluted eps (idr)",
+            "basic earnings per share","diluted earnings per share",
             "diluted eps excluding extraordinary items","diluted normalized eps",
             "basic eps excluding extraordinary items","basic normalized eps",
-            "earnings per share","basic earnings per share",
-            "eps (basic)","eps (diluted)",
+            "earnings per share","eps (basic)","eps (diluted)",
             "laba per saham dasar","laba per saham dilusian"
         )
         row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, fx)
@@ -239,10 +240,12 @@ def annualise_quarterly(qi, qb, yr, div, fx):
     row["netProfit"]   = safe(sum_q_field("net income","netincome","net income common stockholders","net income common stockholders"), 1, 1)
     ep = find_row(qi,
         "basic eps","basiceps","diluted eps","eps diluted",
+        "basic eps (common)","diluted eps (common)",
+        "basic eps (idr)","diluted eps (idr)",
+        "basic earnings per share","diluted earnings per share",
         "diluted eps excluding extraordinary items","diluted normalized eps",
         "basic eps excluding extraordinary items","basic normalized eps",
-        "earnings per share","basic earnings per share",
-        "eps (basic)","eps (diluted)",
+        "earnings per share","eps (basic)","eps (diluted)",
         "laba per saham dasar","laba per saham dilusian"
     )
     if ep is not None:
@@ -301,109 +304,46 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             qi = tk.quarterly_financials
             qb = tk.quarterly_balance_sheet
 
-            # ---------- 2025 (LATEST_YEAR): cascading TTM fallback ----------
+            # ---------- 2025 (LATEST_YEAR): TTM exclusively from Yahoo Finance ----------
             row_2025 = None
             method_2025 = None
 
-            # 1) TTM column in annual income statement
-            inc_ttm = get_ttm_col(inc)
-            bs_ttm = get_ttm_col(bs) if bs is not None else None
-            if inc_ttm is not None:
-                row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=inc_ttm, bc_col=bs_ttm)
+            # 1) Try quarterly TTM column first (the most reliable source)
+            ttm_col = get_ttm_col(qi) if qi is not None else None
+            if ttm_col is not None:
+                bs_ttm = get_ttm_col(qb) if qb is not None else None
+                row_2025 = annual_row(qi, qb, div, fx, sym, ic_col=ttm_col, bc_col=bs_ttm)
                 if row_2025.get("revenue") is not None:
-                    method_2025 = "ttm_annual"
-                    print(f"      {LATEST_YEAR}: TTM from annual found", flush=True)
-            # 2) TTM column in quarterly income statement
-            if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None:
-                qi_ttm = get_ttm_col(qi)
-                qb_ttm = get_ttm_col(qb) if qb is not None else None
-                if qi_ttm is not None:
-                    row_2025 = annual_row(qi, qb, div, fx, sym, ic_col=qi_ttm, bc_col=qb_ttm)
-                    if row_2025.get("revenue") is not None:
-                        method_2025 = "ttm_quarterly"
-                        print(f"      {LATEST_YEAR}: TTM from quarterly found", flush=True)
-            # 3) Full fiscal year column for LATEST_YEAR
+                    method_2025 = "ttm_quarterly"
+                    print(f"      {LATEST_YEAR}: TTM from quarterly found", flush=True)
+
+            # 2) Fallback to annual TTM if quarterly didn't work
             if row_2025 is None or row_2025.get("revenue") is None:
-                ic = col_yr(inc, LATEST_YEAR)
-                if ic is not None:
-                    row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=ic, bc_col=col_yr(bs, LATEST_YEAR))
+                ttm_col = get_ttm_col(inc)
+                if ttm_col is not None:
+                    bs_ttm = get_ttm_col(bs) if bs is not None else None
+                    row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=ttm_col, bc_col=bs_ttm)
                     if row_2025.get("revenue") is not None:
-                        method_2025 = "full_year"
-                        print(f"      {LATEST_YEAR}: full fiscal year found", flush=True)
-            # 4) Manual sum of last 4 quarters (simulate TTM)
-            if row_2025 is None or row_2025.get("revenue") is None:
-                if qi is not None and not qi.empty:
-                    all_qtrs = sorted(qi.columns, reverse=True)
-                    if all_qtrs:
-                        latest_qtrs = all_qtrs[:4]
-                        def sum_q(*names):
-                            s = find_row(qi, *names)
-                            if s is None: return None
-                            total = 0.0
-                            for c in latest_qtrs:
-                                v = safe(s[c])
-                                if v is not None: total += v
-                            return total if total != 0.0 else None
-                        row_2025 = {f: None for f in FIELDS}
-                        row_2025["revenue"]     = sum_q("total revenue","totalrevenue","interest income","interestincome","revenue")
-                        row_2025["grossProfit"] = sum_q("gross profit","grossprofit","net interest income","netinterestincome")
-                        row_2025["netProfit"]   = sum_q("net income","netincome","net income common stockholders","net income common stockholders")
-                        ep = find_row(qi,
-                            "basic eps","basiceps","diluted eps","eps diluted",
-                            "diluted eps excluding extraordinary items","diluted normalized eps",
-                            "basic eps excluding extraordinary items","basic normalized eps",
-                            "earnings per share","basic earnings per share",
-                            "eps (basic)","eps (diluted)",
-                            "laba per saham dasar","laba per saham dilusian"
-                        )
-                        if ep is not None:
-                            eps_sum = 0.0
-                            for c in latest_qtrs:
-                                v = safe(ep[c])
-                                if v is not None: eps_sum += v
-                            row_2025["eps"] = eps_sum if eps_sum != 0.0 else None
-                        dp = find_row(qi,"dividends per share","dps","dividend per share")
-                        if dp is not None:
-                            dps_sum = 0.0
-                            for c in latest_qtrs:
-                                v = safe(dp[c])
-                                if v is not None: dps_sum += v
-                            row_2025["dps"] = dps_sum if dps_sum != 0.0 else None
-                        if latest_qtrs:
-                            qbc = latest_qtrs[0]
-                            if qb is not None and not qb.empty and qbc in qb.columns:
-                                ta = find_row(qb,"total assets","totalassets")
-                                ca = find_row(qb,"cash and cash equivalents","cash","cashandcashequivalents","cash and short term investments","cash & equivalents")
-                                td = find_row(qb,"total debt","totaldebt","long term debt and capital lease obligation","long term debt","long-term debt")
-                                te = find_row(qb,"stockholders equity","total stockholder equity","common stock equity","total equity gross minority interest","total equity")
-                                row_2025["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
-                                row_2025["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
-                                row_2025["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
-                                row_2025["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
-                        for k in ["revenue","grossProfit","netProfit"]:
-                            if row_2025[k] is not None:
-                                row_2025[k] = round(row_2025[k] / div * fx, 4)
-                        if row_2025.get("revenue") is not None:
-                            method_2025 = "ttm_manual_4q"
-                            print(f"      {LATEST_YEAR}: manual TTM from last 4 quarters", flush=True)
+                        method_2025 = "ttm_annual"
+                        print(f"      {LATEST_YEAR}: TTM from annual found", flush=True)
 
             if row_2025 is None:
                 row_2025 = {f: None for f in FIELDS}
                 method_2025 = "none"
-                print(f"      {LATEST_YEAR}: no data could be obtained", flush=True)
-
-            # Always fetch DPS from Yahoo Finance stats if not yet populated
-            if row_2025.get("dps") is None:
-                try:
-                    info = tk.info
-                    dps_val = info.get('trailingAnnualDividendRate')
-                    if dps_val is None:
-                        dps_val = info.get('dividendRate')
-                    if dps_val is not None:
-                        row_2025["dps"] = round(float(dps_val), 4)
-                        print(f"      DPS from info: {dps_val}", flush=True)
-                except Exception as e:
-                    print(f"      Could not fetch DPS: {e}", flush=True)
+                print(f"      {LATEST_YEAR}: TTM column not found, data will be N/A", flush=True)
+            else:
+                # DPS from statistics page (always try)
+                if row_2025.get("dps") is None:
+                    try:
+                        info = tk.info
+                        dps_val = info.get('trailingAnnualDividendRate')
+                        if dps_val is None:
+                            dps_val = info.get('dividendRate')
+                        if dps_val is not None:
+                            row_2025["dps"] = round(float(dps_val), 4)
+                            print(f"      DPS from info: {dps_val}", flush=True)
+                    except Exception as e:
+                        print(f"      Could not fetch DPS: {e}", flush=True)
 
             yd[LATEST_YEAR] = row_2025
             ann[LATEST_YEAR] = {"method":method_2025,"label":"TTM","quarters":4,"asOf":datetime.now().isoformat()}
