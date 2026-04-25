@@ -1,5 +1,5 @@
 {
-  "generated": "2026-04-25T00:37:24.300044+00:00",
+  "generated": "2026-04-25T01:07:51.875926+00:00",
   "years": [
     2021,
     2022,
@@ -63,7 +63,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:26.038202"
+      "asOf": "2026-04-25T01:07:53.828103"
     },
     "WDS": {
       "method": "annualised_quarterly",
@@ -71,7 +71,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:28.037362"
+      "asOf": "2026-04-25T01:07:56.022990"
     },
     "CBA": {
       "method": "annualised_quarterly",
@@ -79,7 +79,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:30.074712"
+      "asOf": "2026-04-25T01:07:58.123311"
     },
     "NAB": {
       "method": "annualised_quarterly",
@@ -87,7 +87,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:31.966536"
+      "asOf": "2026-04-25T01:08:00.272293"
     },
     "ANZ": {
       "method": "annualised_quarterly",
@@ -95,7 +95,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:34.002800"
+      "asOf": "2026-04-25T01:08:02.365714"
     },
     "BBRI": {
       "method": "annualised_quarterly",
@@ -103,7 +103,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:36.127396"
+      "asOf": "2026-04-25T01:08:04.439237"
     },
     "ADRO": {
       "method": "annualised_quarterly",
@@ -111,7 +111,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:38.158391"
+      "asOf": "2026-04-25T01:08:06.706189"
     },
     "SMSM": {
       "method": "annualised_quarterly",
@@ -119,7 +119,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:40.216619"
+      "asOf": "2026-04-25T01:08:08.915371"
     },
     "UNTR": {
       "method": "annualised_quarterly",
@@ -127,7 +127,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:42.184884"
+      "asOf": "2026-04-25T01:08:11.156134"
     },
     "ITMG": {
       "method": "annualised_quarterly",
@@ -135,7 +135,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:44.126352"
+      "asOf": "2026-04-25T01:08:13.519160"
     },
     "POWR": {
       "method": "annualised_quarterly",
@@ -143,7 +143,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:46.007605"
+      "asOf": "2026-04-25T01:08:15.677960"
     },
     "MPMX": {
       "method": "annualised_quarterly",
@@ -151,7 +151,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:47.987457"
+      "asOf": "2026-04-25T01:08:17.810961"
     },
     "BTPS": {
       "method": "annualised_quarterly",
@@ -159,7 +159,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:50.026271"
+      "asOf": "2026-04-25T01:08:19.856100"
     },
     "DMAS": {
       "method": "annualised_quarterly",
@@ -167,7 +167,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:52.012931"
+      "asOf": "2026-04-25T01:08:21.969893"
     },
     "SPTO": {
       "method": "annualised_quarterly",
@@ -175,7 +175,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:54.028003"
+      "asOf": "2026-04-25T01:08:24.099917"
     },
     "TSM": {
       "method": "annualised_quarterly",
@@ -183,7 +183,7 @@
       "quarters": 1,
       "months": 3,
       "factor": 4.0,
-      "asOf": "2026-04-25T00:37:56.071688"
+      "asOf": "2026-04-25T01:08:26.256292"
     },
     "V": {
       "method": "annualised_quarterly",
@@ -191,7 +191,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:37:58.136509"
+      "asOf": "2026-04-25T01:08:28.354850"
     },
     "MA": {
       "method": "annualised_quarterly",
@@ -199,7 +199,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:38:00.133552"
+      "asOf": "2026-04-25T01:08:30.509279"
     },
     "MSFT": {
       "method": "annualised_quarterly",
@@ -207,7 +207,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:38:02.180835"
+      "asOf": "2026-04-25T01:08:32.616223"
     },
     "AMZN": {
       "method": "annualised_quarterly",
@@ -215,7 +215,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:38:04.088549"
+      "asOf": "2026-04-25T01:08:34.739018"
     },
     "AAPL": {
       "method": "annualised_quarterly",
@@ -223,7 +223,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:38:06.060893"
+      "asOf": "2026-04-25T01:08:36.897666"
     },
     "META": {
       "method": "annualised_quarterly",
@@ -231,7 +231,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:38:08.017746"
+      "asOf": "2026-04-25T01:08:38.937955"
     },
     "NVDA": {
       "method": "annualised_quarterly",
@@ -239,7 +239,7 @@
       "quarters": 1,
       "months": 3,
       "factor": 4.0,
-      "asOf": "2026-04-25T00:38:10.025793"
+      "asOf": "2026-04-25T01:08:41.047336"
     },
     "GOOG": {
       "method": "annualised_quarterly",
@@ -247,7 +247,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:38:12.060298"
+      "asOf": "2026-04-25T01:08:43.166564"
     },
     "BKNG": {
       "method": "annualised_quarterly",
@@ -255,7 +255,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:38:14.110311"
+      "asOf": "2026-04-25T01:08:45.291020"
     },
     "AVGO": {
       "method": "annualised_quarterly",
@@ -263,7 +263,7 @@
       "quarters": 1,
       "months": 3,
       "factor": 4.0,
-      "asOf": "2026-04-25T00:38:16.326578"
+      "asOf": "2026-04-25T01:08:47.425090"
     },
     "PBR-A": {
       "method": "annualised_quarterly",
@@ -271,7 +271,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:38:18.360571"
+      "asOf": "2026-04-25T01:08:49.598904"
     },
     "CVX": {
       "method": "annualised_quarterly",
@@ -279,7 +279,7 @@
       "quarters": 0,
       "months": 0,
       "factor": 0,
-      "asOf": "2026-04-25T00:38:20.345211"
+      "asOf": "2026-04-25T01:08:51.755485"
     },
     "AXP": {
       "method": "annualised_quarterly",
@@ -287,7 +287,7 @@
       "quarters": 1,
       "months": 3,
       "factor": 4.0,
-      "asOf": "2026-04-25T00:38:22.366038"
+      "asOf": "2026-04-25T01:08:53.885877"
     },
     "BAC": {
       "method": "annualised_quarterly",
@@ -295,7 +295,7 @@
       "quarters": 1,
       "months": 3,
       "factor": 4.0,
-      "asOf": "2026-04-25T00:38:24.345975"
+      "asOf": "2026-04-25T01:08:55.934201"
     }
   },
   "stocks": {
@@ -379,9 +379,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "WDS": {
       "name": "Woodside Energy",
@@ -463,9 +463,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "CBA": {
       "name": "Commonwealth Bank",
@@ -547,9 +547,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "NAB": {
       "name": "National Australia Bank",
@@ -631,9 +631,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "ANZ": {
       "name": "ANZ Group Holdings Ltd",
@@ -715,9 +715,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "BBRI": {
       "name": "Bank Rakyat Indonesia",
@@ -799,9 +799,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "ADRO": {
       "name": "Alamtri Resources Indonesia",
@@ -867,25 +867,25 @@
         null
       ],
       "eps": [
-        256,
-        960,
-        480,
-        510,
+        0.0148,
+        0.0556,
+        0.0278,
+        0.0295,
         null,
         null
       ],
       "dps": [
-        130,
-        480,
-        240,
-        255,
+        0.0075,
+        0.0278,
+        0.0139,
+        0.0148,
         null,
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "SMSM": {
       "name": "Selamat Sempurna",
@@ -967,9 +967,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "UNTR": {
       "name": "United Tractors",
@@ -1051,9 +1051,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "ITMG": {
       "name": "Indo Tambangraya Megah",
@@ -1119,25 +1119,25 @@
         null
       ],
       "eps": [
-        4530,
-        14493,
-        7246,
-        6344,
+        0.2623,
+        0.8391,
+        0.4195,
+        0.3673,
         0.17,
         null
       ],
       "dps": [
-        4000,
-        13000,
-        6500,
-        5710,
+        0.2316,
+        0.7526,
+        0.3763,
+        0.3306,
         null,
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "POWR": {
       "name": "Cikarang Listrindo",
@@ -1203,25 +1203,25 @@
         null
       ],
       "eps": [
-        95,
-        100,
-        110,
-        115,
+        0.0055,
+        0.0058,
+        0.0064,
+        0.0067,
         null,
         null
       ],
       "dps": [
-        57,
-        60,
-        66,
-        69,
+        0.0033,
+        0.0035,
+        0.0038,
+        0.004,
         null,
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "MPMX": {
       "name": "Mitra Pinasthika Mustika",
@@ -1303,9 +1303,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "BTPS": {
       "name": "Bank BTPN Syariah",
@@ -1387,9 +1387,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "DMAS": {
       "name": "Puradelta Lestari",
@@ -1471,9 +1471,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "SPTO": {
       "name": "Surya Toto Indonesia",
@@ -1555,9 +1555,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "TSM": {
       "name": "Taiwan Semiconductor",
@@ -1639,9 +1639,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "V": {
       "name": "Visa Inc.",
@@ -1723,9 +1723,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "MA": {
       "name": "Mastercard Inc.",
@@ -1807,9 +1807,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "MSFT": {
       "name": "Microsoft Corp.",
@@ -1891,9 +1891,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "AMZN": {
       "name": "Amazon.com Inc.",
@@ -1975,9 +1975,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "AAPL": {
       "name": "Apple Inc.",
@@ -2059,9 +2059,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "META": {
       "name": "Meta Platforms Inc.",
@@ -2143,9 +2143,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "NVDA": {
       "name": "NVIDIA Corporation",
@@ -2227,9 +2227,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "GOOG": {
       "name": "Alphabet Inc (Google)",
@@ -2311,9 +2311,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "BKNG": {
       "name": "Booking Holdings Inc",
@@ -2395,9 +2395,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "AVGO": {
       "name": "Broadcom Inc",
@@ -2479,9 +2479,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "PBR-A": {
       "name": "Petrobras Pref ADR",
@@ -2563,9 +2563,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "CVX": {
       "name": "Chevron Corporation",
@@ -2647,9 +2647,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "AXP": {
       "name": "American Express",
@@ -2731,9 +2731,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     },
     "BAC": {
       "name": "Bank of America",
@@ -2815,9 +2815,9 @@
         null
       ],
       "profile": "## Business Model Canvas\nGeneric analysis for {sym}.\n\n## Leadership\n**CEO:** N/A  \n**CFO:** N/A  \n**Track Record:** No data.",
-      "profileDate": "2026-04-25T00:37:24.300044+00:00",
+      "profileDate": "2026-04-25T01:07:51.875926+00:00",
       "news": "For latest news, please refer to company announcements and recent filings.",
-      "newsDate": "2026-04-25T00:37:24.300044+00:00"
+      "newsDate": "2026-04-25T01:07:51.875926+00:00"
     }
   }
 }
