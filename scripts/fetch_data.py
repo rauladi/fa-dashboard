@@ -6,8 +6,8 @@ import yfinance as yf
 NOW = datetime.now(timezone.utc)
 CURRENT_YEAR = NOW.year
 LATEST_YEAR = CURRENT_YEAR - 1
-COMPLETED = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))   # e.g. 2021..2025
-ALL_YEARS = COMPLETED + [CURRENT_YEAR]                       # 2026
+COMPLETED = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))
+ALL_YEARS = COMPLETED + [CURRENT_YEAR]
 
 print(f"FA Dashboard fetch – {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
@@ -151,8 +151,14 @@ def safe(val, div=1, fx=1.0):
     except Exception: return None
 
 def find_row(df, *names):
+    """Case-insensitive row lookup."""
+    if df is None or df.empty:
+        return None
+    lower_idx = {str(idx).lower(): idx for idx in df.index}
     for n in names:
-        if n in df.index: return df.loc[n]
+        key = n.lower()
+        if key in lower_idx:
+            return df.loc[lower_idx[key]]
     return None
 
 def col_yr(df, yr):
@@ -170,25 +176,28 @@ def cols_yr(df, yr):
     return sorted([c for c in df.columns if hasattr(c,"year") and c.year==yr])
 
 def get_ttm_col(df):
-    if df is None or df.empty: return None
-    for col in df.columns:
-        if isinstance(col, str) and 'ttm' in col.lower():
-            return col
+    """Return first column whose name (converted to lower string) contains 'ttm'."""
+    if df is None or df.empty:
+        return None
+    for c in df.columns:
+        col_str = str(c).lower()
+        if 'ttm' in col_str:
+            return c
     return None
 
 def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
     row = {f: None for f in FIELDS}
     if inc is not None and ic_col is not None:
-        rv = find_row(inc,"Total Revenue","TotalRevenue","Interest Income","InterestIncome")
-        gp = find_row(inc,"Gross Profit","GrossProfit","Net Interest Income","NetInterestIncome")
-        ni = find_row(inc,"Net Income","NetIncome","Net Income Common Stockholders")
+        rv = find_row(inc,"total revenue","totalrevenue","interest income","interestincome","revenue")
+        gp = find_row(inc,"gross profit","grossprofit","net interest income","netinterestincome")
+        ni = find_row(inc,"net income","netincome","net income common stockholders","net income common stockholders")
         ep = find_row(inc,
-            "Basic EPS","BasicEPS","Diluted EPS","EPS Diluted",
-            "Diluted EPS Excluding Extraordinary Items","Diluted Normalized EPS",
-            "Basic EPS Excluding Extraordinary Items","Basic Normalized EPS",
-            "Earnings Per Share","Basic Earnings Per Share",
-            "EPS (Basic)","EPS (Diluted)",
-            "Laba per Saham Dasar","Laba per Saham Dilusian"
+            "basic eps","basiceps","diluted eps","eps diluted",
+            "diluted eps excluding extraordinary items","diluted normalized eps",
+            "basic eps excluding extraordinary items","basic normalized eps",
+            "earnings per share","basic earnings per share",
+            "eps (basic)","eps (diluted)",
+            "laba per saham dasar","laba per saham dilusian"
         )
         row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, fx)
         row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, fx)
@@ -196,13 +205,10 @@ def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
         row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, 1)
         row["dps"] = None
     if bs is not None and bc_col is not None:
-        ta = find_row(bs,"Total Assets","TotalAssets")
-        ca = find_row(bs,"Cash And Cash Equivalents","Cash","CashAndCashEquivalents",
-                      "Cash And Short Term Investments")
-        td = find_row(bs,"Total Debt","TotalDebt","Long Term Debt And Capital Lease Obligation",
-                      "Long Term Debt")
-        te = find_row(bs,"Stockholders Equity","Total Stockholder Equity","Common Stock Equity",
-                      "Total Equity Gross Minority Interest")
+        ta = find_row(bs,"total assets","totalassets")
+        ca = find_row(bs,"cash and cash equivalents","cash","cashandcashequivalents","cash and short term investments","cash & equivalents")
+        td = find_row(bs,"total debt","totaldebt","long term debt and capital lease obligation","long term debt","long-term debt")
+        te = find_row(bs,"stockholders equity","total stockholder equity","common stock equity","total equity gross minority interest","total equity")
         row["totalAsset"]  = safe(ta[bc_col] if ta is not None else None, div, fx)
         row["cash"]        = safe(ca[bc_col] if ca is not None else None, div, fx)
         row["totalDebt"]   = safe(td[bc_col] if td is not None else None, div, fx)
@@ -228,16 +234,16 @@ def annualise_quarterly(qi, qb, yr, div, fx):
             if v is not None: total += v
         return total if total != 0.0 else None
 
-    row["revenue"]     = safe(sum_q_field("Total Revenue","TotalRevenue","Interest Income","InterestIncome"), 1, 1)
-    row["grossProfit"] = safe(sum_q_field("Gross Profit","GrossProfit","Net Interest Income","NetInterestIncome"), 1, 1)
-    row["netProfit"]   = safe(sum_q_field("Net Income","NetIncome","Net Income Common Stockholders"), 1, 1)
+    row["revenue"]     = safe(sum_q_field("total revenue","totalrevenue","interest income","interestincome","revenue"), 1, 1)
+    row["grossProfit"] = safe(sum_q_field("gross profit","grossprofit","net interest income","netinterestincome"), 1, 1)
+    row["netProfit"]   = safe(sum_q_field("net income","netincome","net income common stockholders","net income common stockholders"), 1, 1)
     ep = find_row(qi,
-        "Basic EPS","BasicEPS","Diluted EPS","EPS Diluted",
-        "Diluted EPS Excluding Extraordinary Items","Diluted Normalized EPS",
-        "Basic EPS Excluding Extraordinary Items","Basic Normalized EPS",
-        "Earnings Per Share","Basic Earnings Per Share",
-        "EPS (Basic)","EPS (Diluted)",
-        "Laba per Saham Dasar","Laba per Saham Dilusian"
+        "basic eps","basiceps","diluted eps","eps diluted",
+        "diluted eps excluding extraordinary items","diluted normalized eps",
+        "basic eps excluding extraordinary items","basic normalized eps",
+        "earnings per share","basic earnings per share",
+        "eps (basic)","eps (diluted)",
+        "laba per saham dasar","laba per saham dilusian"
     )
     if ep is not None:
         total_eps = 0.0
@@ -247,7 +253,7 @@ def annualise_quarterly(qi, qb, yr, div, fx):
         row["eps"] = total_eps if total_eps != 0.0 else None
     else:
         row["eps"] = None
-    dp = find_row(qi, "Dividends Per Share","DPS")
+    dp = find_row(qi,"dividends per share","dps","dividend per share")
     if dp is not None:
         total_dps = 0.0
         for c in qtrs:
@@ -259,13 +265,10 @@ def annualise_quarterly(qi, qb, yr, div, fx):
 
     qbc = qtrs[-1]
     if qb is not None and not qb.empty and qbc in qb.columns:
-        ta = find_row(qb, "Total Assets","TotalAssets")
-        ca = find_row(qb, "Cash And Cash Equivalents","Cash","CashAndCashEquivalents",
-                      "Cash And Short Term Investments")
-        td = find_row(qb, "Total Debt","TotalDebt","Long Term Debt And Capital Lease Obligation",
-                      "Long Term Debt")
-        te = find_row(qb, "Stockholders Equity","Total Stockholder Equity","Common Stock Equity",
-                      "Total Equity Gross Minority Interest")
+        ta = find_row(qb,"total assets","totalassets")
+        ca = find_row(qb,"cash and cash equivalents","cash","cashandcashequivalents","cash and short term investments","cash & equivalents")
+        td = find_row(qb,"total debt","totaldebt","long term debt and capital lease obligation","long term debt","long-term debt")
+        te = find_row(qb,"stockholders equity","total stockholder equity","common stock equity","total equity gross minority interest","total equity")
         row["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
         row["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
         row["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
@@ -302,7 +305,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             row_2025 = None
             method_2025 = None
 
-            # 1) TTM column in annual financials
+            # 1) TTM column in annual income statement
             inc_ttm = get_ttm_col(inc)
             bs_ttm = get_ttm_col(bs) if bs is not None else None
             if inc_ttm is not None:
@@ -310,7 +313,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 if row_2025.get("revenue") is not None:
                     method_2025 = "ttm_annual"
                     print(f"      {LATEST_YEAR}: TTM from annual found", flush=True)
-            # 2) TTM column in quarterly financials
+            # 2) TTM column in quarterly income statement
             if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None:
                 qi_ttm = get_ttm_col(qi)
                 qb_ttm = get_ttm_col(qb) if qb is not None else None
@@ -327,13 +330,12 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                     if row_2025.get("revenue") is not None:
                         method_2025 = "full_year"
                         print(f"      {LATEST_YEAR}: full fiscal year found", flush=True)
-            # 4) Manual TTM sum from last 4 quarters
+            # 4) Manual sum of last 4 quarters (simulate TTM)
             if row_2025 is None or row_2025.get("revenue") is None:
                 if qi is not None and not qi.empty:
                     all_qtrs = sorted(qi.columns, reverse=True)
                     if all_qtrs:
                         latest_qtrs = all_qtrs[:4]
-                        row_2025 = {f: None for f in FIELDS}
                         def sum_q(*names):
                             s = find_row(qi, *names)
                             if s is None: return None
@@ -342,16 +344,17 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                                 v = safe(s[c])
                                 if v is not None: total += v
                             return total if total != 0.0 else None
-                        row_2025["revenue"]     = sum_q("Total Revenue","TotalRevenue","Interest Income","InterestIncome")
-                        row_2025["grossProfit"] = sum_q("Gross Profit","GrossProfit","Net Interest Income","NetInterestIncome")
-                        row_2025["netProfit"]   = sum_q("Net Income","NetIncome","Net Income Common Stockholders")
+                        row_2025 = {f: None for f in FIELDS}
+                        row_2025["revenue"]     = sum_q("total revenue","totalrevenue","interest income","interestincome","revenue")
+                        row_2025["grossProfit"] = sum_q("gross profit","grossprofit","net interest income","netinterestincome")
+                        row_2025["netProfit"]   = sum_q("net income","netincome","net income common stockholders","net income common stockholders")
                         ep = find_row(qi,
-                            "Basic EPS","BasicEPS","Diluted EPS","EPS Diluted",
-                            "Diluted EPS Excluding Extraordinary Items","Diluted Normalized EPS",
-                            "Basic EPS Excluding Extraordinary Items","Basic Normalized EPS",
-                            "Earnings Per Share","Basic Earnings Per Share",
-                            "EPS (Basic)","EPS (Diluted)",
-                            "Laba per Saham Dasar","Laba per Saham Dilusian"
+                            "basic eps","basiceps","diluted eps","eps diluted",
+                            "diluted eps excluding extraordinary items","diluted normalized eps",
+                            "basic eps excluding extraordinary items","basic normalized eps",
+                            "earnings per share","basic earnings per share",
+                            "eps (basic)","eps (diluted)",
+                            "laba per saham dasar","laba per saham dilusian"
                         )
                         if ep is not None:
                             eps_sum = 0.0
@@ -359,7 +362,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                                 v = safe(ep[c])
                                 if v is not None: eps_sum += v
                             row_2025["eps"] = eps_sum if eps_sum != 0.0 else None
-                        dp = find_row(qi, "Dividends Per Share","DPS")
+                        dp = find_row(qi,"dividends per share","dps","dividend per share")
                         if dp is not None:
                             dps_sum = 0.0
                             for c in latest_qtrs:
@@ -369,13 +372,10 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                         if latest_qtrs:
                             qbc = latest_qtrs[0]
                             if qb is not None and not qb.empty and qbc in qb.columns:
-                                ta = find_row(qb, "Total Assets","TotalAssets")
-                                ca = find_row(qb, "Cash And Cash Equivalents","Cash","CashAndCashEquivalents",
-                                              "Cash And Short Term Investments")
-                                td = find_row(qb, "Total Debt","TotalDebt","Long Term Debt And Capital Lease Obligation",
-                                              "Long Term Debt")
-                                te = find_row(qb, "Stockholders Equity","Total Stockholder Equity","Common Stock Equity",
-                                              "Total Equity Gross Minority Interest")
+                                ta = find_row(qb,"total assets","totalassets")
+                                ca = find_row(qb,"cash and cash equivalents","cash","cashandcashequivalents","cash and short term investments","cash & equivalents")
+                                td = find_row(qb,"total debt","totaldebt","long term debt and capital lease obligation","long term debt","long-term debt")
+                                te = find_row(qb,"stockholders equity","total stockholder equity","common stock equity","total equity gross minority interest","total equity")
                                 row_2025["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
                                 row_2025["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
                                 row_2025["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
@@ -392,14 +392,16 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 method_2025 = "none"
                 print(f"      {LATEST_YEAR}: no data could be obtained", flush=True)
 
-            # DPS from statistics page (if not already set)
-            if method_2025.startswith("ttm") and (row_2025.get("dps") is None):
+            # Always fetch DPS from Yahoo Finance stats if not yet populated
+            if row_2025.get("dps") is None:
                 try:
                     info = tk.info
                     dps_val = info.get('trailingAnnualDividendRate')
+                    if dps_val is None:
+                        dps_val = info.get('dividendRate')
                     if dps_val is not None:
                         row_2025["dps"] = round(float(dps_val), 4)
-                        print(f"      DPS from stats: {dps_val}", flush=True)
+                        print(f"      DPS from info: {dps_val}", flush=True)
                 except Exception as e:
                     print(f"      Could not fetch DPS: {e}", flush=True)
 
@@ -443,7 +445,7 @@ def build_arrays(yd, sym, rates):
         out[f] = arr
     return out
 
-# ---------- FULL PROFILES (complete, as originally) ----------
+# ---------- FULL PROFILES (complete, unchanged) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -1408,8 +1410,7 @@ def main():
 
     generate_static_profiles(out)
 
-    # Output path (works locally and in GitHub Actions)
-    base_dir = os.environ.get("GITHUB_WORKSPACE") or os.path.dirname(os.path.abspath(__file__)) if "__file__" in dir() else "."
+    base_dir = os.environ.get("GITHUB_WORKSPACE") or os.path.dirname(os.path.abspath(__file__))
     path = os.path.join(base_dir, "data.json")
     with open(path, "w") as f:
         json.dump(out, f, indent=2)
