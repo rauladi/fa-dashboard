@@ -151,7 +151,7 @@ def safe(val, div=1, fx=1.0):
     except Exception: return None
 
 def find_row(df, *names):
-    """Case‑insensitive row lookup, strips whitespace."""
+    """Case‑insensitive row lookup."""
     if df is None or df.empty:
         return None
     lower_idx = {str(idx).strip().lower(): idx for idx in df.index}
@@ -183,7 +183,6 @@ def get_ttm_col(df):
         col_str = str(c).strip().lower()
         if col_str == "ttm":
             return c
-    # fallback to substring
     for c in df.columns:
         col_str = str(c).strip().lower()
         if "ttm" in col_str:
@@ -198,7 +197,6 @@ def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
         ni = find_row(inc, "net income", "netincome", "net income common stockholders", "net income common stockholders")
         ep = find_row(inc, "basic eps", "diluted eps")
         if ep is None:
-            # try common IDX row names exactly as they appear
             ep = find_row(inc, "laba per saham dasar", "laba per saham dilusian")
         row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, fx)
         row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, fx)
@@ -285,6 +283,31 @@ def annualise_quarterly(qi, qb, yr, div, fx):
             row[k] = round(row[k] / div * fx, 4)
     return row
 
+def info_fallback(tk, row, div, fx):
+    """Use Yahoo info to fill missing fields after all statement attempts failed."""
+    try:
+        i = tk.info
+        for k, src in [("revenue", ["totalRevenue", "revenue"]),
+                       ("grossProfit", ["grossProfits", "grossProfit"]),
+                       ("netProfit", ["netIncomeToCommon", "netIncome"]),
+                       ("eps", ["trailingEps", "forwardEps"]),
+                       ("dps", ["trailingAnnualDividendRate", "dividendRate"]),
+                       ("totalAsset", ["totalAssets"]),
+                       ("cash", ["totalCash"]),
+                       ("totalDebt", ["totalDebt"]),
+                       ("totalEquity", ["totalStockholderEquity", "bookValue"])]:
+            if row.get(k) is None:
+                for s in src:
+                    v = i.get(s)
+                    if v is not None:
+                        row[k] = safe(v, 1, 1) if k in ("eps", "dps") else safe(v, div, fx)
+                        if row[k] is not None:
+                            print(f"      using info {s}={row[k]}", flush=True)
+                            break
+    except Exception as e:
+        print(f"      info fallback error: {e}", flush=True)
+    return row
+
 def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] {ticker_str}", flush=True)
     for attempt in range(2):
@@ -305,7 +328,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             qb = tk.quarterly_balance_sheet
 
             # ---------- 2025 (LATEST_YEAR): TTM from Yahoo columns ----------
-            row_2025 = None
+            row_2025 = {f: None for f in FIELDS}
             method_2025 = None
 
             # 1) TTM column in annual income statement (primary)
@@ -397,6 +420,9 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                             method_2025 = "ttm_manual_4q"
                             print(f"      {LATEST_YEAR}: manual TTM from last 4 quarters", flush=True)
 
+            # 5) FINAL SAFETY NET: use Yahoo info to fill all remaining gaps
+            row_2025 = info_fallback(tk, row_2025, div, fx)
+
             if row_2025 is None:
                 row_2025 = {f: None for f in FIELDS}
                 method_2025 = "none"
@@ -468,7 +494,7 @@ def build_arrays(yd, sym, rates):
         out[f] = arr
     return out
 
-# ---------- FULL PROFILES (complete) ----------
+# ---------- FULL PROFILES (complete, unchanged) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
