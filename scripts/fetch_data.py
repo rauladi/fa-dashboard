@@ -6,8 +6,8 @@ import yfinance as yf
 NOW = datetime.now(timezone.utc)
 CURRENT_YEAR = NOW.year
 LATEST_YEAR = CURRENT_YEAR - 1
-COMPLETED = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))   # 2021..2025
-ALL_YEARS = COMPLETED + [CURRENT_YEAR]                       # 2026
+COMPLETED = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))  # 2021..2025
+ALL_YEARS = COMPLETED + [CURRENT_YEAR]                      # 2026
 
 print(f"FA Dashboard fetch – {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
@@ -287,15 +287,18 @@ def info_fallback(tk, row, div, fx):
     """Use Yahoo info to fill missing fields after all statement attempts failed."""
     try:
         i = tk.info
-        for k, src in [("revenue", ["totalRevenue", "revenue"]),
-                       ("grossProfit", ["grossProfits", "grossProfit"]),
-                       ("netProfit", ["netIncomeToCommon", "netIncome"]),
-                       ("eps", ["trailingEps", "forwardEps"]),
-                       ("dps", ["trailingAnnualDividendRate", "dividendRate"]),
-                       ("totalAsset", ["totalAssets"]),
-                       ("cash", ["totalCash"]),
-                       ("totalDebt", ["totalDebt"]),
-                       ("totalEquity", ["totalStockholderEquity", "bookValue"])]:
+        mapping = [
+            ("revenue", ["totalRevenue", "revenue"]),
+            ("grossProfit", ["grossProfits", "grossProfit"]),
+            ("netProfit", ["netIncomeToCommon", "netIncome"]),
+            ("eps", ["trailingEps", "forwardEps"]),
+            ("dps", ["trailingAnnualDividendRate", "dividendRate"]),
+            ("totalAsset", ["totalAssets", "totalAsset"]),
+            ("cash", ["totalCash", "cash"]),
+            ("totalDebt", ["totalDebt", "longTermDebt"]),
+            ("totalEquity", ["totalStockholderEquity", "bookValue", "commonStockEquity"]),
+        ]
+        for k, src in mapping:
             if row.get(k) is None:
                 for s in src:
                     v = i.get(s)
