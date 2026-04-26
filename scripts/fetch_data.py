@@ -175,6 +175,42 @@ def cols_yr(df, yr):
     if df is None or df.empty: return []
     return sorted([c for c in df.columns if hasattr(c,"year") and c.year==yr])
 
+def get_ttm_col(df):
+    """Return first column whose string name contains 'ttm' (case‑insensitive)."""
+    if df is None or df.empty:
+        return None
+    for c in df.columns:
+        col_str = str(c).lower()
+        if 'ttm' in col_str:
+            return c
+    return None
+
+def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
+    row = {f: None for f in FIELDS}
+    if inc is not None and ic_col is not None:
+        rv = find_row(inc, "total revenue", "totalrevenue", "interest income", "interestincome", "revenue")
+        gp = find_row(inc, "gross profit", "grossprofit", "net interest income", "netinterestincome")
+        ni = find_row(inc, "net income", "netincome", "net income common stockholders", "net income common stockholders")
+        ep = find_row(inc, "basic eps", "diluted eps")
+        row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, fx)
+        row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, fx)
+        row["netProfit"]   = safe(ni[ic_col] if ni is not None else None, div, fx)
+        row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, 1)
+        row["dps"] = None
+    if bs is not None and bc_col is not None:
+        ta = find_row(bs, "total assets", "totalassets")
+        ca = find_row(bs, "cash and cash equivalents", "cash", "cashandcashequivalents",
+                      "cash and short term investments", "cash & equivalents")
+        td = find_row(bs, "total debt", "totaldebt", "long term debt and capital lease obligation",
+                      "long term debt", "long-term debt")
+        te = find_row(bs, "stockholders equity", "total stockholder equity", "common stock equity",
+                      "total equity gross minority interest", "total equity")
+        row["totalAsset"]  = safe(ta[bc_col] if ta is not None else None, div, fx)
+        row["cash"]        = safe(ca[bc_col] if ca is not None else None, div, fx)
+        row["totalDebt"]   = safe(td[bc_col] if td is not None else None, div, fx)
+        row["totalEquity"] = safe(te[bc_col] if te is not None else None, div, fx)
+    return row
+
 def annualise_quarterly(qi, qb, yr, div, fx):
     """Create annualised row for CURRENT_YEAR (2026) from available quarters."""
     row = {f: None for f in FIELDS}
@@ -253,117 +289,110 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
 
             yd = {}
             ann = {}
+            inc = tk.financials
+            bs = tk.balance_sheet
             qi = tk.quarterly_financials
             qb = tk.quarterly_balance_sheet
 
-            # ---------- 2025 (LATEST_YEAR): manual TTM from last 4 quarters ----------
-            row_2025 = {f: None for f in FIELDS}
-            method_2025 = "none"
-            if qi is not None and not qi.empty:
-                all_qtrs = sorted(qi.columns, reverse=True)
-                ttm_qtrs = all_qtrs[:4]
-                if ttm_qtrs:
-                    n = len(ttm_qtrs)
-                    months = n * 3
-                    label = f"{months}M"
+            # ---------- 2025 (LATEST_YEAR): TTM from Yahoo columns ----------
+            row_2025 = None
+            method_2025 = None
 
-                    def sum_q(*names):
-                        s = find_row(qi, *names)
-                        if s is None: return None
-                        total = 0.0
-                        for c in ttm_qtrs:
-                            v = safe(s[c])
-                            if v is not None: total += v
-                        return total if total != 0.0 else None
+            # 1) TTM column in annual income statement (primary)
+            inc_ttm = get_ttm_col(inc)
+            bs_ttm = get_ttm_col(bs) if bs is not None else None
+            if inc_ttm is not None:
+                row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=inc_ttm, bc_col=bs_ttm)
+                if row_2025.get("revenue") is not None:
+                    method_2025 = "ttm_annual"
+                    print(f"      {LATEST_YEAR}: TTM from annual found", flush=True)
 
-                    row_2025["revenue"]     = sum_q("total revenue", "totalrevenue", "interest income", "interestincome", "revenue")
-                    row_2025["grossProfit"] = sum_q("gross profit", "grossprofit", "net interest income", "netinterestincome")
-                    row_2025["netProfit"]   = sum_q("net income", "netincome", "net income common stockholders", "net income common stockholders")
-                    ep = find_row(qi, "basic eps", "diluted eps")
-                    if ep is not None:
-                        eps_sum = 0.0
-                        for c in ttm_qtrs:
-                            v = safe(ep[c])
-                            if v is not None: eps_sum += v
-                        row_2025["eps"] = eps_sum if eps_sum != 0.0 else None
-                    else:
-                        row_2025["eps"] = None
-
-                    dp = find_row(qi, "dividends per share", "dps", "dividend per share")
-                    if dp is not None:
-                        dps_sum = 0.0
-                        for c in ttm_qtrs:
-                            v = safe(dp[c])
-                            if v is not None: dps_sum += v
-                        row_2025["dps"] = dps_sum if dps_sum != 0.0 else None
-                    else:
-                        row_2025["dps"] = None
-
-                    if ttm_qtrs:
-                        qbc = ttm_qtrs[0]
-                        if qb is not None and not qb.empty and qbc in qb.columns:
-                            ta = find_row(qb, "total assets", "totalassets")
-                            ca = find_row(qb, "cash and cash equivalents", "cash", "cashandcashequivalents",
-                                          "cash and short term investments", "cash & equivalents")
-                            td = find_row(qb, "total debt", "totaldebt", "long term debt and capital lease obligation",
-                                          "long term debt", "long-term debt")
-                            te = find_row(qb, "stockholders equity", "total stockholder equity", "common stock equity",
-                                          "total equity gross minority interest", "total equity")
-                            row_2025["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
-                            row_2025["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
-                            row_2025["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
-                            row_2025["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
-
-                    for k in ["revenue", "grossProfit", "netProfit"]:
-                        if row_2025[k] is not None:
-                            row_2025[k] = round(row_2025[k] / div * fx, 4)
-
+            # 2) TTM column in quarterly income statement (fallback)
+            if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None:
+                qi_ttm = get_ttm_col(qi)
+                qb_ttm = get_ttm_col(qb) if qb is not None else None
+                if qi_ttm is not None:
+                    row_2025 = annual_row(qi, qb, div, fx, sym, ic_col=qi_ttm, bc_col=qb_ttm)
                     if row_2025.get("revenue") is not None:
-                        method_2025 = "ttm_manual"
-                        print(f"      {LATEST_YEAR}: manual TTM from {n} quarters", flush=True)
-                    else:
-                        print(f"      {LATEST_YEAR}: no revenue from TTM quarters", flush=True)
-                else:
-                    print(f"      {LATEST_YEAR}: no quarterly columns", flush=True)
-            else:
-                print(f"      {LATEST_YEAR}: quarterly data empty", flush=True)
+                        method_2025 = "ttm_quarterly"
+                        print(f"      {LATEST_YEAR}: TTM from quarterly found", flush=True)
 
-            # Fallback to annual full-year column if TTM failed
-            if row_2025.get("revenue") is None:
-                inc = tk.financials
-                bs = tk.balance_sheet
-                if inc is not None and not inc.empty:
-                    ic = col_yr(inc, LATEST_YEAR)
-                    if ic is not None:
-                        rv = find_row(inc, "total revenue", "totalrevenue", "interest income", "interestincome", "revenue")
-                        if rv is not None:
-                            row_2025["revenue"] = safe(rv[ic], div, fx)
-                        gp = find_row(inc, "gross profit", "grossprofit", "net interest income", "netinterestincome")
-                        if gp is not None:
-                            row_2025["grossProfit"] = safe(gp[ic], div, fx)
-                        ni = find_row(inc, "net income", "netincome", "net income common stockholders", "net income common stockholders")
-                        if ni is not None:
-                            row_2025["netProfit"] = safe(ni[ic], div, fx)
-                        ep = find_row(inc, "basic eps", "diluted eps")
-                        if ep is not None:
-                            row_2025["eps"] = safe(ep[ic], 1, 1)
-                        bc = col_yr(bs, LATEST_YEAR) if bs is not None else None
-                        if bc is not None:
-                            ta = find_row(bs, "total assets", "totalassets")
-                            ca = find_row(bs, "cash and cash equivalents", "cash", "cashandcashequivalents",
-                                          "cash and short term investments", "cash & equivalents")
-                            td = find_row(bs, "total debt", "totaldebt", "long term debt and capital lease obligation",
-                                          "long term debt", "long-term debt")
-                            te = find_row(bs, "stockholders equity", "total stockholder equity", "common stock equity",
-                                          "total equity gross minority interest", "total equity")
-                            row_2025["totalAsset"]  = safe(ta[bc] if ta is not None else None, div, fx)
-                            row_2025["cash"]        = safe(ca[bc] if ca is not None else None, div, fx)
-                            row_2025["totalDebt"]   = safe(td[bc] if td is not None else None, div, fx)
-                            row_2025["totalEquity"] = safe(te[bc] if te is not None else None, div, fx)
+            # 3) Full fiscal‑year 2025 column
+            if row_2025 is None or row_2025.get("revenue") is None:
+                ic = col_yr(inc, LATEST_YEAR)
+                if ic is not None:
+                    row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=ic, bc_col=col_yr(bs, LATEST_YEAR))
+                    if row_2025.get("revenue") is not None:
                         method_2025 = "full_year"
                         print(f"      {LATEST_YEAR}: full fiscal year found", flush=True)
 
-            # DPS from statistics page (always attempt)
+            # 4) Manual TTM sum of last 4 quarters (final fallback)
+            if row_2025 is None or row_2025.get("revenue") is None:
+                if qi is not None and not qi.empty:
+                    all_qtrs = sorted(qi.columns, reverse=True)
+                    if all_qtrs:
+                        latest_qtrs = all_qtrs[:4]
+                        row_2025 = {f: None for f in FIELDS}
+                        def sum_q(*names):
+                            s = find_row(qi, *names)
+                            if s is None: return None
+                            total = 0.0
+                            for c in latest_qtrs:
+                                v = safe(s[c])
+                                if v is not None: total += v
+                            return total if total != 0.0 else None
+                        # For revenue, try the standard non‑bank rows first, then fallback to interest income
+                        rev_val = sum_q("total revenue", "totalrevenue", "revenue")
+                        if rev_val is None:
+                            rev_val = sum_q("interest income", "interestincome")
+                        row_2025["revenue"] = rev_val
+                        # Gross profit: similar approach
+                        gp_val = sum_q("gross profit", "grossprofit")
+                        if gp_val is None:
+                            gp_val = sum_q("net interest income", "netinterestincome")
+                        row_2025["grossProfit"] = gp_val
+                        row_2025["netProfit"]   = sum_q("net income", "netincome", "net income common stockholders", "net income common stockholders")
+                        ep = find_row(qi, "basic eps", "diluted eps")
+                        if ep is not None:
+                            eps_sum = 0.0
+                            for c in latest_qtrs:
+                                v = safe(ep[c])
+                                if v is not None: eps_sum += v
+                            row_2025["eps"] = eps_sum if eps_sum != 0.0 else None
+                        dp = find_row(qi, "dividends per share", "dps", "dividend per share")
+                        if dp is not None:
+                            dps_sum = 0.0
+                            for c in latest_qtrs:
+                                v = safe(dp[c])
+                                if v is not None: dps_sum += v
+                            row_2025["dps"] = dps_sum if dps_sum != 0.0 else None
+                        if latest_qtrs:
+                            qbc = latest_qtrs[0]
+                            if qb is not None and not qb.empty and qbc in qb.columns:
+                                ta = find_row(qb, "total assets", "totalassets")
+                                ca = find_row(qb, "cash and cash equivalents", "cash", "cashandcashequivalents",
+                                              "cash and short term investments", "cash & equivalents")
+                                td = find_row(qb, "total debt", "totaldebt", "long term debt and capital lease obligation",
+                                              "long term debt", "long-term debt")
+                                te = find_row(qb, "stockholders equity", "total stockholder equity", "common stock equity",
+                                              "total equity gross minority interest", "total equity")
+                                row_2025["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
+                                row_2025["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
+                                row_2025["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
+                                row_2025["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+                        for k in ["revenue", "grossProfit", "netProfit"]:
+                            if row_2025[k] is not None:
+                                row_2025[k] = round(row_2025[k] / div * fx, 4)
+                        if row_2025.get("revenue") is not None:
+                            method_2025 = "ttm_manual_4q"
+                            print(f"      {LATEST_YEAR}: manual TTM from last 4 quarters", flush=True)
+
+            if row_2025 is None:
+                row_2025 = {f: None for f in FIELDS}
+                method_2025 = "none"
+                print(f"      {LATEST_YEAR}: no data could be obtained", flush=True)
+
+            # DPS from statistics page (always attempted)
             if row_2025.get("dps") is None:
                 try:
                     info = tk.info
@@ -416,7 +445,7 @@ def build_arrays(yd, sym, rates):
         out[f] = arr
     return out
 
-# ---------- FULL PROFILES ----------
+# ---------- FULL PROFILES (complete) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
