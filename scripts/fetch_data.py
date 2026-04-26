@@ -151,7 +151,7 @@ def safe(val, div=1, fx=1.0):
     except Exception: return None
 
 def find_row(df, *names):
-    """Case‑insensitive row lookup."""
+    """Case‑insensitive row lookup, strips whitespace."""
     if df is None or df.empty:
         return None
     lower_idx = {str(idx).strip().lower(): idx for idx in df.index}
@@ -176,12 +176,17 @@ def cols_yr(df, yr):
     return sorted([c for c in df.columns if hasattr(c,"year") and c.year==yr])
 
 def get_ttm_col(df):
-    """Return first column whose string name contains 'ttm' (case‑insensitive)."""
+    """Return column whose name (stripped, lowercased) is exactly 'ttm' or contains 'ttm'."""
     if df is None or df.empty:
         return None
     for c in df.columns:
-        col_str = str(c).lower()
-        if 'ttm' in col_str:
+        col_str = str(c).strip().lower()
+        if col_str == "ttm":
+            return c
+    # fallback to substring
+    for c in df.columns:
+        col_str = str(c).strip().lower()
+        if "ttm" in col_str:
             return c
     return None
 
@@ -192,6 +197,9 @@ def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
         gp = find_row(inc, "gross profit", "grossprofit", "net interest income", "netinterestincome")
         ni = find_row(inc, "net income", "netincome", "net income common stockholders", "net income common stockholders")
         ep = find_row(inc, "basic eps", "diluted eps")
+        if ep is None:
+            # try common IDX row names exactly as they appear
+            ep = find_row(inc, "laba per saham dasar", "laba per saham dilusian")
         row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, fx)
         row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, fx)
         row["netProfit"]   = safe(ni[ic_col] if ni is not None else None, div, fx)
@@ -235,6 +243,8 @@ def annualise_quarterly(qi, qb, yr, div, fx):
     row["grossProfit"] = safe(sum_q_field("gross profit", "grossprofit", "net interest income", "netinterestincome"), 1, 1)
     row["netProfit"]   = safe(sum_q_field("net income", "netincome", "net income common stockholders", "net income common stockholders"), 1, 1)
     ep = find_row(qi, "basic eps", "diluted eps")
+    if ep is None:
+        ep = find_row(qi, "laba per saham dasar", "laba per saham dilusian")
     if ep is not None:
         total_eps = 0.0
         for c in qtrs:
@@ -305,7 +315,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=inc_ttm, bc_col=bs_ttm)
                 if row_2025.get("revenue") is not None:
                     method_2025 = "ttm_annual"
-                    print(f"      {LATEST_YEAR}: TTM from annual found", flush=True)
+                    print(f"      {LATEST_YEAR}: TTM from annual found ({inc_ttm})", flush=True)
 
             # 2) TTM column in quarterly income statement (fallback)
             if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None:
@@ -315,7 +325,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                     row_2025 = annual_row(qi, qb, div, fx, sym, ic_col=qi_ttm, bc_col=qb_ttm)
                     if row_2025.get("revenue") is not None:
                         method_2025 = "ttm_quarterly"
-                        print(f"      {LATEST_YEAR}: TTM from quarterly found", flush=True)
+                        print(f"      {LATEST_YEAR}: TTM from quarterly found ({qi_ttm})", flush=True)
 
             # 3) Full fiscal‑year 2025 column
             if row_2025 is None or row_2025.get("revenue") is None:
@@ -324,7 +334,7 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                     row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=ic, bc_col=col_yr(bs, LATEST_YEAR))
                     if row_2025.get("revenue") is not None:
                         method_2025 = "full_year"
-                        print(f"      {LATEST_YEAR}: full fiscal year found", flush=True)
+                        print(f"      {LATEST_YEAR}: full fiscal year found ({ic})", flush=True)
 
             # 4) Manual TTM sum of last 4 quarters (final fallback)
             if row_2025 is None or row_2025.get("revenue") is None:
@@ -341,18 +351,18 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                                 v = safe(s[c])
                                 if v is not None: total += v
                             return total if total != 0.0 else None
-                        # For revenue, try the standard non‑bank rows first, then fallback to interest income
                         rev_val = sum_q("total revenue", "totalrevenue", "revenue")
                         if rev_val is None:
                             rev_val = sum_q("interest income", "interestincome")
                         row_2025["revenue"] = rev_val
-                        # Gross profit: similar approach
                         gp_val = sum_q("gross profit", "grossprofit")
                         if gp_val is None:
                             gp_val = sum_q("net interest income", "netinterestincome")
                         row_2025["grossProfit"] = gp_val
                         row_2025["netProfit"]   = sum_q("net income", "netincome", "net income common stockholders", "net income common stockholders")
                         ep = find_row(qi, "basic eps", "diluted eps")
+                        if ep is None:
+                            ep = find_row(qi, "laba per saham dasar", "laba per saham dilusian")
                         if ep is not None:
                             eps_sum = 0.0
                             for c in latest_qtrs:
@@ -391,6 +401,19 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 row_2025 = {f: None for f in FIELDS}
                 method_2025 = "none"
                 print(f"      {LATEST_YEAR}: no data could be obtained", flush=True)
+
+            # EPS from info if missing (reliable source)
+            if row_2025.get("eps") is None:
+                try:
+                    info = tk.info
+                    eps_val = info.get('trailingEps')
+                    if eps_val is None:
+                        eps_val = info.get('forwardEps')
+                    if eps_val is not None:
+                        row_2025["eps"] = round(float(eps_val), 4)
+                        print(f"      EPS from info: {eps_val}", flush=True)
+                except Exception as e:
+                    print(f"      Could not fetch trailingEps: {e}", flush=True)
 
             # DPS from statistics page (always attempted)
             if row_2025.get("dps") is None:
