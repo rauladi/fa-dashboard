@@ -1,5 +1,6 @@
-import json, os, math, time, requests
+import json, os, math, time
 from datetime import datetime, timezone
+import yfinance as yf
 
 # ---------- constants ----------
 NOW = datetime.now(timezone.utc)
@@ -7,9 +8,6 @@ CURRENT_YEAR = NOW.year
 LATEST_YEAR = CURRENT_YEAR - 1
 COMPLETED = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))   # 2021..2025
 ALL_YEARS = COMPLETED + [CURRENT_YEAR]                       # 2026
-
-FMP_API_KEY = os.environ.get("FMP_API_KEY", "")   # <-- set your key as env var
-BASE = "https://financialmodelingprep.com/api/v3"
 
 print(f"FA Dashboard fetch – {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
@@ -103,34 +101,38 @@ PRELOADED = {
 def get_rates():
     usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031
     try:
-        r = requests.get(f"{BASE}/forex/AUDUSD?apikey={FMP_API_KEY}", timeout=10)
-        if r.status_code == 200:
-            data = r.json()
-            if data and "price" in data[0]:
-                v = float(data[0]["price"])
-                usd_aud = round(1.0/v, 6) if v != 0 else usd_aud
+        h = yf.Ticker("AUDUSD=X").history(period="2d")
+        if not h.empty:
+            v = float(h["Close"].iloc[-1])
+            if 0.50 < v < 0.95: usd_aud = round(1.0/v, 6)
         print(f"  USD→AUD: {usd_aud:.4f}", flush=True)
     except Exception as e:
         print(f"  USD→AUD fallback ({e})", flush=True)
     try:
-        r = requests.get(f"{BASE}/forex/USDIDR?apikey={FMP_API_KEY}", timeout=10)
-        if r.status_code == 200:
-            data = r.json()
-            if data and "price" in data[0]:
-                usd_idr = float(data[0]["price"])
+        h = yf.Ticker("IDR=X").history(period="2d")
+        if not h.empty:
+            v = float(h["Close"].iloc[-1])
+            if 10000 < v < 25000: usd_idr = round(v, 0)
         print(f"  USD→IDR: {usd_idr:.0f}", flush=True)
     except Exception as e:
         print(f"  USD→IDR fallback ({e})", flush=True)
     try:
-        r = requests.get(f"{BASE}/forex/TWDUSD?apikey={FMP_API_KEY}", timeout=10)
-        if r.status_code == 200:
-            data = r.json()
-            if data and "price" in data[0]:
-                twd_usd = float(data[0]["price"])
+        h = yf.Ticker("TWDUSD=X").history(period="2d")
+        if not h.empty:
+            v = float(h["Close"].iloc[-1])
+            if 0.01 < v < 0.10: twd_usd = round(v, 6)
         print(f"  TWD→USD: {twd_usd:.5f}", flush=True)
     except Exception as e:
         print(f"  TWD→USD fallback ({e})", flush=True)
     return usd_aud, usd_idr, twd_usd
+
+def detect_cur(tk, hint):
+    try:
+        info = tk.info
+        fc = (info.get("financialCurrency") or info.get("currency") or hint).upper()
+        return fc
+    except Exception:
+        return hint.upper()
 
 def get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd):
     if exchange == "ASX":
@@ -148,131 +150,310 @@ def safe(val, div=1, fx=1.0):
         return round(f/div*fx, 4)
     except Exception: return None
 
-def fetch_fmp_annual(symbol, years, key):
-    """Fetch annual income statement and balance sheet from FMP, return dict year->row."""
-    inc_url = f"{BASE}/income-statement/{symbol}?apikey={key}&limit={len(years)+2}"
-    bs_url  = f"{BASE}/balance-sheet-statement/{symbol}?apikey={key}&limit={len(years)+2}"
-    met_url = f"{BASE}/key-metrics/{symbol}?apikey={key}&limit={len(years)+2}"
-    try:
-        inc_data = requests.get(inc_url, timeout=15).json()
-        bs_data  = requests.get(bs_url, timeout=15).json()
-        met_data = requests.get(met_url, timeout=15).json()
-        if not isinstance(inc_data, list) or not isinstance(bs_data, list):
-            return {}
-    except Exception as e:
-        print(f"      FMP request error: {e}", flush=True)
-        return {}
+def find_row(df, *names):
+    if df is None or df.empty:
+        return None
+    lower_idx = {str(idx).strip().lower(): idx for idx in df.index}
+    for n in names:
+        key = n.strip().lower()
+        if key in lower_idx:
+            return df.loc[lower_idx[key]]
+    return None
 
-    inc_by_year = {}
-    for r in inc_data:
-        fy = int(r.get("fiscalYear", r.get("date","")[:4]))
-        if fy in years:
-            inc_by_year[fy] = r
-    bs_by_year = {}
-    for r in bs_data:
-        fy = int(r.get("fiscalYear", r.get("date","")[:4]))
-        if fy in years:
-            bs_by_year[fy] = r
-    met_by_year = {}
-    if isinstance(met_data, list):
-        for r in met_data:
-            fy = int(r.get("year", r.get("date","")[:4]))
-            if fy in years:
-                met_by_year[fy] = r
+def col_yr(df, yr):
+    if df is None or df.empty: return None
+    best = None
+    for c in df.columns:
+        try:
+            if hasattr(c, "year") and c.year == yr:
+                if best is None or c > best: best = c
+        except Exception: pass
+    return best
 
-    result = {}
-    for yr in years:
-        inc = inc_by_year.get(yr, {})
-        bs  = bs_by_year.get(yr, {})
-        met = met_by_year.get(yr, {})
-        row = {}
-        row["revenue"]     = inc.get("revenue")
-        row["grossProfit"] = inc.get("grossProfit")
-        row["netProfit"]   = inc.get("netIncome")
-        row["eps"]         = inc.get("epsdiluted") or inc.get("eps")
-        row["dps"]         = met.get("dividendPerShare")
-        row["totalAsset"]  = bs.get("totalAssets")
-        row["cash"]        = bs.get("cashAndCashEquivalents")
-        row["totalDebt"]   = bs.get("totalDebt")
-        row["totalEquity"] = bs.get("totalStockholdersEquity")
-        result[yr] = {k: safe(v,1,1) if v is not None else None for k,v in row.items()}
-    return result
+def cols_yr(df, yr):
+    if df is None or df.empty: return []
+    return sorted([c for c in df.columns if hasattr(c,"year") and c.year==yr])
 
-def fetch_fmp_quarterly_ttm(symbol, ttm_year, key):
-    """FMP quarterly: sum last 4 quarters, return as TTM for ttm_year."""
-    q_url = f"{BASE}/income-statement/{symbol}?apikey={key}&period=quarter&limit=8"
-    bq_url = f"{BASE}/balance-sheet-statement/{symbol}?apikey={key}&period=quarter&limit=8"
-    try:
-        q_data = requests.get(q_url, timeout=15).json()
-        bq_data = requests.get(bq_url, timeout=15).json()
-        if not isinstance(q_data, list):
-            return {}
-    except Exception as e:
-        print(f"      FMP quarterly error: {e}", flush=True)
-        return {}
+def get_ttm_col(df):
+    if df is None or df.empty:
+        return None
+    for c in df.columns:
+        col_str = str(c).strip().lower()
+        if col_str == "ttm":
+            return c
+    for c in df.columns:
+        if "ttm" in str(c).lower():
+            return c
+    return None
 
-    q_data = sorted(q_data, key=lambda x: x.get("filingDate",""))
-    bq_data = sorted(bq_data, key=lambda x: x.get("filingDate",""))
-    q4 = q_data[-4:]
-    bq4 = bq_data[-1:] if bq_data else []
-    row = {}
-    row["revenue"] = sum(r.get("revenue",0) or 0 for r in q4)
-    row["grossProfit"] = sum(r.get("grossProfit",0) or 0 for r in q4)
-    row["netProfit"] = sum(r.get("netIncome",0) or 0 for r in q4)
-    row["eps"] = sum(r.get("epsdiluted",0) or r.get("eps",0) or 0 for r in q4)
-    row["dps"] = None
-    if bq4:
-        b = bq4[0]
-        row["totalAsset"]  = b.get("totalAssets")
-        row["cash"]        = b.get("cashAndCashEquivalents")
-        row["totalDebt"]   = b.get("totalDebt")
-        row["totalEquity"] = b.get("totalStockholdersEquity")
+def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
+    row = {f: None for f in FIELDS}
+    if inc is not None and ic_col is not None:
+        rv = find_row(inc, "total revenue", "totalrevenue", "interest income", "interestincome", "revenue")
+        gp = find_row(inc, "gross profit", "grossprofit", "net interest income", "netinterestincome")
+        ni = find_row(inc, "net income", "netincome", "net income common stockholders", "net income common stockholders")
+        ep = find_row(inc, "basic eps", "diluted eps")
+        row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, fx)
+        row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, fx)
+        row["netProfit"]   = safe(ni[ic_col] if ni is not None else None, div, fx)
+        row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, 1)
+        row["dps"] = None
+    if bs is not None and bc_col is not None:
+        ta = find_row(bs, "total assets", "totalassets")
+        ca = find_row(bs, "cash and cash equivalents", "cash", "cashandcashequivalents",
+                      "cash and short term investments", "cash & equivalents")
+        td = find_row(bs, "total debt", "totaldebt", "long term debt and capital lease obligation",
+                      "long term debt", "long-term debt")
+        te = find_row(bs, "stockholders equity", "total stockholder equity", "common stock equity",
+                      "total equity gross minority interest", "total equity")
+        row["totalAsset"]  = safe(ta[bc_col] if ta is not None else None, div, fx)
+        row["cash"]        = safe(ca[bc_col] if ca is not None else None, div, fx)
+        row["totalDebt"]   = safe(td[bc_col] if td is not None else None, div, fx)
+        row["totalEquity"] = safe(te[bc_col] if te is not None else None, div, fx)
+    return row
+
+def annualise_quarterly(qi, qb, yr, div, fx):
+    row = {f: None for f in FIELDS}
+    if qi is None or qi.empty:
+        return row
+    qtrs = cols_yr(qi, yr)
+    if not qtrs:
+        return row
+    n = len(qtrs)
+    factor = 4.0 / n
+    def sum_q_field(*names):
+        s = find_row(qi, *names)
+        if s is None: return None
+        total = 0.0
+        for c in qtrs:
+            v = safe(s[c])
+            if v is not None: total += v
+        return total if total != 0.0 else None
+    row["revenue"]     = safe(sum_q_field("total revenue", "totalrevenue", "interest income", "interestincome", "revenue"), 1, 1)
+    row["grossProfit"] = safe(sum_q_field("gross profit", "grossprofit", "net interest income", "netinterestincome"), 1, 1)
+    row["netProfit"]   = safe(sum_q_field("net income", "netincome", "net income common stockholders", "net income common stockholders"), 1, 1)
+    ep = find_row(qi, "basic eps", "diluted eps")
+    if ep is not None:
+        total_eps = 0.0
+        for c in qtrs:
+            v = safe(ep[c])
+            if v is not None: total_eps += v
+        row["eps"] = total_eps if total_eps != 0.0 else None
     else:
-        row.update(totalAsset=None, cash=None, totalDebt=None, totalEquity=None)
-    # DPS from key metrics
-    met_url = f"{BASE}/key-metrics/{symbol}?apikey={key}&limit=1"
-    try:
-        met = requests.get(met_url, timeout=10).json()
-        if isinstance(met, list) and met:
-            row["dps"] = met[0].get("dividendPerShare")
-    except Exception:
-        pass
-    return {ttm_year: {k: safe(v,1,1) if v is not None else None for k,v in row.items()}}
+        row["eps"] = None
+    dp = find_row(qi, "dividends per share", "dps", "dividend per share")
+    if dp is not None:
+        total_dps = 0.0
+        for c in qtrs:
+            v = safe(dp[c])
+            if v is not None: total_dps += v
+        row["dps"] = total_dps if total_dps != 0.0 else None
+    else:
+        row["dps"] = None
+    qbc = qtrs[-1]
+    if qb is not None and not qb.empty and qbc in qb.columns:
+        ta = find_row(qb, "total assets", "totalassets")
+        ca = find_row(qb, "cash and cash equivalents", "cash", "cashandcashequivalents",
+                      "cash and short term investments", "cash & equivalents")
+        td = find_row(qb, "total debt", "totaldebt", "long term debt and capital lease obligation",
+                      "long term debt", "long-term debt")
+        te = find_row(qb, "stockholders equity", "total stockholder equity", "common stock equity",
+                      "total equity gross minority interest", "total equity")
+        row["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
+        row["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
+        row["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
+        row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+    for k in ["revenue", "grossProfit", "netProfit", "eps", "dps"]:
+        if row[k] is not None:
+            row[k] = round(row[k] * factor, 4)
+    for k in ["revenue", "grossProfit", "netProfit"]:
+        if row[k] is not None:
+            row[k] = round(row[k] / div * fx, 4)
+    return row
 
-def fetch_one_fmp(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
+def fill_missing_from_info_and_balance(tk, row, div, fx, sym):
+    """After all statement attempts, try yahoo info, then fall back to latest annual balance sheet."""
+    # 1) Try info dict
+    try:
+        i = tk.info
+        mapping = [
+            ("revenue", ["totalRevenue", "revenue"]),
+            ("grossProfit", ["grossProfits", "grossProfit"]),
+            ("netProfit", ["netIncomeToCommon", "netIncome"]),
+            ("eps", ["trailingEps", "forwardEps"]),
+            ("dps", ["trailingAnnualDividendRate", "dividendRate"]),
+            ("totalAsset", ["totalAssets", "totalAsset"]),
+            ("cash", ["totalCash", "cash"]),
+            ("totalDebt", ["totalDebt", "longTermDebt"]),
+            ("totalEquity", ["totalStockholderEquity", "bookValue", "commonStockEquity"]),
+        ]
+        for k, src in mapping:
+            if row.get(k) is None:
+                for s in src:
+                    v = i.get(s)
+                    if v is not None:
+                        row[k] = safe(v, 1, 1) if k in ("eps", "dps") else safe(v, div, fx)
+                        if row[k] is not None:
+                            print(f"      using info {s}={row[k]}", flush=True)
+                            break
+    except Exception as e:
+        print(f"      info fallback error: {e}", flush=True)
+
+    # 2) For balance-sheet fields still missing: use the most recent annual column from yfinance BS
+    if any(row.get(f) is None for f in ["totalAsset","cash","totalDebt","totalEquity"]):
+        bs = tk.balance_sheet
+        if bs is not None and not bs.empty:
+            years_avail = sorted([c.year for c in bs.columns if hasattr(c,"year")], reverse=True)
+            if years_avail:
+                latest_yr = years_avail[0]
+                bc = col_yr(bs, latest_yr)
+                if bc is not None:
+                    ta = find_row(bs, "total assets", "totalassets")
+                    ca = find_row(bs, "cash and cash equivalents", "cash", "cashandcashequivalents",
+                                  "cash and short term investments", "cash & equivalents")
+                    td = find_row(bs, "total debt", "totaldebt", "long term debt and capital lease obligation",
+                                  "long term debt", "long-term debt")
+                    te = find_row(bs, "stockholders equity", "total stockholder equity", "common stock equity",
+                                  "total equity gross minority interest", "total equity")
+                    for fname, row_obj in [("totalAsset",ta), ("cash",ca), ("totalDebt",td), ("totalEquity",te)]:
+                        if row.get(fname) is None and row_obj is not None:
+                            row[fname] = safe(row_obj[bc], div, fx)
+                            if row[fname] is not None:
+                                print(f"      using BS {latest_yr} {fname}={row[fname]}", flush=True)
+    return row
+
+def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] {ticker_str}", flush=True)
-    if not FMP_API_KEY:
-        print("  No FMP_API_KEY, falling back to static data", flush=True)
-        return {}, {"method":"none","label":None}
+    for attempt in range(2):
+        try:
+            if attempt > 0:
+                print(f"  Retry {attempt}...", flush=True)
+                time.sleep(5)
+            tk = yf.Ticker(ticker_str)
+            fin_cur = detect_cur(tk, hint_cur)
+            div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
+            print(f"  cur={fin_cur} fx={fx:.6f}", flush=True)
 
-    try:
-        test_url = f"{BASE}/income-statement/{ticker_str}?apikey={FMP_API_KEY}&limit=1"
-        test = requests.get(test_url, timeout=10).json()
-        fin_cur = (test[0].get("reportedCurrency","USD") if test and isinstance(test,list) else "USD").upper()
-    except Exception:
-        fin_cur = hint_cur.upper()
-    div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
-    print(f"  cur={fin_cur} fx={fx:.6f}", flush=True)
+            yd = {}
+            ann = {}
+            inc = tk.financials
+            bs = tk.balance_sheet
+            qi = tk.quarterly_financials
+            qb = tk.quarterly_balance_sheet
 
-    years = list(COMPLETED)
-    yd = fetch_fmp_annual(ticker_str, years, FMP_API_KEY)
-    if not yd or yd.get(LATEST_YEAR,{}).get("revenue") is None:
-        ttm = fetch_fmp_quarterly_ttm(ticker_str, LATEST_YEAR, FMP_API_KEY)
-        if ttm:
-            yd[LATEST_YEAR] = ttm[LATEST_YEAR]
+            row_2025 = {f: None for f in FIELDS}
+            method_2025 = None
 
-    for yr, row in yd.items():
-        for k in ["revenue","grossProfit","netProfit"]:
-            row[k] = safe(row[k], div, fx)
-        row["totalAsset"]  = safe(row["totalAsset"], div, fx)
-        row["cash"]        = safe(row["cash"], div, fx)
-        row["totalDebt"]   = safe(row["totalDebt"], div, fx)
-        row["totalEquity"] = safe(row["totalEquity"], div, fx)
+            inc_ttm = get_ttm_col(inc)
+            bs_ttm = get_ttm_col(bs) if bs is not None else None
+            if inc_ttm is not None:
+                row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=inc_ttm, bc_col=bs_ttm)
+                if row_2025.get("revenue") is not None:
+                    method_2025 = "ttm_annual"
+                    print(f"      {LATEST_YEAR}: TTM from annual found ({inc_ttm})", flush=True)
 
-    yd[CURRENT_YEAR] = {f: None for f in FIELDS}
-    ann = {LATEST_YEAR: {"method":"fmp","label":"TTM","quarters":4,"asOf":datetime.now().isoformat()}}
-    print(f"  ✓ live years from FMP: {list(yd.keys())}", flush=True)
-    return yd, ann.get(CURRENT_YEAR, {"method":"none","label":None})
+            if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None:
+                qi_ttm = get_ttm_col(qi)
+                qb_ttm = get_ttm_col(qb) if qb is not None else None
+                if qi_ttm is not None:
+                    row_2025 = annual_row(qi, qb, div, fx, sym, ic_col=qi_ttm, bc_col=qb_ttm)
+                    if row_2025.get("revenue") is not None:
+                        method_2025 = "ttm_quarterly"
+                        print(f"      {LATEST_YEAR}: TTM from quarterly found ({qi_ttm})", flush=True)
+
+            if row_2025 is None or row_2025.get("revenue") is None:
+                ic = col_yr(inc, LATEST_YEAR)
+                if ic is not None:
+                    row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=ic, bc_col=col_yr(bs, LATEST_YEAR))
+                    if row_2025.get("revenue") is not None:
+                        method_2025 = "full_year"
+                        print(f"      {LATEST_YEAR}: full fiscal year found ({ic})", flush=True)
+
+            if row_2025 is None or row_2025.get("revenue") is None:
+                if qi is not None and not qi.empty:
+                    all_qtrs = sorted(qi.columns, reverse=True)
+                    if all_qtrs:
+                        latest_qtrs = all_qtrs[:4]
+                        row_2025 = {f: None for f in FIELDS}
+                        def sum_q(*names):
+                            s = find_row(qi, *names)
+                            if s is None: return None
+                            total = 0.0
+                            for c in latest_qtrs:
+                                v = safe(s[c])
+                                if v is not None: total += v
+                            return total if total != 0.0 else None
+                        rev_val = sum_q("total revenue", "totalrevenue", "revenue")
+                        if rev_val is None:
+                            rev_val = sum_q("interest income", "interestincome")
+                        row_2025["revenue"] = rev_val
+                        gp_val = sum_q("gross profit", "grossprofit")
+                        if gp_val is None:
+                            gp_val = sum_q("net interest income", "netinterestincome")
+                        row_2025["grossProfit"] = gp_val
+                        row_2025["netProfit"]   = sum_q("net income", "netincome", "net income common stockholders", "net income common stockholders")
+                        ep = find_row(qi, "basic eps", "diluted eps")
+                        if ep is not None:
+                            eps_sum = 0.0
+                            for c in latest_qtrs:
+                                v = safe(ep[c])
+                                if v is not None: eps_sum += v
+                            row_2025["eps"] = eps_sum if eps_sum != 0.0 else None
+                        dp = find_row(qi, "dividends per share", "dps", "dividend per share")
+                        if dp is not None:
+                            dps_sum = 0.0
+                            for c in latest_qtrs:
+                                v = safe(dp[c])
+                                if v is not None: dps_sum += v
+                            row_2025["dps"] = dps_sum if dps_sum != 0.0 else None
+                        if latest_qtrs:
+                            qbc = latest_qtrs[0]
+                            if qb is not None and not qb.empty and qbc in qb.columns:
+                                ta = find_row(qb, "total assets", "totalassets")
+                                ca = find_row(qb, "cash and cash equivalents", "cash", "cashandcashequivalents",
+                                              "cash and short term investments", "cash & equivalents")
+                                td = find_row(qb, "total debt", "totaldebt", "long term debt and capital lease obligation",
+                                              "long term debt", "long-term debt")
+                                te = find_row(qb, "stockholders equity", "total stockholder equity", "common stock equity",
+                                              "total equity gross minority interest", "total equity")
+                                row_2025["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
+                                row_2025["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
+                                row_2025["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
+                                row_2025["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+                        for k in ["revenue", "grossProfit", "netProfit"]:
+                            if row_2025[k] is not None:
+                                row_2025[k] = round(row_2025[k] / div * fx, 4)
+                        if row_2025.get("revenue") is not None:
+                            method_2025 = "ttm_manual_4q"
+                            print(f"      {LATEST_YEAR}: manual TTM from last 4 quarters", flush=True)
+
+            # Apply the enhanced fallback
+            row_2025 = fill_missing_from_info_and_balance(tk, row_2025, div, fx, sym)
+
+            if row_2025 is None:
+                row_2025 = {f: None for f in FIELDS}
+                method_2025 = "none"
+                print(f"      {LATEST_YEAR}: no data could be obtained", flush=True)
+
+            yd[LATEST_YEAR] = row_2025
+            ann[LATEST_YEAR] = {"method": method_2025, "label": "TTM", "quarters": 4, "asOf": datetime.now().isoformat()}
+
+            row_2026 = annualise_quarterly(qi, qb, CURRENT_YEAR, div, fx)
+            n = len(cols_yr(qi, CURRENT_YEAR)) if qi is not None else 0
+            months = n * 3
+            factor = 4.0 / n if n else 0
+            label = f"{months}M x{round(factor,2)}" if n else "no data"
+            yd[CURRENT_YEAR] = row_2026
+            ann[CURRENT_YEAR] = {"method": "annualised_quarterly", "label": label, "quarters": n,
+                                 "months": months, "factor": round(factor,4), "asOf": datetime.now().isoformat()}
+            print(f"      {CURRENT_YEAR}: {n}Q → {label}", flush=True)
+
+            live = [y for y in [LATEST_YEAR, CURRENT_YEAR] if yd[y].get("revenue") is not None]
+            print(f"  ✓ live years: {live}", flush=True)
+            return yd, ann.get(CURRENT_YEAR, {"method":"none","label":None})
+        except Exception as e:
+            print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
+    return {}, {"method":"none","label":None}
 
 def build_arrays(yd, sym, rates):
     out = {}
@@ -1236,11 +1417,11 @@ def main():
     ok = 0
     for i, (sym, (name, exchange, ticker_str, currency, _div, hint_cur)) in enumerate(all_stocks.items()):
         if i > 0:
-            time.sleep(0.3)
+            time.sleep(1)
         try:
-            yd, cur_ann = fetch_one_fmp(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
+            yd, cur_ann = fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
             arrs = build_arrays(yd, sym, rates)
-            src = "fmp" if any(yd.values()) else "fallback"
+            src = "yfinance" if any(yd.values()) else "fallback"
             if any(yd.values()):
                 ok += 1
         except Exception as e:
@@ -1262,7 +1443,7 @@ def main():
     path = os.path.join(base_dir, "data.json")
     with open(path, "w") as f:
         json.dump(out, f, indent=2)
-    print(f"\n{'='*50}\nWritten: {path}\nLive FMP: {ok}/{len(all_stocks)}\n{'='*50}", flush=True)
+    print(f"\n{'='*50}\nWritten: {path}\nLive yfinance: {ok}/{len(all_stocks)}\n{'='*50}", flush=True)
 
 if __name__ == "__main__":
     main()
