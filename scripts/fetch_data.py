@@ -63,7 +63,7 @@ STOCKS = {
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-# ---------- STATIC PRE‑LOADED DATA (2021–2024) – EPS/DPS CORRECTED ----------
+# ---------- STATIC PRE‑LOADED DATA (2021–2024) ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],
              "eps":[2.21,6.05,2.55,1.55,None,None],
@@ -84,20 +84,20 @@ PRELOADED = {
               "eps":[1019,1753,2086,398,None,None],
               "dps":[460,791,940,1100,1150,None]},
     "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],
-              "eps":[0.016,0.059,0.029,0.031,None,None],
-              "dps":[0.008,0.029,0.015,0.016,None,None]},
+              "eps":[256,960,480,510,520,None],       # IDR (will be converted to USD)
+              "dps":[130,480,240,255,260,None]},
+    "ITMG": {"totalAsset":[19,26,20,21,None,None],"cash":[6,12,8,7,None,None],"totalDebt":[0.8,1.0,0.8,0.7,None,None],"totalEquity":[16,22,17,18,None,None],"revenue":[36,65,42,45,None,None],"grossProfit":[10,25,14,13,None,None],"netProfit":[5,16,8,7,None,None],
+              "eps":[4530,14493,7246,6344,6500,None],  # IDR
+              "dps":[4000,13000,6500,5710,5800,None]},
+    "POWR": {"totalAsset":[9.5,10.0,10.5,11.0,None,None],"cash":[1.3,1.4,1.5,1.6,None,None],"totalDebt":[2.0,1.8,1.6,1.4,None,None],"totalEquity":[5.8,6.5,7.2,7.8,None,None],"revenue":[5.0,5.2,5.5,5.8,None,None],"grossProfit":[2.0,2.1,2.2,2.3,None,None],"netProfit":[0.95,1.00,1.10,1.15,None,None],
+              "eps":[95,100,110,115,120,None],          # IDR
+              "dps":[57,60,66,69,70,None]},
     "SMSM": {"totalAsset":[2.6,2.8,3.0,3.2,None,None],"cash":[0.9,1.0,1.1,1.2,None,None],"totalDebt":[0.35,0.30,0.30,0.25,None,None],"totalEquity":[2.0,2.2,2.4,2.6,None,None],"revenue":[2.5,2.8,3.2,3.4,None,None],"grossProfit":[0.82,0.92,1.05,1.12,None,None],"netProfit":[0.43,0.51,0.58,0.62,None,None],
               "eps":[183,217,247,264,270,None],
               "dps":[138,164,186,198,200,None]},
     "UNTR": {"totalAsset":[118,130,138,145,None,None],"cash":[16,18,20,22,None,None],"totalDebt":[23,20,18,16,None,None],"totalEquity":[78,88,97,105,None,None],"revenue":[108,125,130,135,None,None],"grossProfit":[25,30,32,33,None,None],"netProfit":[13,16,17,18,None,None],
               "eps":[3510,4320,4590,1860,None,None],
               "dps":[1580,1944,2065,2187,2200,None]},
-    "ITMG": {"totalAsset":[19,26,20,21,None,None],"cash":[6,12,8,7,None,None],"totalDebt":[0.8,1.0,0.8,0.7,None,None],"totalEquity":[16,22,17,18,None,None],"revenue":[36,65,42,45,None,None],"grossProfit":[10,25,14,13,None,None],"netProfit":[5,16,8,7,None,None],
-              "eps":[0.28,0.89,0.44,0.39,None,None],
-              "dps":[0.25,0.80,0.40,0.35,None,None]},
-    "POWR": {"totalAsset":[9.5,10.0,10.5,11.0,None,None],"cash":[1.3,1.4,1.5,1.6,None,None],"totalDebt":[2.0,1.8,1.6,1.4,None,None],"totalEquity":[5.8,6.5,7.2,7.8,None,None],"revenue":[5.0,5.2,5.5,5.8,None,None],"grossProfit":[2.0,2.1,2.2,2.3,None,None],"netProfit":[0.95,1.00,1.10,1.15,None,None],
-              "eps":[0.006,0.006,0.007,0.007,None,None],
-              "dps":[0.004,0.004,0.004,0.004,None,None]},
     "MPMX": {"totalAsset":[9.0,9.5,10.0,10.5,None,None],"cash":[1.5,1.6,1.7,1.8,None,None],"totalDebt":[2.4,2.2,2.0,1.8,None,None],"totalEquity":[4.8,5.3,5.8,6.3,None,None],"revenue":[12.5,13.0,13.5,14.0,None,None],"grossProfit":[2.1,2.2,2.3,2.4,None,None],"netProfit":[0.40,0.45,0.50,0.55,None,None],
               "eps":[93,105,116,128,130,None],
               "dps":[40,45,50,55,55,None]},
@@ -518,8 +518,11 @@ def build_arrays(yd, sym, rates):
     for f in FIELDS:
         arr = []
         for i, yr in enumerate(ALL_YEARS):
-            if yr in yd and yd[yr].get(f) is not None:
-                arr.append(yd[yr][f])
+            if yr in (LATEST_YEAR, CURRENT_YEAR):
+                if yr in yd and yd[yr].get(f) is not None:
+                    arr.append(yd[yr][f])
+                else:
+                    arr.append(None)
             elif yr in COMPLETED[:4]:
                 val = PRELOADED.get(sym, {}).get(f, [None]*len(ALL_YEARS))[i]
                 if convert_per_share and f in ("eps", "dps") and val is not None:
