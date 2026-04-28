@@ -35,16 +35,16 @@ STOCKS = {
     "NAB":  ("National Australia Bank", "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
     "ANZ":  ("ANZ Group Holdings Ltd",  "ASX",    "ANZ.AX",  "B AUD", 1e9,  "AUD"),
     "BBRI": ("Bank Rakyat Indonesia",   "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
-    "ADRO": ("Alamtri Resources Indonesia", "IDX","ADRO.JK", "T IDR", 1e12, "USD"),
+    "ADRO": ("Alamtri Resources Indonesia", "IDX","ADRO.JK", "T IDR", 1e12, "USD"),  # target USD
     "SMSM": ("Selamat Sempurna",        "IDX",    "SMSM.JK", "T IDR", 1e12, "IDR"),
     "UNTR": ("United Tractors",         "IDX",    "UNTR.JK", "T IDR", 1e12, "IDR"),
-    "ITMG": ("Indo Tambangraya Megah",  "IDX",    "ITMG.JK", "T IDR", 1e12, "USD"),
-    "POWR": ("Cikarang Listrindo",      "IDX",    "POWR.JK", "T IDR", 1e12, "USD"),
+    "ITMG": ("Indo Tambangraya Megah",  "IDX",    "ITMG.JK", "T IDR", 1e12, "USD"),  # target USD
+    "POWR": ("Cikarang Listrindo",      "IDX",    "POWR.JK", "T IDR", 1e12, "USD"),  # target USD
     "MPMX": ("Mitra Pinasthika Mustika","IDX",    "MPMX.JK", "T IDR", 1e12, "IDR"),
     "BTPS": ("Bank BTPN Syariah",       "IDX",    "BTPS.JK", "T IDR", 1e12, "IDR"),
     "DMAS": ("Puradelta Lestari",       "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
     "SPTO": ("Surya Toto Indonesia",    "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
-    "TSM":  ("Taiwan Semiconductor",   "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
+    "TSM":  ("Taiwan Semiconductor",   "NYSE",   "TSM",     "B USD", 1e9,  "USD"),  # target USD
     "V":    ("Visa Inc.",              "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",        "NYSE",   "MA",      "B USD", 1e9,  "USD"),
     "MSFT": ("Microsoft Corp.",        "NASDAQ", "MSFT",    "B USD", 1e9,  "USD"),
@@ -64,6 +64,10 @@ STOCKS = {
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
 # ---------- STATIC PRE‑LOADED DATA (2021–2024) ----------
+# All values are in the stocks' native reporting currency as specified in STOCKS.
+# For ADRO/ITMG/POWR the pre‑loaded data is in IDR (trillions for totals, IDR for EPS/DPS).
+# For TSM the pre‑loaded data is already in USD (billions for totals, USD for EPS/DPS).
+# Per‑share conversions for IDR → USD will be applied later in build_arrays.
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],
              "eps":[2.21,6.05,2.55,1.55,None,None],
@@ -84,7 +88,7 @@ PRELOADED = {
               "eps":[1019,1753,2086,398,None,None],
               "dps":[460,791,940,1100,1150,None]},
     "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],
-              "eps":[256,960,480,510,520,None],       # IDR (will be converted to USD by build_arrays)
+              "eps":[256,960,480,510,520,None],       # IDR → converted later to USD
               "dps":[130,480,240,255,260,None]},
     "ITMG": {"totalAsset":[19,26,20,21,None,None],"cash":[6,12,8,7,None,None],"totalDebt":[0.8,1.0,0.8,0.7,None,None],"totalEquity":[16,22,17,18,None,None],"revenue":[36,65,42,45,None,None],"grossProfit":[10,25,14,13,None,None],"netProfit":[5,16,8,7,None,None],
               "eps":[4530,14493,7246,6344,6500,None],  # IDR
@@ -194,13 +198,47 @@ def detect_cur(tk, hint):
     except Exception:
         return hint.upper()
 
-def get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd):
-    if exchange == "ASX":
-        return 1e9, (usd_aud if fin_cur == "USD" else 1.0)
-    elif exchange == "IDX":
-        return 1e12, (usd_idr if fin_cur == "USD" else 1.0)
+def get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd):
+    """
+    Returns (div, total_fx, ps_fx) where:
+      - div  : scale factor to get into billions / trillions of target currency
+      - total_fx : factor applied to totals after division
+      - ps_fx    : factor applied to per‑share items (EPS, DPS) without division
+    """
+    target = target_cur.upper()
+    fin = fin_cur.upper()
+
+    if target == "IDR":
+        div = 1e12
     else:
-        return 1e9, (twd_usd if fin_cur == "TWD" else 1.0)
+        div = 1e9
+
+    # Calculate conversion factor from financial currency to target currency
+    if fin == target:
+        conv = 1.0
+    elif target == "USD":
+        if fin == "IDR":
+            conv = 1.0 / usd_idr if usd_idr else 0.0
+        elif fin == "TWD":
+            conv = twd_usd if twd_usd else 0.0
+        elif fin == "AUD":
+            conv = 1.0 / usd_aud if usd_aud else 0.0
+        else:
+            conv = 1.0
+    elif target == "AUD":
+        if fin == "USD":
+            conv = usd_aud if usd_aud else 0.0
+        else:
+            conv = 1.0
+    elif target == "IDR":
+        if fin == "USD":
+            conv = usd_idr if usd_idr else 0.0
+        else:
+            conv = 1.0
+    else:
+        conv = 1.0
+
+    return div, conv, conv   # total_fx and ps_fx are the same factor here
 
 def safe(val, div=1, fx=1.0):
     if val is None: return None
@@ -246,17 +284,17 @@ def get_ttm_col(df):
             return c
     return None
 
-def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
+def annual_row(inc, bs, div, total_fx, ps_fx, sym, ic_col=None, bc_col=None):
     row = {f: None for f in FIELDS}
     if inc is not None and ic_col is not None:
         rv = find_row(inc, "total revenue", "totalrevenue", "interest income", "interestincome", "revenue")
         gp = find_row(inc, "gross profit", "grossprofit", "net interest income", "netinterestincome")
         ni = find_row(inc, "net income", "netincome", "net income common stockholders", "net income common stockholders")
         ep = find_row(inc, "basic eps", "diluted eps")
-        row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, fx)
-        row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, fx)
-        row["netProfit"]   = safe(ni[ic_col] if ni is not None else None, div, fx)
-        row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, 1)
+        row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, total_fx)
+        row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, total_fx)
+        row["netProfit"]   = safe(ni[ic_col] if ni is not None else None, div, total_fx)
+        row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, ps_fx)
         row["dps"] = None
     if bs is not None and bc_col is not None:
         ta = find_row(bs, "total assets", "totalassets")
@@ -266,13 +304,13 @@ def annual_row(inc, bs, div, fx, sym, ic_col=None, bc_col=None):
                       "long term debt", "long-term debt")
         te = find_row(bs, "stockholders equity", "total stockholder equity", "common stock equity",
                       "total equity gross minority interest", "total equity")
-        row["totalAsset"]  = safe(ta[bc_col] if ta is not None else None, div, fx)
-        row["cash"]        = safe(ca[bc_col] if ca is not None else None, div, fx)
-        row["totalDebt"]   = safe(td[bc_col] if td is not None else None, div, fx)
-        row["totalEquity"] = safe(te[bc_col] if te is not None else None, div, fx)
+        row["totalAsset"]  = safe(ta[bc_col] if ta is not None else None, div, total_fx)
+        row["cash"]        = safe(ca[bc_col] if ca is not None else None, div, total_fx)
+        row["totalDebt"]   = safe(td[bc_col] if td is not None else None, div, total_fx)
+        row["totalEquity"] = safe(te[bc_col] if te is not None else None, div, total_fx)
     return row
 
-def annualise_quarterly(qi, qb, yr, div, fx):
+def annualise_quarterly(qi, qb, yr, div, total_fx, ps_fx):
     row = {f: None for f in FIELDS}
     if qi is None or qi.empty:
         return row
@@ -281,6 +319,7 @@ def annualise_quarterly(qi, qb, yr, div, fx):
         return row
     n = len(qtrs)
     factor = 4.0 / n
+
     def sum_q_field(*names):
         s = find_row(qi, *names)
         if s is None: return None
@@ -289,9 +328,11 @@ def annualise_quarterly(qi, qb, yr, div, fx):
             v = safe(s[c])
             if v is not None: total += v
         return total if total != 0.0 else None
+
     row["revenue"]     = safe(sum_q_field("total revenue", "totalrevenue", "interest income", "interestincome", "revenue"), 1, 1)
     row["grossProfit"] = safe(sum_q_field("gross profit", "grossprofit", "net interest income", "netinterestincome"), 1, 1)
     row["netProfit"]   = safe(sum_q_field("net income", "netincome", "net income common stockholders", "net income common stockholders"), 1, 1)
+
     ep = find_row(qi, "basic eps", "diluted eps")
     if ep is not None:
         total_eps = 0.0
@@ -301,6 +342,7 @@ def annualise_quarterly(qi, qb, yr, div, fx):
         row["eps"] = total_eps if total_eps != 0.0 else None
     else:
         row["eps"] = None
+
     dp = find_row(qi, "dividends per share", "dps", "dividend per share")
     if dp is not None:
         total_dps = 0.0
@@ -310,6 +352,7 @@ def annualise_quarterly(qi, qb, yr, div, fx):
         row["dps"] = total_dps if total_dps != 0.0 else None
     else:
         row["dps"] = None
+
     qbc = qtrs[-1]
     if qb is not None and not qb.empty and qbc in qb.columns:
         ta = find_row(qb, "total assets", "totalassets")
@@ -319,19 +362,28 @@ def annualise_quarterly(qi, qb, yr, div, fx):
                       "long term debt", "long-term debt")
         te = find_row(qb, "stockholders equity", "total stockholder equity", "common stock equity",
                       "total equity gross minority interest", "total equity")
-        row["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
-        row["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
-        row["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
-        row["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
-    for k in ["revenue", "grossProfit", "netProfit", "eps", "dps"]:
+        row["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, total_fx)
+        row["cash"]        = safe(ca[qbc] if ca is not None else None, div, total_fx)
+        row["totalDebt"]   = safe(td[qbc] if td is not None else None, div, total_fx)
+        row["totalEquity"] = safe(te[qbc] if te is not None else None, div, total_fx)
+
+    # Annualise income items
+    for k in ["revenue", "grossProfit", "netProfit"]:
         if row[k] is not None:
             row[k] = round(row[k] * factor, 4)
     for k in ["revenue", "grossProfit", "netProfit"]:
         if row[k] is not None:
-            row[k] = round(row[k] / div * fx, 4)
+            row[k] = round(row[k] / div * total_fx, 4)
+
+    # Per-share items: sum and apply ps_fx
+    for k in ["eps", "dps"]:
+        if row[k] is not None:
+            row[k] = round(row[k] * factor, 4)
+            row[k] = round(row[k] * ps_fx, 4)
+
     return row
 
-def fill_missing_from_info_and_balance(tk, row, div, fx, sym):
+def fill_missing_from_info_and_balance(tk, row, div, total_fx, ps_fx, sym):
     try:
         i = tk.info
         mapping = [
@@ -350,7 +402,10 @@ def fill_missing_from_info_and_balance(tk, row, div, fx, sym):
                 for s in src:
                     v = i.get(s)
                     if v is not None:
-                        row[k] = safe(v, 1, 1) if k in ("eps", "dps") else safe(v, div, fx)
+                        if k in ("eps", "dps"):
+                            row[k] = safe(v, 1, ps_fx)
+                        else:
+                            row[k] = safe(v, div, total_fx)
                         if row[k] is not None:
                             print(f"      using info {s}={row[k]}", flush=True)
                             break
@@ -374,13 +429,14 @@ def fill_missing_from_info_and_balance(tk, row, div, fx, sym):
                                   "total equity gross minority interest", "total equity")
                     for fname, row_obj in [("totalAsset",ta), ("cash",ca), ("totalDebt",td), ("totalEquity",te)]:
                         if row.get(fname) is None and row_obj is not None:
-                            row[fname] = safe(row_obj[bc], div, fx)
+                            row[fname] = safe(row_obj[bc], div, total_fx)
                             if row[fname] is not None:
                                 print(f"      using BS {latest_yr} {fname}={row[fname]}", flush=True)
     return row
 
 def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] {ticker_str}", flush=True)
+    target_cur = hint_cur.upper()  # desired output currency from STOCKS
     for attempt in range(2):
         try:
             if attempt > 0:
@@ -388,8 +444,8 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                 time.sleep(5)
             tk = yf.Ticker(ticker_str)
             fin_cur = detect_cur(tk, hint_cur)
-            div, fx = get_fx(exchange, fin_cur, usd_aud, usd_idr, twd_usd)
-            print(f"  cur={fin_cur} fx={fx:.6f}", flush=True)
+            div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
+            print(f"  cur={fin_cur}  target={target_cur}  total_fx={total_fx:.6f}  ps_fx={ps_fx:.6f}", flush=True)
 
             yd = {}
             ann = {}
@@ -401,31 +457,35 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             row_2025 = {f: None for f in FIELDS}
             method_2025 = None
 
+            # Try TTM column from annual statements
             inc_ttm = get_ttm_col(inc)
             bs_ttm = get_ttm_col(bs) if bs is not None else None
             if inc_ttm is not None:
-                row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=inc_ttm, bc_col=bs_ttm)
+                row_2025 = annual_row(inc, bs, div, total_fx, ps_fx, sym, ic_col=inc_ttm, bc_col=bs_ttm)
                 if row_2025.get("revenue") is not None:
                     method_2025 = "ttm_annual"
                     print(f"      {LATEST_YEAR}: TTM from annual found ({inc_ttm})", flush=True)
 
+            # Try TTM from quarterly
             if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None:
                 qi_ttm = get_ttm_col(qi)
                 qb_ttm = get_ttm_col(qb) if qb is not None else None
                 if qi_ttm is not None:
-                    row_2025 = annual_row(qi, qb, div, fx, sym, ic_col=qi_ttm, bc_col=qb_ttm)
+                    row_2025 = annual_row(qi, qb, div, total_fx, ps_fx, sym, ic_col=qi_ttm, bc_col=qb_ttm)
                     if row_2025.get("revenue") is not None:
                         method_2025 = "ttm_quarterly"
                         print(f"      {LATEST_YEAR}: TTM from quarterly found ({qi_ttm})", flush=True)
 
+            # Full fiscal year for 2025
             if row_2025 is None or row_2025.get("revenue") is None:
                 ic = col_yr(inc, LATEST_YEAR)
                 if ic is not None:
-                    row_2025 = annual_row(inc, bs, div, fx, sym, ic_col=ic, bc_col=col_yr(bs, LATEST_YEAR))
+                    row_2025 = annual_row(inc, bs, div, total_fx, ps_fx, sym, ic_col=ic, bc_col=col_yr(bs, LATEST_YEAR))
                     if row_2025.get("revenue") is not None:
                         method_2025 = "full_year"
                         print(f"      {LATEST_YEAR}: full fiscal year found ({ic})", flush=True)
 
+            # Manual TTM from last 4 quarters
             if row_2025 is None or row_2025.get("revenue") is None:
                 if qi is not None and not qi.empty:
                     all_qtrs = sorted(qi.columns, reverse=True)
@@ -473,18 +533,21 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
                                               "long term debt", "long-term debt")
                                 te = find_row(qb, "stockholders equity", "total stockholder equity", "common stock equity",
                                               "total equity gross minority interest", "total equity")
-                                row_2025["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, fx)
-                                row_2025["cash"]        = safe(ca[qbc] if ca is not None else None, div, fx)
-                                row_2025["totalDebt"]   = safe(td[qbc] if td is not None else None, div, fx)
-                                row_2025["totalEquity"] = safe(te[qbc] if te is not None else None, div, fx)
+                                row_2025["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, total_fx)
+                                row_2025["cash"]        = safe(ca[qbc] if ca is not None else None, div, total_fx)
+                                row_2025["totalDebt"]   = safe(td[qbc] if td is not None else None, div, total_fx)
+                                row_2025["totalEquity"] = safe(te[qbc] if te is not None else None, div, total_fx)
                         for k in ["revenue", "grossProfit", "netProfit"]:
                             if row_2025[k] is not None:
-                                row_2025[k] = round(row_2025[k] / div * fx, 4)
+                                row_2025[k] = round(row_2025[k] / div * total_fx, 4)
+                        for k in ["eps", "dps"]:
+                            if row_2025[k] is not None:
+                                row_2025[k] = round(row_2025[k] * ps_fx, 4)
                         if row_2025.get("revenue") is not None:
                             method_2025 = "ttm_manual_4q"
                             print(f"      {LATEST_YEAR}: manual TTM from last 4 quarters", flush=True)
 
-            row_2025 = fill_missing_from_info_and_balance(tk, row_2025, div, fx, sym)
+            row_2025 = fill_missing_from_info_and_balance(tk, row_2025, div, total_fx, ps_fx, sym)
 
             if row_2025 is None:
                 row_2025 = {f: None for f in FIELDS}
@@ -494,7 +557,8 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             yd[LATEST_YEAR] = row_2025
             ann[LATEST_YEAR] = {"method": method_2025, "label": "TTM", "quarters": 4, "asOf": datetime.now().isoformat()}
 
-            row_2026 = annualise_quarterly(qi, qb, CURRENT_YEAR, div, fx)
+            # 2026 partial year
+            row_2026 = annualise_quarterly(qi, qb, CURRENT_YEAR, div, total_fx, ps_fx)
             n = len(cols_yr(qi, CURRENT_YEAR)) if qi is not None else 0
             months = n * 3
             factor = 4.0 / n if n else 0
@@ -512,28 +576,38 @@ def fetch_one(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     return {}, {"method":"none","label":None}
 
 def build_arrays(yd, sym, rates):
-    out = {}
-    convert_per_share = sym in ("ADRO", "ITMG", "POWR")
-    idr_to_usd = 1.0 / rates["usd_idr"] if rates["usd_idr"] else 0
+    out_arrays = {}
+    # For ADRO, ITMG, POWR preloaded data is in IDR but target is USD.
+    # Conversion: totals are in T IDR → B USD (multiply by 1000 / usd_idr)
+    #             per-share are IDR → USD (multiply by 1 / usd_idr)
+    idr_to_usd_total = 1000.0 / rates["usd_idr"] if rates["usd_idr"] else 0
+    idr_to_usd_ps = 1.0 / rates["usd_idr"] if rates["usd_idr"] else 0
+
     for f in FIELDS:
         arr = []
         for i, yr in enumerate(ALL_YEARS):
             if yr in (LATEST_YEAR, CURRENT_YEAR):
+                # Live years come from yd (already in target currency)
                 if yr in yd and yd[yr].get(f) is not None:
                     arr.append(yd[yr][f])
                 else:
                     arr.append(None)
             elif yr in COMPLETED[:4]:
                 val = PRELOADED.get(sym, {}).get(f, [None]*len(ALL_YEARS))[i]
-                if convert_per_share and f in ("eps", "dps") and val is not None:
-                    val = round(val * idr_to_usd, 4) if idr_to_usd else None
+                if sym in ("ADRO", "ITMG", "POWR"):
+                    if f in ("eps", "dps"):
+                        if val is not None:
+                            val = round(val * idr_to_usd_ps, 4)
+                    else:
+                        if val is not None:
+                            val = round(val * idr_to_usd_total, 4)
                 arr.append(val)
             else:
                 arr.append(None)
-        out[f] = arr
-    return out
+        out_arrays[f] = arr
+    return out_arrays
 
-# ---------- FULL PROFILES ----------
+# ---------- FULL PROFILES (unchanged) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
