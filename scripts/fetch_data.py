@@ -84,7 +84,7 @@ PRELOADED = {
               "eps":[1019,1753,2086,398,None,None],
               "dps":[460,791,940,1100,1150,None]},
     "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],
-              "eps":[256,960,480,510,520,None],       # IDR (will be converted to USD)
+              "eps":[256,960,480,510,520,None],       # IDR (will be converted to USD by build_arrays)
               "dps":[130,480,240,255,260,None]},
     "ITMG": {"totalAsset":[19,26,20,21,None,None],"cash":[6,12,8,7,None,None],"totalDebt":[0.8,1.0,0.8,0.7,None,None],"totalEquity":[16,22,17,18,None,None],"revenue":[36,65,42,45,None,None],"grossProfit":[10,25,14,13,None,None],"netProfit":[5,16,8,7,None,None],
               "eps":[4530,14493,7246,6344,6500,None],  # IDR
