@@ -204,6 +204,11 @@ def get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd):
     else: conv = 1.0
     return div, conv, conv
 
+def fallback_currency(exchange):
+    if exchange == "IDX": return "IDR"
+    if exchange == "ASX": return "AUD"
+    return "USD"
+
 # ---------- Yahoo Finance fetch (fallback) ----------
 def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] (Yahoo) {ticker_str}", flush=True)
@@ -213,13 +218,16 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
             if attempt > 0:
                 time.sleep(5)
             tk = yf.Ticker(ticker_str)
-            # detect currency
             fin_cur = None
             try:
                 info = tk.info
-                fin_cur = (info.get("financialCurrency") or info.get("currency") or hint_cur).upper()
+                fin_cur = (info.get("financialCurrency") or info.get("currency") or None)
             except:
-                fin_cur = hint_cur.upper()
+                pass
+            if not fin_cur:
+                fin_cur = fallback_currency(exchange)
+            else:
+                fin_cur = fin_cur.upper()
             div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
             print(f"  cur={fin_cur}  target={target_cur}  total_fx={total_fx:.6f}  ps_fx={ps_fx:.6f}", flush=True)
 
@@ -228,7 +236,6 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
             qi = tk.quarterly_financials
             qb = tk.quarterly_balance_sheet
 
-            # helper functions (same as original)
             def find_row(df, *names):
                 if df is None or df.empty: return None
                 lower_idx = {str(idx).strip().lower(): idx for idx in df.index}
@@ -344,7 +351,6 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                         row[k] = round(row[k] * factor * ps_fx, 4)
                 return row
 
-            # try TTM, full year, last 4 quarters
             row_2025 = None
             method_2025 = "none"
             inc_ttm = get_ttm_col(inc)
@@ -456,17 +462,19 @@ def fmp_get(endpoint, ticker, period=None, limit=5):
         pass
     return []
 
-def fetch_one_fmp(sym, ticker_str, target_cur, usd_aud, usd_idr, twd_usd):
+def fetch_one_fmp(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] (FMP) {ticker_str}", flush=True)
-    # profile to get currency
     profile = fmp_get("profile", ticker_str)
-    fin_cur = target_cur.upper()
+    fin_cur = None
     if profile and len(profile) > 0:
-        fin_cur = (profile[0].get("currency") or target_cur).upper()
+        fin_cur = (profile[0].get("currency") or None)
+    if not fin_cur:
+        fin_cur = fallback_currency(exchange)
+    else:
+        fin_cur = fin_cur.upper()
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
     print(f"  cur={fin_cur}  total_fx={total_fx:.6f}  ps_fx={ps_fx:.6f}", flush=True)
 
-    # annual statements
     inc_annual = fmp_get("income-statement", ticker_str, limit=1)
     bal_annual = fmp_get("balance-sheet-statement", ticker_str, limit=1)
     row_2025 = {f: None for f in FIELDS}
@@ -486,7 +494,6 @@ def fetch_one_fmp(sym, ticker_str, target_cur, usd_aud, usd_idr, twd_usd):
         row_2025["totalDebt"]   = safe(stmt.get("totalDebt"), div, total_fx)
         row_2025["totalEquity"] = safe(stmt.get("totalStockholdersEquity"), div, total_fx)
 
-    # quarterly for 2026 + fallback for 2025
     inc_quarterly = fmp_get("income-statement", ticker_str, period="quarter", limit=20)
     bal_quarterly = fmp_get("balance-sheet-statement", ticker_str, period="quarter", limit=20)
 
@@ -502,13 +509,11 @@ def fetch_one_fmp(sym, ticker_str, target_cur, usd_aud, usd_idr, twd_usd):
         ni_sum = sum(safe(q.get("netIncome")) or 0 for q in inc_qs)
         eps_sum = sum(safe(q.get("earningsPerShare") or q.get("eps")) or 0 for q in inc_qs)
         dps_sum = sum(safe(q.get("dividendPerShare")) or 0 for q in inc_qs if q.get("dividendPerShare") is not None)
-
         row["revenue"]     = round(rev_sum * factor / div * total_fx, 4) if rev_sum else None
         row["grossProfit"] = round(gp_sum * factor / div * total_fx, 4) if gp_sum else None
         row["netProfit"]   = round(ni_sum * factor / div * total_fx, 4) if ni_sum else None
         row["eps"]         = round(eps_sum * factor * ps_fx, 4) if eps_sum else None
         row["dps"]         = round(dps_sum * factor * ps_fx, 4) if dps_sum else None
-
         bal_qs = [q for q in bal_quarterly if q.get("calendarYear") == year]
         if bal_qs:
             last = bal_qs[-1]
@@ -524,7 +529,6 @@ def fetch_one_fmp(sym, ticker_str, target_cur, usd_aud, usd_idr, twd_usd):
     if row_2025.get("revenue") is None:
         row_2025 = annualise_quarters(LATEST_YEAR)
     row_2026 = annualise_quarters(CURRENT_YEAR)
-
     n_2026 = len([q for q in inc_quarterly if q.get("calendarYear") == CURRENT_YEAR])
     ann_2026 = {"method": "annualised_quarterly", "label": f"{n_2026*3}M", "quarters": n_2026}
     yd = {LATEST_YEAR: row_2025, CURRENT_YEAR: row_2026}
@@ -532,7 +536,7 @@ def fetch_one_fmp(sym, ticker_str, target_cur, usd_aud, usd_idr, twd_usd):
 
 def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     if USE_FMP:
-        yd, ann = fetch_one_fmp(sym, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
+        yd, ann = fetch_one_fmp(sym, ticker_str, hint_cur, exchange, usd_aud, usd_idr, twd_usd)
         if yd and any(v is not None for r in yd.values() for v in r.values()):
             return yd, ann
         print(f"  FMP empty, trying Yahoo...", flush=True)
@@ -1503,7 +1507,7 @@ def main():
     ok = 0
     for i, (sym, (name, exchange, ticker_str, currency, _div, hint_cur)) in enumerate(all_stocks.items()):
         if i > 0:
-            time.sleep(0.5)  # gentle rate limiting
+            time.sleep(0.5)
         try:
             yd, cur_ann = fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
             arrs = build_arrays(yd, sym, rates)
