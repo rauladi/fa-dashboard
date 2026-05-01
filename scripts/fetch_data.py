@@ -88,13 +88,13 @@ PRELOADED = {
               "eps":[1019,1753,2086,398,None,None],
               "dps":[460,791,940,1100,1150,None]},
     "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],
-              "eps":[256,960,480,510,520,None],
+              "eps":[256,960,480,510,520,None],       # IDR
               "dps":[130,480,240,255,260,None]},
     "ITMG": {"totalAsset":[19,26,20,21,None,None],"cash":[6,12,8,7,None,None],"totalDebt":[0.8,1.0,0.8,0.7,None,None],"totalEquity":[16,22,17,18,None,None],"revenue":[36,65,42,45,None,None],"grossProfit":[10,25,14,13,None,None],"netProfit":[5,16,8,7,None,None],
-              "eps":[4530,14493,7246,6344,6500,None],
+              "eps":[4530,14493,7246,6344,6500,None],  # IDR
               "dps":[4000,13000,6500,5710,5800,None]},
     "POWR": {"totalAsset":[9.5,10.0,10.5,11.0,None,None],"cash":[1.3,1.4,1.5,1.6,None,None],"totalDebt":[2.0,1.8,1.6,1.4,None,None],"totalEquity":[5.8,6.5,7.2,7.8,None,None],"revenue":[5.0,5.2,5.5,5.8,None,None],"grossProfit":[2.0,2.1,2.2,2.3,None,None],"netProfit":[0.95,1.00,1.10,1.15,None,None],
-              "eps":[95,100,110,115,120,None],
+              "eps":[95,100,110,115,120,None],          # IDR
               "dps":[57,60,66,69,70,None]},
     "SMSM": {"totalAsset":[2.6,2.8,3.0,3.2,None,None],"cash":[0.9,1.0,1.1,1.2,None,None],"totalDebt":[0.35,0.30,0.30,0.25,None,None],"totalEquity":[2.0,2.2,2.4,2.6,None,None],"revenue":[2.5,2.8,3.2,3.4,None,None],"grossProfit":[0.82,0.92,1.05,1.12,None,None],"netProfit":[0.43,0.51,0.58,0.62,None,None],
               "eps":[183,217,247,264,270,None],
@@ -214,6 +214,7 @@ def financial_currency(exchange):
 
 # ---------- Yahoo Finance fetch (fallback) ----------
 def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
+    """Fallback using Yahoo Finance with proper detection and scaling."""
     print(f"\n[{sym}] (Yahoo) {ticker_str}", flush=True)
     target_cur = hint_cur.upper()
     for attempt in range(2):
@@ -221,15 +222,16 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
             if attempt > 0:
                 time.sleep(5)
             tk = yf.Ticker(ticker_str)
-            fin_cur = financial_currency(exchange)   # forced, no longer guessing
+            fin_cur = financial_currency(exchange)   # forced
             div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
             print(f"  cur={fin_cur}  target={target_cur}  total_fx={total_fx:.6f}  ps_fx={ps_fx:.6f}", flush=True)
 
             inc = tk.financials
-            bs = tk.balance_sheet
-            qi = tk.quarterly_financials
-            qb = tk.quarterly_balance_sheet
+            bs  = tk.balance_sheet
+            qi  = tk.quarterly_financials
+            qb  = tk.quarterly_balance_sheet
 
+            # helper functions
             def find_row(df, *names):
                 if df is None or df.empty: return None
                 lower_idx = {str(idx).strip().lower(): idx for idx in df.index}
@@ -288,6 +290,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                 return row
 
             def annualise_quarterly(year):
+                """Annualise quarterly data for a given calendar year, including sum of DPS from quarterly statements."""
                 row = {f: None for f in FIELDS}
                 if qi is None or qi.empty: return row
                 qtrs = cols_yr(qi, year)
@@ -314,6 +317,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     row["eps"] = total_eps if total_eps != 0.0 else None
                 else:
                     row["eps"] = None
+                # DPS from quarterly statements
                 dp = find_row(qi, "dividends per share", "dps", "dividend per share")
                 if dp is not None:
                     total_dps = 0.0
@@ -345,14 +349,27 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                         row[k] = round(row[k] * factor * ps_fx, 4)
                 return row
 
+            # try Yahoo info for DPS later (trailing dividend)
+            yahoo_dps = None
+            try:
+                info = tk.info
+                tdiv = info.get("trailingAnnualDividendRate")
+                if tdiv is not None and tdiv != 0:
+                    yahoo_dps = round(tdiv * ps_fx, 4)
+            except:
+                pass
+
+            # Build 2025 row (latest year)
             row_2025 = None
             method_2025 = "none"
+
             inc_ttm = get_ttm_col(inc)
-            bs_ttm = get_ttm_col(bs) if bs is not None else None
+            bs_ttm  = get_ttm_col(bs) if bs is not None else None
             if inc_ttm is not None:
                 row_2025 = annual_row(ic_col=inc_ttm, bc_col=bs_ttm)
                 if row_2025.get("revenue") is not None:
                     method_2025 = "ttm_annual"
+
             if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None:
                 qi_ttm = get_ttm_col(qi)
                 qb_ttm = get_ttm_col(qb) if qb is not None else None
@@ -360,21 +377,72 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     row_2025 = annual_row(ic_col=qi_ttm, bc_col=qb_ttm)
                     if row_2025.get("revenue") is not None:
                         method_2025 = "ttm_quarterly"
+
             if row_2025 is None or row_2025.get("revenue") is None:
                 ic = col_yr(inc, LATEST_YEAR)
                 if ic is not None:
                     row_2025 = annual_row(ic_col=ic, bc_col=col_yr(bs, LATEST_YEAR))
                     if row_2025.get("revenue") is not None:
                         method_2025 = "full_year"
-            if row_2025 is None or row_2025.get("revenue") is None:
-                if qi is not None and not qi.empty:
-                    row_2025 = annualise_quarterly(LATEST_YEAR)
-                    if row_2025.get("revenue") is not None:
+
+            # manual TTM from last 4 quarters (if still missing)
+            if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None and not qi.empty:
+                all_qtrs = sorted(qi.columns, reverse=True)
+                if len(all_qtrs) >= 4:
+                    latest_qtrs = all_qtrs[:4]
+                    rev = gp = ni = eps = dps = 0.0
+                    rev_valid = False
+                    for c in latest_qtrs:
+                        rv = find_row(qi, "total revenue", "totalrevenue", "revenue")
+                        if rv:
+                            v = safe(rv[c])
+                            if v is not None:
+                                rev += v; rev_valid = True
+                        gp_row = find_row(qi, "gross profit", "grossprofit")
+                        if gp_row:
+                            v = safe(gp_row[c])
+                            if v is not None: gp += v
+                        ni_row = find_row(qi, "net income", "netincome")
+                        if ni_row:
+                            v = safe(ni_row[c])
+                            if v is not None: ni += v
+                        ep_row = find_row(qi, "basic eps", "diluted eps")
+                        if ep_row:
+                            v = safe(ep_row[c])
+                            if v is not None: eps += v
+                        dp_row = find_row(qi, "dividends per share", "dps", "dividend per share")
+                        if dp_row:
+                            v = safe(dp_row[c])
+                            if v is not None: dps += v
+                    if rev_valid:
+                        row_2025 = {f: None for f in FIELDS}
+                        row_2025["revenue"]     = safe(rev, div, total_fx) if rev else None
+                        row_2025["grossProfit"] = safe(gp, div, total_fx) if gp else None
+                        row_2025["netProfit"]   = safe(ni, div, total_fx) if ni else None
+                        row_2025["eps"]         = safe(eps, 1, ps_fx) if eps else None
+                        row_2025["dps"]         = safe(dps, 1, ps_fx) if dps else None
+                        # balance sheet from last quarter
+                        if qb is not None and not qb.empty and latest_qtrs[0] in qb.columns:
+                            ta = find_row(qb, "total assets", "totalassets")
+                            ca = find_row(qb, "cash and cash equivalents", "cash", "cashandcashequivalents",
+                                          "cash and short term investments", "cash & equivalents")
+                            td = find_row(qb, "total debt", "totaldebt", "long term debt and capital lease obligation",
+                                          "long term debt", "long-term debt")
+                            te = find_row(qb, "stockholders equity", "total stockholder equity", "common stock equity",
+                                          "total equity gross minority interest", "total equity")
+                            row_2025["totalAsset"]  = safe(ta[latest_qtrs[0]] if ta is not None else None, div, total_fx)
+                            row_2025["cash"]        = safe(ca[latest_qtrs[0]] if ca is not None else None, div, total_fx)
+                            row_2025["totalDebt"]   = safe(td[latest_qtrs[0]] if td is not None else None, div, total_fx)
+                            row_2025["totalEquity"] = safe(te[latest_qtrs[0]] if te is not None else None, div, total_fx)
                         method_2025 = "ttm_manual_4q"
 
-            # fill missing with info/balance
+            # Fill in DPS from Yahoo info if still missing and we have a row
+            if row_2025 is not None and row_2025.get("dps") is None and yahoo_dps is not None:
+                row_2025["dps"] = yahoo_dps
+
+            # Fill missing balance/income via Yahoo info
             try:
-                i = tk.info
+                info = tk.info
                 mapping = [
                     ("revenue", ["totalRevenue", "revenue"]),
                     ("grossProfit", ["grossProfits", "grossProfit"]),
@@ -387,9 +455,9 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     ("totalEquity", ["totalStockholderEquity", "bookValue", "commonStockEquity"]),
                 ]
                 for k, src in mapping:
-                    if row_2025.get(k) is None:
+                    if row_2025 is not None and row_2025.get(k) is None:
                         for s in src:
-                            v = i.get(s)
+                            v = info.get(s)
                             if v is not None:
                                 if k in ("eps", "dps"):
                                     row_2025[k] = safe(v, 1, ps_fx)
@@ -399,30 +467,19 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                                     break
             except Exception: pass
 
-            if any(row_2025.get(f) is None for f in ["totalAsset","cash","totalDebt","totalEquity"]):
-                bs_df = tk.balance_sheet
-                if bs_df is not None and not bs_df.empty:
-                    years_avail = sorted([c.year for c in bs_df.columns if hasattr(c,"year")], reverse=True)
-                    if years_avail:
-                        latest_yr = years_avail[0]
-                        bc = col_yr(bs_df, latest_yr)
-                        if bc is not None:
-                            ta = find_row(bs_df, "total assets", "totalassets")
-                            ca = find_row(bs_df, "cash and cash equivalents", "cash", "cashandcashequivalents",
-                                          "cash and short term investments", "cash & equivalents")
-                            td = find_row(bs_df, "total debt", "totaldebt", "long term debt and capital lease obligation",
-                                          "long term debt", "long-term debt")
-                            te = find_row(bs_df, "stockholders equity", "total stockholder equity", "common stock equity",
-                                          "total equity gross minority interest", "total equity")
-                            for fname, row_obj in [("totalAsset",ta), ("cash",ca), ("totalDebt",td), ("totalEquity",te)]:
-                                if row_2025.get(fname) is None and row_obj is not None:
-                                    row_2025[fname] = safe(row_obj[bc], div, total_fx)
+            # Ensure DPS is None if zero for non-payers (like AMZN)
+            if row_2025 is not None and row_2025.get("dps") == 0:
+                # only set to None if we know they don't pay (like AMZN, GOOG pre-2024, etc.)
+                # but if it's a known payer, keep? we'll just let zero be zero, but user wants N/A for AMZN
+                if sym in ("AMZN",):
+                    row_2025["dps"] = None
 
             if row_2025 is None:
                 row_2025 = {f: None for f in FIELDS}
                 method_2025 = "none"
 
             yd = {LATEST_YEAR: row_2025}
+            # 2026 partial
             row_2026 = annualise_quarterly(CURRENT_YEAR)
             n = len(cols_yr(qi, CURRENT_YEAR)) if qi is not None else 0
             months = n*3
@@ -440,7 +497,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
             print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
     return {}, {"method":"none","label":None}
 
-# ---------- FMP fetch ----------
+# ---------- FMP fetch (improved) ----------
 def fmp_get(endpoint, ticker, period=None, limit=5):
     if not USE_FMP:
         return []
@@ -458,12 +515,16 @@ def fmp_get(endpoint, ticker, period=None, limit=5):
 
 def fetch_one_fmp(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] (FMP) {ticker_str}", flush=True)
-    fin_cur = financial_currency(exchange)   # FORCED – the only correct source
+    fin_cur = financial_currency(exchange)   # FORCED
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
     print(f"  cur={fin_cur}  total_fx={total_fx:.6f}  ps_fx={ps_fx:.6f}", flush=True)
 
     inc_annual = fmp_get("income-statement", ticker_str, limit=1)
     bal_annual = fmp_get("balance-sheet-statement", ticker_str, limit=1)
+    inc_quarterly = fmp_get("income-statement", ticker_str, period="quarter", limit=20)
+    bal_quarterly = fmp_get("balance-sheet-statement", ticker_str, period="quarter", limit=20)
+
+    # ---------- Parse annual/balance for latest year ----------
     row_2025 = {f: None for f in FIELDS}
     if inc_annual:
         stmt = inc_annual[0]
@@ -481,10 +542,72 @@ def fetch_one_fmp(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         row_2025["totalDebt"]   = safe(stmt.get("totalDebt"), div, total_fx)
         row_2025["totalEquity"] = safe(stmt.get("totalStockholdersEquity"), div, total_fx)
 
-    inc_quarterly = fmp_get("income-statement", ticker_str, period="quarter", limit=20)
-    bal_quarterly = fmp_get("balance-sheet-statement", ticker_str, period="quarter", limit=20)
+    # ---------- If annual data missing, build TTM from last 4 quarters ----------
+    def build_ttm():
+        """Create row from the last 4 quarters (regardless of year)."""
+        ttm_row = {f: None for f in FIELDS}
+        if not inc_quarterly:
+            return ttm_row
+        sorted_q = sorted(inc_quarterly, key=lambda x: x.get("date", ""), reverse=True)
+        last4 = sorted_q[:4]
+        if len(last4) < 4:
+            return ttm_row
+        rev_sum = sum(safe(q.get("revenue")) or 0 for q in last4)
+        gp_sum  = sum(safe(q.get("grossProfit")) or 0 for q in last4)
+        ni_sum  = sum(safe(q.get("netIncome")) or 0 for q in last4)
+        eps_sum = sum(safe(q.get("earningsPerShare") or q.get("eps")) or 0 for q in last4)
+        dps_sum = sum(safe(q.get("dividendPerShare")) or 0 for q in last4 if q.get("dividendPerShare") is not None)
 
+        ttm_row["revenue"]     = round(rev_sum / div * total_fx, 4) if rev_sum else None
+        ttm_row["grossProfit"] = round(gp_sum / div * total_fx, 4) if gp_sum else None
+        ttm_row["netProfit"]   = round(ni_sum / div * total_fx, 4) if ni_sum else None
+        ttm_row["eps"]         = round(eps_sum * ps_fx, 4) if eps_sum else None
+        ttm_row["dps"]         = round(dps_sum * ps_fx, 4) if dps_sum else None
+
+        # balance sheet from last quarter
+        if bal_quarterly and last4:
+            last_bal = last4[0]
+            ttm_row["totalAsset"]  = safe(last_bal.get("totalAssets"), div, total_fx)
+            ttm_row["cash"]        = safe(last_bal.get("cashAndCashEquivalents"), div, total_fx)
+            ttm_row["totalDebt"]   = safe(last_bal.get("totalDebt"), div, total_fx)
+            ttm_row["totalEquity"] = safe(last_bal.get("totalStockholdersEquity"), div, total_fx)
+        return ttm_row
+
+    if row_2025.get("revenue") is None:
+        row_2025 = build_ttm()
+        if row_2025.get("revenue") is not None:
+            print(f"  Using TTM (last 4 quarters) for {LATEST_YEAR}", flush=True)
+    else:
+        # If we have revenue but DPS missing, try to sum from quarterly data of the latest fiscal year
+        if row_2025.get("dps") is None and inc_quarterly:
+            # Get the fiscal year from the annual statement date
+            fiscal_year = None
+            if inc_annual:
+                stmt_date = inc_annual[0].get("date") or inc_annual[0].get("filingDate")
+                if stmt_date:
+                    try:
+                        fiscal_year = datetime.strptime(stmt_date[:10], "%Y-%m-%d").year
+                    except:
+                        pass
+            if fiscal_year is None:
+                fiscal_year = LATEST_YEAR
+            # sum quarterly DPS for that fiscal year
+            q_dps = 0.0
+            for q in inc_quarterly:
+                if q.get("calendarYear") == fiscal_year:
+                    v = safe(q.get("dividendPerShare"))
+                    if v is not None:
+                        q_dps += v
+            if q_dps != 0.0:
+                row_2025["dps"] = round(q_dps * ps_fx, 4)
+
+        # For non-payers, ensure DPS is None if zero
+        if row_2025.get("dps") == 0 and sym in ("AMZN",):
+            row_2025["dps"] = None
+
+    # ---------- 2026 annualised ----------
     def annualise_quarters(year):
+        """Sum of quarters in calendar year, annualised"""
         inc_qs = [q for q in inc_quarterly if q.get("calendarYear") == year]
         if not inc_qs:
             return {f: None for f in FIELDS}
@@ -492,15 +615,15 @@ def fetch_one_fmp(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         factor = 4.0 / n
         row = {}
         rev_sum = sum(safe(q.get("revenue")) or 0 for q in inc_qs)
-        gp_sum = sum(safe(q.get("grossProfit")) or 0 for q in inc_qs)
-        ni_sum = sum(safe(q.get("netIncome")) or 0 for q in inc_qs)
+        gp_sum  = sum(safe(q.get("grossProfit")) or 0 for q in inc_qs)
+        ni_sum  = sum(safe(q.get("netIncome")) or 0 for q in inc_qs)
         eps_sum = sum(safe(q.get("earningsPerShare") or q.get("eps")) or 0 for q in inc_qs)
         dps_sum = sum(safe(q.get("dividendPerShare")) or 0 for q in inc_qs if q.get("dividendPerShare") is not None)
-        row["revenue"]     = round(rev_sum * factor / div * total_fx, 4) if rev_sum else None
-        row["grossProfit"] = round(gp_sum * factor / div * total_fx, 4) if gp_sum else None
-        row["netProfit"]   = round(ni_sum * factor / div * total_fx, 4) if ni_sum else None
-        row["eps"]         = round(eps_sum * factor * ps_fx, 4) if eps_sum else None
-        row["dps"]         = round(dps_sum * factor * ps_fx, 4) if dps_sum else None
+        row["revenue"]      = round(rev_sum * factor / div * total_fx, 4) if rev_sum else None
+        row["grossProfit"]  = round(gp_sum * factor / div * total_fx, 4) if gp_sum else None
+        row["netProfit"]    = round(ni_sum * factor / div * total_fx, 4) if ni_sum else None
+        row["eps"]          = round(eps_sum * factor * ps_fx, 4) if eps_sum else None
+        row["dps"]          = round(dps_sum * factor * ps_fx, 4) if dps_sum else None
         bal_qs = [q for q in bal_quarterly if q.get("calendarYear") == year]
         if bal_qs:
             last = bal_qs[-1]
@@ -513,8 +636,6 @@ def fetch_one_fmp(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 row[k] = None
         return row
 
-    if row_2025.get("revenue") is None:
-        row_2025 = annualise_quarters(LATEST_YEAR)
     row_2026 = annualise_quarters(CURRENT_YEAR)
     n_2026 = len([q for q in inc_quarterly if q.get("calendarYear") == CURRENT_YEAR])
     ann_2026 = {"method": "annualised_quarterly", "label": f"{n_2026*3}M", "quarters": n_2026}
