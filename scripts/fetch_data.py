@@ -225,6 +225,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
 
             inc = tk.financials
             bs = tk.balance_sheet
+            # quarterly statements not needed for annual, but kept as fallback if annual missing
             qi = tk.quarterly_financials
             qb = tk.quarterly_balance_sheet
 
@@ -250,15 +251,12 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                 if df is None or df.empty: return []
                 return sorted([c for c in df.columns if hasattr(c,"year") and c.year==yr])
 
-            def get_ttm_col(df):
-                if df is None or df.empty: return None
-                for c in df.columns:
-                    col_str = str(c).strip().lower()
-                    if col_str == "ttm": return c
-                for c in df.columns:
-                    if "ttm" in str(c).lower(): return c
-                return None
-
-            def annual_row(ic_col=None, bc_col=None):
-                row = {f: None for f in FIELDS}
-                if inc is not None and ic_co
+            def find_value_from_statements(field, yr):
+                # Determine source statement
+                if field in ["totalAsset","cash","totalDebt","totalEquity"]:
+                    src_df = bs
+                elif field in ["revenue","grossProfit","netProfit","eps","dps"]:
+                    src_df = inc
+                else:
+                    src_df = inc
+                if src
