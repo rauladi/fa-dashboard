@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests --quiet
+        run: pip install requests yfinance --quiet
 
       - name: Fetch data
         env:
