@@ -1,7 +1,8 @@
 name: Refresh FA Dashboard Data
 
 on:
-  push:                 # temporary trigger for debugging; remove after success
+  schedule:
+    - cron: '0 6 5 * *'
   workflow_dispatch:
 
 jobs:
@@ -20,18 +21,7 @@ jobs:
       - name: Install dependencies
         run: pip install requests --quiet
 
-      - name: Debug – check secret availability
-        env:
-          TEST_KEY: ${{ secrets.FMP_API_KEY }}
-        run: |
-          if [ -z "$TEST_KEY" ]; then
-            echo "❌ FMP_API_KEY is EMPTY or not set. Check secret name and value."
-            exit 1
-          else
-            echo "✅ FMP_API_KEY is present (length ${#TEST_KEY})"
-          fi
-
-      - name: Fetch financial data
+      - name: Fetch data
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
         run: python scripts/fetch_data.py
@@ -42,4 +32,4 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data.json
           git diff --cached --quiet || git commit -m "Auto-refresh $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git push          git pu
+          git push origin HEAD
