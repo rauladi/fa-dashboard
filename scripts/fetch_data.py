@@ -1437,4 +1437,128 @@ CEO Hock Tan is renowned for disciplined M&A and cost management. The VMware acq
 ## Future Outlook
 AI networking demand is a major tailwind. VMware subscription transition will smooth revenue. Watch debt reduction progress and competitive dynamics in AI chips.""",
 }
+# ---------- LEADERSHIP ----------
+LEADERSHIP = {
+    "BHP": {"ceo": "Mike Henry (since 2020)", "cfo": "David Lamont (since 2021)", "track": "Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
+    "WDS": {"ceo": "Meg O'Neill (since 2021)", "cfo": "Graham Tiver (since 2020)", "track": "O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
+    "CBA": {"ceo": "Matt Comyn (since 2018)", "cfo": "Alan Docherty (since 2021)", "track": "Comyn led cloud migration to AWS, OpenAI partnership, digital transformation. Strong capital returns."},
+    "NAB": {"ceo": "Ross McEwan (since 2019)", "cfo": "Gary Lennon (since 2022)", "track": "McEwan led digital transformation, cost reduction, and capital management. Focus on business banking and home lending."},
+    "ANZ": {"ceo": "Shayne Elliott", "cfo": "Farhan Faruqui", "track": "Elliott has led ANZ's simplification strategy, focusing on core banking in Australia and New Zealand while exiting underperforming Asian retail businesses. The bank is investing heavily in digital platforms and AI."},
+    "BBRI": {"ceo": "Sunarso (since 2019)", "cfo": "Viviana Dyah Ayu (since 2020)", "track": "Sunarso drove 'BRIvolution' digital transformation, ultra-micro holding integration, record BRImo adoption."},
+    "ADRO": {"ceo": "Garibaldi 'Boy' Thohir (since 2008)", "cfo": "Jodhi Pangestu", "track": "Thohir led spin-off of thermal coal, pivot to metcoal, aluminum smelter, and renewable energy."},
+    "SMSM": {"ceo": "Tony S. Budiman", "cfo": "Suryadi", "track": "Consistent execution, export growth to 45+ countries, maintained debt-free balance sheet, EV product R&D."},
+    "UNTR": {"ceo": "Darma Setiawan (since 2015)", "cfo": "Yunus Saifulhak", "track": "Maintained Komatsu exclusivity, PAMA largest contractor, diversification into gold and renewables."},
+    "ITMG": {"ceo": "M. Qodrat (since 2022)", "cfo": "Agus Suhendar", "track": "Focused on high dividends, production efficiency, solar hybrid projects. Banpu parent strategy influence."},
+    "POWR": {"ceo": "M. Firdaus", "cfo": "R. Agus", "track": "Conservative management, long-term PPAs, stable operations. Slow to adopt renewables but exploring solar."},
+    "MPMX": {"ceo": "Djoko Susanto", "cfo": "Iwan Setiawan", "track": "Stable Honda distribution, integrated financing and rental. Investing in EV motorcycle transition."},
+    "BTPS": {"ceo": "Ridwan Kurniawan", "cfo": "Dewi Sartika", "track": "Focused on sharia microfinance, digital group meetings, partnership with Baznas. Small scale but niche."},
+    "DMAS": {"ceo": "Takeshi Koyama (Sojitz)", "cfo": "Santi Widjaja", "track": "Japanese parent backing, data centre land sales driving growth. Green estate certification."},
+    "SPTO": {"ceo": "Widjaja (family)", "cfo": "Lukman", "track": "Long-term TOTO exclusivity maintained. Expanding to Tier-2 cities. High dividend yield."},
+    "TSM": {"ceo": "C.C. Wei (since 2018)", "cfo": "Wendell Huang", "track": "Wei led 2nm/3nm ramp, global expansion (Arizona, Japan, Germany). Capital discipline, high R&D."},
+    "V": {"ceo": "Ryan McInerney (since 2023)", "cfo": "Chris Suh (since 2023)", "track": "Focus on tokenisation, cross-border solutions, crypto partnerships. Strong capital returns."},
+    "MA": {"ceo": "Michael Miebach (since 2020)", "cfo": "Sachin Mehra", "track": "Multi-rail expansion, crypto partnerships, B2B payments. Consistent growth."},
+    "PBR-A": {"ceo": "Magda Chambriard (since 2024)", "cfo": "Fernando Melgarejo", "track": "Focus on pre-salt growth, debt reduction, and shareholder returns. Political interference risk."},
+    "MSFT": {"ceo": "Satya Nadella (since 2014)", "cfo": "Amy Hood (since 2013)", "track": "Cloud and AI leadership, OpenAI partnership, Activision acquisition. Excellent capital allocation."},
+    "AMZN": {"ceo": "Andy Jassy (since 2021)", "cfo": "Brian Olsavsky (since 2015)", "track": "Jassy focused on cost optimisation, AWS growth, AI (Bedrock). Healthcare and satellite long-term bets."},
+    "AAPL": {"ceo": "Tim Cook (since 2011)", "cfo": "Luca Maestri (since 2014)", "track": "Services expansion, ecosystem lock-in, capital returns. Vision Pro and AI integration next."},
+    "META": {"ceo": "Mark Zuckerberg (founder)", "cfo": "Susan Li (since 2022)", "track": "Year of Efficiency, AI (Llama), metaverse long-term bet. Aggressive buybacks."},
+    "NVDA": {"ceo": "Jensen Huang (founder)", "cfo": "Colette Kress (since 2013)", "track": "AI dominance, Blackwell ramp, CUDA moat. Exceptional execution."},
+    "GOOG": {"ceo": "Sundar Pichai (since 2015)", "cfo": "Ruth Porat (since 2015)", "track": "AI first (Gemini, DeepMind), cloud growth, cost efficiency. Antitrust headwinds."},
+    "BKNG": {"ceo": "Glenn Fogel (since 2017)", "cfo": "David Goulden", "track": "Merchant model expansion, US growth, connected trip. Strong capital returns."},
+    "AVGO": {"ceo": "Hock Tan", "cfo": "Kirsten Spears", "track": "Tan has built Broadcom into a semiconductor and infrastructure software powerhouse through a disciplined acquisition strategy (VMware, CA Technologies). The company is a key beneficiary of the AI infrastructure build-out."},
+    "CVX": {"ceo": "Mike Wirth (since 2018)", "cfo": "Pierre Breber (since 2019)", "track": "Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."},
+    "AXP": {"ceo": "Stephen Squeri (since 2018)", "cfo": "Christophe Le Caillec (since 2023)", "track": "Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."},
+    "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
+}
 
+def build_profile_with_insights(sym, m, exchange, currency):
+    base = PROFILES.get(sym, "## Business Model Canvas\nGeneric analysis for {sym}.")
+    leader = LEADERSHIP.get(sym, {"ceo": "N/A", "cfo": "N/A", "track": "No data."})
+    leadership_section = f"\n\n## Leadership\n**CEO:** {leader['ceo']}  \n**CFO:** {leader['cfo']}  \n**Track Record:** {leader['track']}"
+    return base + leadership_section
+
+def generate_static_profiles(out):
+    for sym, st_data in out["stocks"].items():
+        exchange = st_data["exchange"]
+        currency = st_data["currency"]
+        rev_arr = st_data["revenue"]
+        np_arr = st_data["netProfit"]
+        gp_arr = st_data["grossProfit"]
+        te_arr = st_data["totalEquity"]
+        td_arr = st_data["totalDebt"]
+        def valid(arr): return [v for v in arr if v is not None and v != 0]
+        def cagr(arr):
+            v = valid(arr)
+            if len(v) < 2: return None
+            start, end = v[0], v[-1]
+            years = len(v) - 1
+            if start <= 0 or end <= 0: return None
+            return (pow(end/start, 1/years)-1)*100
+        def avg_ratio(num_arr, den_arr):
+            ratios = [n/d * 100 for n, d in zip(num_arr, den_arr) if n is not None and d is not None and d != 0]
+            return sum(ratios)/len(ratios) if ratios else None
+        m = type('', (), {})()
+        m.cg = type('', (), {})()
+        m.cg.rev = cagr(rev_arr) or 0
+        m.cg.np = cagr(np_arr) or 0
+        m.av = type('', (), {})()
+        m.av.gpm = avg_ratio(gp_arr, rev_arr) or 0
+        m.av.npm = avg_ratio(np_arr, rev_arr) or 0
+        m.av.roe = avg_ratio(np_arr, te_arr) or 0
+        m.av.debtToEquity = avg_ratio(td_arr, te_arr) or 0
+        profile_text = build_profile_with_insights(sym, m, exchange, currency)
+        out["stocks"][sym]["profile"] = profile_text
+        out["stocks"][sym]["profileDate"] = NOW.isoformat()
+        out["stocks"][sym]["news"] = "For latest news, please refer to company announcements and recent filings."
+        out["stocks"][sym]["newsDate"] = NOW.isoformat()
+
+# ---------- main ----------
+def main():
+    usd_aud, usd_idr, twd_usd = get_rates()
+    rates = {"usd_aud": usd_aud, "usd_idr": usd_idr, "twd_usd": twd_usd}
+    all_stocks = {**STOCKS}
+    print(f"\nTotal stocks: {len(all_stocks)}\n{'='*50}", flush=True)
+
+    out = {
+        "generated": NOW.isoformat(),
+        "years": ALL_YEARS, "completedYears": COMPLETED,
+        "currentYear": CURRENT_YEAR, "latestYear": LATEST_YEAR,
+        "rates": {"usdToAud":usd_aud,"usdToIdr":usd_idr,"twdToUsd":twd_usd,
+                  "audToUsd":round(1.0/usd_aud,6),"idrToUsd":round(1.0/usd_idr,9)},
+        "fiscalYearEnd": FISCAL_YEAR_END,
+        "annualisation": {}, "stocks": {}
+    }
+
+    ok = 0
+    for i, (sym, (name, exchange, ticker_str, currency, _div, hint_cur)) in enumerate(all_stocks.items()):
+        if i > 0:
+            time.sleep(0.6)
+        try:
+            yd, cur_ann = fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
+            arrs = build_arrays(yd, sym, rates)
+            src = "fmp" if (USE_FMP and yd) else "yahoo"
+            if any(v is not None for r in yd.values() for v in r.values()):
+                ok += 1
+        except Exception as e:
+            print(f"  [{sym}] Exception: {e}", flush=True)
+            arrs = build_arrays({}, sym, rates)
+            src = "fallback"
+            cur_ann = {"method":"none","label":None}
+
+        out["stocks"][sym] = {
+            "name": name, "exchange": exchange, "currency": currency,
+            "ticker": ticker_str, "source": src, "fyEndMonth": FISCAL_YEAR_END.get(sym, 12)
+        }
+        out["stocks"][sym].update(arrs)
+        out["annualisation"][sym] = cur_ann
+
+    generate_static_profiles(out)
+
+    base_dir = os.environ.get("GITHUB_WORKSPACE") or os.path.dirname(os.path.abspath(__file__))
+    path = os.path.join(base_dir, "data.json")
+    with open(path, "w") as f:
+        json.dump(out, f, indent=2)
+    print(f"\n{'='*50}\nWritten: {path}\nLive data: {ok}/{len(all_stocks)}\n{'='*50}", flush=True)
+
+if __name__ == "__main__":
+    main()
