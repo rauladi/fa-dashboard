@@ -23,17 +23,7 @@ jobs:
       - name: Install dependencies
         run: pip install requests --quiet
 
-      - name: Debug - check if secret is set
-        env:
-          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
-        run: |
-          if [ -z "$FMP_API_KEY" ]; then
-            echo "ERROR: FMP_API_KEY is empty! Check your GitHub secret."
-          else
-            echo "FMP_API_KEY is set (length: ${#FMP_API_KEY})"
-          fi
-
-      - name: Fetch financial data & generate AI profiles
+      - name: Fetch financial data
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
         run: python scripts/fetch_data.py
