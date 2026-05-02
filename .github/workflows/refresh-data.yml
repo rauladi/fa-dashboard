@@ -2,8 +2,8 @@ name: Refresh FA Dashboard Data
 
 on:
   schedule:
-    - cron: '0 6 5 * *'   # 5th of every month at 06:00 UTC
-  workflow_dispatch:        # manual trigger
+    - cron: '0 6 5 * *'
+  workflow_dispatch:
 
 jobs:
   refresh:
@@ -21,7 +21,17 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests --quiet   # FMP script only uses requests, not yfinance
+        run: pip install requests --quiet
+
+      - name: Debug - check if secret is set
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+        run: |
+          if [ -z "$FMP_API_KEY" ]; then
+            echo "ERROR: FMP_API_KEY is empty! Check your GitHub secret."
+          else
+            echo "FMP_API_KEY is set (length: ${#FMP_API_KEY})"
+          fi
 
       - name: Fetch financial data & generate AI profiles
         env:
