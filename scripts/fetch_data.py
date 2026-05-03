@@ -375,6 +375,8 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                 if bal_missing:
                     # Try full-year annual balance sheet
                     bc_full = col_yr(bs, LATEST_YEAR)
+                    if bc_full is None and bs is not None and not bs.empty:
+                        bc_full = bs.columns[-1]   # fallback to latest column
                     if bc_full is not None and bs is not None:
                         ta = find_row(bs, "total assets", "totalassets",
                                       "totalassets")
