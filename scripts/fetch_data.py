@@ -361,28 +361,8 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                             row_2025["cash"]        = safe(ca[latest_qtrs[0]] if ca is not None else None, div, total_fx)
                             row_2025["totalDebt"]   = safe(td[latest_qtrs[0]] if td is not None else None, div, total_fx)
                             row_2025["totalEquity"] = safe(te[latest_qtrs[0]] if te is not None else None, div, total_fx)
-                        method_2025 = "ttm_manual_4q"
-# ------------------------------------------------------------------
-# If balance sheet fields are still missing, try LATEST_YEAR annual bs
-bal_missing = any(row_2025.get(f) is None for f in
-                  ("totalAsset","cash","totalDebt","totalEquity"))
-if bal_missing:
-    ic_full = col_yr(inc, LATEST_YEAR)
-    bc_full = col_yr(bs, LATEST_YEAR)
-    if bc_full is not None and bs is not None:
-        # Use the already defined find_row and safe functions
-        row_bal = {}
-        ta = find_row(bs, "total assets", "totalassets", ...)  # same list as before
-        ca = find_row(bs, "cash ...")
-        td = find_row(bs, "total debt", ...)
-        te = find_row(bs, "stockholders equity", ...)
-        row_bal["totalAsset"]  = safe(ta[bc_full] if ta is not None else None, div, total_fx)
-        row_bal["cash"]        = safe(ca[bc_full] if ca is not None else None, div, total_fx)
-        row_bal["totalDebt"]   = safe(td[bc_full] if td is not None else None, div, total_fx)
-        row_bal["totalEquity"] = safe(te[bc_full] if te is not None else None, div, total_fx)
-        for k, v in row_bal.items():
-            if row_2025.get(k) is None:
-                row_2025[k] = v
+                            method_2025 = "ttm_manual_4q"
+
             # ----------------------------------------------------------------------
             # Fill missing balance sheet fields from full-year (LATEST_YEAR) statement
             # Applies after any TTM or manual 4Q build
@@ -417,7 +397,8 @@ if bal_missing:
                     }
                     for k, v in row_bal.items():
                         if row_2025.get(k) is None:
-                            row_2025[k] = v    
+                            row_2025[k] = v
+
             # ---- IMPORTANT: fall back to yahoo info if any field missing ----
             try:
                 info = tk.info
