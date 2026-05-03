@@ -210,6 +210,24 @@ def financial_currency(exchange):
     if exchange == "ASX": return "AUD"
     return "USD"
 
+# ---------- Direct Yahoo JSON balance‑sheet fetch (bypasses yfinance parsing) ----------
+def fetch_balance_sheet_json(ticker_str):
+    """Return the latest quarterly balance‑sheet dict from Yahoo's raw JSON,
+    or an empty dict on failure."""
+    url = f"https://query1.finance.yahoo.com/v8/finance/balance-sheet/{ticker_str}?period1=0&period2=9999999999&interval=3mo&events=balanceSheet"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        resp = requests.get(url, headers=headers, timeout=10)
+        if resp.status_code != 200:
+            return {}
+        data = resp.json()
+        sheets = data.get("balanceSheetResult", {}).get("balanceSheet", [])
+        if not sheets:
+            return {}
+        return sheets[0]
+    except Exception:
+        return {}
+
 # ---------- Yahoo Finance fetch (fallback) ----------
 def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] (Yahoo) {ticker_str}", flush=True)
@@ -230,15 +248,12 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
 
             # --- Enhanced find_row with fuzzy fallback ---
             def find_row(df, *names, fuzzy_keywords=None):
-                """Return row from df matching any exact name, or fall back to fuzzy keywords (substring match)."""
                 if df is None or df.empty: return None
                 lower_idx = {str(idx).strip().lower(): idx for idx in df.index}
-                # Exact match
                 for n in names:
                     key = n.strip().lower()
                     if key in lower_idx:
                         return df.loc[lower_idx[key]]
-                # Fuzzy fallback: if fuzzy_keywords provided, search index for any keyword
                 if fuzzy_keywords:
                     for idx_name, idx_obj in lower_idx.items():
                         for kw in fuzzy_keywords:
@@ -269,7 +284,6 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     if "ttm" in str(c).lower(): return c
                 return None
 
-            # Helper to build one row from income / balance sheet using given columns
             def annual_row(ic_col=None, bc_col=None):
                 row = {f: None for f in FIELDS}
                 if inc is not None and ic_col is not None:
@@ -322,7 +336,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
             bc = col_yr(bs, LATEST_YEAR)
             if ic is not None:
                 if bc is None and bs is not None and not bs.empty:
-                    bc = bs.columns[-1]   # fallback to latest annual column
+                    bc = bs.columns[-1]
                 row_2025 = annual_row(ic_col=ic, bc_col=bc)
                 if row_2025.get("revenue") is not None:
                     method_2025 = "full_year"
@@ -387,14 +401,13 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                         row_2025["netProfit"]   = safe(ni, div, total_fx) if ni else None
                         row_2025["eps"]         = safe(eps, 1, ps_fx) if eps else None
                         row_2025["dps"]         = safe(dps, 1, ps_fx) if dps else None
-                        # Balance sheet from latest quarter
                         if qb is not None and not qb.empty and latest_qtrs[0] in qb.columns:
-                            bs_row = annual_row(ic_col=None, bc_col=latest_qtrs[0])  # reuse bs extraction
+                            bs_row = annual_row(ic_col=None, bc_col=latest_qtrs[0])
                             for k in ["totalAsset","cash","totalDebt","totalEquity"]:
                                 row_2025[k] = bs_row.get(k)
                         method_2025 = "ttm_manual_4q"
 
-            # -------- Fill missing balance sheet fields from best available source --------
+            # ---------- Balance‑sheet fallback: first via yfinance annual/quarterly, then direct JSON ----------
             if row_2025 is not None:
                 bal_missing = any(row_2025.get(f) is None for f in
                                   ("totalAsset", "cash", "totalDebt", "totalEquity"))
@@ -404,7 +417,6 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     if bc_full is None and bs is not None and not bs.empty:
                         bc_full = bs.columns[-1]
                     if bc_full is not None and bs is not None:
-                        # Use the updated find_row with fuzzy
                         ta = find_row(bs, "total assets", "totalassets",
                                       "total aset", "jumlah aset",
                                       fuzzy_keywords=["asset"])
@@ -435,7 +447,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                             if row_2025.get(k) is None:
                                 row_2025[k] = v
 
-                    # If still missing, try latest quarter's balance sheet
+                    # If still missing, try latest quarter's balance sheet via yfinance
                     if any(row_2025.get(f) is None for f in ("totalAsset","cash","totalDebt","totalEquity")):
                         if qb is not None and not qb.empty:
                             qb_cols = sorted(qb.columns, reverse=True)
@@ -471,6 +483,35 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                                     if row_2025.get(k) is None:
                                         row_2025[k] = v
 
+                    # Final fallback: direct Yahoo JSON (bypass yfinance parsing)
+                    if any(row_2025.get(f) is None for f in ("totalAsset","cash","totalDebt","totalEquity")):
+                        print("  Trying direct Yahoo JSON for balance sheet...", flush=True)
+                        bs_json = fetch_balance_sheet_json(ticker_str)
+                        if bs_json:
+                            def json_find_key(target_keys, fuzzy_keys=None):
+                                for k in target_keys:
+                                    if k in bs_json:
+                                        return bs_json[k]
+                                if fuzzy_keys:
+                                    for actual_key in bs_json:
+                                        kl = actual_key.lower()
+                                        for fk in fuzzy_keys:
+                                            if fk in kl:
+                                                return bs_json[actual_key]
+                                return None
+                            json_ta = json_find_key(["totalAssets", "totalAsset", "Total Assets"], ["asset"])
+                            json_ca = json_find_key(["cashAndCashEquivalents", "cash", "Cash"], ["cash"])
+                            json_td = json_find_key(["totalDebt", "longTermDebt", "Total Debt"], ["debt","utang"])
+                            json_te = json_find_key(["totalStockholderEquity", "totalEquity", "Total Equity"], ["equity","ekuitas"])
+                            if json_ta is not None:
+                                row_2025["totalAsset"]  = safe(json_ta, div, total_fx)
+                            if json_ca is not None:
+                                row_2025["cash"]        = safe(json_ca, div, total_fx)
+                            if json_td is not None:
+                                row_2025["totalDebt"]   = safe(json_td, div, total_fx)
+                            if json_te is not None:
+                                row_2025["totalEquity"] = safe(json_te, div, total_fx)
+
             # ---- IMPORTANT: fall back to yahoo info if any field missing ----
             try:
                 info = tk.info
@@ -504,6 +545,13 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
             # For non‑payers, set DPS to None if zero
             if sym in ("AMZN",) and row_2025 is not None and row_2025.get("dps") == 0:
                 row_2025["dps"] = None
+
+            # Sanity check DPS scaling: if >5x max pre‑loaded DPS, set to None
+            if row_2025 is not None and row_2025.get("dps") is not None:
+                pre_dps = PRELOADED.get(sym, {}).get("dps", [])
+                valid_dps = [v for v in pre_dps if v is not None and v > 0]
+                if valid_dps and row_2025["dps"] > 5 * max(valid_dps):
+                    row_2025["dps"] = None
 
             if row_2025 is None:
                 row_2025 = {f: None for f in FIELDS}
@@ -602,7 +650,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
             print(f"  FAIL (attempt {attempt+1}): {e}", flush=True)
     return {}, {"method":"none","label":None}
 
-# ---------- FMP fetch ----------
+# ---------- FMP fetch (unchanged) ----------
 def fmp_get(endpoint, ticker, period=None, limit=5):
     if not USE_FMP:
         return []
