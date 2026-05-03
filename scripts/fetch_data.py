@@ -211,10 +211,11 @@ def financial_currency(exchange):
     return "USD"
 
 # ---------- Direct Yahoo JSON balance‑sheet fetch (bypasses yfinance parsing) ----------
-def fetch_balance_sheet_json(ticker_str):
-    """Return the latest quarterly balance‑sheet dict from Yahoo's raw JSON,
-    or an empty dict on failure."""
-    url = f"https://query1.finance.yahoo.com/v8/finance/balance-sheet/{ticker_str}?period1=0&period2=9999999999&interval=3mo&events=balanceSheet"
+def fetch_balance_sheet_json(ticker_str, frequency="quarterly"):
+    """Return the latest balance‑sheet dict from Yahoo's raw JSON.
+    frequency: 'quarterly' or 'annual'."""
+    interval = "3mo" if frequency == "quarterly" else "12mo"
+    url = f"https://query1.finance.yahoo.com/v8/finance/balance-sheet/{ticker_str}?period1=0&period2=9999999999&interval={interval}&events=balanceSheet"
     headers = {"User-Agent": "Mozilla/5.0"}
     try:
         resp = requests.get(url, headers=headers, timeout=10)
@@ -224,7 +225,7 @@ def fetch_balance_sheet_json(ticker_str):
         sheets = data.get("balanceSheetResult", {}).get("balanceSheet", [])
         if not sheets:
             return {}
-        return sheets[0]
+        return sheets[0]  # most recent
     except Exception:
         return {}
 
@@ -483,10 +484,12 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                                     if row_2025.get(k) is None:
                                         row_2025[k] = v
 
-                    # Final fallback: direct Yahoo JSON (bypass yfinance parsing)
+                    # Final fallback: direct Yahoo JSON (quarterly, then annual)
                     if any(row_2025.get(f) is None for f in ("totalAsset","cash","totalDebt","totalEquity")):
                         print("  Trying direct Yahoo JSON for balance sheet...", flush=True)
-                        bs_json = fetch_balance_sheet_json(ticker_str)
+                        bs_json = fetch_balance_sheet_json(ticker_str, "quarterly")
+                        if not bs_json:
+                            bs_json = fetch_balance_sheet_json(ticker_str, "annual")
                         if bs_json:
                             def json_find_key(target_keys, fuzzy_keys=None):
                                 for k in target_keys:
@@ -560,6 +563,13 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                 valid_dps = [v for v in pre_dps if v is not None and v > 0]
                 if valid_dps and row_2025["dps"] > 5 * max(valid_dps):
                     row_2025["dps"] = None
+
+            # EPS sanity check (similar to DPS)
+            if row_2025 is not None and row_2025.get("eps") is not None:
+                pre_eps = PRELOADED.get(sym, {}).get("eps", [])
+                valid_eps = [v for v in pre_eps if v is not None and v > 0]
+                if valid_eps and row_2025["eps"] > 5 * max(valid_eps):
+                    row_2025["eps"] = None
 
             if row_2025 is None:
                 row_2025 = {f: None for f in FIELDS}
@@ -650,6 +660,11 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                 valid_dps = [v for v in pre_dps if v is not None and v > 0]
                 if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps):
                     row["dps"] = None
+                # EPS sanity check
+                pre_eps = PRELOADED.get(sym, {}).get("eps", [])
+                valid_eps = [v for v in pre_eps if v is not None and v > 0]
+                if valid_eps and row.get("eps") is not None and row["eps"] > 5 * max(valid_eps):
+                    row["eps"] = None
                 return row
 
             row_2026 = annualise_quarterly(CURRENT_YEAR)
@@ -811,7 +826,7 @@ def build_arrays(yd, sym, rates):
         out_arrays[f] = arr
     return out_arrays
 
-# ---------- PROFILES ----------
+# ---------- PROFILES (unchanged) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -1655,7 +1670,7 @@ CEO Hock Tan is renowned for disciplined M&A and cost management. The VMware acq
 AI networking demand is a major tailwind. VMware subscription transition will smooth revenue. Watch debt reduction progress and competitive dynamics in AI chips.""",
 }
 
-# ---------- LEADERSHIP ----------
+# ---------- LEADERSHIP (unchanged) ----------
 LEADERSHIP = {
     "BHP": {"ceo": "Mike Henry (since 2020)", "cfo": "David Lamont (since 2021)", "track": "Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
     "WDS": {"ceo": "Meg O'Neill (since 2021)", "cfo": "Graham Tiver (since 2020)", "track": "O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
