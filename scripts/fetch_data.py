@@ -338,7 +338,9 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                         if ep_row:
                             v = safe(ep_row[c])
                             if v is not None: eps += v
-                        dp_row = find_row(qi, "dividends per share", "dps", "dividend per share")
+                        dp_row = find_row(qi, "dividends per share", "dps", "dividend per share",
+                                          "dividends per share basic", "dividends per share diluted",
+                                          "dividends", "total dividends per share")
                         if dp_row:
                             v = safe(dp_row[c])
                             if v is not None: dps += v
@@ -361,43 +363,43 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                             row_2025["cash"]        = safe(ca[latest_qtrs[0]] if ca is not None else None, div, total_fx)
                             row_2025["totalDebt"]   = safe(td[latest_qtrs[0]] if td is not None else None, div, total_fx)
                             row_2025["totalEquity"] = safe(te[latest_qtrs[0]] if te is not None else None, div, total_fx)
-                            method_2025 = "ttm_manual_4q"
+                        method_2025 = "ttm_manual_4q"
 
             # ----------------------------------------------------------------------
             # Fill missing balance sheet fields from full-year (LATEST_YEAR) statement
             # Applies after any TTM or manual 4Q build
             # ----------------------------------------------------------------------
-            bal_missing = any(row_2025.get(f) is None for f in
-                              ("totalAsset", "cash", "totalDebt", "totalEquity"))
-            if bal_missing:
-                # Try full-year annual balance sheet
-                bc_full = col_yr(bs, LATEST_YEAR)
-                if bc_full is not None and bs is not None:
-                    # Reuse the same find_row helpers defined above
-                    ta = find_row(bs, "total assets", "totalassets",
-                                  "totalassets")
-                    ca = find_row(bs, "cash and cash equivalents", "cash",
-                                  "cashandcashequivalents",
-                                  "cash and short term investments",
-                                  "cash & equivalents")
-                    td = find_row(bs, "total debt", "totaldebt",
-                                  "long term debt and capital lease obligation",
-                                  "long term debt", "long-term debt")
-                    te = find_row(bs, "stockholders equity",
-                                  "total stockholder equity",
-                                  "common stock equity",
-                                  "total equity gross minority interest",
-                                  "total equity")
+            if row_2025 is not None:
+                bal_missing = any(row_2025.get(f) is None for f in
+                                  ("totalAsset", "cash", "totalDebt", "totalEquity"))
+                if bal_missing:
+                    # Try full-year annual balance sheet
+                    bc_full = col_yr(bs, LATEST_YEAR)
+                    if bc_full is not None and bs is not None:
+                        ta = find_row(bs, "total assets", "totalassets",
+                                      "totalassets")
+                        ca = find_row(bs, "cash and cash equivalents", "cash",
+                                      "cashandcashequivalents",
+                                      "cash and short term investments",
+                                      "cash & equivalents")
+                        td = find_row(bs, "total debt", "totaldebt",
+                                      "long term debt and capital lease obligation",
+                                      "long term debt", "long-term debt")
+                        te = find_row(bs, "stockholders equity",
+                                      "total stockholder equity",
+                                      "common stock equity",
+                                      "total equity gross minority interest",
+                                      "total equity")
 
-                    row_bal = {
-                        "totalAsset":  safe(ta[bc_full] if ta is not None else None, div, total_fx),
-                        "cash":        safe(ca[bc_full] if ca is not None else None, div, total_fx),
-                        "totalDebt":   safe(td[bc_full] if td is not None else None, div, total_fx),
-                        "totalEquity": safe(te[bc_full] if te is not None else None, div, total_fx),
-                    }
-                    for k, v in row_bal.items():
-                        if row_2025.get(k) is None:
-                            row_2025[k] = v
+                        row_bal = {
+                            "totalAsset":  safe(ta[bc_full] if ta is not None else None, div, total_fx),
+                            "cash":        safe(ca[bc_full] if ca is not None else None, div, total_fx),
+                            "totalDebt":   safe(td[bc_full] if td is not None else None, div, total_fx),
+                            "totalEquity": safe(te[bc_full] if te is not None else None, div, total_fx),
+                        }
+                        for k, v in row_bal.items():
+                            if row_2025.get(k) is None:
+                                row_2025[k] = v
 
             # ---- IMPORTANT: fall back to yahoo info if any field missing ----
             try:
@@ -467,11 +469,13 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     row["eps"] = total_eps if total_eps != 0.0 else None
                 else:
                     row["eps"] = None
-                    dp_row = find_row(qi, "dividends per share", "dps", "dividend per share", "dividends per share basic", "dividends per share diluted", "dividends", "total dividends per share")
-                if dp is not None:
+                dp_row = find_row(qi, "dividends per share", "dps", "dividend per share",
+                                  "dividends per share basic", "dividends per share diluted",
+                                  "dividends", "total dividends per share")
+                if dp_row is not None:
                     total_dps = 0.0
                     for c in qtrs:
-                        v = safe(dp[c])
+                        v = safe(dp_row[c])
                         if v is not None: total_dps += v
                     row["dps"] = total_dps if total_dps != 0.0 else None
                 else:
