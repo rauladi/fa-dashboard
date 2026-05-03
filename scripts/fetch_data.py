@@ -417,7 +417,7 @@ if bal_missing:
                     }
                     for k, v in row_bal.items():
                         if row_2025.get(k) is None:
-                            row_2025[k] = v
+                            row_2025[k] = v    
             # ---- IMPORTANT: fall back to yahoo info if any field missing ----
             try:
                 info = tk.info
