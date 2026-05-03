@@ -228,12 +228,22 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
             qi  = tk.quarterly_financials
             qb  = tk.quarterly_balance_sheet
 
-            def find_row(df, *names):
+            # --- Enhanced find_row with fuzzy fallback ---
+            def find_row(df, *names, fuzzy_keywords=None):
+                """Return row from df matching any exact name, or fall back to fuzzy keywords (substring match)."""
                 if df is None or df.empty: return None
                 lower_idx = {str(idx).strip().lower(): idx for idx in df.index}
+                # Exact match
                 for n in names:
                     key = n.strip().lower()
-                    if key in lower_idx: return df.loc[lower_idx[key]]
+                    if key in lower_idx:
+                        return df.loc[lower_idx[key]]
+                # Fuzzy fallback: if fuzzy_keywords provided, search index for any keyword
+                if fuzzy_keywords:
+                    for idx_name, idx_obj in lower_idx.items():
+                        for kw in fuzzy_keywords:
+                            if kw in idx_name:
+                                return df.loc[idx_obj]
                 return None
 
             def col_yr(df, yr):
@@ -259,49 +269,60 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     if "ttm" in str(c).lower(): return c
                 return None
 
+            # Helper to build one row from income / balance sheet using given columns
             def annual_row(ic_col=None, bc_col=None):
                 row = {f: None for f in FIELDS}
                 if inc is not None and ic_col is not None:
-                    rv = find_row(inc, "total revenue", "totalrevenue", "interest income", "interestincome", "revenue")
-                    gp = find_row(inc, "gross profit", "grossprofit", "net interest income", "netinterestincome")
-                    ni = find_row(inc, "net income", "netincome", "net income common stockholders", "net income common stockholders")
-                    ep = find_row(inc, "basic eps", "diluted eps")
+                    rv = find_row(inc, "total revenue", "totalrevenue", "interest income", "interestincome", "revenue",
+                                  fuzzy_keywords=["revenue","income"])
+                    gp = find_row(inc, "gross profit", "grossprofit", "net interest income", "netinterestincome",
+                                  fuzzy_keywords=["gross","profit"])
+                    ni = find_row(inc, "net income", "netincome", "net income common stockholders", "net income common stockholders",
+                                  fuzzy_keywords=["net income"])
+                    ep = find_row(inc, "basic eps", "diluted eps",
+                                  fuzzy_keywords=["eps"])
                     row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, total_fx)
                     row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, total_fx)
                     row["netProfit"]   = safe(ni[ic_col] if ni is not None else None, div, total_fx)
                     row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, ps_fx)
                     dp = find_row(inc, "dividends per share", "dividend per share", "dps",
                                   "dividends per share basic", "dividends per share diluted",
-                                  "dividends", "total dividends per share")
+                                  "dividends", "total dividends per share",
+                                  fuzzy_keywords=["dividend"])
                     row["dps"] = safe(dp[ic_col] if dp is not None else None, 1, ps_fx) if ic_col else None
                 if bs is not None and bc_col is not None:
                     ta = find_row(bs, "total assets", "totalassets",
-                                  "total aset", "jumlah aset")
+                                  "total aset", "jumlah aset",
+                                  fuzzy_keywords=["asset"])
                     ca = find_row(bs, "cash and cash equivalents", "cash", "cashandcashequivalents",
                                   "cash and short term investments", "cash & equivalents",
-                                  "kas dan setara kas")
-                    td = find_row(bs, "total debt", "totaldebt", "long term debt and capital lease obligation",
+                                  "kas dan setara kas",
+                                  fuzzy_keywords=["cash"])
+                    td = find_row(bs, "total debt", "totaldebt",
+                                  "long term debt and capital lease obligation",
                                   "long term debt", "long-term debt",
-                                  "total utang", "utang jangka panjang")
+                                  "total utang", "utang jangka panjang",
+                                  fuzzy_keywords=["debt","utang"])
                     te = find_row(bs, "stockholders equity", "total stockholder equity", "common stock equity",
                                   "total equity gross minority interest", "total equity",
-                                  "total ekuitas", "ekuitas")
+                                  "total ekuitas", "ekuitas",
+                                  fuzzy_keywords=["equity","ekuitas"])
                     row["totalAsset"]  = safe(ta[bc_col] if ta is not None else None, div, total_fx)
                     row["cash"]        = safe(ca[bc_col] if ca is not None else None, div, total_fx)
                     row["totalDebt"]   = safe(td[bc_col] if td is not None else None, div, total_fx)
                     row["totalEquity"] = safe(te[bc_col] if te is not None else None, div, total_fx)
                 return row
 
-            # Build 2025: full-year annual first, then TTM, then manual 4Q
+            # ---------- Build 2025: full-year annual first, then TTM, then manual 4Q ----------
             row_2025 = None
             method_2025 = "none"
 
-            # 1. Full-year (best when available)
+            # 1. Full-year annual (best when available)
             ic = col_yr(inc, LATEST_YEAR)
             bc = col_yr(bs, LATEST_YEAR)
             if ic is not None:
                 if bc is None and bs is not None and not bs.empty:
-                    bc = bs.columns[-1]
+                    bc = bs.columns[-1]   # fallback to latest annual column
                 row_2025 = annual_row(ic_col=ic, bc_col=bc)
                 if row_2025.get("revenue") is not None:
                     method_2025 = "full_year"
@@ -324,7 +345,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     if row_2025.get("revenue") is not None:
                         method_2025 = "ttm_quarterly"
 
-            # 4. manual TTM from last 4 quarters
+            # 4. Manual TTM from last 4 quarters
             if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None and not qi.empty:
                 all_qtrs = sorted(qi.columns, reverse=True)
                 if len(all_qtrs) >= 4:
@@ -332,25 +353,30 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     rev = gp = ni = eps = dps = 0.0
                     rev_valid = False
                     for c in latest_qtrs:
-                        rv = find_row(qi, "total revenue", "totalrevenue", "revenue")
+                        rv = find_row(qi, "total revenue", "totalrevenue", "revenue",
+                                      fuzzy_keywords=["revenue","income"])
                         if rv:
                             v = safe(rv[c])
                             if v is not None: rev += v; rev_valid = True
-                        gp_row = find_row(qi, "gross profit", "grossprofit")
+                        gp_row = find_row(qi, "gross profit", "grossprofit",
+                                          fuzzy_keywords=["gross","profit"])
                         if gp_row:
                             v = safe(gp_row[c])
                             if v is not None: gp += v
-                        ni_row = find_row(qi, "net income", "netincome")
+                        ni_row = find_row(qi, "net income", "netincome",
+                                          fuzzy_keywords=["net income"])
                         if ni_row:
                             v = safe(ni_row[c])
                             if v is not None: ni += v
-                        ep_row = find_row(qi, "basic eps", "diluted eps")
+                        ep_row = find_row(qi, "basic eps", "diluted eps",
+                                          fuzzy_keywords=["eps"])
                         if ep_row:
                             v = safe(ep_row[c])
                             if v is not None: eps += v
                         dp_row = find_row(qi, "dividends per share", "dps", "dividend per share",
                                           "dividends per share basic", "dividends per share diluted",
-                                          "dividends", "total dividends per share")
+                                          "dividends", "total dividends per share",
+                                          fuzzy_keywords=["dividend"])
                         if dp_row:
                             v = safe(dp_row[c])
                             if v is not None: dps += v
@@ -361,56 +387,44 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                         row_2025["netProfit"]   = safe(ni, div, total_fx) if ni else None
                         row_2025["eps"]         = safe(eps, 1, ps_fx) if eps else None
                         row_2025["dps"]         = safe(dps, 1, ps_fx) if dps else None
+                        # Balance sheet from latest quarter
                         if qb is not None and not qb.empty and latest_qtrs[0] in qb.columns:
-                            ta = find_row(qb, "total assets", "totalassets",
-                                          "total aset", "jumlah aset")
-                            ca = find_row(qb, "cash and cash equivalents", "cash", "cashandcashequivalents",
-                                          "cash and short term investments", "cash & equivalents",
-                                          "kas dan setara kas")
-                            td = find_row(qb, "total debt", "totaldebt",
-                                          "long term debt and capital lease obligation",
-                                          "long term debt", "long-term debt",
-                                          "total utang", "utang jangka panjang")
-                            te = find_row(qb, "stockholders equity", "total stockholder equity",
-                                          "common stock equity", "total equity gross minority interest",
-                                          "total equity", "total ekuitas", "ekuitas")
-                            row_2025["totalAsset"]  = safe(ta[latest_qtrs[0]] if ta is not None else None, div, total_fx)
-                            row_2025["cash"]        = safe(ca[latest_qtrs[0]] if ca is not None else None, div, total_fx)
-                            row_2025["totalDebt"]   = safe(td[latest_qtrs[0]] if td is not None else None, div, total_fx)
-                            row_2025["totalEquity"] = safe(te[latest_qtrs[0]] if te is not None else None, div, total_fx)
+                            bs_row = annual_row(ic_col=None, bc_col=latest_qtrs[0])  # reuse bs extraction
+                            for k in ["totalAsset","cash","totalDebt","totalEquity"]:
+                                row_2025[k] = bs_row.get(k)
                         method_2025 = "ttm_manual_4q"
 
-            # ----------------------------------------------------------------------
-            # Fill missing balance sheet fields from full-year (LATEST_YEAR) statement
-            # Applies after any TTM or manual 4Q build
-            # ----------------------------------------------------------------------
+            # -------- Fill missing balance sheet fields from best available source --------
             if row_2025 is not None:
                 bal_missing = any(row_2025.get(f) is None for f in
                                   ("totalAsset", "cash", "totalDebt", "totalEquity"))
                 if bal_missing:
-                    # Try full-year annual balance sheet; fallback to latest column if needed
+                    # Try full-year annual balance sheet; fallback to latest column
                     bc_full = col_yr(bs, LATEST_YEAR)
                     if bc_full is None and bs is not None and not bs.empty:
                         bc_full = bs.columns[-1]
                     if bc_full is not None and bs is not None:
+                        # Use the updated find_row with fuzzy
                         ta = find_row(bs, "total assets", "totalassets",
-                                      "total aset", "jumlah aset")
+                                      "total aset", "jumlah aset",
+                                      fuzzy_keywords=["asset"])
                         ca = find_row(bs, "cash and cash equivalents", "cash",
                                       "cashandcashequivalents",
-                                      "cash and short term investments",
-                                      "cash & equivalents",
-                                      "kas dan setara kas")
+                                      "cash and short term investments", "cash & equivalents",
+                                      "kas dan setara kas",
+                                      fuzzy_keywords=["cash"])
                         td = find_row(bs, "total debt", "totaldebt",
                                       "long term debt and capital lease obligation",
                                       "long term debt", "long-term debt",
-                                      "total utang", "utang jangka panjang")
+                                      "total utang", "utang jangka panjang",
+                                      fuzzy_keywords=["debt","utang"])
                         te = find_row(bs, "stockholders equity",
                                       "total stockholder equity",
                                       "common stock equity",
                                       "total equity gross minority interest",
                                       "total equity",
-                                      "total ekuitas", "ekuitas")
-
+                                      "total ekuitas", "ekuitas",
+                                      fuzzy_keywords=["equity","ekuitas"])
                         row_bal = {
                             "totalAsset":  safe(ta[bc_full] if ta is not None else None, div, total_fx),
                             "cash":        safe(ca[bc_full] if ca is not None else None, div, total_fx),
@@ -420,6 +434,42 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                         for k, v in row_bal.items():
                             if row_2025.get(k) is None:
                                 row_2025[k] = v
+
+                    # If still missing, try latest quarter's balance sheet
+                    if any(row_2025.get(f) is None for f in ("totalAsset","cash","totalDebt","totalEquity")):
+                        if qb is not None and not qb.empty:
+                            qb_cols = sorted(qb.columns, reverse=True)
+                            if qb_cols:
+                                last_q = qb_cols[0]
+                                ta = find_row(qb, "total assets", "totalassets",
+                                              "total aset", "jumlah aset",
+                                              fuzzy_keywords=["asset"])
+                                ca = find_row(qb, "cash and cash equivalents", "cash",
+                                              "cashandcashequivalents",
+                                              "cash and short term investments", "cash & equivalents",
+                                              "kas dan setara kas",
+                                              fuzzy_keywords=["cash"])
+                                td = find_row(qb, "total debt", "totaldebt",
+                                              "long term debt and capital lease obligation",
+                                              "long term debt", "long-term debt",
+                                              "total utang", "utang jangka panjang",
+                                              fuzzy_keywords=["debt","utang"])
+                                te = find_row(qb, "stockholders equity",
+                                              "total stockholder equity",
+                                              "common stock equity",
+                                              "total equity gross minority interest",
+                                              "total equity",
+                                              "total ekuitas", "ekuitas",
+                                              fuzzy_keywords=["equity","ekuitas"])
+                                q_row_bal = {
+                                    "totalAsset":  safe(ta[last_q] if ta is not None else None, div, total_fx),
+                                    "cash":        safe(ca[last_q] if ca is not None else None, div, total_fx),
+                                    "totalDebt":   safe(td[last_q] if td is not None else None, div, total_fx),
+                                    "totalEquity": safe(te[last_q] if te is not None else None, div, total_fx),
+                                }
+                                for k, v in q_row_bal.items():
+                                    if row_2025.get(k) is None:
+                                        row_2025[k] = v
 
             # ---- IMPORTANT: fall back to yahoo info if any field missing ----
             try:
@@ -461,7 +511,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
 
             yd = {LATEST_YEAR: row_2025}
 
-            # 2026 using annualise_quarterly (same as before)
+            # 2026 using annualise_quarterly
             def annualise_quarterly(year):
                 row = {f: None for f in FIELDS}
                 if qi is None or qi.empty: return row
@@ -469,18 +519,21 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                 if not qtrs: return row
                 n = len(qtrs)
                 factor = 4.0 / n
-                def sum_q_field(*names):
-                    s = find_row(qi, *names)
+                def sum_q_field(*names, fuzzy_keywords=None):
+                    s = find_row(qi, *names, fuzzy_keywords=fuzzy_keywords)
                     if s is None: return None
                     total = 0.0
                     for c in qtrs:
                         v = safe(s[c])
                         if v is not None: total += v
                     return total if total != 0.0 else None
-                row["revenue"]     = safe(sum_q_field("total revenue", "totalrevenue", "interest income", "interestincome", "revenue"), 1, 1)
-                row["grossProfit"] = safe(sum_q_field("gross profit", "grossprofit", "net interest income", "netinterestincome"), 1, 1)
-                row["netProfit"]   = safe(sum_q_field("net income", "netincome", "net income common stockholders", "net income common stockholders"), 1, 1)
-                ep = find_row(qi, "basic eps", "diluted eps")
+                row["revenue"]     = safe(sum_q_field("total revenue", "totalrevenue", "interest income", "interestincome", "revenue",
+                                                      fuzzy_keywords=["revenue","income"]), 1, 1)
+                row["grossProfit"] = safe(sum_q_field("gross profit", "grossprofit", "net interest income", "netinterestincome",
+                                                      fuzzy_keywords=["gross","profit"]), 1, 1)
+                row["netProfit"]   = safe(sum_q_field("net income", "netincome", "net income common stockholders", "net income common stockholders",
+                                                      fuzzy_keywords=["net income"]), 1, 1)
+                ep = find_row(qi, "basic eps", "diluted eps", fuzzy_keywords=["eps"])
                 if ep is not None:
                     total_eps = 0.0
                     for c in qtrs:
@@ -491,7 +544,8 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     row["eps"] = None
                 dp_row = find_row(qi, "dividends per share", "dps", "dividend per share",
                                   "dividends per share basic", "dividends per share diluted",
-                                  "dividends", "total dividends per share")
+                                  "dividends", "total dividends per share",
+                                  fuzzy_keywords=["dividend"])
                 if dp_row is not None:
                     total_dps = 0.0
                     for c in qtrs:
@@ -503,19 +557,22 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                 qbc = qtrs[-1]
                 if qb is not None and not qb.empty and qbc in qb.columns:
                     ta = find_row(qb, "total assets", "totalassets",
-                                  "total aset", "jumlah aset")
+                                  "total aset", "jumlah aset",
+                                  fuzzy_keywords=["asset"])
                     ca = find_row(qb, "cash and cash equivalents", "cash",
                                   "cashandcashequivalents",
-                                  "cash and short term investments",
-                                  "cash & equivalents",
-                                  "kas dan setara kas")
+                                  "cash and short term investments", "cash & equivalents",
+                                  "kas dan setara kas",
+                                  fuzzy_keywords=["cash"])
                     td = find_row(qb, "total debt", "totaldebt",
                                   "long term debt and capital lease obligation",
                                   "long term debt", "long-term debt",
-                                  "total utang", "utang jangka panjang")
+                                  "total utang", "utang jangka panjang",
+                                  fuzzy_keywords=["debt","utang"])
                     te = find_row(qb, "stockholders equity", "total stockholder equity",
                                   "common stock equity", "total equity gross minority interest",
-                                  "total equity", "total ekuitas", "ekuitas")
+                                  "total equity", "total ekuitas", "ekuitas",
+                                  fuzzy_keywords=["equity","ekuitas"])
                     row["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, total_fx)
                     row["cash"]        = safe(ca[qbc] if ca is not None else None, div, total_fx)
                     row["totalDebt"]   = safe(td[qbc] if td is not None else None, div, total_fx)
