@@ -467,10 +467,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     row["eps"] = total_eps if total_eps != 0.0 else None
                 else:
                     row["eps"] = None
-                        dp_row = find_row(qi, "dividends per share", "dps",
-                                          "dividend per share", "dividends per share basic",
-                                          "dividends per share diluted", "dividends",
-                                          "total dividends per share")
+                    dp_row = find_row(qi, "dividends per share", "dps", "dividend per share", "dividends per share basic", "dividends per share diluted", "dividends", "total dividends per share")
                 if dp is not None:
                     total_dps = 0.0
                     for c in qtrs:
