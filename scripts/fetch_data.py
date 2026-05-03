@@ -269,7 +269,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, total_fx)
                     row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, total_fx)
                     row["netProfit"]   = safe(ni[ic_col] if ni is not None else None, div, total_fx)
-                                        row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, ps_fx)
+                    row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, ps_fx)
                     dp = find_row(inc, "dividends per share", "dividend per share", "dps",
                                   "dividends per share basic", "dividends per share diluted",
                                   "dividends", "total dividends per share")
