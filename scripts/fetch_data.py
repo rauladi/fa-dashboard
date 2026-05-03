@@ -269,8 +269,11 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     row["revenue"]     = safe(rv[ic_col] if rv is not None else None, div, total_fx)
                     row["grossProfit"] = safe(gp[ic_col] if gp is not None else None, div, total_fx)
                     row["netProfit"]   = safe(ni[ic_col] if ni is not None else None, div, total_fx)
-                    row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, ps_fx)
-                    row["dps"] = None
+                                        row["eps"]         = safe(ep[ic_col] if ep is not None else None, 1, ps_fx)
+                    dp = find_row(inc, "dividends per share", "dividend per share", "dps",
+                                  "dividends per share basic", "dividends per share diluted",
+                                  "dividends", "total dividends per share")
+                    row["dps"] = safe(dp[ic_col] if dp is not None else None, 1, ps_fx) if ic_col else None
                 if bs is not None and bc_col is not None:
                     ta = find_row(bs, "total assets", "totalassets")
                     ca = find_row(bs, "cash and cash equivalents", "cash", "cashandcashequivalents",
@@ -359,7 +362,62 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                             row_2025["totalDebt"]   = safe(td[latest_qtrs[0]] if td is not None else None, div, total_fx)
                             row_2025["totalEquity"] = safe(te[latest_qtrs[0]] if te is not None else None, div, total_fx)
                         method_2025 = "ttm_manual_4q"
+# ------------------------------------------------------------------
+# If balance sheet fields are still missing, try LATEST_YEAR annual bs
+bal_missing = any(row_2025.get(f) is None for f in
+                  ("totalAsset","cash","totalDebt","totalEquity"))
+if bal_missing:
+    ic_full = col_yr(inc, LATEST_YEAR)
+    bc_full = col_yr(bs, LATEST_YEAR)
+    if bc_full is not None and bs is not None:
+        # Use the already defined find_row and safe functions
+        row_bal = {}
+        ta = find_row(bs, "total assets", "totalassets", ...)  # same list as before
+        ca = find_row(bs, "cash ...")
+        td = find_row(bs, "total debt", ...)
+        te = find_row(bs, "stockholders equity", ...)
+        row_bal["totalAsset"]  = safe(ta[bc_full] if ta is not None else None, div, total_fx)
+        row_bal["cash"]        = safe(ca[bc_full] if ca is not None else None, div, total_fx)
+        row_bal["totalDebt"]   = safe(td[bc_full] if td is not None else None, div, total_fx)
+        row_bal["totalEquity"] = safe(te[bc_full] if te is not None else None, div, total_fx)
+        for k, v in row_bal.items():
+            if row_2025.get(k) is None:
+                row_2025[k] = v
+            # ----------------------------------------------------------------------
+            # Fill missing balance sheet fields from full-year (LATEST_YEAR) statement
+            # Applies after any TTM or manual 4Q build
+            # ----------------------------------------------------------------------
+            bal_missing = any(row_2025.get(f) is None for f in
+                              ("totalAsset", "cash", "totalDebt", "totalEquity"))
+            if bal_missing:
+                # Try full-year annual balance sheet
+                bc_full = col_yr(bs, LATEST_YEAR)
+                if bc_full is not None and bs is not None:
+                    # Reuse the same find_row helpers defined above
+                    ta = find_row(bs, "total assets", "totalassets",
+                                  "totalassets")
+                    ca = find_row(bs, "cash and cash equivalents", "cash",
+                                  "cashandcashequivalents",
+                                  "cash and short term investments",
+                                  "cash & equivalents")
+                    td = find_row(bs, "total debt", "totaldebt",
+                                  "long term debt and capital lease obligation",
+                                  "long term debt", "long-term debt")
+                    te = find_row(bs, "stockholders equity",
+                                  "total stockholder equity",
+                                  "common stock equity",
+                                  "total equity gross minority interest",
+                                  "total equity")
 
+                    row_bal = {
+                        "totalAsset":  safe(ta[bc_full] if ta is not None else None, div, total_fx),
+                        "cash":        safe(ca[bc_full] if ca is not None else None, div, total_fx),
+                        "totalDebt":   safe(td[bc_full] if td is not None else None, div, total_fx),
+                        "totalEquity": safe(te[bc_full] if te is not None else None, div, total_fx),
+                    }
+                    for k, v in row_bal.items():
+                        if row_2025.get(k) is None:
+                            row_2025[k] = v
             # ---- IMPORTANT: fall back to yahoo info if any field missing ----
             try:
                 info = tk.info
@@ -428,7 +486,10 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     row["eps"] = total_eps if total_eps != 0.0 else None
                 else:
                     row["eps"] = None
-                dp = find_row(qi, "dividends per share", "dps", "dividend per share")
+                                        dp_row = find_row(qi, "dividends per share", "dps",
+                                          "dividend per share", "dividends per share basic",
+                                          "dividends per share diluted", "dividends",
+                                          "total dividends per share")
                 if dp is not None:
                     total_dps = 0.0
                     for c in qtrs:
