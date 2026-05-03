@@ -542,6 +542,14 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                                     break
             except Exception: pass
 
+            # ---------- Clean up: zero values for balance sheet and DPS are treated as missing ----------
+            if row_2025 is not None:
+                for bal_field in ("totalAsset", "cash", "totalDebt", "totalEquity"):
+                    if row_2025.get(bal_field) == 0:
+                        row_2025[bal_field] = None
+                if row_2025.get("dps") == 0:
+                    row_2025["dps"] = None
+
             # For non‑payers, set DPS to None if zero
             if sym in ("AMZN",) and row_2025 is not None and row_2025.get("dps") == 0:
                 row_2025["dps"] = None
@@ -631,6 +639,17 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                 for k in ["eps", "dps"]:
                     if row[k] is not None:
                         row[k] = round(row[k] * factor * ps_fx, 4)
+                # Clean up zeros
+                for bal_field in ("totalAsset", "cash", "totalDebt", "totalEquity"):
+                    if row.get(bal_field) == 0:
+                        row[bal_field] = None
+                if row.get("dps") == 0:
+                    row["dps"] = None
+                # DPS sanity check
+                pre_dps = PRELOADED.get(sym, {}).get("dps", [])
+                valid_dps = [v for v in pre_dps if v is not None and v > 0]
+                if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps):
+                    row["dps"] = None
                 return row
 
             row_2026 = annualise_quarterly(CURRENT_YEAR)
