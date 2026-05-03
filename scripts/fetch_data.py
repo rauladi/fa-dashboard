@@ -88,7 +88,7 @@ PRELOADED = {
              "dps":[1.20,1.46,1.62,1.66,None,None]},
     "BBRI": {"totalAsset":[1635,1865,1965,2073,None,None],"cash":[163,186,196,207,None,None],"totalDebt":[1380,1570,1650,1730,None,None],"totalEquity":[255,295,315,343,None,None],"revenue":[135,150,165,187,None,None],"grossProfit":[85,95,104,118,None,None],"netProfit":[25,43,51,60,None,None],
               "eps":[1019,1753,2086,398,None,None],
-              "dps":[460,791,940,1100,1150,None]},
+              "dps":[460,791,940,None,1150,None]},
     "ADRO": {"totalAsset":[80,100,85,92,None,None],"cash":[10,20,15,16,None,None],"totalDebt":[18,25,18,16,None,None],"totalEquity":[58,72,62,68,None,None],"revenue":[65,120,80,85,None,None],"grossProfit":[24,55,35,38,None,None],"netProfit":[8,30,15,16,None,None],
               "eps":[256,960,480,510,520,None],
               "dps":[130,480,240,255,260,None]},
@@ -275,30 +275,47 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                                   "dividends", "total dividends per share")
                     row["dps"] = safe(dp[ic_col] if dp is not None else None, 1, ps_fx) if ic_col else None
                 if bs is not None and bc_col is not None:
-                    ta = find_row(bs, "total assets", "totalassets")
+                    ta = find_row(bs, "total assets", "totalassets",
+                                  "total aset", "jumlah aset")
                     ca = find_row(bs, "cash and cash equivalents", "cash", "cashandcashequivalents",
-                                  "cash and short term investments", "cash & equivalents")
+                                  "cash and short term investments", "cash & equivalents",
+                                  "kas dan setara kas")
                     td = find_row(bs, "total debt", "totaldebt", "long term debt and capital lease obligation",
-                                  "long term debt", "long-term debt")
+                                  "long term debt", "long-term debt",
+                                  "total utang", "utang jangka panjang")
                     te = find_row(bs, "stockholders equity", "total stockholder equity", "common stock equity",
-                                  "total equity gross minority interest", "total equity")
+                                  "total equity gross minority interest", "total equity",
+                                  "total ekuitas", "ekuitas")
                     row["totalAsset"]  = safe(ta[bc_col] if ta is not None else None, div, total_fx)
                     row["cash"]        = safe(ca[bc_col] if ca is not None else None, div, total_fx)
                     row["totalDebt"]   = safe(td[bc_col] if td is not None else None, div, total_fx)
                     row["totalEquity"] = safe(te[bc_col] if te is not None else None, div, total_fx)
                 return row
 
-            # Build 2025 using TTM, full year, manual last 4 quarters
+            # Build 2025: full-year annual first, then TTM, then manual 4Q
             row_2025 = None
             method_2025 = "none"
 
-            inc_ttm = get_ttm_col(inc)
-            bs_ttm  = get_ttm_col(bs) if bs is not None else None
-            if inc_ttm is not None:
-                row_2025 = annual_row(ic_col=inc_ttm, bc_col=bs_ttm)
+            # 1. Full-year (best when available)
+            ic = col_yr(inc, LATEST_YEAR)
+            bc = col_yr(bs, LATEST_YEAR)
+            if ic is not None:
+                if bc is None and bs is not None and not bs.empty:
+                    bc = bs.columns[-1]
+                row_2025 = annual_row(ic_col=ic, bc_col=bc)
                 if row_2025.get("revenue") is not None:
-                    method_2025 = "ttm_annual"
+                    method_2025 = "full_year"
 
+            # 2. TTM annual
+            if row_2025 is None or row_2025.get("revenue") is None:
+                inc_ttm = get_ttm_col(inc)
+                bs_ttm  = get_ttm_col(bs) if bs is not None else None
+                if inc_ttm is not None:
+                    row_2025 = annual_row(ic_col=inc_ttm, bc_col=bs_ttm)
+                    if row_2025.get("revenue") is not None:
+                        method_2025 = "ttm_annual"
+
+            # 3. TTM quarterly
             if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None:
                 qi_ttm = get_ttm_col(qi)
                 qb_ttm = get_ttm_col(qb) if qb is not None else None
@@ -307,14 +324,7 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     if row_2025.get("revenue") is not None:
                         method_2025 = "ttm_quarterly"
 
-            if row_2025 is None or row_2025.get("revenue") is None:
-                ic = col_yr(inc, LATEST_YEAR)
-                if ic is not None:
-                    row_2025 = annual_row(ic_col=ic, bc_col=col_yr(bs, LATEST_YEAR))
-                    if row_2025.get("revenue") is not None:
-                        method_2025 = "full_year"
-
-            # manual TTM from last 4 quarters
+            # 4. manual TTM from last 4 quarters
             if (row_2025 is None or row_2025.get("revenue") is None) and qi is not None and not qi.empty:
                 all_qtrs = sorted(qi.columns, reverse=True)
                 if len(all_qtrs) >= 4:
@@ -352,13 +362,18 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                         row_2025["eps"]         = safe(eps, 1, ps_fx) if eps else None
                         row_2025["dps"]         = safe(dps, 1, ps_fx) if dps else None
                         if qb is not None and not qb.empty and latest_qtrs[0] in qb.columns:
-                            ta = find_row(qb, "total assets", "totalassets")
+                            ta = find_row(qb, "total assets", "totalassets",
+                                          "total aset", "jumlah aset")
                             ca = find_row(qb, "cash and cash equivalents", "cash", "cashandcashequivalents",
-                                          "cash and short term investments", "cash & equivalents")
-                            td = find_row(qb, "total debt", "totaldebt", "long term debt and capital lease obligation",
-                                          "long term debt", "long-term debt")
-                            te = find_row(qb, "stockholders equity", "total stockholder equity", "common stock equity",
-                                          "total equity gross minority interest", "total equity")
+                                          "cash and short term investments", "cash & equivalents",
+                                          "kas dan setara kas")
+                            td = find_row(qb, "total debt", "totaldebt",
+                                          "long term debt and capital lease obligation",
+                                          "long term debt", "long-term debt",
+                                          "total utang", "utang jangka panjang")
+                            te = find_row(qb, "stockholders equity", "total stockholder equity",
+                                          "common stock equity", "total equity gross minority interest",
+                                          "total equity", "total ekuitas", "ekuitas")
                             row_2025["totalAsset"]  = safe(ta[latest_qtrs[0]] if ta is not None else None, div, total_fx)
                             row_2025["cash"]        = safe(ca[latest_qtrs[0]] if ca is not None else None, div, total_fx)
                             row_2025["totalDebt"]   = safe(td[latest_qtrs[0]] if td is not None else None, div, total_fx)
@@ -373,25 +388,28 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                 bal_missing = any(row_2025.get(f) is None for f in
                                   ("totalAsset", "cash", "totalDebt", "totalEquity"))
                 if bal_missing:
-                    # Try full-year annual balance sheet
+                    # Try full-year annual balance sheet; fallback to latest column if needed
                     bc_full = col_yr(bs, LATEST_YEAR)
                     if bc_full is None and bs is not None and not bs.empty:
-                        bc_full = bs.columns[-1]   # fallback to latest column
+                        bc_full = bs.columns[-1]
                     if bc_full is not None and bs is not None:
                         ta = find_row(bs, "total assets", "totalassets",
-                                      "totalassets")
+                                      "total aset", "jumlah aset")
                         ca = find_row(bs, "cash and cash equivalents", "cash",
                                       "cashandcashequivalents",
                                       "cash and short term investments",
-                                      "cash & equivalents")
+                                      "cash & equivalents",
+                                      "kas dan setara kas")
                         td = find_row(bs, "total debt", "totaldebt",
                                       "long term debt and capital lease obligation",
-                                      "long term debt", "long-term debt")
+                                      "long term debt", "long-term debt",
+                                      "total utang", "utang jangka panjang")
                         te = find_row(bs, "stockholders equity",
                                       "total stockholder equity",
                                       "common stock equity",
                                       "total equity gross minority interest",
-                                      "total equity")
+                                      "total equity",
+                                      "total ekuitas", "ekuitas")
 
                         row_bal = {
                             "totalAsset":  safe(ta[bc_full] if ta is not None else None, div, total_fx),
@@ -484,13 +502,20 @@ def fetch_one_yahoo(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_u
                     row["dps"] = None
                 qbc = qtrs[-1]
                 if qb is not None and not qb.empty and qbc in qb.columns:
-                    ta = find_row(qb, "total assets", "totalassets")
-                    ca = find_row(qb, "cash and cash equivalents", "cash", "cashandcashequivalents",
-                                  "cash and short term investments", "cash & equivalents")
-                    td = find_row(qb, "total debt", "totaldebt", "long term debt and capital lease obligation",
-                                  "long term debt", "long-term debt")
-                    te = find_row(qb, "stockholders equity", "total stockholder equity", "common stock equity",
-                                  "total equity gross minority interest", "total equity")
+                    ta = find_row(qb, "total assets", "totalassets",
+                                  "total aset", "jumlah aset")
+                    ca = find_row(qb, "cash and cash equivalents", "cash",
+                                  "cashandcashequivalents",
+                                  "cash and short term investments",
+                                  "cash & equivalents",
+                                  "kas dan setara kas")
+                    td = find_row(qb, "total debt", "totaldebt",
+                                  "long term debt and capital lease obligation",
+                                  "long term debt", "long-term debt",
+                                  "total utang", "utang jangka panjang")
+                    te = find_row(qb, "stockholders equity", "total stockholder equity",
+                                  "common stock equity", "total equity gross minority interest",
+                                  "total equity", "total ekuitas", "ekuitas")
                     row["totalAsset"]  = safe(ta[qbc] if ta is not None else None, div, total_fx)
                     row["cash"]        = safe(ca[qbc] if ca is not None else None, div, total_fx)
                     row["totalDebt"]   = safe(td[qbc] if td is not None else None, div, total_fx)
