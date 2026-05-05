@@ -1,5 +1,6 @@
 import json, os, math, time, requests
 from datetime import datetime, timezone
+import yfinance as yf
 
 # ---------- constants ----------
 NOW = datetime.now(timezone.utc)
@@ -9,11 +10,10 @@ COMPLETED = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))   # 2021..2025
 ALL_YEARS = COMPLETED + [CURRENT_YEAR]                       # 2026
 
 FMP_API_KEY = os.environ.get("FMP_API_KEY")
-ALPHA_VANTAGE_KEY = os.environ.get("ALPHA_VANTAGE_KEY")
-RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
+# ALPHA_VANTAGE_KEY and RAPIDAPI_KEY no longer required
 
 print(f"FA Dashboard fetch – {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
-print(f"Sources: FMP (US), Alpha Vantage (ASX), RapidAPI (IDX)", flush=True)
+print(f"Sources: FMP (US), yfinance (ASX & IDX)", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
 
 FISCAL_YEAR_END = {
@@ -151,101 +151,62 @@ def fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_
         row["totalEquity"] = safe(b.get("totalStockholdersEquity"), div, total_fx)
     return row
 
-# ---------- Alpha Vantage (ASX stocks) ----------
-def av_get(function, symbol):
-    if not ALPHA_VANTAGE_KEY:
-        return None
-    url = f"https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={ALPHA_VANTAGE_KEY}"
-    try:
-        resp = requests.get(url, timeout=15)
-        if resp.status_code != 200:
-            return None
-        data = resp.json()
-        if "annualReports" in data:
-            return data["annualReports"]
-        if "quarterlyReports" in data:
-            return data["quarterlyReports"][:1]
-        return None
-    except Exception:
-        return None
-
-def av_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
+# ---------- yfinance (ASX & IDX) ----------
+def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
+    """Fetch latest annual financials from yfinance for ASX/IDX stocks."""
     fin_cur = financial_currency(exchange)
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
-
-    inc = av_get("INCOME_STATEMENT", ticker_str)
-    bal = av_get("BALANCE_SHEET", ticker_str)
-
     row = {f: None for f in FIELDS}
-    if inc and len(inc) > 0:
-        i = inc[0]
-        row["revenue"]     = safe(i.get("totalRevenue"), div, total_fx)
-        row["grossProfit"] = safe(i.get("grossProfit"), div, total_fx)
-        row["netProfit"]   = safe(i.get("netIncome"), div, total_fx)
-        row["eps"]         = safe(i.get("eps"), 1, ps_fx)
-        row["dps"]         = safe(i.get("dividendPerShare"), 1, ps_fx)
-    if bal and len(bal) > 0:
-        b = bal[0]
-        row["totalAsset"]  = safe(b.get("totalAssets"), div, total_fx)
-        row["cash"]        = safe(b.get("cashAndCashEquivalents"), div, total_fx)
-        row["totalDebt"]   = safe(b.get("totalDebt"), div, total_fx)
-        row["totalEquity"] = safe(b.get("totalShareholderEquity"), div, total_fx)
-    return row
-
-# ---------- RapidAPI (IDX stocks) ----------
-# PRE-CONFIGURED FOR "Indonesia Stock Exchange (IDX) by Market Reaper"
-# If IDX stocks show "(empty)", check these two endpoint paths and field names.
-RAPID_HOST = "indonesian-stock-exchange.p.rapidapi.com"
-INCOME_ENDPOINT = "income-annual"      # CHANGE THIS ONLY IF IDX SHOWS EMPTY
-BALANCE_ENDPOINT = "balance-annual"    # CHANGE THIS ONLY IF IDX SHOWS EMPTY
-
-# Field names – very likely correct, but you can adjust if needed
-FIELD_REVENUE = "totalRevenue"
-FIELD_GROSS_PROFIT = "grossProfit"
-FIELD_NET_INCOME = "netIncome"
-FIELD_EPS = "earningsPerShare"
-FIELD_DPS = "dividendPerShare"
-FIELD_TOTAL_ASSETS = "totalAssets"
-FIELD_CASH = "cashAndCashEquivalents"
-FIELD_TOTAL_DEBT = "totalDebt"
-FIELD_EQUITY = "totalStockholderEquity"
-
-def idx_get(endpoint, ticker):
-    if not RAPIDAPI_KEY:
-        return None
-    url = f"https://{RAPID_HOST}/{endpoint}/{ticker}"
-    headers = {
-        "X-RapidAPI-Key": RAPIDAPI_KEY,
-        "X-RapidAPI-Host": RAPID_HOST
-    }
     try:
-        resp = requests.get(url, headers=headers, timeout=15)
-        if resp.status_code != 200:
-            return None
-        return resp.json()
-    except Exception:
-        return None
-
-def idx_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
-    fin_cur = financial_currency(exchange)
-    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
-
-    inc = idx_get(INCOME_ENDPOINT, ticker_str)
-    bal = idx_get(BALANCE_ENDPOINT, ticker_str)
-
-    row = {f: None for f in FIELDS}
-    if inc and isinstance(inc, dict):
-        row["revenue"]      = safe(inc.get(FIELD_REVENUE), div, total_fx)
-        row["grossProfit"]  = safe(inc.get(FIELD_GROSS_PROFIT), div, total_fx)
-        row["netProfit"]    = safe(inc.get(FIELD_NET_INCOME), div, total_fx)
-        row["eps"]          = safe(inc.get(FIELD_EPS), 1, ps_fx)
-        row["dps"]          = safe(inc.get(FIELD_DPS), 1, ps_fx)
-    if bal and isinstance(bal, dict):
-        row["totalAsset"]   = safe(bal.get(FIELD_TOTAL_ASSETS), div, total_fx)
-        row["cash"]         = safe(bal.get(FIELD_CASH), div, total_fx)
-        row["totalDebt"]    = safe(bal.get(FIELD_TOTAL_DEBT), div, total_fx)
-        row["totalEquity"]  = safe(bal.get(FIELD_EQUITY), div, total_fx)
-    return row
+        tick = yf.Ticker(ticker_str)
+        # --- Income Statement (most recent column) ---
+        inc_df = tick.financials  # columns are dates (YYYY-MM-DD), rows: items
+        if inc_df is not None and not inc_df.empty:
+            # Get most recent column (first column after sorting descending)
+            latest_col = inc_df.columns[0]
+            inc = inc_df[latest_col]
+            # map fields
+            rev = inc.get("Total Revenue", None)
+            if rev is not None:
+                row["revenue"] = safe(rev, div, total_fx)
+            gp = inc.get("Gross Profit", None)
+            if gp is not None:
+                row["grossProfit"] = safe(gp, div, total_fx)
+            ni = inc.get("Net Income", None) or inc.get("Net Income Common Stockholders", None)
+            if ni is not None:
+                row["netProfit"] = safe(ni, div, total_fx)
+            eps_raw = inc.get("Diluted EPS", None) or inc.get("Basic EPS", None)
+            if eps_raw is not None:
+                row["eps"] = safe(eps_raw, 1, ps_fx)
+            # DPS not reliably available from annual statements – leave as None
+        # --- Balance Sheet (most recent column) ---
+        bal_df = tick.balance_sheet
+        if bal_df is not None and not bal_df.empty:
+            latest_col = bal_df.columns[0]
+            bal = bal_df[latest_col]
+            ta = bal.get("Total Assets", None)
+            if ta is not None:
+                row["totalAsset"] = safe(ta, div, total_fx)
+            cash = bal.get("Cash And Cash Equivalents", None) or bal.get("Cash", None)
+            if cash is not None:
+                row["cash"] = safe(cash, div, total_fx)
+            # Total Debt: prefer "Total Debt", else sum "Long Term Debt" + "Short Term Debt"
+            td = bal.get("Total Debt", None)
+            if td is None:
+                lt = bal.get("Long Term Debt", 0)
+                st = bal.get("Short Term Debt", 0)
+                if lt or st:
+                    td = (lt if lt else 0) + (st if st else 0)
+            if td is not None:
+                row["totalDebt"] = safe(td, div, total_fx)
+            te = bal.get("Total Equity Gross Minority Interest", None) or bal.get("Stockholders Equity", None)
+            if te is not None:
+                row["totalEquity"] = safe(te, div, total_fx)
+        # --- special cases: if DPS forced to None (yfinance doesn't provide it reliably) ---
+        row["dps"] = None
+    except Exception as e:
+        print(f"  [yfinance] {ticker_str}: {e}", flush=True)
+    return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
 
 # ---------- Main fetch router ----------
 def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
@@ -254,14 +215,10 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
         print(f"\n[{sym}] (FMP) {ticker_str}", flush=True)
         row = fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
         src = "fmp"
-    elif exchange == "ASX":
-        print(f"\n[{sym}] (Alpha Vantage) {ticker_str}", flush=True)
-        row = av_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
-        src = "alpha_vantage"
-    elif exchange == "IDX":
-        print(f"\n[{sym}] (RapidAPI) {ticker_str}", flush=True)
-        row = idx_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
-        src = "rapidapi"
+    elif exchange in ("ASX", "IDX"):
+        print(f"\n[{sym}] (yfinance) {ticker_str}", flush=True)
+        row = yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
+        src = "yfinance"
     else:
         row = {f: None for f in FIELDS}
         src = "unknown"
@@ -279,7 +236,7 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     if sym in ("AMZN",) and row.get("dps") == 0:
         row["dps"] = None
 
-    # Sanity checks (DPS/EPS)
+    # Sanity checks (DPS/EPS) using PRELOADED
     pre_dps = PRELOADED.get(sym, {}).get("dps", [])
     valid_dps = [v for v in pre_dps if v is not None and v > 0]
     if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps):
@@ -413,7 +370,7 @@ PRELOADED = {
              "dps":[0.90,1.06,1.13,1.21,1.27,None]},
 }
 
-# ---------- PROFILES ----------
+# ---------- PROFILES & LEADERSHIP (unchanged) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -1352,7 +1309,7 @@ def main():
     ok = 0
     for i, (sym, (name, exchange, ticker_str, currency, _div, hint_cur)) in enumerate(all_stocks.items()):
         if i > 0:
-            time.sleep(1.2)
+            time.sleep(1.2)   # gentle rate limiting
         try:
             yd, cur_ann, src = fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
             arrs = build_arrays(yd, sym, rates)
