@@ -1,5 +1,5 @@
 import json, os, math, time, requests
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import yfinance as yf
 
 # ---------- constants ----------
@@ -171,200 +171,169 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
     fin_cur = financial_currency(exchange)
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
     row = {f: None for f in FIELDS}
+
     try:
         tick = yf.Ticker(ticker_str)
+        info = tick.info or {}
 
-        # --- Income Statement (try first 2 annual columns) ---
-        inc_df = tick.financials
-        rows_filled_income = False
-        if inc_df is not None and not inc_df.empty:
-            # Try up to 2 most recent columns (sometimes the very latest is empty)
-            cols_to_try = list(inc_df.columns[:2])
-            for col in cols_to_try:
-                inc_series = inc_df[col]
-
-                rev = get_fin_val_from_series(inc_series, [
-                    "Total Revenue", "Revenue", "Total revenue", "Operating Revenue",
-                    "Sales", "Net Sales", "Net revenue", "Revenues",
-                    "Pendapatan", "Total pendapatan", "Penjualan bersih"   # Indonesian terms
-                ])
-                row["revenue"] = safe(rev, div, total_fx) or row["revenue"]
-
-                gp = get_fin_val_from_series(inc_series, [
-                    "Gross Profit", "Gross profit", "Gross margin",
-                    "Laba bruto", "Laba kotor"
-                ])
-                row["grossProfit"] = safe(gp, div, total_fx) or row["grossProfit"]
-
-                ni = get_fin_val_from_series(inc_series, [
-                    "Net Income", "Net income", "Net Income Common Stockholders",
-                    "Profit after tax", "Net profit", "Net Profit",
-                    "Laba bersih", "Laba tahun berjalan"
-                ])
-                row["netProfit"] = safe(ni, div, total_fx) or row["netProfit"]
-
-                eps_raw = get_fin_val_from_series(inc_series, [
-                    "Diluted EPS", "Basic EPS", "EPS Diluted", "EPS Basic",
-                    "Earnings Per Share", "Earnings per share",
-                    "Laba per saham dasar", "Laba per saham dilusian"
-                ])
-                row["eps"] = safe(eps_raw, 1, ps_fx) or row["eps"]
-
-                dps_raw = get_fin_val_from_series(inc_series, [
-                    "Dividends Per Share", "Dividend Per Share", "DPS",
-                    "Dividen per saham"
-                ])
-                row["dps"] = safe(dps_raw, 1, ps_fx) or row["dps"]
-
-                # If we got at least revenue, assume this column is good
-                if row["revenue"] is not None:
-                    rows_filled_income = True
-                    break   # stop after first useful column
-
-        # If income still empty, try quarterly financials (most recent quarter as last resort)
-        if not rows_filled_income:
-            q_inc = tick.quarterly_financials
-            if q_inc is not None and not q_inc.empty:
-                q_col = q_inc.columns[0]
-                q_series = q_inc[q_col]
-                # Use the same field extraction, but note these values are for a single quarter
-                rev = get_fin_val_from_series(q_series, [
-                    "Total Revenue", "Revenue", "Total revenue", "Operating Revenue",
-                    "Sales", "Net Sales", "Net revenue", "Revenues",
-                    "Pendapatan", "Total pendapatan", "Penjualan bersih"
-                ])
-                row["revenue"] = safe(rev, div, total_fx) or row["revenue"]
-                gp = get_fin_val_from_series(q_series, [
-                    "Gross Profit", "Gross profit", "Gross margin",
-                    "Laba bruto", "Laba kotor"
-                ])
-                row["grossProfit"] = safe(gp, div, total_fx) or row["grossProfit"]
-                ni = get_fin_val_from_series(q_series, [
-                    "Net Income", "Net income", "Net Income Common Stockholders",
-                    "Profit after tax", "Net profit", "Net Profit",
-                    "Laba bersih", "Laba tahun berjalan"
-                ])
-                row["netProfit"] = safe(ni, div, total_fx) or row["netProfit"]
-                eps_raw = get_fin_val_from_series(q_series, [
-                    "Diluted EPS", "Basic EPS", "EPS Diluted", "EPS Basic",
-                    "Earnings Per Share", "Earnings per share",
-                    "Laba per saham dasar", "Laba per saham dilusian"
-                ])
-                row["eps"] = safe(eps_raw, 1, ps_fx) or row["eps"]
-                dps_raw = get_fin_val_from_series(q_series, [
-                    "Dividends Per Share", "Dividend Per Share", "DPS",
-                    "Dividen per saham"
-                ])
-                row["dps"] = safe(dps_raw, 1, ps_fx) or row["dps"]
-
-        # --- Balance Sheet (try first 2 columns) ---
-        bal_df = tick.balance_sheet
-        if bal_df is not None and not bal_df.empty:
-            cols_to_try = list(bal_df.columns[:2])
-            for col in cols_to_try:
-                bal_series = bal_df[col]
-
-                ta = get_fin_val_from_series(bal_series, [
-                    "Total Assets", "Total assets", "Total Asset",
-                    "Jumlah aset", "Aset"
-                ])
-                row["totalAsset"] = safe(ta, div, total_fx) or row["totalAsset"]
-
-                cash = get_fin_val_from_series(bal_series, [
-                    "Cash And Cash Equivalents", "Cash & Cash Equivalents",
-                    "Cash and cash equivalents", "Cash", "Cash & Equivalents",
-                    "Kas dan setara kas", "Kas"
-                ])
-                row["cash"] = safe(cash, div, total_fx) or row["cash"]
-
-                td = get_fin_val_from_series(bal_series, [
-                    "Total Debt", "Total debt", "Total Debt, Net",
-                    "Long Term Debt + Short Term Debt", "Net Debt",
-                    "Total utang", "Utang"
-                ])
-                if td is None:
-                    lt = get_fin_val_from_series(bal_series, [
-                        "Long Term Debt", "Long term debt", "Long-Term Debt",
-                        "Non-Current Debt", "Utang jangka panjang"
-                    ])
-                    st = get_fin_val_from_series(bal_series, [
-                        "Short Term Debt", "Short term debt", "Short-Term Debt",
-                        "Current Debt", "Utang jangka pendek"
-                    ])
-                    if lt is not None or st is not None:
-                        td = (lt if lt else 0) + (st if st else 0)
-                row["totalDebt"] = safe(td, div, total_fx) or row["totalDebt"]
-
-                te = get_fin_val_from_series(bal_series, [
-                    "Total Equity Gross Minority Interest",
-                    "Stockholders Equity", "Total Stockholder Equity",
-                    "Total Equity", "Shareholders' Equity", "Equity",
-                    "Ekuitas", "Total ekuitas"
-                ])
-                row["totalEquity"] = safe(te, div, total_fx) or row["totalEquity"]
-
-                # If we got total assets, we stop
-                if row["totalAsset"] is not None:
+        # Helper: fill a field with best available candidate across all columns of a dataframe
+        def fill_from_annual(df, row_dict, field_candidates_map):
+            if df is None or df.empty:
+                return False
+            found_any = False
+            for col in df.columns:
+                series = df[col]
+                for field, candidates in field_candidates_map.items():
+                    if row_dict[field] is not None:
+                        continue   # already filled
+                    val = get_fin_val_from_series(series, candidates)
+                    if val is not None:
+                        fx = ps_fx if field in ("eps","dps") else total_fx
+                        d = 1 if field in ("eps","dps") else div
+                        row_dict[field] = safe(val, d, fx)
+                        found_any = True
+                # break early if all fields filled (optional)
+                if all(v is not None for v in row_dict.values()):
                     break
+            return found_any
 
-        # If balance sheet still empty, try quarterly balance sheet
-        if row["totalAsset"] is None:
+        # ----- Income statement fields from annual data -----
+        inc_fields = {
+            "revenue": [
+                "Total Revenue", "Revenue", "Total revenue", "Operating Revenue",
+                "Sales", "Net Sales", "Net revenue", "Revenues",
+                "Pendapatan", "Total pendapatan", "Penjualan bersih"
+            ],
+            "grossProfit": [
+                "Gross Profit", "Gross profit", "Gross margin",
+                "Laba bruto", "Laba kotor"
+            ],
+            "netProfit": [
+                "Net Income", "Net income", "Net Income Common Stockholders",
+                "Profit after tax", "Net profit", "Net Profit",
+                "Laba bersih", "Laba tahun berjalan"
+            ],
+            "eps": [
+                "Diluted EPS", "Basic EPS", "EPS Diluted", "EPS Basic",
+                "Earnings Per Share", "Earnings per share",
+                "Laba per saham dasar", "Laba per saham dilusian"
+            ],
+            "dps": [
+                "Dividends Per Share", "Dividend Per Share", "DPS",
+                "Dividen per saham"
+            ]
+        }
+
+        # ----- Balance sheet fields -----
+        bal_fields = {
+            "totalAsset": [
+                "Total Assets", "Total assets", "Total Asset",
+                "Jumlah aset", "Aset"
+            ],
+            "cash": [
+                "Cash And Cash Equivalents", "Cash & Cash Equivalents",
+                "Cash and cash equivalents", "Cash", "Cash & Equivalents",
+                "Kas dan setara kas", "Kas"
+            ],
+            "totalDebt": [
+                "Total Debt", "Total debt", "Total Debt, Net",
+                "Long Term Debt + Short Term Debt", "Net Debt",
+                "Total utang", "Utang"
+            ],
+            "totalEquity": [
+                "Total Equity Gross Minority Interest",
+                "Stockholders Equity", "Total Stockholder Equity",
+                "Total Equity", "Shareholders' Equity", "Equity",
+                "Ekuitas", "Total ekuitas"
+            ]
+        }
+
+        # 1) Attempt to fill from annual financials (all columns)
+        inc_df = tick.financials
+        bal_df = tick.balance_sheet
+        fill_from_annual(inc_df, row, inc_fields)
+        fill_from_annual(bal_df, row, bal_fields)
+
+        # 2) Fallback to quarterly financials if still missing
+        if row["revenue"] is None or row["totalAsset"] is None:
+            q_inc = tick.quarterly_financials
             q_bal = tick.quarterly_balance_sheet
-            if q_bal is not None and not q_bal.empty:
-                q_col = q_bal.columns[0]
-                qb_series = q_bal[q_col]
-                ta = get_fin_val_from_series(qb_series, [
-                    "Total Assets", "Total assets", "Total Asset",
-                    "Jumlah aset", "Aset"
-                ])
-                row["totalAsset"] = safe(ta, div, total_fx) or row["totalAsset"]
-                cash = get_fin_val_from_series(qb_series, [
-                    "Cash And Cash Equivalents", "Cash & Cash Equivalents",
-                    "Cash and cash equivalents", "Cash", "Cash & Equivalents",
-                    "Kas dan setara kas", "Kas"
-                ])
-                row["cash"] = safe(cash, div, total_fx) or row["cash"]
-                td = get_fin_val_from_series(qb_series, [
-                    "Total Debt", "Total debt", "Total Debt, Net",
-                    "Long Term Debt + Short Term Debt", "Net Debt",
-                    "Total utang", "Utang"
-                ])
-                if td is None:
-                    lt = get_fin_val_from_series(qb_series, [
-                        "Long Term Debt", "Long term debt", "Long-Term Debt",
-                        "Non-Current Debt", "Utang jangka panjang"
-                    ])
-                    st = get_fin_val_from_series(qb_series, [
-                        "Short Term Debt", "Short term debt", "Short-Term Debt",
-                        "Current Debt", "Utang jangka pendek"
-                    ])
-                    if lt is not None or st is not None:
-                        td = (lt if lt else 0) + (st if st else 0)
-                row["totalDebt"] = safe(td, div, total_fx) or row["totalDebt"]
-                te = get_fin_val_from_series(qb_series, [
-                    "Total Equity Gross Minority Interest",
-                    "Stockholders Equity", "Total Stockholder Equity",
-                    "Total Equity", "Shareholders' Equity", "Equity",
-                    "Ekuitas", "Total ekuitas"
-                ])
-                row["totalEquity"] = safe(te, div, total_fx) or row["totalEquity"]
+            fill_from_annual(q_inc, row, inc_fields)
+            fill_from_annual(q_bal, row, bal_fields)
 
-        # If after all attempts we still have nothing, log the column names for debugging
+        # 3) Additional fallback from ticker.info (TTM / trailing data)
+        # Revenue, Gross Profit, Net Profit
+        if row["revenue"] is None:
+            rev = info.get("totalRevenue") or info.get("revenue")
+            row["revenue"] = safe(rev, div, total_fx)
+        if row["grossProfit"] is None:
+            gp = info.get("grossMargins")  # this is a ratio, so compute if we have revenue
+            if gp is not None and row["revenue"] is not None:
+                # grossMargins is a decimal, multiply by revenue to get gross profit
+                gross = float(gp) * float(row["revenue"]) if row["revenue"] else None
+                row["grossProfit"] = safe(gross, div, total_fx)
+            else:
+                # sometimes grossProfit is direct in info
+                gp_direct = info.get("grossProfit")
+                row["grossProfit"] = safe(gp_direct, div, total_fx) or row["grossProfit"]
+        if row["netProfit"] is None:
+            ni = info.get("netIncomeToCommon") or info.get("netIncome")
+            row["netProfit"] = safe(ni, div, total_fx)
+
+        # EPS
+        if row["eps"] is None:
+            eps = info.get("trailingEps") or info.get("epsTrailingTwelveMonths")
+            row["eps"] = safe(eps, 1, ps_fx)
+
+        # DPS: try info dividendRate, else compute trailing DPS from dividends
+        if row["dps"] is None:
+            div_rate = info.get("dividendRate")
+            if div_rate is not None:
+                row["dps"] = safe(div_rate, 1, ps_fx)
+            else:
+                # Compute trailing 12-month DPS from dividend history
+                try:
+                    dividends = tick.dividends
+                    if not dividends.empty:
+                        one_year_ago = dividends.index.max() - timedelta(days=365)
+                        trailing_dividends = dividends[dividends.index > one_year_ago]
+                        if not trailing_dividends.empty:
+                            total_dps = float(trailing_dividends.sum())
+                            row["dps"] = safe(total_dps, 1, ps_fx)
+                except Exception:
+                    pass
+
+        # Balance sheet fields from info
+        if row["totalAsset"] is None:
+            ta = info.get("totalAssets")
+            row["totalAsset"] = safe(ta, div, total_fx)
+        if row["cash"] is None:
+            cash = info.get("totalCash") or info.get("cash")
+            row["cash"] = safe(cash, div, total_fx)
+        if row["totalDebt"] is None:
+            td = info.get("totalDebt")
+            row["totalDebt"] = safe(td, div, total_fx)
+        if row["totalEquity"] is None:
+            te = info.get("totalStockholderEquity") or info.get("totalEquity")
+            row["totalEquity"] = safe(te, div, total_fx)
+
+        # 4) Debug info if still empty
         if all(v is None for v in row.values()):
-            print(f"  [yfinance] {ticker_str}: No data found. Inspecting available columns...", flush=True)
+            print(f"  [yfinance] {ticker_str}: No data found. Inspecting...", flush=True)
             if inc_df is not None and not inc_df.empty:
                 print(f"    Income columns: {list(inc_df.columns[:2])}", flush=True)
-                first_col = inc_df.columns[0]
-                sample_keys = list(inc_df[first_col].keys())[:10]
+                sample_keys = list(inc_df[inc_df.columns[0]].keys())[:10]
                 print(f"    Sample income keys: {sample_keys}", flush=True)
             if bal_df is not None and not bal_df.empty:
                 print(f"    Balance columns: {list(bal_df.columns[:2])}", flush=True)
-                first_col = bal_df.columns[0]
-                sample_keys = list(bal_df[first_col].keys())[:10]
+                sample_keys = list(bal_df[bal_df.columns[0]].keys())[:10]
                 print(f"    Sample balance keys: {sample_keys}", flush=True)
+            if info:
+                print(f"    Info keys: {[k for k in info.keys() if info[k] is not None][:20]}", flush=True)
 
     except Exception as e:
         print(f"  [yfinance] {ticker_str}: Exception: {e}", flush=True)
+
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
 
 # ---------- Main fetch router ----------
