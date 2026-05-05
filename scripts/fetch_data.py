@@ -209,6 +209,7 @@ def financial_currency(exchange):
     if exchange == "ASX": return "AUD"
     return "USD"
 
+# ---------- Yahoo CSV helper ----------
 def yahoo_csv_extract_field(data, *keys, fuzzy=None):
     """Try exact keys, then fuzzy substring match."""
     if data is None:
@@ -222,261 +223,8 @@ def yahoo_csv_extract_field(data, *keys, fuzzy=None):
                 if fk in actual_key.lower():
                     return data[actual_key]
     return None
-    def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
-    if USE_FMP:
-        yd, ann = fetch_one_fmp(sym, ticker_str, hint_cur, exchange, usd_aud, usd_idr, twd_usd)
-        if yd and any(v is not None for r in yd.values() for v in r.values()):
-            return yd, ann, "fmp"
-        print(f"  FMP empty, falling back to Yahoo CSV...", flush=True)
 
-    print(f"\n[{sym}] (Yahoo CSV) {ticker_str}", flush=True)
-    fin_cur = financial_currency(exchange)
-    div, total_fx, ps_fx = get_fx(hint_cur.upper(), fin_cur, usd_aud, usd_idr, twd_usd)
-
-    # ---------- Helper to download and parse Yahoo CSV ----------
-    def yahoo_csv_to_dict(ticker, statement_type, frequency="annual"):
-        stype_map = {"income": "financials", "balance": "balance-sheet"}
-        stype = stype_map[statement_type]
-        url = f"https://query1.finance.yahoo.com/v7/finance/download/{ticker}?period1=0&period2=9999999999&interval={frequency}&events={stype}"
-        try:
-            resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
-            if resp.status_code != 200:
-                return {}
-            content = resp.text
-            reader = csv.DictReader(io.StringIO(content))
-            result = {}
-            for row in reader:
-                line = list(row.values())[0]
-                if not line or line.strip() == "":
-                    continue
-                line = line.strip()
-                for col in row:
-                    if col.lower() == "ttm" or col == "":
-                        continue
-                    try:
-                        yr = int(col.split("/")[-1])
-                    except:
-                        continue
-                    if yr not in result:
-                        result[yr] = {}
-                    result[yr][line] = row[col]
-            return result
-        except Exception:
-            return {}
-
-    def get_latest_year(data):
-        if not data:
-            return None, {}
-        max_yr = max(data.keys())
-        return max_yr, data[max_yr]
-
-    inc_data = yahoo_csv_to_dict(ticker_str, "income", "annual")
-    inc_year, inc = get_latest_year(inc_data)
-
-    bal_data = yahoo_csv_to_dict(ticker_str, "balance", "annual")
-    bal_year, bal = get_latest_year(bal_data)
-
-    row_2025 = {f: None for f in FIELDS}
-
-    if inc:
-        row_2025["revenue"]     = safe(yahoo_csv_extract_field(inc, "Total Revenue", "totalRevenue", fuzzy=["revenue"]), div, total_fx)
-        row_2025["grossProfit"] = safe(yahoo_csv_extract_field(inc, "Gross Profit", "grossProfit", fuzzy=["gross"]), div, total_fx)
-        row_2025["netProfit"]   = safe(yahoo_csv_extract_field(inc, "Net Income", "netIncome", "Net Income Common Stockholders", fuzzy=["net income"]), div, total_fx)
-        row_2025["eps"]         = safe(yahoo_csv_extract_field(inc, "Basic EPS", "Diluted EPS", "basicEPS", "dilutedEPS", fuzzy=["eps"]), 1, ps_fx)
-        row_2025["dps"]         = safe(yahoo_csv_extract_field(inc, "Dividend Per Share", "dividendPerShare", fuzzy=["dividend"]), 1, ps_fx)
-
-    if bal:
-        row_2025["totalAsset"]  = safe(yahoo_csv_extract_field(bal, "Total Assets", "totalAssets", fuzzy=["asset"]), div, total_fx)
-        row_2025["cash"]        = safe(yahoo_csv_extract_field(bal, "Cash And Cash Equivalents", "cashAndCashEquivalents", "Cash", fuzzy=["cash"]), div, total_fx)
-        row_2025["totalDebt"]   = safe(yahoo_csv_extract_field(bal, "Total Debt", "totalDebt", "Long Term Debt", "longTermDebt", fuzzy=["debt","utang"]), div, total_fx)
-        row_2025["totalEquity"] = safe(yahoo_csv_extract_field(bal, "Stockholders' Equity", "totalStockholderEquity", "Total Equity", fuzzy=["equity","ekuitas"]), div, total_fx)
-
-    for bal_field in ("totalAsset","cash","totalDebt","totalEquity"):
-        if row_2025.get(bal_field) == 0:
-            row_2025[bal_field] = None
-    if row_2025.get("dps") == 0:
-        row_2025["dps"] = None
-    if sym in ("AMZN",) and row_2025.get("dps") == 0:
-        row_2025["dps"] = None
-    pre_dps = PRELOADED.get(sym, {}).get("dps", [])
-    valid_dps = [v for v in pre_dps if v is not None and v > 0]
-    if valid_dps and row_2025.get("dps") is not None and row_2025["dps"] > 5 * max(valid_dps):
-        row_2025["dps"] = None
-    pre_eps = PRELOADED.get(sym, {}).get("eps", [])
-    valid_eps = [v for v in pre_eps if v is not None and v > 0]
-    if valid_eps and row_2025.get("eps") is not None and row_2025["eps"] > 5 * max(valid_eps):
-        row_2025["eps"] = None
-
-    row_2026 = {f: None for f in FIELDS}
-
-    yd = {LATEST_YEAR: row_2025, CURRENT_YEAR: row_2026}
-    ann_2026 = {"method": "annualised_quarterly", "label": "Yahoo CSV", "quarters": 0}
-    return yd, ann_2026, "yahoo_csv"
-# ---------- Yahoo CSV download (no crumb, always works) ----------
-YAHOO_HEADERS = {"User-Agent": "Mozilla/5.0"}
-
-def yahoo_fetch_csv(ticker_str, statement_type="income", frequency="annual"):
-    """
-    Download financials as CSV from Yahoo Finance.
-    statement_type: 'income', 'balance', 'cash'
-    Return a list of dicts (each dict is a row from CSV, keys are field names).
-    """
-    # Map to Yahoo's URL suffixes
-    stype_map = {
-        "income": "financials",
-        "balance": "balance-sheet",
-        "cash": "cash-flow"
-    }
-    stype = stype_map.get(statement_type, "financials")
-    freq = "annual" if frequency == "annual" else "quarterly"
-    url = f"https://query1.finance.yahoo.com/v7/finance/download/{ticker_str}?period1=0&period2=9999999999&interval={freq}&events={stype}"
-    try:
-        resp = requests.get(url, headers=YAHOO_HEADERS, timeout=15)
-        if resp.status_code != 200:
-            return []
-        content = resp.text
-        reader = csv.DictReader(io.StringIO(content))
-        return list(reader)
-    except Exception:
-        return []
-
-def yahoo_csv_extract_field(data, *keys, fuzzy=None):
-    """Try exact keys, then fuzzy substring."""
-    if data is None:
-        return None
-    for k in keys:
-        if k in data:
-            return data[k]
-    if fuzzy:
-        for actual_key in data:
-            for fk in fuzzy:
-                if fk in actual_key.lower():
-                    return data[actual_key]
-    return None
-
-def yahoo_csv_fetch_rows(ticker_str, statement_type):
-    """
-    Fetch CSV rows and return a list of dicts.
-    Each dict has 'year' (int) and raw values for desired fields.
-    """
-    rows_csv = yahoo_fetch_csv(ticker_str, statement_type, "annual")
-    if not rows_csv:
-        return []
-    # CSV columns example: "ttm", "12/31/2025", "12/31/2024", ...
-    # We want all columns except "ttm"
-    years_cols = [col for col in rows_csv[0].keys() if col.lower() != "ttm"]
-    result = []
-    for row in rows_csv:
-        # Parse years from column names
-        for col in years_cols:
-            # Try to extract year from date string (e.g., "12/31/2025" → 2025)
-            try:
-                yr = int(col.split("/")[-1])
-            except:
-                continue
-            entry = {"year": yr}
-            for key in row.keys():
-                if key.lower() == "ttm":
-                    continue
-                entry[key] = row[key]
-            result.append(entry)
-        break  # Only process the first row (the most recent year data) – we'll handle multi-year differently
-    # Actually, each row in the CSV is a separate accounting line (Revenue, Net Income, etc.)
-    # Better approach: build a dict keyed by (year, line_name)
-    data_by_year = {}
-    for row in rows_csv:
-        # The first column is the line name (e.g., "Total Revenue")
-        line_name = list(row.values())[0]
-        if not line_name or line_name.strip() == "":
-            continue
-        # The remaining columns are years
-        for col in row:
-            if col.lower() == "ttm" or col == "":
-                continue
-            try:
-                yr = int(col.split("/")[-1])
-            except:
-                continue
-            if yr not in data_by_year:
-                data_by_year[yr] = {}
-            data_by_year[yr][line_name.strip()] = row[col]
-    return data_by_year
-
-def yahoo_csv_get_latest_annual(ticker_str, statement_type):
-    """Return a dict {field_name: value} for the most recent annual statement."""
-    data_by_year = yahoo_csv_fetch_rows(ticker_str, statement_type)
-    if not data_by_year:
-        return {}
-    # Get the latest year available (max key)
-    latest_year = max(data_by_year.keys())
-    return data_by_year[latest_year]
-
-def yahoo_csv_get_year(ticker_str, statement_type, year):
-    """Return a dict {field_name: value} for a specific year."""
-    data_by_year = yahoo_csv_fetch_rows(ticker_str, statement_type)
-    if not data_by_year:
-        return {}
-    return data_by_year.get(year, {})
-
-def yahoo_csv_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
-    """
-    Build row_2025 using Yahoo CSV downloads (income + balance sheet).
-    """
-    fin_cur = financial_currency(exchange)
-    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
-
-    inc = yahoo_csv_get_latest_annual(ticker_str, "income")
-    bal = yahoo_csv_get_latest_annual(ticker_str, "balance")
-
-    row = {f: None for f in FIELDS}
-
-    if inc:
-        row["revenue"]     = safe(yahoo_csv_extract_field(inc, "Total Revenue", "totalRevenue", fuzzy=["revenue"]), div, total_fx)
-        row["grossProfit"] = safe(yahoo_csv_extract_field(inc, "Gross Profit", "grossProfit", fuzzy=["gross"]), div, total_fx)
-        row["netProfit"]   = safe(yahoo_csv_extract_field(inc, "Net Income", "netIncome", "Net Income Common Stockholders", fuzzy=["net income"]), div, total_fx)
-        row["eps"]         = safe(yahoo_csv_extract_field(inc, "Basic EPS", "Diluted EPS", "basicEPS", "dilutedEPS", fuzzy=["eps"]), 1, ps_fx)
-        row["dps"]         = safe(yahoo_csv_extract_field(inc, "Dividend Per Share", "dividendPerShare", fuzzy=["dividend"]), 1, ps_fx)
-
-    if bal:
-        row["totalAsset"]  = safe(yahoo_csv_extract_field(bal, "Total Assets", "totalAssets", fuzzy=["asset"]), div, total_fx)
-        row["cash"]        = safe(yahoo_csv_extract_field(bal, "Cash And Cash Equivalents", "cashAndCashEquivalents", "Cash", fuzzy=["cash"]), div, total_fx)
-        row["totalDebt"]   = safe(yahoo_csv_extract_field(bal, "Total Debt", "totalDebt", "Long Term Debt", "longTermDebt", fuzzy=["debt","utang"]), div, total_fx)
-        row["totalEquity"] = safe(yahoo_csv_extract_field(bal, "Stockholders' Equity", "totalStockholderEquity", "Total Equity", fuzzy=["equity","ekuitas"]), div, total_fx)
-
-    # Clean up zeros
-    for bal_field in ("totalAsset","cash","totalDebt","totalEquity"):
-        if row.get(bal_field) == 0:
-            row[bal_field] = None
-    if row.get("dps") == 0:
-        row["dps"] = None
-
-    # Sanity checks
-    if sym in ("AMZN",) and row.get("dps") == 0:
-        row["dps"] = None
-    pre_dps = PRELOADED.get(sym, {}).get("dps", [])
-    valid_dps = [v for v in pre_dps if v is not None and v > 0]
-    if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps):
-        row["dps"] = None
-    pre_eps = PRELOADED.get(sym, {}).get("eps", [])
-    valid_eps = [v for v in pre_eps if v is not None and v > 0]
-    if valid_eps and row.get("eps") is not None and row["eps"] > 5 * max(valid_eps):
-        row["eps"] = None
-
-    return row
-
-def yahoo_csv_fetch_2026_annualised(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd, cur_year):
-    """
-    Annualise 2026 data by summing quarterly income statements and taking latest quarterly balance sheet.
-    Since CSV download doesn't provide easy quarterly sums, we'll fall back to yfinance for 2026.
-    (This is acceptable because 2026 data is still in progress and less critical.)
-    """
-    fin_cur = financial_currency(exchange)
-    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
-
-    # For now, return None for 2026 (will be filled by preloaded None or remain empty)
-    return {f: None for f in FIELDS}
-
-# ---------- FMP fetch ----------
+# ---------- FMP fetch (unchanged) ----------
 def fmp_get(endpoint, ticker, period=None, limit=5):
     if not USE_FMP:
         return []
@@ -585,6 +333,99 @@ def fetch_one_fmp(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
     ann_2026 = {"method": "annualised_quarterly", "label": f"{n_2026*3}M", "quarters": n_2026}
     return yd, ann_2026
 
+# ---------- Yahoo CSV fetch (main fallback) ----------
+def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
+    # Try FMP first if available
+    if USE_FMP:
+        yd, ann = fetch_one_fmp(sym, ticker_str, hint_cur, exchange, usd_aud, usd_idr, twd_usd)
+        if yd and any(v is not None for r in yd.values() for v in r.values()):
+            return yd, ann, "fmp"
+        print(f"  FMP empty, falling back to Yahoo CSV...", flush=True)
+
+    print(f"\n[{sym}] (Yahoo CSV) {ticker_str}", flush=True)
+    fin_cur = financial_currency(exchange)
+    div, total_fx, ps_fx = get_fx(hint_cur.upper(), fin_cur, usd_aud, usd_idr, twd_usd)
+
+    # Helper to download and parse Yahoo CSV
+    def yahoo_csv_to_dict(ticker, statement_type, frequency="annual"):
+        stype_map = {"income": "financials", "balance": "balance-sheet"}
+        stype = stype_map[statement_type]
+        url = f"https://query1.finance.yahoo.com/v7/finance/download/{ticker}?period1=0&period2=9999999999&interval={frequency}&events={stype}"
+        try:
+            resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
+            if resp.status_code != 200:
+                return {}
+            content = resp.text
+            reader = csv.DictReader(io.StringIO(content))
+            result = {}
+            for row in reader:
+                line = list(row.values())[0]
+                if not line or line.strip() == "":
+                    continue
+                line = line.strip()
+                for col in row:
+                    if col.lower() == "ttm" or col == "":
+                        continue
+                    try:
+                        yr = int(col.split("/")[-1])
+                    except:
+                        continue
+                    if yr not in result:
+                        result[yr] = {}
+                    result[yr][line] = row[col]
+            return result
+        except Exception:
+            return {}
+
+    def get_latest_year(data):
+        if not data:
+            return None, {}
+        max_yr = max(data.keys())
+        return max_yr, data[max_yr]
+
+    inc_data = yahoo_csv_to_dict(ticker_str, "income", "annual")
+    inc_year, inc = get_latest_year(inc_data)
+
+    bal_data = yahoo_csv_to_dict(ticker_str, "balance", "annual")
+    bal_year, bal = get_latest_year(bal_data)
+
+    row_2025 = {f: None for f in FIELDS}
+
+    if inc:
+        row_2025["revenue"]     = safe(yahoo_csv_extract_field(inc, "Total Revenue", "totalRevenue", fuzzy=["revenue"]), div, total_fx)
+        row_2025["grossProfit"] = safe(yahoo_csv_extract_field(inc, "Gross Profit", "grossProfit", fuzzy=["gross"]), div, total_fx)
+        row_2025["netProfit"]   = safe(yahoo_csv_extract_field(inc, "Net Income", "netIncome", "Net Income Common Stockholders", fuzzy=["net income"]), div, total_fx)
+        row_2025["eps"]         = safe(yahoo_csv_extract_field(inc, "Basic EPS", "Diluted EPS", "basicEPS", "dilutedEPS", fuzzy=["eps"]), 1, ps_fx)
+        row_2025["dps"]         = safe(yahoo_csv_extract_field(inc, "Dividend Per Share", "dividendPerShare", fuzzy=["dividend"]), 1, ps_fx)
+
+    if bal:
+        row_2025["totalAsset"]  = safe(yahoo_csv_extract_field(bal, "Total Assets", "totalAssets", fuzzy=["asset"]), div, total_fx)
+        row_2025["cash"]        = safe(yahoo_csv_extract_field(bal, "Cash And Cash Equivalents", "cashAndCashEquivalents", "Cash", fuzzy=["cash"]), div, total_fx)
+        row_2025["totalDebt"]   = safe(yahoo_csv_extract_field(bal, "Total Debt", "totalDebt", "Long Term Debt", "longTermDebt", fuzzy=["debt","utang"]), div, total_fx)
+        row_2025["totalEquity"] = safe(yahoo_csv_extract_field(bal, "Stockholders' Equity", "totalStockholderEquity", "Total Equity", fuzzy=["equity","ekuitas"]), div, total_fx)
+
+    # Clean up zeros and sanity checks
+    for bal_field in ("totalAsset","cash","totalDebt","totalEquity"):
+        if row_2025.get(bal_field) == 0:
+            row_2025[bal_field] = None
+    if row_2025.get("dps") == 0:
+        row_2025["dps"] = None
+    if sym in ("AMZN",) and row_2025.get("dps") == 0:
+        row_2025["dps"] = None
+    pre_dps = PRELOADED.get(sym, {}).get("dps", [])
+    valid_dps = [v for v in pre_dps if v is not None and v > 0]
+    if valid_dps and row_2025.get("dps") is not None and row_2025["dps"] > 5 * max(valid_dps):
+        row_2025["dps"] = None
+    pre_eps = PRELOADED.get(sym, {}).get("eps", [])
+    valid_eps = [v for v in pre_eps if v is not None and v > 0]
+    if valid_eps and row_2025.get("eps") is not None and row_2025["eps"] > 5 * max(valid_eps):
+        row_2025["eps"] = None
+
+    row_2026 = {f: None for f in FIELDS}  # 2026 not available yet via annual CSV
+
+    yd = {LATEST_YEAR: row_2025, CURRENT_YEAR: row_2026}
+    ann_2026 = {"method": "annualised_quarterly", "label": "Yahoo CSV", "quarters": 0}
+    return yd, ann_2026, "yahoo_csv"
 
 def build_arrays(yd, sym, rates):
     out_arrays = {}
@@ -611,7 +452,7 @@ def build_arrays(yd, sym, rates):
         out_arrays[f] = arr
     return out_arrays
 
-# ---------- PROFILES (unchanged) ----------
+# ---------- PROFILES ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -1455,7 +1296,7 @@ CEO Hock Tan is renowned for disciplined M&A and cost management. The VMware acq
 AI networking demand is a major tailwind. VMware subscription transition will smooth revenue. Watch debt reduction progress and competitive dynamics in AI chips.""",
 }
 
-# ---------- LEADERSHIP (unchanged) ----------
+# ---------- LEADERSHIP ----------
 LEADERSHIP = {
     "BHP": {"ceo": "Mike Henry (since 2020)", "cfo": "David Lamont (since 2021)", "track": "Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
     "WDS": {"ceo": "Meg O'Neill (since 2021)", "cfo": "Graham Tiver (since 2020)", "track": "O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
