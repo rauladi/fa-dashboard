@@ -1,4 +1,4 @@
-import json, os, math, time, requests, csv, io
+import json, os, math, time, requests
 from datetime import datetime, timezone
 
 # ---------- constants ----------
@@ -9,12 +9,11 @@ COMPLETED = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))   # 2021..2025
 ALL_YEARS = COMPLETED + [CURRENT_YEAR]                       # 2026
 
 FMP_API_KEY = os.environ.get("FMP_API_KEY")
-USE_FMP = bool(FMP_API_KEY)
-
-FMP_BASE = "https://financialmodelingprep.com/api/v3"
+ALPHA_VANTAGE_KEY = os.environ.get("ALPHA_VANTAGE_KEY")
+RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 
 print(f"FA Dashboard fetch – {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
-print(f"Source: {'FMP + Yahoo CSV fallback' if USE_FMP else 'Yahoo CSV'}", flush=True)
+print(f"Sources: FMP (US), Alpha Vantage (ASX), RapidAPI (IDX)", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
 
 FISCAL_YEAR_END = {
@@ -68,7 +67,259 @@ STOCKS = {
 
 FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
 
-# ---------- STATIC PRE‑LOADED DATA (2021–2024) ----------
+# ---------- exchange rates ----------
+def get_rates():
+    usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031
+    try:
+        resp = requests.get("https://api.exchangerate-api.com/v4/latest/USD", timeout=10)
+        data = resp.json()
+        usd_aud = round(data["rates"]["AUD"], 4)
+        usd_idr = round(data["rates"]["IDR"], 0)
+        twd_usd = round(1/data["rates"]["TWD"], 6) if "TWD" in data["rates"] else 0.031
+        print(f"  USD→AUD: {usd_aud}  USD→IDR: {usd_idr:.0f}  TWD→USD: {twd_usd}", flush=True)
+    except Exception as e:
+        print(f"  FX fallback to static rates ({e})", flush=True)
+    return usd_aud, usd_idr, twd_usd
+
+def safe(val, div=1, fx=1.0):
+    if val is None: return None
+    try:
+        f = float(val)
+        if math.isnan(f) or math.isinf(f): return None
+        return round(f/div*fx, 4)
+    except Exception: return None
+
+def get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd):
+    target = target_cur.upper()
+    fin = fin_cur.upper()
+    if target == "IDR": div = 1e12
+    else: div = 1e9
+    if fin == target: conv = 1.0
+    elif target == "USD":
+        if fin == "IDR": conv = 1.0 / usd_idr
+        elif fin == "TWD": conv = twd_usd
+        elif fin == "AUD": conv = 1.0 / usd_aud
+        else: conv = 1.0
+    elif target == "AUD":
+        if fin == "USD": conv = usd_aud
+        else: conv = 1.0
+    elif target == "IDR":
+        if fin == "USD": conv = usd_idr
+        else: conv = 1.0
+    else: conv = 1.0
+    return div, conv, conv
+
+def financial_currency(exchange):
+    if exchange == "IDX": return "IDR"
+    if exchange == "ASX": return "AUD"
+    return "USD"
+
+# ---------- FMP (US stocks) ----------
+FMP_BASE = "https://financialmodelingprep.com/api/v3"
+
+def fmp_get(endpoint, ticker):
+    if not FMP_API_KEY:
+        return None
+    url = f"{FMP_BASE}/{endpoint}/{ticker}?apikey={FMP_API_KEY}"
+    try:
+        resp = requests.get(url, timeout=10)
+        if resp.status_code == 200:
+            return resp.json()
+    except: pass
+    return None
+
+def fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
+    fin_cur = financial_currency(exchange)
+    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
+
+    inc = fmp_get("income-statement", ticker_str)
+    bal = fmp_get("balance-sheet-statement", ticker_str)
+
+    row = {f: None for f in FIELDS}
+    if inc and inc[0].get("revenue") is not None:
+        i = inc[0]
+        row["revenue"]     = safe(i.get("revenue"), div, total_fx)
+        row["grossProfit"] = safe(i.get("grossProfit"), div, total_fx)
+        row["netProfit"]   = safe(i.get("netIncome"), div, total_fx)
+        row["eps"]         = safe(i.get("earningsPerShare") or i.get("eps"), 1, ps_fx)
+        row["dps"]         = safe(i.get("dividendPerShare"), 1, ps_fx) if i.get("dividendPerShare") else None
+    if bal and bal[0].get("totalAssets") is not None:
+        b = bal[0]
+        row["totalAsset"]  = safe(b.get("totalAssets"), div, total_fx)
+        row["cash"]        = safe(b.get("cashAndCashEquivalents"), div, total_fx)
+        row["totalDebt"]   = safe(b.get("totalDebt"), div, total_fx)
+        row["totalEquity"] = safe(b.get("totalStockholdersEquity"), div, total_fx)
+    return row
+
+# ---------- Alpha Vantage (ASX stocks) ----------
+def av_get(function, symbol):
+    if not ALPHA_VANTAGE_KEY:
+        return None
+    url = f"https://www.alphavantage.co/query?function={function}&symbol={symbol}&apikey={ALPHA_VANTAGE_KEY}"
+    try:
+        resp = requests.get(url, timeout=15)
+        if resp.status_code != 200:
+            return None
+        data = resp.json()
+        if "annualReports" in data:
+            return data["annualReports"]
+        if "quarterlyReports" in data:
+            return data["quarterlyReports"][:1]
+        return None
+    except Exception:
+        return None
+
+def av_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
+    fin_cur = financial_currency(exchange)
+    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
+
+    inc = av_get("INCOME_STATEMENT", ticker_str)
+    bal = av_get("BALANCE_SHEET", ticker_str)
+
+    row = {f: None for f in FIELDS}
+    if inc and len(inc) > 0:
+        i = inc[0]
+        row["revenue"]     = safe(i.get("totalRevenue"), div, total_fx)
+        row["grossProfit"] = safe(i.get("grossProfit"), div, total_fx)
+        row["netProfit"]   = safe(i.get("netIncome"), div, total_fx)
+        row["eps"]         = safe(i.get("eps"), 1, ps_fx)
+        row["dps"]         = safe(i.get("dividendPerShare"), 1, ps_fx)
+    if bal and len(bal) > 0:
+        b = bal[0]
+        row["totalAsset"]  = safe(b.get("totalAssets"), div, total_fx)
+        row["cash"]        = safe(b.get("cashAndCashEquivalents"), div, total_fx)
+        row["totalDebt"]   = safe(b.get("totalDebt"), div, total_fx)
+        row["totalEquity"] = safe(b.get("totalShareholderEquity"), div, total_fx)
+    return row
+
+# ---------- RapidAPI (IDX stocks) ----------
+# PRE-CONFIGURED FOR "Indonesia Stock Exchange (IDX) by Market Reaper"
+# If IDX stocks show "(empty)", check these two endpoint paths and field names.
+RAPID_HOST = "indonesian-stock-exchange.p.rapidapi.com"
+INCOME_ENDPOINT = "income-annual"      # CHANGE THIS ONLY IF IDX SHOWS EMPTY
+BALANCE_ENDPOINT = "balance-annual"    # CHANGE THIS ONLY IF IDX SHOWS EMPTY
+
+# Field names – very likely correct, but you can adjust if needed
+FIELD_REVENUE = "totalRevenue"
+FIELD_GROSS_PROFIT = "grossProfit"
+FIELD_NET_INCOME = "netIncome"
+FIELD_EPS = "earningsPerShare"
+FIELD_DPS = "dividendPerShare"
+FIELD_TOTAL_ASSETS = "totalAssets"
+FIELD_CASH = "cashAndCashEquivalents"
+FIELD_TOTAL_DEBT = "totalDebt"
+FIELD_EQUITY = "totalStockholderEquity"
+
+def idx_get(endpoint, ticker):
+    if not RAPIDAPI_KEY:
+        return None
+    url = f"https://{RAPID_HOST}/{endpoint}/{ticker}"
+    headers = {
+        "X-RapidAPI-Key": RAPIDAPI_KEY,
+        "X-RapidAPI-Host": RAPID_HOST
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            return None
+        return resp.json()
+    except Exception:
+        return None
+
+def idx_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
+    fin_cur = financial_currency(exchange)
+    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
+
+    inc = idx_get(INCOME_ENDPOINT, ticker_str)
+    bal = idx_get(BALANCE_ENDPOINT, ticker_str)
+
+    row = {f: None for f in FIELDS}
+    if inc and isinstance(inc, dict):
+        row["revenue"]      = safe(inc.get(FIELD_REVENUE), div, total_fx)
+        row["grossProfit"]  = safe(inc.get(FIELD_GROSS_PROFIT), div, total_fx)
+        row["netProfit"]    = safe(inc.get(FIELD_NET_INCOME), div, total_fx)
+        row["eps"]          = safe(inc.get(FIELD_EPS), 1, ps_fx)
+        row["dps"]          = safe(inc.get(FIELD_DPS), 1, ps_fx)
+    if bal and isinstance(bal, dict):
+        row["totalAsset"]   = safe(bal.get(FIELD_TOTAL_ASSETS), div, total_fx)
+        row["cash"]         = safe(bal.get(FIELD_CASH), div, total_fx)
+        row["totalDebt"]    = safe(bal.get(FIELD_TOTAL_DEBT), div, total_fx)
+        row["totalEquity"]  = safe(bal.get(FIELD_EQUITY), div, total_fx)
+    return row
+
+# ---------- Main fetch router ----------
+def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
+    target_cur = hint_cur.upper()
+    if exchange in ("NYSE", "NASDAQ"):
+        print(f"\n[{sym}] (FMP) {ticker_str}", flush=True)
+        row = fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
+        src = "fmp"
+    elif exchange == "ASX":
+        print(f"\n[{sym}] (Alpha Vantage) {ticker_str}", flush=True)
+        row = av_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
+        src = "alpha_vantage"
+    elif exchange == "IDX":
+        print(f"\n[{sym}] (RapidAPI) {ticker_str}", flush=True)
+        row = idx_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
+        src = "rapidapi"
+    else:
+        row = {f: None for f in FIELDS}
+        src = "unknown"
+
+    if not row or all(v is None for v in row.values()):
+        row = {f: None for f in FIELDS}
+        src += " (empty)"
+
+    # Clean up zeros
+    for bal_field in ("totalAsset","cash","totalDebt","totalEquity"):
+        if row.get(bal_field) == 0:
+            row[bal_field] = None
+    if row.get("dps") == 0:
+        row["dps"] = None
+    if sym in ("AMZN",) and row.get("dps") == 0:
+        row["dps"] = None
+
+    # Sanity checks (DPS/EPS)
+    pre_dps = PRELOADED.get(sym, {}).get("dps", [])
+    valid_dps = [v for v in pre_dps if v is not None and v > 0]
+    if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps):
+        row["dps"] = None
+    pre_eps = PRELOADED.get(sym, {}).get("eps", [])
+    valid_eps = [v for v in pre_eps if v is not None and v > 0]
+    if valid_eps and row.get("eps") is not None and row["eps"] > 5 * max(valid_eps):
+        row["eps"] = None
+
+    row_2026 = {f: None for f in FIELDS}
+    yd = {LATEST_YEAR: row, CURRENT_YEAR: row_2026}
+    ann = {"method": "annual", "label": src, "quarters": 0}
+    return yd, ann, src
+
+def build_arrays(yd, sym, rates):
+    out_arrays = {}
+    idr_to_usd_total = 1000.0 / rates["usd_idr"] if rates["usd_idr"] else 0
+    idr_to_usd_ps = 1.0 / rates["usd_idr"] if rates["usd_idr"] else 0
+    for f in FIELDS:
+        arr = []
+        for i, yr in enumerate(ALL_YEARS):
+            if yr in (LATEST_YEAR, CURRENT_YEAR):
+                if yr in yd and yd[yr].get(f) is not None:
+                    arr.append(yd[yr][f])
+                else:
+                    arr.append(None)
+            elif yr in COMPLETED[:4]:
+                val = PRELOADED.get(sym, {}).get(f, [None]*len(ALL_YEARS))[i]
+                if sym in ("ADRO", "ITMG", "POWR"):
+                    if f in ("eps", "dps"):
+                        if val is not None: val = round(val * idr_to_usd_ps, 4)
+                    else:
+                        if val is not None: val = round(val * idr_to_usd_total, 4)
+                arr.append(val)
+            else:
+                arr.append(None)
+        out_arrays[f] = arr
+    return out_arrays
+
+# ---------- PRELOADED DATA (2021–2024) ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],
              "eps":[2.21,6.05,2.55,1.55,None,None],
@@ -161,296 +412,6 @@ PRELOADED = {
              "eps":[3.10,3.21,3.10,3.25,3.86,None],
              "dps":[0.90,1.06,1.13,1.21,1.27,None]},
 }
-
-# ---------- exchange rates ----------
-def get_rates():
-    usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031
-    try:
-        resp = requests.get("https://api.exchangerate-api.com/v4/latest/USD", timeout=10)
-        data = resp.json()
-        usd_aud = round(data["rates"]["AUD"], 4)
-        usd_idr = round(data["rates"]["IDR"], 0)
-        twd_usd = round(1/data["rates"]["TWD"], 6) if "TWD" in data["rates"] else 0.031
-        print(f"  USD→AUD: {usd_aud}  USD→IDR: {usd_idr:.0f}  TWD→USD: {twd_usd}", flush=True)
-    except Exception as e:
-        print(f"  FX fallback to static rates ({e})", flush=True)
-    return usd_aud, usd_idr, twd_usd
-
-def safe(val, div=1, fx=1.0):
-    if val is None: return None
-    try:
-        f = float(val)
-        if math.isnan(f) or math.isinf(f): return None
-        return round(f/div*fx, 4)
-    except Exception: return None
-
-def get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd):
-    target = target_cur.upper()
-    fin = fin_cur.upper()
-    if target == "IDR": div = 1e12
-    else: div = 1e9
-    if fin == target: conv = 1.0
-    elif target == "USD":
-        if fin == "IDR": conv = 1.0 / usd_idr
-        elif fin == "TWD": conv = twd_usd
-        elif fin == "AUD": conv = 1.0 / usd_aud
-        else: conv = 1.0
-    elif target == "AUD":
-        if fin == "USD": conv = usd_aud
-        else: conv = 1.0
-    elif target == "IDR":
-        if fin == "USD": conv = usd_idr
-        else: conv = 1.0
-    else: conv = 1.0
-    return div, conv, conv
-
-def financial_currency(exchange):
-    if exchange == "IDX": return "IDR"
-    if exchange == "ASX": return "AUD"
-    return "USD"
-
-# ---------- Yahoo CSV helper ----------
-def yahoo_csv_extract_field(data, *keys, fuzzy=None):
-    """Try exact keys, then fuzzy substring match."""
-    if data is None:
-        return None
-    for k in keys:
-        if k in data:
-            return data[k]
-    if fuzzy:
-        for actual_key in data:
-            for fk in fuzzy:
-                if fk in actual_key.lower():
-                    return data[actual_key]
-    return None
-
-# ---------- FMP fetch (unchanged) ----------
-def fmp_get(endpoint, ticker, period=None, limit=5):
-    if not USE_FMP:
-        return []
-    url = f"{FMP_BASE}/{endpoint}/{ticker}?apikey={FMP_API_KEY}"
-    if period:
-        url += f"&period={period}"
-    url += f"&limit={limit}"
-    try:
-        resp = requests.get(url, timeout=10)
-        if resp.status_code == 200:
-            return resp.json()
-    except: pass
-    return []
-
-def fetch_one_fmp(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
-    print(f"\n[{sym}] (FMP) {ticker_str}", flush=True)
-    fin_cur = financial_currency(exchange)
-    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
-    print(f"  cur={fin_cur}  total_fx={total_fx:.6f}  ps_fx={ps_fx:.6f}", flush=True)
-
-    inc_annual = fmp_get("income-statement", ticker_str, limit=1)
-    bal_annual = fmp_get("balance-sheet-statement", ticker_str, limit=1)
-    inc_quarterly = fmp_get("income-statement", ticker_str, period="quarter", limit=20)
-    bal_quarterly = fmp_get("balance-sheet-statement", ticker_str, period="quarter", limit=20)
-
-    row_2025 = {f: None for f in FIELDS}
-    if inc_annual and inc_annual[0].get("revenue") is not None:
-        stmt = inc_annual[0]
-        row_2025["revenue"]      = safe(stmt.get("revenue"), div, total_fx)
-        row_2025["grossProfit"]  = safe(stmt.get("grossProfit"), div, total_fx)
-        row_2025["netProfit"]    = safe(stmt.get("netIncome"), div, total_fx)
-        row_2025["eps"]          = safe(stmt.get("earningsPerShare") or stmt.get("eps"), 1, ps_fx)
-        row_2025["dps"]          = safe(stmt.get("dividendPerShare"), 1, ps_fx) if stmt.get("dividendPerShare") else None
-        if bal_annual and bal_annual[0].get("totalAssets") is not None:
-            bal = bal_annual[0]
-            row_2025["totalAsset"]  = safe(bal.get("totalAssets"), div, total_fx)
-            row_2025["cash"]        = safe(bal.get("cashAndCashEquivalents"), div, total_fx)
-            row_2025["totalDebt"]   = safe(bal.get("totalDebt"), div, total_fx)
-            row_2025["totalEquity"] = safe(bal.get("totalStockholdersEquity"), div, total_fx)
-
-    if row_2025["revenue"] is None and inc_quarterly:
-        print("  Using TTM (last 4 quarters)", flush=True)
-        sorted_q = sorted(inc_quarterly, key=lambda x: x.get("date", ""), reverse=True)
-        last4 = sorted_q[:4]
-        if len(last4) == 4:
-            rev_sum = sum(safe(q.get("revenue")) or 0 for q in last4)
-            gp_sum  = sum(safe(q.get("grossProfit")) or 0 for q in last4)
-            ni_sum  = sum(safe(q.get("netIncome")) or 0 for q in last4)
-            eps_sum = sum(safe(q.get("earningsPerShare") or q.get("eps")) or 0 for q in last4)
-            dps_sum = sum(safe(q.get("dividendPerShare")) or 0 for q in last4 if q.get("dividendPerShare") is not None)
-            row_2025["revenue"]      = safe(rev_sum, div, total_fx) if rev_sum else None
-            row_2025["grossProfit"]  = safe(gp_sum, div, total_fx) if gp_sum else None
-            row_2025["netProfit"]    = safe(ni_sum, div, total_fx) if ni_sum else None
-            row_2025["eps"]          = safe(eps_sum, 1, ps_fx) if eps_sum else None
-            row_2025["dps"]          = safe(dps_sum, 1, ps_fx) if dps_sum else None
-            if bal_quarterly:
-                last_bal = sorted(bal_quarterly, key=lambda x: x.get("date", ""), reverse=True)[0]
-                row_2025["totalAsset"]  = safe(last_bal.get("totalAssets"), div, total_fx)
-                row_2025["cash"]        = safe(last_bal.get("cashAndCashEquivalents"), div, total_fx)
-                row_2025["totalDebt"]   = safe(last_bal.get("totalDebt"), div, total_fx)
-                row_2025["totalEquity"] = safe(last_bal.get("totalStockholdersEquity"), div, total_fx)
-
-    if row_2025["dps"] is None and inc_quarterly:
-        fy = LATEST_YEAR
-        if inc_annual:
-            try: fy = int(inc_annual[0].get("date", "")[:4])
-            except: pass
-        q_dps = sum(safe(q.get("dividendPerShare")) or 0 for q in inc_quarterly
-                    if q.get("calendarYear") == fy)
-        if q_dps != 0:
-            row_2025["dps"] = round(q_dps * ps_fx, 4)
-
-    if sym in ("AMZN",) and row_2025["dps"] == 0:
-        row_2025["dps"] = None
-
-    def annualise_quarters(year):
-        inc_qs = [q for q in inc_quarterly if q.get("calendarYear") == year]
-        if not inc_qs: return {f: None for f in FIELDS}
-        n = len(inc_qs)
-        factor = 4.0 / n
-        row = {}
-        rev_sum = sum(safe(q.get("revenue")) or 0 for q in inc_qs)
-        gp_sum  = sum(safe(q.get("grossProfit")) or 0 for q in inc_qs)
-        ni_sum  = sum(safe(q.get("netIncome")) or 0 for q in inc_qs)
-        eps_sum = sum(safe(q.get("earningsPerShare") or q.get("eps")) or 0 for q in inc_qs)
-        dps_sum = sum(safe(q.get("dividendPerShare")) or 0 for q in inc_qs if q.get("dividendPerShare") is not None)
-        row["revenue"]      = safe(rev_sum * factor, div, total_fx) if rev_sum else None
-        row["grossProfit"]  = safe(gp_sum * factor, div, total_fx) if gp_sum else None
-        row["netProfit"]    = safe(ni_sum * factor, div, total_fx) if ni_sum else None
-        row["eps"]          = safe(eps_sum * factor, 1, ps_fx) if eps_sum else None
-        row["dps"]          = safe(dps_sum * factor, 1, ps_fx) if dps_sum else None
-        bal_qs = [q for q in bal_quarterly if q.get("calendarYear") == year]
-        if bal_qs:
-            last = bal_qs[-1]
-            row["totalAsset"]  = safe(last.get("totalAssets"), div, total_fx)
-            row["cash"]        = safe(last.get("cashAndCashEquivalents"), div, total_fx)
-            row["totalDebt"]   = safe(last.get("totalDebt"), div, total_fx)
-            row["totalEquity"] = safe(last.get("totalStockholdersEquity"), div, total_fx)
-        return row
-
-    row_2026 = annualise_quarters(CURRENT_YEAR)
-    n_2026 = len([q for q in inc_quarterly if q.get("calendarYear") == CURRENT_YEAR])
-    print(f"  {CURRENT_YEAR} Qs: {n_2026}", flush=True)
-
-    yd = {LATEST_YEAR: row_2025, CURRENT_YEAR: row_2026}
-    ann_2026 = {"method": "annualised_quarterly", "label": f"{n_2026*3}M", "quarters": n_2026}
-    return yd, ann_2026
-
-# ---------- Yahoo CSV fetch (main fallback) ----------
-def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
-    # Try FMP first if available
-    if USE_FMP:
-        yd, ann = fetch_one_fmp(sym, ticker_str, hint_cur, exchange, usd_aud, usd_idr, twd_usd)
-        if yd and any(v is not None for r in yd.values() for v in r.values()):
-            return yd, ann, "fmp"
-        print(f"  FMP empty, falling back to Yahoo CSV...", flush=True)
-
-    print(f"\n[{sym}] (Yahoo CSV) {ticker_str}", flush=True)
-    fin_cur = financial_currency(exchange)
-    div, total_fx, ps_fx = get_fx(hint_cur.upper(), fin_cur, usd_aud, usd_idr, twd_usd)
-
-    # Helper to download and parse Yahoo CSV
-    def yahoo_csv_to_dict(ticker, statement_type, frequency="annual"):
-        stype_map = {"income": "financials", "balance": "balance-sheet"}
-        stype = stype_map[statement_type]
-        url = f"https://query1.finance.yahoo.com/v7/finance/download/{ticker}?period1=0&period2=9999999999&interval={frequency}&events={stype}"
-        try:
-            resp = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=15)
-            if resp.status_code != 200:
-                return {}
-            content = resp.text
-            reader = csv.DictReader(io.StringIO(content))
-            result = {}
-            for row in reader:
-                line = list(row.values())[0]
-                if not line or line.strip() == "":
-                    continue
-                line = line.strip()
-                for col in row:
-                    if col.lower() == "ttm" or col == "":
-                        continue
-                    try:
-                        yr = int(col.split("/")[-1])
-                    except:
-                        continue
-                    if yr not in result:
-                        result[yr] = {}
-                    result[yr][line] = row[col]
-            return result
-        except Exception:
-            return {}
-
-    def get_latest_year(data):
-        if not data:
-            return None, {}
-        max_yr = max(data.keys())
-        return max_yr, data[max_yr]
-
-    inc_data = yahoo_csv_to_dict(ticker_str, "income", "annual")
-    inc_year, inc = get_latest_year(inc_data)
-
-    bal_data = yahoo_csv_to_dict(ticker_str, "balance", "annual")
-    bal_year, bal = get_latest_year(bal_data)
-
-    row_2025 = {f: None for f in FIELDS}
-
-    if inc:
-        row_2025["revenue"]     = safe(yahoo_csv_extract_field(inc, "Total Revenue", "totalRevenue", fuzzy=["revenue"]), div, total_fx)
-        row_2025["grossProfit"] = safe(yahoo_csv_extract_field(inc, "Gross Profit", "grossProfit", fuzzy=["gross"]), div, total_fx)
-        row_2025["netProfit"]   = safe(yahoo_csv_extract_field(inc, "Net Income", "netIncome", "Net Income Common Stockholders", fuzzy=["net income"]), div, total_fx)
-        row_2025["eps"]         = safe(yahoo_csv_extract_field(inc, "Basic EPS", "Diluted EPS", "basicEPS", "dilutedEPS", fuzzy=["eps"]), 1, ps_fx)
-        row_2025["dps"]         = safe(yahoo_csv_extract_field(inc, "Dividend Per Share", "dividendPerShare", fuzzy=["dividend"]), 1, ps_fx)
-
-    if bal:
-        row_2025["totalAsset"]  = safe(yahoo_csv_extract_field(bal, "Total Assets", "totalAssets", fuzzy=["asset"]), div, total_fx)
-        row_2025["cash"]        = safe(yahoo_csv_extract_field(bal, "Cash And Cash Equivalents", "cashAndCashEquivalents", "Cash", fuzzy=["cash"]), div, total_fx)
-        row_2025["totalDebt"]   = safe(yahoo_csv_extract_field(bal, "Total Debt", "totalDebt", "Long Term Debt", "longTermDebt", fuzzy=["debt","utang"]), div, total_fx)
-        row_2025["totalEquity"] = safe(yahoo_csv_extract_field(bal, "Stockholders' Equity", "totalStockholderEquity", "Total Equity", fuzzy=["equity","ekuitas"]), div, total_fx)
-
-    # Clean up zeros and sanity checks
-    for bal_field in ("totalAsset","cash","totalDebt","totalEquity"):
-        if row_2025.get(bal_field) == 0:
-            row_2025[bal_field] = None
-    if row_2025.get("dps") == 0:
-        row_2025["dps"] = None
-    if sym in ("AMZN",) and row_2025.get("dps") == 0:
-        row_2025["dps"] = None
-    pre_dps = PRELOADED.get(sym, {}).get("dps", [])
-    valid_dps = [v for v in pre_dps if v is not None and v > 0]
-    if valid_dps and row_2025.get("dps") is not None and row_2025["dps"] > 5 * max(valid_dps):
-        row_2025["dps"] = None
-    pre_eps = PRELOADED.get(sym, {}).get("eps", [])
-    valid_eps = [v for v in pre_eps if v is not None and v > 0]
-    if valid_eps and row_2025.get("eps") is not None and row_2025["eps"] > 5 * max(valid_eps):
-        row_2025["eps"] = None
-
-    row_2026 = {f: None for f in FIELDS}  # 2026 not available yet via annual CSV
-
-    yd = {LATEST_YEAR: row_2025, CURRENT_YEAR: row_2026}
-    ann_2026 = {"method": "annualised_quarterly", "label": "Yahoo CSV", "quarters": 0}
-    return yd, ann_2026, "yahoo_csv"
-
-def build_arrays(yd, sym, rates):
-    out_arrays = {}
-    idr_to_usd_total = 1000.0 / rates["usd_idr"] if rates["usd_idr"] else 0
-    idr_to_usd_ps = 1.0 / rates["usd_idr"] if rates["usd_idr"] else 0
-    for f in FIELDS:
-        arr = []
-        for i, yr in enumerate(ALL_YEARS):
-            if yr in (LATEST_YEAR, CURRENT_YEAR):
-                if yr in yd and yd[yr].get(f) is not None:
-                    arr.append(yd[yr][f])
-                else:
-                    arr.append(None)
-            elif yr in COMPLETED[:4]:
-                val = PRELOADED.get(sym, {}).get(f, [None]*len(ALL_YEARS))[i]
-                if sym in ("ADRO", "ITMG", "POWR"):
-                    if f in ("eps", "dps"):
-                        if val is not None: val = round(val * idr_to_usd_ps, 4)
-                    else:
-                        if val is not None: val = round(val * idr_to_usd_total, 4)
-                arr.append(val)
-            else:
-                arr.append(None)
-        out_arrays[f] = arr
-    return out_arrays
 
 # ---------- PROFILES ----------
 PROFILES = {
@@ -1391,7 +1352,7 @@ def main():
     ok = 0
     for i, (sym, (name, exchange, ticker_str, currency, _div, hint_cur)) in enumerate(all_stocks.items()):
         if i > 0:
-            time.sleep(0.6)
+            time.sleep(1.2)
         try:
             yd, cur_ann, src = fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
             arrs = build_arrays(yd, sym, rates)
