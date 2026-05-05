@@ -149,20 +149,16 @@ def fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_
         row["totalDebt"]   = safe(b.get("totalDebt"), div, total_fx)
         row["totalEquity"] = safe(b.get("totalStockholdersEquity"), div, total_fx)
     return row
-
 # ---------- yfinance (ASX & IDX) with robust field mapping ----------
-# Helper that tries a list of candidate field names (case-insensitive)
 def get_fin_val_from_series(series, candidates):
     """Return first non-None value from a pandas Series using candidate keys."""
-    # Build a lowercase index map for fast lookup
     lowered = {k.lower().strip(): v for k, v in series.items()}
     for cand in candidates:
         key = cand.lower().strip()
         if key in lowered and lowered[key] is not None:
             try:
-                # If it's a pandas object, convert to scalar
                 val = lowered[key]
-                if hasattr(val, 'iloc'):  # might still be a Series
+                if hasattr(val, 'iloc'):
                     val = val.iloc[0] if len(val) > 0 else None
                 return float(val)
             except (ValueError, TypeError):
@@ -179,37 +175,32 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         # --- Income Statement (most recent column) ---
         inc_df = tick.financials
         if inc_df is not None and not inc_df.empty:
-            latest_col = inc_df.columns[0]  # latest date
-            inc_series = inc_df[latest_col]
+            latest_col_inc = inc_df.columns[0]
+            inc_series = inc_df[latest_col_inc]
 
-            # Revenue candidates
             rev = get_fin_val_from_series(inc_series, [
                 "Total Revenue", "Revenue", "Total revenue", "Operating Revenue",
                 "Sales", "Net Sales", "Net revenue"
             ])
             row["revenue"] = safe(rev, div, total_fx)
 
-            # Gross Profit
             gp = get_fin_val_from_series(inc_series, [
                 "Gross Profit", "Gross profit", "Gross margin"
             ])
             row["grossProfit"] = safe(gp, div, total_fx)
 
-            # Net Income
             ni = get_fin_val_from_series(inc_series, [
                 "Net Income", "Net income", "Net Income Common Stockholders",
                 "Profit after tax", "Net profit", "Net Profit"
             ])
             row["netProfit"] = safe(ni, div, total_fx)
 
-            # EPS (diluted preferred)
             eps_raw = get_fin_val_from_series(inc_series, [
                 "Diluted EPS", "Basic EPS", "EPS Diluted", "EPS Basic",
                 "Earnings Per Share", "Earnings per share"
             ])
             row["eps"] = safe(eps_raw, 1, ps_fx)
 
-            # DPS (rarely in yfinance annual statements)
             dps_raw = get_fin_val_from_series(inc_series, [
                 "Dividends Per Share", "Dividend Per Share", "DPS"
             ])
@@ -218,23 +209,20 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         # --- Balance Sheet (most recent column) ---
         bal_df = tick.balance_sheet
         if bal_df is not None and not bal_df.empty:
-            latest_col = bal_df.columns[0]
-            bal_series = bal_df[latest_col]
+            latest_col_bal = bal_df.columns[0]
+            bal_series = bal_df[latest_col_bal]
 
-            # Total Assets
             ta = get_fin_val_from_series(bal_series, [
                 "Total Assets", "Total assets", "Total Asset"
             ])
             row["totalAsset"] = safe(ta, div, total_fx)
 
-            # Cash
             cash = get_fin_val_from_series(bal_series, [
                 "Cash And Cash Equivalents", "Cash & Cash Equivalents",
                 "Cash and cash equivalents", "Cash", "Cash & Equivalents"
             ])
             row["cash"] = safe(cash, div, total_fx)
 
-            # Total Debt (try explicit field first, else sum LT + ST debt)
             td = get_fin_val_from_series(bal_series, [
                 "Total Debt", "Total debt", "Total Debt, Net",
                 "Long Term Debt + Short Term Debt", "Net Debt"
@@ -252,7 +240,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                     td = (lt if lt else 0) + (st if st else 0)
             row["totalDebt"] = safe(td, div, total_fx)
 
-            # Total Equity
             te = get_fin_val_from_series(bal_series, [
                 "Total Equity Gross Minority Interest",
                 "Stockholders Equity", "Total Stockholder Equity",
@@ -260,7 +247,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             ])
             row["totalEquity"] = safe(te, div, total_fx)
 
-        # If DPS still None but company historically pays dividends, leave as None.
     except Exception as e:
         print(f"  [yfinance] {ticker_str}: {e}", flush=True)
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
