@@ -408,16 +408,16 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 "Equity", "Shareholders' Equity", "Total Common Equity"
             ], row["totalEquity"], div, total_fx)
 
-        # *** Bank gross profit fix – run BEFORE small‑value cleanup ***
+        # *** Bank gross profit fix – MULTI‑STEP, placed BEFORE small‑value cleanup ***
         if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
-            # Try to compute from revenue minus costOfRevenue
+            # 1) Try revenue – costOfRevenue
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
                 if computed_gp > 0:
                     row["grossProfit"] = round(computed_gp, 4)
                     if dbg:
-                        print(f"  [DEBUG {sym}] Computed grossProfit (rev-cost) = {row['grossProfit']}", flush=True)
-            # If still missing, try Net Interest Income directly from inc_df
+                        print(f"  [DEBUG {sym}] Computed grossProfit (rev‑cost) = {row['grossProfit']}", flush=True)
+            # 2) Try Net Interest Income from statements
             if row["grossProfit"] is None or row["grossProfit"] == 0.0:
                 nii = extract_inc_item(inc_df, [
                     "Net Interest Income", "Net interest income",
@@ -432,6 +432,16 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                     row["grossProfit"] = nii
                     if dbg:
                         print(f"  [DEBUG {sym}] Gross profit from Net Interest Income = {row['grossProfit']}", flush=True)
+            # 3) Reconstruct from bottom up: GP = NP + OperatingExpense + InterestExpense + IncomeTax
+            if (row["grossProfit"] is None or row["grossProfit"] == 0.0) and \
+               row["netProfit"] is not None and row["operatingExpense"] is not None and \
+               row["interestExpense"] is not None and row["incomeTaxExpense"] is not None:
+                reconstructed = (float(row["netProfit"]) + float(row["operatingExpense"]) +
+                                 float(row["interestExpense"]) + float(row["incomeTaxExpense"]))
+                if reconstructed > 0:
+                    row["grossProfit"] = round(reconstructed, 4)
+                    if dbg:
+                        print(f"  [DEBUG {sym}] Reconstructed grossProfit (NP+OpEx+Int+Tax) = {row['grossProfit']}", flush=True)
 
         if row["revenue"] is None or row["totalAsset"] is None:
             q_inc = tick.quarterly_financials
