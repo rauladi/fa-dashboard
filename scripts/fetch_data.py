@@ -183,7 +183,7 @@ def get_fin_val_by_substring(series, substrings):
     return None
 
 def extract_bal_item(df, labels, div, fx):
-    """Directly extract a value from the balance sheet DataFrame index (labels are case‑insensitive)."""
+    """Directly extract a value from the balance sheet DataFrame index (case‑insensitive)."""
     if df is None or df.empty:
         return None
     idx_lower = {k.lower().strip(): k for k in df.index}
@@ -193,7 +193,8 @@ def extract_bal_item(df, labels, div, fx):
             try:
                 val = df.loc[idx_lower[key]].iloc[0]   # first column (latest date)
                 if pd.notna(val):
-                    return safe(float(val), div, fx)
+                    result = safe(float(val), div, fx)
+                    return result
             except Exception:
                 continue
     return None
@@ -315,21 +316,74 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         fill_from_annual(inc_df, row, inc_fields, inc_sub)
         fill_from_annual(bal_df, row, bal_fields, bal_sub)
 
-        # Direct DataFrame extraction for tricky balance‑sheet items (case‑insensitive)
-        for target_field, lbl_candidates in [
-            ("totalAsset", ["Total Assets", "Total assets", "Total Asset", "Aset", "Jumlah aset"]),
-            ("totalEquity", ["Stockholders Equity", "Total Equity Gross Minority Interest",
-                             "Total Equity", "Common Stock Equity", "Ekuitas", "Total ekuitas"]),
-        ]:
-            if row[target_field] is None:
-                # Try annual first, then quarterly
-                val = extract_bal_item(bal_df, lbl_candidates, div, total_fx)
-                if val is None:
-                    val = extract_bal_item(tick.quarterly_balance_sheet, lbl_candidates, div, total_fx)
-                if val is not None:
-                    row[target_field] = val
-                    if dbg:
-                        print(f"  [DEBUG {sym}] Direct {target_field} = {row[target_field]}", flush=True)
+        # Direct DataFrame extraction for balance‑sheet items (case‑insensitive)
+        # 1) totalAsset – many candidate labels, and fallback: totalAsset = totalLiabilities + totalEquity
+        if row["totalAsset"] is None:
+            ta = extract_bal_item(bal_df, [
+                "Total Assets", "Total assets", "Total Asset", "Aset",
+                "Jumlah aset", "Total Aset", "Jumlah aktiva",
+                "Total Aktiva"
+            ], div, total_fx)
+            if ta is None:
+                ta = extract_bal_item(tick.quarterly_balance_sheet, [
+                    "Total Assets", "Total assets", "Total Asset", "Aset",
+                    "Jumlah aset", "Total Aset", "Jumlah aktiva",
+                    "Total Aktiva"
+                ], div, total_fx)
+            if ta is None:
+                # Compute totalAsset = totalLiabilities + totalEquity
+                total_liab = extract_bal_item(bal_df, [
+                    "Total Liabilities Net Minority Interest",
+                    "Total Liabilities", "Total liabilities",
+                    "Total Liabilities & Equity",
+                    "Total Kewajiban", "Total Utang dan Ekuitas"
+                ], div, total_fx)
+                if total_liab is None:
+                    total_liab = extract_bal_item(tick.quarterly_balance_sheet, [
+                        "Total Liabilities Net Minority Interest",
+                        "Total Liabilities", "Total liabilities",
+                        "Total Liabilities & Equity",
+                        "Total Kewajiban", "Total Utang dan Ekuitas"
+                    ], div, total_fx)
+                total_eq = row["totalEquity"]  # may still be None, we'll fill it later
+                if total_eq is None:
+                    total_eq = extract_bal_item(bal_df, [
+                        "Stockholders Equity", "Total Equity Gross Minority Interest",
+                        "Total Equity", "Common Stock Equity",
+                        "Ekuitas", "Total ekuitas"
+                    ], div, total_fx)
+                    if total_eq is None:
+                        total_eq = extract_bal_item(tick.quarterly_balance_sheet, [
+                            "Stockholders Equity", "Total Equity Gross Minority Interest",
+                            "Total Equity", "Common Stock Equity",
+                            "Ekuitas", "Total ekuitas"
+                        ], div, total_fx)
+                if total_liab is not None and total_eq is not None:
+                    ta = round(total_liab + total_eq, 4)
+                elif total_liab is not None and total_eq is None:
+                    ta = total_liab   # best effort
+            row["totalAsset"] = ta
+            if dbg:
+                print(f"  [DEBUG {sym}] Final totalAsset = {row['totalAsset']}", flush=True)
+
+        # 2) totalEquity – many candidates, plus fallback from info
+        if row["totalEquity"] is None:
+            te = extract_bal_item(bal_df, [
+                "Stockholders Equity", "Total Equity Gross Minority Interest",
+                "Total Equity", "Common Stock Equity",
+                "Ekuitas", "Total ekuitas", "Total Stockholders Equity",
+                "Equity", "Shareholders' Equity"
+            ], div, total_fx)
+            if te is None:
+                te = extract_bal_item(tick.quarterly_balance_sheet, [
+                    "Stockholders Equity", "Total Equity Gross Minority Interest",
+                    "Total Equity", "Common Stock Equity",
+                    "Ekuitas", "Total ekuitas", "Total Stockholders Equity",
+                    "Equity", "Shareholders' Equity"
+                ], div, total_fx)
+            row["totalEquity"] = te
+            if dbg:
+                print(f"  [DEBUG {sym}] Final totalEquity = {row['totalEquity']}", flush=True)
 
         if row["revenue"] is None or row["totalAsset"] is None:
             q_inc = tick.quarterly_financials
@@ -362,7 +416,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             info_fx  = total_fx
 
         if exchange == "IDX" and target_cur == "USD":
-            per_share_fx = ps_fx         # IDR per share → USD
+            per_share_fx = ps_fx
         elif info_is_target:
             per_share_fx = 1.0
         else:
