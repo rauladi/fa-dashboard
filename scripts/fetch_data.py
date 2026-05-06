@@ -65,7 +65,13 @@ STOCKS = {
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
 }
 
-FIELDS = ["totalAsset","cash","totalDebt","totalEquity","revenue","grossProfit","netProfit","eps","dps"]
+FIELDS = [
+    "totalAsset","cash","totalDebt","totalEquity",
+    "revenue","costOfRevenue","grossProfit",
+    "operatingExpense","operatingIncome",
+    "interestExpense","incomeTaxExpense",
+    "netProfit","eps","dps"
+]
 
 # ---------- exchange rates ----------
 def get_rates():
@@ -138,11 +144,16 @@ def fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_
     row = {f: None for f in FIELDS}
     if inc and inc[0].get("revenue") is not None:
         i = inc[0]
-        row["revenue"]     = safe(i.get("revenue"), div, total_fx)
-        row["grossProfit"] = safe(i.get("grossProfit"), div, total_fx)
-        row["netProfit"]   = safe(i.get("netIncome"), div, total_fx)
-        row["eps"]         = safe(i.get("earningsPerShare") or i.get("eps"), 1, ps_fx)
-        row["dps"]         = safe(i.get("dividendPerShare"), 1, ps_fx) if i.get("dividendPerShare") else None
+        row["revenue"]          = safe(i.get("revenue"), div, total_fx)
+        row["costOfRevenue"]    = safe(i.get("costOfRevenue"), div, total_fx)
+        row["grossProfit"]      = safe(i.get("grossProfit"), div, total_fx)
+        row["operatingExpense"] = safe(i.get("operatingExpenses"), div, total_fx)
+        row["operatingIncome"]  = safe(i.get("operatingIncome"), div, total_fx)
+        row["interestExpense"]  = safe(i.get("interestExpense"), div, total_fx)
+        row["incomeTaxExpense"] = safe(i.get("incomeTaxExpense"), div, total_fx)
+        row["netProfit"]        = safe(i.get("netIncome"), div, total_fx)
+        row["eps"]              = safe(i.get("earningsPerShare") or i.get("eps"), 1, ps_fx)
+        row["dps"]              = safe(i.get("dividendPerShare"), 1, ps_fx) if i.get("dividendPerShare") else None
     if bal and bal[0].get("totalAssets") is not None:
         b = bal[0]
         row["totalAsset"]  = safe(b.get("totalAssets"), div, total_fx)
@@ -252,9 +263,31 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 "Sales", "Net Sales", "Net revenue", "Revenues",
                 "Pendapatan", "Total pendapatan", "Penjualan bersih"
             ],
+            "costOfRevenue": [
+                "Cost Of Revenue", "Cost of revenue", "Cost Of Sales",
+                "Cost of goods sold", "COGS",
+                "Beban pokok pendapatan", "Harga pokok penjualan"
+            ],
             "grossProfit": [
                 "Gross Profit", "Gross profit", "Gross margin",
                 "Laba bruto", "Laba kotor"
+            ],
+            "operatingExpense": [
+                "Operating Expense", "Operating Expenses", "Operating Cost",
+                "Selling General & Admin Expense", "SG&A",
+                "Beban operasional", "Beban usaha"
+            ],
+            "operatingIncome": [
+                "Operating Income", "Operating income", "EBIT",
+                "Laba operasi", "Laba usaha"
+            ],
+            "interestExpense": [
+                "Interest Expense", "Interest expense", "Interest Cost",
+                "Beban bunga", "Biaya bunga"
+            ],
+            "incomeTaxExpense": [
+                "Income Tax Expense", "Tax Provision", "Provision for Income Taxes",
+                "Beban pajak", "Pajak penghasilan"
             ],
             "netProfit": [
                 "Net Income", "Net income", "Net Income Common Stockholders",
@@ -296,7 +329,12 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
 
         inc_sub = {
             "revenue": ["revenue", "pendapatan", "penjualan", "sales"],
+            "costOfRevenue": ["cost of revenue", "cogs", "beban pokok", "harga pokok"],
             "grossProfit": ["gross", "laba kotor", "laba bruto"],
+            "operatingExpense": ["operating expense", "sg&a", "beban operasional", "beban usaha"],
+            "operatingIncome": ["operating income", "ebit", "laba operasi", "laba usaha"],
+            "interestExpense": ["interest expense", "beban bunga", "biaya bunga"],
+            "incomeTaxExpense": ["income tax", "tax provision", "beban pajak", "pajak penghasilan"],
             "netProfit": ["net income", "laba bersih", "laba tahun berjalan", "profit after tax"],
             "eps": ["eps", "laba per saham", "earnings per share"],
             "dps": ["dps", "dividend per share", "dividen per saham"]
@@ -361,7 +399,11 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
 
         # --- Discard unreasonably small values (mis‑scaled data) and force re‑fill from info ---
         SMALL_THRESHOLD = 0.01
-        for field in ["revenue","totalAsset","netProfit","cash","totalDebt","totalEquity","grossProfit"]:
+        for field in ["revenue","costOfRevenue","grossProfit",
+                      "operatingExpense","operatingIncome",
+                      "interestExpense","incomeTaxExpense",
+                      "netProfit",
+                      "totalAsset","cash","totalDebt","totalEquity"]:
             if row[field] is not None and row[field] < SMALL_THRESHOLD:
                 row[field] = None
         if row["eps"] is not None and row["eps"] == 0.0:
@@ -399,6 +441,8 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
 
         if row["revenue"] is None:
             row["revenue"] = fill_from_info("totalRevenue", "revenue")
+        if row["costOfRevenue"] is None:
+            row["costOfRevenue"] = fill_from_info("costOfRevenue")
         if row["grossProfit"] is None:
             gm = info.get("grossMargins")
             if gm is not None and row["revenue"] is not None:
@@ -406,6 +450,14 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 row["grossProfit"] = safe(gross, 1, 1.0)
             if row["grossProfit"] is None:
                 row["grossProfit"] = fill_from_info("grossProfit")
+        if row["operatingExpense"] is None:
+            row["operatingExpense"] = fill_from_info("operatingExpenses", "totalOperatingExpenses")
+        if row["operatingIncome"] is None:
+            row["operatingIncome"] = fill_from_info("operatingIncome", "ebit")
+        if row["interestExpense"] is None:
+            row["interestExpense"] = fill_from_info("interestExpense")
+        if row["incomeTaxExpense"] is None:
+            row["incomeTaxExpense"] = fill_from_info("incomeTaxExpense")
         if row["netProfit"] is None:
             row["netProfit"] = fill_from_info("netIncomeToCommon", "netIncome")
         if row["eps"] is None:
@@ -435,7 +487,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if row["totalDebt"] is None:
             row["totalDebt"] = fill_from_info("totalDebt")
         if row["totalEquity"] is None:
-            # Try bookValue as a common alternative for total equity (already in target currency)
             book_val = info.get("bookValue")
             if book_val is not None:
                 row["totalEquity"] = safe(book_val, info_div, info_fx)
@@ -443,12 +494,10 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 row["totalEquity"] = fill_from_info("totalStockholderEquity", "totalEquity")
 
         # --- Final reconstruction if still missing ---
-        # totalAsset = totalDebt + totalEquity
         if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None:
             row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
             if dbg:
                 print(f"  [DEBUG {sym}] Reconstructed totalAsset = {row['totalAsset']}", flush=True)
-        # totalEquity = totalAsset - totalDebt (if positive)
         if row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
             eq = float(row["totalAsset"]) - float(row["totalDebt"])
             if eq > 0:
@@ -466,9 +515,14 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 sample_keys = list(bal_df[bal_df.columns[0]].keys())[:20]
                 print(f"    Sample balance keys: {sample_keys}", flush=True)
             if info:
-                relevant_keys = ["totalRevenue","revenue","grossMargins","grossProfit",
-                                 "netIncomeToCommon","netIncome","trailingEps",
-                                 "epsTrailingTwelveMonths","dividendRate",
+                relevant_keys = ["totalRevenue","revenue","costOfRevenue",
+                                 "grossMargins","grossProfit",
+                                 "operatingExpenses","totalOperatingExpenses",
+                                 "operatingIncome","ebit",
+                                 "interestExpense","incomeTaxExpense",
+                                 "netIncomeToCommon","netIncome",
+                                 "trailingEps","epsTrailingTwelveMonths",
+                                 "dividendRate",
                                  "totalAssets","totalAsset","totalCash","cash",
                                  "totalDebt","totalStockholderEquity","totalEquity",
                                  "bookValue"]
@@ -506,14 +560,21 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
         row = {f: None for f in FIELDS}
         src += " (empty)"
 
+    # Clean up zeros
     for bal_field in ("totalAsset","cash","totalDebt","totalEquity"):
         if row.get(bal_field) == 0:
             row[bal_field] = None
+    for inc_field in ("revenue","costOfRevenue","grossProfit",
+                     "operatingExpense","operatingIncome",
+                     "interestExpense","incomeTaxExpense","netProfit"):
+        if row.get(inc_field) == 0:
+            row[inc_field] = None
     if row.get("dps") == 0:
         row["dps"] = None
     if sym in ("AMZN",) and row.get("dps") == 0:
         row["dps"] = None
 
+    # Sanity checks (DPS/EPS) using PRELOADED
     pre_dps = PRELOADED.get(sym, {}).get("dps", [])
     valid_dps = [v for v in pre_dps if v is not None and v > 0]
     if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps):
