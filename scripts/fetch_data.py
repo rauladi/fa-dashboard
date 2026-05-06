@@ -164,7 +164,6 @@ def fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_
 
 # ---------- yfinance (universal fetcher, used for ASX/IDX and fallback for US) ----------
 def get_fin_val_from_series(series, candidates):
-    """Return first non-None value from a pandas Series using exact candidate keys."""
     lowered = {k.lower().strip(): v for k, v in series.items()}
     for cand in candidates:
         key = cand.lower().strip()
@@ -179,7 +178,6 @@ def get_fin_val_from_series(series, candidates):
     return None
 
 def get_fin_val_by_substring(series, substrings):
-    """Return the first value whose key contains any of the given substrings (case‑insensitive)."""
     for key, val in series.items():
         key_lower = key.lower().strip()
         for sub in substrings:
@@ -194,24 +192,6 @@ def get_fin_val_by_substring(series, substrings):
     return None
 
 def extract_bal_item(df, labels, div, fx):
-    """Directly extract a value from the balance sheet DataFrame index (case‑insensitive)."""
-    if df is None or df.empty:
-        return None
-    idx_lower = {k.lower().strip(): k for k in df.index}
-    for lbl in labels:
-        key = lbl.lower().strip()
-        if key in idx_lower:
-            try:
-                val = df.loc[idx_lower[key]].iloc[0]   # first column (latest date)
-                if pd.notna(val):
-                    result = safe(float(val), div, fx)
-                    return result
-            except Exception:
-                continue
-    return None
-
-def extract_inc_item(df, labels, div, fx):
-    """Directly extract a value from the income statement DataFrame index (case‑insensitive)."""
     if df is None or df.empty:
         return None
     idx_lower = {k.lower().strip(): k for k in df.index}
@@ -221,14 +201,27 @@ def extract_inc_item(df, labels, div, fx):
             try:
                 val = df.loc[idx_lower[key]].iloc[0]
                 if pd.notna(val):
-                    result = safe(float(val), div, fx)
-                    return result
+                    return safe(float(val), div, fx)
+            except Exception:
+                continue
+    return None
+
+def extract_inc_item(df, labels, div, fx):
+    if df is None or df.empty:
+        return None
+    idx_lower = {k.lower().strip(): k for k in df.index}
+    for lbl in labels:
+        key = lbl.lower().strip()
+        if key in idx_lower:
+            try:
+                val = df.loc[idx_lower[key]].iloc[0]
+                if pd.notna(val):
+                    return safe(float(val), div, fx)
             except Exception:
                 continue
     return None
 
 def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
-    """Fetch latest annual financials from yfinance (ASX/IDX primary, US fallback)."""
     fin_cur = financial_currency(exchange)
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
     row = {f: None for f in FIELDS}
@@ -246,7 +239,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             found_any = False
             for col in df.columns:
                 series = df[col]
-                # Exact candidates
                 for field, candidates in field_candidates_map.items():
                     if row_dict[field] is not None:
                         continue
@@ -258,7 +250,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                         found_any = True
                         if dbg:
                             print(f"  [DEBUG {sym}] Found exact {field} = {row_dict[field]}", flush=True)
-                # Substring fallback
                 for field, subs in substring_map.items():
                     if row_dict[field] is not None:
                         continue
@@ -325,10 +316,8 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         }
         bal_fields = {
             "totalAsset": [
-                "Total Assets", "Total assets", "Total Asset",
-                "Jumlah aset", "Aset",
-                "Total Capitalization", "Invested Capital", "Total Aset",
-                "Jumlah aktiva", "Total Aktiva"
+                "Total Assets", "Total assets", "Total Asset", "Aset",
+                "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva"
             ],
             "cash": [
                 "Cash And Cash Equivalents", "Cash & Cash Equivalents",
@@ -339,15 +328,13 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 "Total Debt", "Total debt", "Total Debt, Net",
                 "Long Term Debt + Short Term Debt", "Net Debt",
                 "Total utang", "Utang",
-                "Total Liabilities", "Total liabilities",
-                "Total Kewajiban"
+                "Total Liabilities", "Total liabilities", "Total Kewajiban"
             ],
             "totalEquity": [
                 "Total Equity Gross Minority Interest",
                 "Stockholders Equity", "Total Stockholder Equity",
                 "Total Equity", "Shareholders' Equity", "Equity",
-                "Ekuitas", "Total ekuitas",
-                "Common Stock Equity", "Total Common Equity"
+                "Ekuitas", "Total ekuitas", "Common Stock Equity"
             ]
         }
 
@@ -364,7 +351,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             "dps": ["dps", "dividend per share", "dividen per saham"]
         }
         bal_sub = {
-            "totalAsset": ["total asset", "jumlah aset", "aset", "total capital", "invested capital", "aktiva"],
+            "totalAsset": ["total asset", "jumlah aset", "aset"],
             "cash": ["cash", "kas", "setara kas"],
             "totalDebt": ["total debt", "total utang", "utang", "total liabilit", "total kewajiban"],
             "totalEquity": ["equity", "ekuitas", "stockholder"]
@@ -378,9 +365,8 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         fill_from_annual(inc_df, row, inc_fields, inc_sub)
         fill_from_annual(bal_df, row, bal_fields, bal_sub)
 
-        # ===== Direct extraction with forced override if garbage (tiny) values =====
+        # Direct extraction for totalAsset / totalEquity
         def force_better(df, label_list, current_val, divisor, fx):
-            """If current_val is None or tiny, try direct extraction from df."""
             if df is None:
                 return current_val
             new_val = extract_bal_item(df, label_list, divisor, fx)
@@ -388,35 +374,31 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 return new_val
             return current_val
 
-        # totalAsset
         row["totalAsset"] = force_better(bal_df, [
             "Total Assets", "Total assets", "Total Asset", "Aset",
-            "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva",
-            "Total Capitalization", "Total Aset"
+            "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva"
         ], row["totalAsset"], div, total_fx)
         if row["totalAsset"] is None:
             row["totalAsset"] = force_better(tick.quarterly_balance_sheet, [
                 "Total Assets", "Total assets", "Total Asset", "Aset",
-                "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva",
-                "Total Capitalization", "Total Aset"
+                "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva"
             ], row["totalAsset"], div, total_fx)
 
-        # totalEquity
         row["totalEquity"] = force_better(bal_df, [
             "Stockholders Equity", "Total Equity Gross Minority Interest",
             "Total Equity", "Common Stock Equity",
             "Ekuitas", "Total ekuitas", "Total Stockholders Equity",
-            "Equity", "Shareholders' Equity", "Total Common Equity"
+            "Equity", "Shareholders' Equity"
         ], row["totalEquity"], div, total_fx)
         if row["totalEquity"] is None:
             row["totalEquity"] = force_better(tick.quarterly_balance_sheet, [
                 "Stockholders Equity", "Total Equity Gross Minority Interest",
                 "Total Equity", "Common Stock Equity",
                 "Ekuitas", "Total ekuitas", "Total Stockholders Equity",
-                "Equity", "Shareholders' Equity", "Total Common Equity"
+                "Equity", "Shareholders' Equity"
             ], row["totalEquity"], div, total_fx)
 
-        # Specific fix for banks: gross profit may still be zero
+        # Bank gross profit fix
         if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
@@ -445,7 +427,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             fill_from_annual(q_inc, row, inc_fields, inc_sub)
             fill_from_annual(q_bal, row, bal_fields, bal_sub)
 
-        # --- Discard unreasonably small values (mis‑scaled data) ---
+        # Discard tiny values
         SMALL_THRESHOLD = 0.01
         for field in ["revenue","costOfRevenue","grossProfit",
                       "operatingExpense","operatingIncome",
@@ -459,7 +441,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if row["dps"] is not None and row["dps"] == 0.0:
             row["dps"] = None
 
-        # --- Info fallbacks with automatic currency detection ---
+        # Info fallbacks with currency detection
         info_revenue = info.get("totalRevenue") or info.get("revenue")
         info_is_target = (
             info_revenue is not None
@@ -511,8 +493,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if row["eps"] is None:
             eps_val = info.get("trailingEps") or info.get("epsTrailingTwelveMonths")
             row["eps"] = safe(eps_val, 1, per_share_fx)
-            if dbg:
-                print(f"  [DEBUG {sym}] Info EPS raw={eps_val}, per_share_fx={per_share_fx}, result={row['eps']}", flush=True)
         if row["dps"] is None:
             div_rate = info.get("dividendRate")
             if div_rate is not None:
@@ -541,46 +521,45 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             if row["totalEquity"] is None:
                 row["totalEquity"] = fill_from_info("totalStockholderEquity", "totalEquity")
 
-        # --- Final reconstruction if still missing ---
+        # Final reconstruction from balance‑sheet identity
         if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None:
             row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
-            if dbg:
-                print(f"  [DEBUG {sym}] Reconstructed totalAsset = {row['totalAsset']}", flush=True)
         if row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
             eq = float(row["totalAsset"]) - float(row["totalDebt"])
             if eq > 0:
                 row["totalEquity"] = round(eq, 4)
-                if dbg:
-                    print(f"  [DEBUG {sym}] Reconstructed totalEquity = {row['totalEquity']}", flush=True)
 
-        # --- Explicit corrections for known problematic tickers ---
-        # Banks: totalDebt should equal totalAssets – totalEquity (full liabilities)
+        # Explicit corrections for banks
         if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
             new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
             if new_debt > 0:
                 row["totalDebt"] = new_debt
-                if dbg:
-                    print(f"  [DEBUG {sym}] Bank totalDebt corrected to {row['totalDebt']}", flush=True)
 
-        # --- Last resort for ADRO, ITMG, POWR: use pre‑2024 ratio if all else fails ---
-        if sym in {"ADRO", "ITMG", "POWR"} and (row["totalAsset"] is None or row["totalEquity"] is None):
+        # *** NEW: Historical‑ratio fallback for ADRO, ITMG, POWR ***
+        if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
             pre = PRELOADED.get(sym, {})
-            rev_2024 = (pre.get("revenue") or [])[3] if pre.get("revenue") and len(pre.get("revenue", [])) > 3 else None
-            ta_2024  = (pre.get("totalAsset") or [])[3] if pre.get("totalAsset") and len(pre.get("totalAsset", [])) > 3 else None
-            te_2024  = (pre.get("totalEquity") or [])[3] if pre.get("totalEquity") and len(pre.get("totalEquity", [])) > 3 else None
-            rev_now  = row.get("revenue")
-            if rev_2024 is not None and rev_now is not None and rev_2024 > 0:
-                ratio = rev_now / rev_2024
-                if row["totalAsset"] is None and ta_2024 is not None:
-                    row["totalAsset"] = round(ta_2024 * ratio, 4)
-                    if dbg:
-                        print(f"  [DEBUG {sym}] Estimated totalAsset from 2024 ratio = {row['totalAsset']}", flush=True)
-                if row["totalEquity"] is None and te_2024 is not None:
-                    row["totalEquity"] = round(te_2024 * ratio, 4)
-                    if dbg:
-                        print(f"  [DEBUG {sym}] Estimated totalEquity from 2024 ratio = {row['totalEquity']}", flush=True)
+            rev_hist = (pre.get("revenue") or [])[:4]      # 2021‑2024 in IDR
+            eq_hist  = (pre.get("totalEquity") or [])[:4]
+            ta_hist  = (pre.get("totalAsset") or [])[:4]
 
-        # --- Final debug ---
+            # Equity / Revenue ratio (average)
+            eq_rev_ratios = [e / r for r, e in zip(rev_hist, eq_hist) if r and e and r > 0 and e > 0]
+            if eq_rev_ratios and (row["totalEquity"] is None or row["totalEquity"] == 0.0):
+                avg_eq_rev = sum(eq_rev_ratios) / len(eq_rev_ratios)
+                row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
+                if dbg:
+                    print(f"  [DEBUG {sym}] Estimated totalEquity from historical equity/revenue ratio = {row['totalEquity']}", flush=True)
+
+            # Asset / Revenue ratio (average) – if totalAsset is missing or too low
+            if row["totalAsset"] is None or (row["totalAsset"] < 0.7 * float(row["revenue"])):
+                ta_rev_ratios = [a / r for r, a in zip(rev_hist, ta_hist) if r and a and r > 0 and a > 0]
+                if ta_rev_ratios:
+                    avg_ta_rev = sum(ta_rev_ratios) / len(ta_rev_ratios)
+                    row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
+                    if dbg:
+                        print(f"  [DEBUG {sym}] Estimated totalAsset from historical asset/revenue ratio = {row['totalAsset']}", flush=True)
+
+        # Final debug
         if dbg or all(v is None for v in row.values()):
             print(f"  [yfinance] {ticker_str}: Final row: {row}", flush=True)
             if inc_df is not None and not inc_df.empty:
@@ -590,17 +569,13 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 sample_keys = list(bal_df[bal_df.columns[0]].keys())[:20]
                 print(f"    Sample balance keys: {sample_keys}", flush=True)
             if info:
-                relevant_keys = ["totalRevenue","revenue","costOfRevenue",
-                                 "grossMargins","grossProfit",
-                                 "operatingExpenses","totalOperatingExpenses",
-                                 "operatingIncome","ebit",
+                relevant_keys = ["totalRevenue","revenue","costOfRevenue","grossMargins","grossProfit",
+                                 "operatingExpenses","totalOperatingExpenses","operatingIncome","ebit",
                                  "interestExpense","incomeTaxExpense",
-                                 "netIncomeToCommon","netIncome",
-                                 "trailingEps","epsTrailingTwelveMonths",
+                                 "netIncomeToCommon","netIncome","trailingEps","epsTrailingTwelveMonths",
                                  "dividendRate",
                                  "totalAssets","totalAsset","totalCash","cash",
-                                 "totalDebt","totalStockholderEquity","totalEquity",
-                                 "bookValue"]
+                                 "totalDebt","totalStockholderEquity","totalEquity","bookValue"]
                 info_preview = {k: info.get(k) for k in relevant_keys if info.get(k) is not None}
                 print(f"    Info preview: {info_preview}", flush=True)
 
