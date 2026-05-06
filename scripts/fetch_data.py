@@ -182,6 +182,22 @@ def get_fin_val_by_substring(series, substrings):
                     continue
     return None
 
+def extract_bal_item(df, labels, div, fx):
+    """Directly extract a value from the balance sheet DataFrame index (labels are case‑insensitive)."""
+    if df is None or df.empty:
+        return None
+    idx_lower = {k.lower().strip(): k for k in df.index}
+    for lbl in labels:
+        key = lbl.lower().strip()
+        if key in idx_lower:
+            try:
+                val = df.loc[idx_lower[key]].iloc[0]   # first column (latest date)
+                if pd.notna(val):
+                    return safe(float(val), div, fx)
+            except Exception:
+                continue
+    return None
+
 def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     """Fetch latest annual financials from yfinance (ASX/IDX primary, US fallback)."""
     fin_cur = financial_currency(exchange)
@@ -299,33 +315,21 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         fill_from_annual(inc_df, row, inc_fields, inc_sub)
         fill_from_annual(bal_df, row, bal_fields, bal_sub)
 
-        # Direct DataFrame access for crucial fields that might be missing from the series iterator
-        def direct_df_val(df, row_label):
-            """Try to get a value by exact index label from the latest column of a DataFrame."""
-            if df is None or df.empty:
-                return None
-            try:
-                if row_label in df.index:
-                    val = df.loc[row_label].iloc[0]  # first column (latest)
-                    if pd.notna(val):
-                        return float(val)
-            except Exception:
-                pass
-            return None
-
-        if row["totalAsset"] is None:
-            raw_ta = direct_df_val(bal_df, "Total Assets") or direct_df_val(tick.quarterly_balance_sheet, "Total Assets")
-            if raw_ta is not None:
-                row["totalAsset"] = safe(raw_ta, div, total_fx)
-                if dbg:
-                    print(f"  [DEBUG {sym}] Direct Total Assets = {row['totalAsset']}", flush=True)
-
-        if row["totalEquity"] is None:
-            raw_te = direct_df_val(bal_df, "Stockholders Equity") or direct_df_val(bal_df, "Total Equity Gross Minority Interest") or direct_df_val(tick.quarterly_balance_sheet, "Stockholders Equity")
-            if raw_te is not None:
-                row["totalEquity"] = safe(raw_te, div, total_fx)
-                if dbg:
-                    print(f"  [DEBUG {sym}] Direct Total Equity = {row['totalEquity']}", flush=True)
+        # Direct DataFrame extraction for tricky balance‑sheet items (case‑insensitive)
+        for target_field, lbl_candidates in [
+            ("totalAsset", ["Total Assets", "Total assets", "Total Asset", "Aset", "Jumlah aset"]),
+            ("totalEquity", ["Stockholders Equity", "Total Equity Gross Minority Interest",
+                             "Total Equity", "Common Stock Equity", "Ekuitas", "Total ekuitas"]),
+        ]:
+            if row[target_field] is None:
+                # Try annual first, then quarterly
+                val = extract_bal_item(bal_df, lbl_candidates, div, total_fx)
+                if val is None:
+                    val = extract_bal_item(tick.quarterly_balance_sheet, lbl_candidates, div, total_fx)
+                if val is not None:
+                    row[target_field] = val
+                    if dbg:
+                        print(f"  [DEBUG {sym}] Direct {target_field} = {row[target_field]}", flush=True)
 
         if row["revenue"] is None or row["totalAsset"] is None:
             q_inc = tick.quarterly_financials
@@ -358,7 +362,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             info_fx  = total_fx
 
         if exchange == "IDX" and target_cur == "USD":
-            per_share_fx = ps_fx
+            per_share_fx = ps_fx         # IDR per share → USD
         elif info_is_target:
             per_share_fx = 1.0
         else:
@@ -377,7 +381,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             gm = info.get("grossMargins")
             if gm is not None and row["revenue"] is not None:
                 gross = float(gm) * float(row["revenue"])
-                row["grossProfit"] = safe(gross, 1, 1.0)
+                row["grossProfit"] = safe(gross, 1, 1.0)      # revenue already in targets → gross in same unit
             if row["grossProfit"] is None:
                 row["grossProfit"] = fill_from_info("grossProfit")
         if row["netProfit"] is None:
@@ -385,6 +389,8 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if row["eps"] is None:
             eps_val = info.get("trailingEps") or info.get("epsTrailingTwelveMonths")
             row["eps"] = safe(eps_val, 1, per_share_fx)
+            if dbg:
+                print(f"  [DEBUG {sym}] Info EPS raw={eps_val}, per_share_fx={per_share_fx}, result={row['eps']}", flush=True)
         if row["dps"] is None:
             div_rate = info.get("dividendRate")
             if div_rate is not None:
@@ -401,7 +407,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 except Exception:
                     pass
         if row["totalAsset"] is None:
-            # last attempt: maybe info has it in a different key
             row["totalAsset"] = fill_from_info("totalAssets")
         if row["cash"] is None:
             row["cash"] = fill_from_info("totalCash", "cash")
