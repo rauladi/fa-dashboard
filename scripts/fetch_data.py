@@ -305,28 +305,32 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             fill_from_annual(q_bal, row, bal_fields, bal_sub)
 
         # --- Discard unreasonably small values (mis‑scaled data) and re‑fill from info ---
-        # For "B" scale, anything < 0.01 is almost certainly wrong.
-        if row["revenue"] is not None and row["revenue"] < 0.01:
+        SMALL_THRESHOLD = 0.01
+        if row["revenue"] is not None and row["revenue"] < SMALL_THRESHOLD:
             row["revenue"] = None
-        if row["totalAsset"] is not None and row["totalAsset"] < 0.01:
+        if row["totalAsset"] is not None and row["totalAsset"] < SMALL_THRESHOLD:
             row["totalAsset"] = None
-        if row["netProfit"] is not None and row["netProfit"] < 0.001:
+        if row["netProfit"] is not None and row["netProfit"] < SMALL_THRESHOLD:
             row["netProfit"] = None
-        if row["cash"] is not None and row["cash"] < 0.001:
+        if row["cash"] is not None and row["cash"] < SMALL_THRESHOLD:
             row["cash"] = None
-        if row["totalDebt"] is not None and row["totalDebt"] < 0.001:
+        if row["totalDebt"] is not None and row["totalDebt"] < SMALL_THRESHOLD:
             row["totalDebt"] = None
-        if row["totalEquity"] is not None and row["totalEquity"] < 0.001:
+        if row["totalEquity"] is not None and row["totalEquity"] < SMALL_THRESHOLD:
             row["totalEquity"] = None
-        if row["grossProfit"] is not None and row["grossProfit"] < 0.001:
+        if row["grossProfit"] is not None and row["grossProfit"] < SMALL_THRESHOLD:
             row["grossProfit"] = None
 
-        # --- Info fallbacks (compact helper) ---
+        # --- Info fallbacks (correct currency handling for IDX→USD) ---
+        use_raw = (exchange == "IDX" and target_cur == "USD")
+        info_div = 1e12 if use_raw else div
+        info_fx  = 1.0   if use_raw else total_fx
+
         def fill_from_info(*candidates):
             for c in candidates:
                 v = info.get(c, None)
                 if v is not None:
-                    return safe(v, div, total_fx)
+                    return safe(v, info_div, info_fx)
             return None
 
         if row["revenue"] is None:
@@ -335,14 +339,14 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             gm = info.get("grossMargins")
             if gm is not None and row["revenue"] is not None:
                 gross = float(gm) * float(row["revenue"]) if row["revenue"] else None
-                row["grossProfit"] = safe(gross, div, total_fx)
+                row["grossProfit"] = safe(gross, info_div, info_fx)
             if row["grossProfit"] is None:
                 row["grossProfit"] = fill_from_info("grossProfit")
         if row["netProfit"] is None:
             row["netProfit"] = fill_from_info("netIncomeToCommon", "netIncome")
         if row["eps"] is None:
             eps = info.get("trailingEps") or info.get("epsTrailingTwelveMonths")
-            row["eps"] = safe(eps, 1, ps_fx)
+            row["eps"] = safe(eps, 1, ps_fx)   # EPS always per‑share, keep existing FX
         if row["dps"] is None:
             div_rate = info.get("dividendRate")
             if div_rate is not None:
