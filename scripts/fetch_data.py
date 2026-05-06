@@ -330,43 +330,11 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                     "Jumlah aset", "Total Aset", "Jumlah aktiva",
                     "Total Aktiva"
                 ], div, total_fx)
-            if ta is None:
-                # Compute totalAsset = totalLiabilities + totalEquity
-                total_liab = extract_bal_item(bal_df, [
-                    "Total Liabilities Net Minority Interest",
-                    "Total Liabilities", "Total liabilities",
-                    "Total Liabilities & Equity",
-                    "Total Kewajiban", "Total Utang dan Ekuitas"
-                ], div, total_fx)
-                if total_liab is None:
-                    total_liab = extract_bal_item(tick.quarterly_balance_sheet, [
-                        "Total Liabilities Net Minority Interest",
-                        "Total Liabilities", "Total liabilities",
-                        "Total Liabilities & Equity",
-                        "Total Kewajiban", "Total Utang dan Ekuitas"
-                    ], div, total_fx)
-                total_eq = row["totalEquity"]  # may still be None, we'll fill it later
-                if total_eq is None:
-                    total_eq = extract_bal_item(bal_df, [
-                        "Stockholders Equity", "Total Equity Gross Minority Interest",
-                        "Total Equity", "Common Stock Equity",
-                        "Ekuitas", "Total ekuitas"
-                    ], div, total_fx)
-                    if total_eq is None:
-                        total_eq = extract_bal_item(tick.quarterly_balance_sheet, [
-                            "Stockholders Equity", "Total Equity Gross Minority Interest",
-                            "Total Equity", "Common Stock Equity",
-                            "Ekuitas", "Total ekuitas"
-                        ], div, total_fx)
-                if total_liab is not None and total_eq is not None:
-                    ta = round(total_liab + total_eq, 4)
-                elif total_liab is not None and total_eq is None:
-                    ta = total_liab   # best effort
             row["totalAsset"] = ta
             if dbg:
-                print(f"  [DEBUG {sym}] Final totalAsset = {row['totalAsset']}", flush=True)
+                print(f"  [DEBUG {sym}] Direct totalAsset = {row['totalAsset']}", flush=True)
 
-        # 2) totalEquity – many candidates, plus fallback from info
+        # 2) totalEquity – many candidates
         if row["totalEquity"] is None:
             te = extract_bal_item(bal_df, [
                 "Stockholders Equity", "Total Equity Gross Minority Interest",
@@ -383,7 +351,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 ], div, total_fx)
             row["totalEquity"] = te
             if dbg:
-                print(f"  [DEBUG {sym}] Final totalEquity = {row['totalEquity']}", flush=True)
+                print(f"  [DEBUG {sym}] Direct totalEquity = {row['totalEquity']}", flush=True)
 
         if row["revenue"] is None or row["totalAsset"] is None:
             q_inc = tick.quarterly_financials
@@ -435,7 +403,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             gm = info.get("grossMargins")
             if gm is not None and row["revenue"] is not None:
                 gross = float(gm) * float(row["revenue"])
-                row["grossProfit"] = safe(gross, 1, 1.0)      # revenue already in targets → gross in same unit
+                row["grossProfit"] = safe(gross, 1, 1.0)
             if row["grossProfit"] is None:
                 row["grossProfit"] = fill_from_info("grossProfit")
         if row["netProfit"] is None:
@@ -461,13 +429,32 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 except Exception:
                     pass
         if row["totalAsset"] is None:
-            row["totalAsset"] = fill_from_info("totalAssets")
+            row["totalAsset"] = fill_from_info("totalAssets", "totalAsset")
         if row["cash"] is None:
             row["cash"] = fill_from_info("totalCash", "cash")
         if row["totalDebt"] is None:
             row["totalDebt"] = fill_from_info("totalDebt")
         if row["totalEquity"] is None:
-            row["totalEquity"] = fill_from_info("totalStockholderEquity", "totalEquity")
+            # Try bookValue as a common alternative for total equity (already in target currency)
+            book_val = info.get("bookValue")
+            if book_val is not None:
+                row["totalEquity"] = safe(book_val, info_div, info_fx)
+            if row["totalEquity"] is None:
+                row["totalEquity"] = fill_from_info("totalStockholderEquity", "totalEquity")
+
+        # --- Final reconstruction if still missing ---
+        # totalAsset = totalDebt + totalEquity
+        if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None:
+            row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
+            if dbg:
+                print(f"  [DEBUG {sym}] Reconstructed totalAsset = {row['totalAsset']}", flush=True)
+        # totalEquity = totalAsset - totalDebt (if positive)
+        if row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
+            eq = float(row["totalAsset"]) - float(row["totalDebt"])
+            if eq > 0:
+                row["totalEquity"] = round(eq, 4)
+                if dbg:
+                    print(f"  [DEBUG {sym}] Reconstructed totalEquity = {row['totalEquity']}", flush=True)
 
         # --- Final debug ---
         if dbg or all(v is None for v in row.values()):
@@ -482,8 +469,9 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 relevant_keys = ["totalRevenue","revenue","grossMargins","grossProfit",
                                  "netIncomeToCommon","netIncome","trailingEps",
                                  "epsTrailingTwelveMonths","dividendRate",
-                                 "totalAssets","totalCash","cash",
-                                 "totalDebt","totalStockholderEquity","totalEquity"]
+                                 "totalAssets","totalAsset","totalCash","cash",
+                                 "totalDebt","totalStockholderEquity","totalEquity",
+                                 "bookValue"]
                 info_preview = {k: info.get(k) for k in relevant_keys if info.get(k) is not None}
                 print(f"    Info preview: {info_preview}", flush=True)
 
