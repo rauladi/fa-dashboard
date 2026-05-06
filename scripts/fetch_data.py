@@ -216,7 +216,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
     row = {f: None for f in FIELDS}
 
-    debug_tickers = {"ADRO", "ITMG", "POWR"}
+    debug_tickers = {"ADRO", "ITMG", "POWR", "BBRI", "BTPS"}
     dbg = sym in debug_tickers
 
     try:
@@ -317,7 +317,9 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             "totalDebt": [
                 "Total Debt", "Total debt", "Total Debt, Net",
                 "Long Term Debt + Short Term Debt", "Net Debt",
-                "Total utang", "Utang"
+                "Total utang", "Utang",
+                "Total Liabilities", "Total liabilities",
+                "Total Kewajiban"
             ],
             "totalEquity": [
                 "Total Equity Gross Minority Interest",
@@ -342,7 +344,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         bal_sub = {
             "totalAsset": ["total asset", "jumlah aset", "aset"],
             "cash": ["cash", "kas", "setara kas"],
-            "totalDebt": ["total debt", "total utang", "utang"],
+            "totalDebt": ["total debt", "total utang", "utang", "total liabilit", "total kewajiban"],
             "totalEquity": ["equity", "ekuitas", "stockholder"]
         }
 
@@ -504,6 +506,16 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 row["totalEquity"] = round(eq, 4)
                 if dbg:
                     print(f"  [DEBUG {sym}] Reconstructed totalEquity = {row['totalEquity']}", flush=True)
+
+        # --- Correct mis‑scaled totalDebt for banks where "Total Debt" line item is tiny ---
+        if (row["totalDebt"] is not None and row["totalEquity"] is not None
+                and row["totalDebt"] < row["totalEquity"] * 0.5
+                and row["totalAsset"] is not None):
+            new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
+            if new_debt >= 0:
+                row["totalDebt"] = new_debt
+                if dbg:
+                    print(f"  [DEBUG {sym}] Corrected totalDebt = {row['totalDebt']} (was {row['totalDebt']})", flush=True)
 
         # --- Final debug ---
         if dbg or all(v is None for v in row.values()):
