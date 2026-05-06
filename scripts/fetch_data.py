@@ -210,6 +210,23 @@ def extract_bal_item(df, labels, div, fx):
                 continue
     return None
 
+def extract_inc_item(df, labels, div, fx):
+    """Directly extract a value from the income statement DataFrame index (case‑insensitive)."""
+    if df is None or df.empty:
+        return None
+    idx_lower = {k.lower().strip(): k for k in df.index}
+    for lbl in labels:
+        key = lbl.lower().strip()
+        if key in idx_lower:
+            try:
+                val = df.loc[idx_lower[key]].iloc[0]
+                if pd.notna(val):
+                    result = safe(float(val), div, fx)
+                    return result
+            except Exception:
+                continue
+    return None
+
 def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     """Fetch latest annual financials from yfinance (ASX/IDX primary, US fallback)."""
     fin_cur = financial_currency(exchange)
@@ -270,7 +287,9 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             ],
             "grossProfit": [
                 "Gross Profit", "Gross profit", "Gross margin",
-                "Laba bruto", "Laba kotor"
+                "Laba bruto", "Laba kotor",
+                "Net Interest Income", "Net interest income",
+                "Pendapatan bunga bersih", "Pendapatan Bunga Bersih"
             ],
             "operatingExpense": [
                 "Operating Expense", "Operating Expenses", "Operating Cost",
@@ -332,7 +351,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         inc_sub = {
             "revenue": ["revenue", "pendapatan", "penjualan", "sales"],
             "costOfRevenue": ["cost of revenue", "cogs", "beban pokok", "harga pokok"],
-            "grossProfit": ["gross", "laba kotor", "laba bruto"],
+            "grossProfit": ["gross", "laba kotor", "laba bruto", "net interest income", "pendapatan bunga bersih"],
             "operatingExpense": ["operating expense", "sg&a", "beban operasional", "beban usaha"],
             "operatingIncome": ["operating income", "ebit", "laba operasi", "laba usaha"],
             "interestExpense": ["interest expense", "beban bunga", "biaya bunga"],
@@ -356,25 +375,21 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         fill_from_annual(inc_df, row, inc_fields, inc_sub)
         fill_from_annual(bal_df, row, bal_fields, bal_sub)
 
-        # Direct DataFrame extraction for balance‑sheet items (case‑insensitive)
-        # 1) totalAsset – many candidate labels, and fallback: totalAsset = totalLiabilities + totalEquity
+        # Direct DataFrame extraction for balance‑sheet items
         if row["totalAsset"] is None:
             ta = extract_bal_item(bal_df, [
                 "Total Assets", "Total assets", "Total Asset", "Aset",
-                "Jumlah aset", "Total Aset", "Jumlah aktiva",
-                "Total Aktiva"
+                "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva"
             ], div, total_fx)
             if ta is None:
                 ta = extract_bal_item(tick.quarterly_balance_sheet, [
                     "Total Assets", "Total assets", "Total Asset", "Aset",
-                    "Jumlah aset", "Total Aset", "Jumlah aktiva",
-                    "Total Aktiva"
+                    "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva"
                 ], div, total_fx)
             row["totalAsset"] = ta
             if dbg:
                 print(f"  [DEBUG {sym}] Direct totalAsset = {row['totalAsset']}", flush=True)
 
-        # 2) totalEquity – many candidates
         if row["totalEquity"] is None:
             te = extract_bal_item(bal_df, [
                 "Stockholders Equity", "Total Equity Gross Minority Interest",
@@ -393,13 +408,38 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             if dbg:
                 print(f"  [DEBUG {sym}] Direct totalEquity = {row['totalEquity']}", flush=True)
 
+        # --- Specific fix for banks: gross profit may still be zero ---
+        if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
+            # Try to compute from revenue minus costOfRevenue
+            if isOK(row["revenue"]) and isOK(row["costOfRevenue"]):
+                computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
+                if computed_gp > 0:
+                    row["grossProfit"] = round(computed_gp, 4)
+                    if dbg:
+                        print(f"  [DEBUG {sym}] Computed grossProfit (rev-cost) = {row['grossProfit']}", flush=True)
+            # If still missing, fallback to Net Interest Income directly from inc_df
+            if row["grossProfit"] is None or row["grossProfit"] == 0.0:
+                nii = extract_inc_item(inc_df, [
+                    "Net Interest Income", "Net interest income",
+                    "Pendapatan bunga bersih", "Pendapatan Bunga Bersih"
+                ], div, total_fx)
+                if nii is None and tick.quarterly_financials is not None:
+                    nii = extract_inc_item(tick.quarterly_financials, [
+                        "Net Interest Income", "Net interest income",
+                        "Pendapatan bunga bersih", "Pendapatan Bunga Bersih"
+                    ], div, total_fx)
+                if nii is not None:
+                    row["grossProfit"] = nii
+                    if dbg:
+                        print(f"  [DEBUG {sym}] Gross profit from Net Interest Income = {row['grossProfit']}", flush=True)
+
         if row["revenue"] is None or row["totalAsset"] is None:
             q_inc = tick.quarterly_financials
             q_bal = tick.quarterly_balance_sheet
             fill_from_annual(q_inc, row, inc_fields, inc_sub)
             fill_from_annual(q_bal, row, bal_fields, bal_sub)
 
-        # --- Discard unreasonably small values (mis‑scaled data) and force re‑fill from info ---
+        # --- Discard unreasonably small values (mis‑scaled data) ---
         SMALL_THRESHOLD = 0.01
         for field in ["revenue","costOfRevenue","grossProfit",
                       "operatingExpense","operatingIncome",
@@ -512,10 +552,10 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 and row["totalDebt"] < row["totalEquity"] * 0.5
                 and row["totalAsset"] is not None):
             new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
-            if new_debt >= 0:
+            if new_debt > 0:
                 row["totalDebt"] = new_debt
                 if dbg:
-                    print(f"  [DEBUG {sym}] Corrected totalDebt = {row['totalDebt']} (was {row['totalDebt']})", flush=True)
+                    print(f"  [DEBUG {sym}] Corrected totalDebt = {row['totalDebt']} (was small)", flush=True)
 
         # --- Final debug ---
         if dbg or all(v is None for v in row.values()):
@@ -572,7 +612,6 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
         row = {f: None for f in FIELDS}
         src += " (empty)"
 
-    # Clean up zeros
     for bal_field in ("totalAsset","cash","totalDebt","totalEquity"):
         if row.get(bal_field) == 0:
             row[bal_field] = None
@@ -586,7 +625,6 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     if sym in ("AMZN",) and row.get("dps") == 0:
         row["dps"] = None
 
-    # Sanity checks (DPS/EPS) using PRELOADED
     pre_dps = PRELOADED.get(sym, {}).get("dps", [])
     valid_dps = [v for v in pre_dps if v is not None and v > 0]
     if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps):
