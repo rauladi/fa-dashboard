@@ -135,7 +135,11 @@ def fmp_get(endpoint, ticker):
     return None
 
 def fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
-    fin_cur = financial_currency(exchange)
+    # Override financial currency for TSM (reports in TWD)
+    if sym == "TSM":
+        fin_cur = "TWD"
+    else:
+        fin_cur = financial_currency(exchange)
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
 
     inc = fmp_get("income-statement", ticker_str)
@@ -222,7 +226,11 @@ def extract_inc_item(df, labels, div, fx):
     return None
 
 def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
-    fin_cur = financial_currency(exchange)
+    # Override financial currency for TSM (reports in TWD)
+    if sym == "TSM":
+        fin_cur = "TWD"
+    else:
+        fin_cur = financial_currency(exchange)
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
     row = {f: None for f in FIELDS}
 
@@ -400,7 +408,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 "Equity", "Shareholders' Equity", "Total Common Equity"
             ], row["totalEquity"], div, total_fx)
 
-        # Specific fix for banks: gross profit may still be zero
+        # *** Bank gross profit fix – run BEFORE small‑value cleanup ***
         if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
@@ -548,7 +556,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         # Only for ADRO/ITMG/POWR: estimate totalEquity/totalAsset from historical ratios if needed
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
             pre = PRELOADED.get(sym, {})
-            rev_hist = (pre.get("revenue") or [])[:4]      # 2021‑2024
+            rev_hist = (pre.get("revenue") or [])[:4]
             eq_hist  = (pre.get("totalEquity") or [])[:4]
             ta_hist  = (pre.get("totalAsset") or [])[:4]
 
