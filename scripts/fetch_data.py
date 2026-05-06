@@ -152,7 +152,7 @@ def fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_
 
 # ---------- yfinance (universal fetcher, used for ASX/IDX and fallback for US) ----------
 def get_fin_val_from_series(series, candidates):
-    """Return first non-None value from a pandas Series using candidate keys."""
+    """Return first non-None value from a pandas Series using exact candidate keys."""
     lowered = {k.lower().strip(): v for k, v in series.items()}
     for cand in candidates:
         key = cand.lower().strip()
@@ -166,38 +166,68 @@ def get_fin_val_from_series(series, candidates):
                 continue
     return None
 
+def get_fin_val_by_substring(series, substrings):
+    """Return the first value whose key contains any of the given substrings (case‑insensitive)."""
+    for key, val in series.items():
+        key_lower = key.lower().strip()
+        for sub in substrings:
+            if sub in key_lower and val is not None:
+                try:
+                    v = val
+                    if hasattr(v, 'iloc'):
+                        v = v.iloc[0] if len(v) > 0 else None
+                    return float(v)
+                except (ValueError, TypeError):
+                    continue
+    return None
+
 def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     """Fetch latest annual financials from yfinance (ASX/IDX primary, US fallback)."""
     fin_cur = financial_currency(exchange)
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
     row = {f: None for f in FIELDS}
 
+    debug_tickers = {"ADRO", "ITMG", "POWR"}
+    dbg = sym in debug_tickers
+
     try:
         tick = yf.Ticker(ticker_str)
         info = tick.info or {}
 
-        # Helper: fill a field with best available candidate across all columns of a dataframe
-        def fill_from_annual(df, row_dict, field_candidates_map):
+        def fill_from_annual(df, row_dict, field_candidates_map, substring_map):
             if df is None or df.empty:
                 return False
             found_any = False
             for col in df.columns:
                 series = df[col]
+                # Exact candidates
                 for field, candidates in field_candidates_map.items():
                     if row_dict[field] is not None:
-                        continue   # already filled
+                        continue
                     val = get_fin_val_from_series(series, candidates)
                     if val is not None:
                         fx = ps_fx if field in ("eps","dps") else total_fx
                         d = 1 if field in ("eps","dps") else div
                         row_dict[field] = safe(val, d, fx)
                         found_any = True
-                # break early if all fields filled (optional)
+                        if dbg:
+                            print(f"  [DEBUG {sym}] Found exact {field} = {row_dict[field]}", flush=True)
+                # Substring fallback
+                for field, subs in substring_map.items():
+                    if row_dict[field] is not None:
+                        continue
+                    val = get_fin_val_by_substring(series, subs)
+                    if val is not None:
+                        fx = ps_fx if field in ("eps","dps") else total_fx
+                        d = 1 if field in ("eps","dps") else div
+                        row_dict[field] = safe(val, d, fx)
+                        found_any = True
+                        if dbg:
+                            print(f"  [DEBUG {sym}] Found substring {field} = {row_dict[field]}", flush=True)
                 if all(v is not None for v in row_dict.values()):
                     break
             return found_any
 
-        # ----- Income statement fields from annual data -----
         inc_fields = {
             "revenue": [
                 "Total Revenue", "Revenue", "Total revenue", "Operating Revenue",
@@ -223,8 +253,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 "Dividen per saham"
             ]
         }
-
-        # ----- Balance sheet fields -----
         bal_fields = {
             "totalAsset": [
                 "Total Assets", "Total assets", "Total Asset",
@@ -248,50 +276,57 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             ]
         }
 
-        # 1) Attempt to fill from annual financials (all columns)
+        inc_sub = {
+            "revenue": ["revenue", "pendapatan", "penjualan", "sales"],
+            "grossProfit": ["gross", "laba kotor", "laba bruto"],
+            "netProfit": ["net income", "laba bersih", "laba tahun berjalan", "profit after tax"],
+            "eps": ["eps", "laba per saham", "earnings per share"],
+            "dps": ["dps", "dividend per share", "dividen per saham"]
+        }
+        bal_sub = {
+            "totalAsset": ["total asset", "jumlah aset", "aset"],
+            "cash": ["cash", "kas", "setara kas"],
+            "totalDebt": ["total debt", "total utang", "utang"],
+            "totalEquity": ["equity", "ekuitas", "stockholder"]
+        }
+
         inc_df = tick.financials
         bal_df = tick.balance_sheet
-        fill_from_annual(inc_df, row, inc_fields)
-        fill_from_annual(bal_df, row, bal_fields)
+        if dbg:
+            print(f"  [DEBUG {sym}] Annual columns income: {list(inc_df.columns)[:3] if inc_df is not None and not inc_df.empty else 'None'}", flush=True)
+            print(f"  [DEBUG {sym}] Annual columns balance: {list(bal_df.columns)[:3] if bal_df is not None and not bal_df.empty else 'None'}", flush=True)
+        fill_from_annual(inc_df, row, inc_fields, inc_sub)
+        fill_from_annual(bal_df, row, bal_fields, bal_sub)
 
-        # 2) Fallback to quarterly financials if still missing
         if row["revenue"] is None or row["totalAsset"] is None:
             q_inc = tick.quarterly_financials
             q_bal = tick.quarterly_balance_sheet
-            fill_from_annual(q_inc, row, inc_fields)
-            fill_from_annual(q_bal, row, bal_fields)
+            fill_from_annual(q_inc, row, inc_fields, inc_sub)
+            fill_from_annual(q_bal, row, bal_fields, bal_sub)
 
-        # 3) Additional fallback from ticker.info (TTM / trailing data)
-        # Revenue, Gross Profit, Net Profit
+        # --- Info fallbacks ---
         if row["revenue"] is None:
             rev = info.get("totalRevenue") or info.get("revenue")
             row["revenue"] = safe(rev, div, total_fx)
         if row["grossProfit"] is None:
-            gp = info.get("grossMargins")  # this is a ratio, so compute if we have revenue
-            if gp is not None and row["revenue"] is not None:
-                # grossMargins is a decimal, multiply by revenue to get gross profit
-                gross = float(gp) * float(row["revenue"]) if row["revenue"] else None
+            gp_ratio = info.get("grossMargins")
+            if gp_ratio is not None and row["revenue"] is not None:
+                gross = float(gp_ratio) * float(row["revenue"]) if row["revenue"] else None
                 row["grossProfit"] = safe(gross, div, total_fx)
             else:
-                # sometimes grossProfit is direct in info
                 gp_direct = info.get("grossProfit")
                 row["grossProfit"] = safe(gp_direct, div, total_fx) or row["grossProfit"]
         if row["netProfit"] is None:
             ni = info.get("netIncomeToCommon") or info.get("netIncome")
             row["netProfit"] = safe(ni, div, total_fx)
-
-        # EPS
         if row["eps"] is None:
             eps = info.get("trailingEps") or info.get("epsTrailingTwelveMonths")
             row["eps"] = safe(eps, 1, ps_fx)
-
-        # DPS: try info dividendRate, else compute trailing DPS from dividends
         if row["dps"] is None:
             div_rate = info.get("dividendRate")
             if div_rate is not None:
                 row["dps"] = safe(div_rate, 1, ps_fx)
             else:
-                # Compute trailing 12-month DPS from dividend history
                 try:
                     dividends = tick.dividends
                     if not dividends.empty:
@@ -302,8 +337,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                             row["dps"] = safe(total_dps, 1, ps_fx)
                 except Exception:
                     pass
-
-        # Balance sheet fields from info
         if row["totalAsset"] is None:
             ta = info.get("totalAssets")
             row["totalAsset"] = safe(ta, div, total_fx)
@@ -317,19 +350,22 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             te = info.get("totalStockholderEquity") or info.get("totalEquity")
             row["totalEquity"] = safe(te, div, total_fx)
 
-        # 4) Debug info if still empty
-        if all(v is None for v in row.values()):
-            print(f"  [yfinance] {ticker_str}: No data found. Inspecting...", flush=True)
+        if dbg or all(v is None for v in row.values()):
+            print(f"  [yfinance] {ticker_str}: Final row: {row}", flush=True)
             if inc_df is not None and not inc_df.empty:
-                print(f"    Income columns: {list(inc_df.columns[:2])}", flush=True)
-                sample_keys = list(inc_df[inc_df.columns[0]].keys())[:10]
+                sample_keys = list(inc_df[inc_df.columns[0]].keys())[:20]
                 print(f"    Sample income keys: {sample_keys}", flush=True)
             if bal_df is not None and not bal_df.empty:
-                print(f"    Balance columns: {list(bal_df.columns[:2])}", flush=True)
-                sample_keys = list(bal_df[bal_df.columns[0]].keys())[:10]
+                sample_keys = list(bal_df[bal_df.columns[0]].keys())[:20]
                 print(f"    Sample balance keys: {sample_keys}", flush=True)
             if info:
-                print(f"    Info keys: {[k for k in info.keys() if info[k] is not None][:20]}", flush=True)
+                relevant_keys = ["totalRevenue","revenue","grossMargins","grossProfit",
+                                 "netIncomeToCommon","netIncome","trailingEps",
+                                 "epsTrailingTwelveMonths","dividendRate",
+                                 "totalAssets","totalCash","cash",
+                                 "totalDebt","totalStockholderEquity","totalEquity"]
+                info_preview = {k: info.get(k) for k in relevant_keys if info.get(k) is not None}
+                print(f"    Info preview: {info_preview}", flush=True)
 
     except Exception as e:
         print(f"  [yfinance] {ticker_str}: Exception: {e}", flush=True)
@@ -346,7 +382,6 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
         print(f"\n[{sym}] (FMP) {ticker_str}", flush=True)
         row = fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
         src = "fmp"
-        # If FMP returns empty, fallback to yfinance
         if not row or all(v is None for v in row.values()):
             print(f"  [{sym}] FMP empty, falling back to yfinance", flush=True)
             row = yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
@@ -363,7 +398,6 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
         row = {f: None for f in FIELDS}
         src += " (empty)"
 
-    # Clean up zeros
     for bal_field in ("totalAsset","cash","totalDebt","totalEquity"):
         if row.get(bal_field) == 0:
             row[bal_field] = None
@@ -372,7 +406,6 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     if sym in ("AMZN",) and row.get("dps") == 0:
         row["dps"] = None
 
-    # Sanity checks (DPS/EPS) using PRELOADED
     pre_dps = PRELOADED.get(sym, {}).get("dps", [])
     valid_dps = [v for v in pre_dps if v is not None and v > 0]
     if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps):
