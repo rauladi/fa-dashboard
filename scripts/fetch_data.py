@@ -1,6 +1,7 @@
 import json, os, math, time, requests
 from datetime import datetime, timezone, timedelta
 import yfinance as yf
+import pandas as pd
 
 # ---------- constants ----------
 NOW = datetime.now(timezone.utc)
@@ -298,6 +299,34 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         fill_from_annual(inc_df, row, inc_fields, inc_sub)
         fill_from_annual(bal_df, row, bal_fields, bal_sub)
 
+        # Direct DataFrame access for crucial fields that might be missing from the series iterator
+        def direct_df_val(df, row_label):
+            """Try to get a value by exact index label from the latest column of a DataFrame."""
+            if df is None or df.empty:
+                return None
+            try:
+                if row_label in df.index:
+                    val = df.loc[row_label].iloc[0]  # first column (latest)
+                    if pd.notna(val):
+                        return float(val)
+            except Exception:
+                pass
+            return None
+
+        if row["totalAsset"] is None:
+            raw_ta = direct_df_val(bal_df, "Total Assets") or direct_df_val(tick.quarterly_balance_sheet, "Total Assets")
+            if raw_ta is not None:
+                row["totalAsset"] = safe(raw_ta, div, total_fx)
+                if dbg:
+                    print(f"  [DEBUG {sym}] Direct Total Assets = {row['totalAsset']}", flush=True)
+
+        if row["totalEquity"] is None:
+            raw_te = direct_df_val(bal_df, "Stockholders Equity") or direct_df_val(bal_df, "Total Equity Gross Minority Interest") or direct_df_val(tick.quarterly_balance_sheet, "Stockholders Equity")
+            if raw_te is not None:
+                row["totalEquity"] = safe(raw_te, div, total_fx)
+                if dbg:
+                    print(f"  [DEBUG {sym}] Direct Total Equity = {row['totalEquity']}", flush=True)
+
         if row["revenue"] is None or row["totalAsset"] is None:
             q_inc = tick.quarterly_financials
             q_bal = tick.quarterly_balance_sheet
@@ -309,7 +338,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         for field in ["revenue","totalAsset","netProfit","cash","totalDebt","totalEquity","grossProfit"]:
             if row[field] is not None and row[field] < SMALL_THRESHOLD:
                 row[field] = None
-        # Also discard exactly‑zero EPS / DPS (often fake from statements)
         if row["eps"] is not None and row["eps"] == 0.0:
             row["eps"] = None
         if row["dps"] is not None and row["dps"] == 0.0:
@@ -323,16 +351,14 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             and (target_cur == "USD" or target_cur == "AUD")
         )
         if info_is_target:
-            # totals already in target currency (e.g., USD)
             info_div = 1e9
             info_fx  = 1.0
         else:
             info_div = div
             info_fx  = total_fx
 
-        # Per‑share items (EPS/DPS) often remain in local currency even when totals are USD
         if exchange == "IDX" and target_cur == "USD":
-            per_share_fx = ps_fx   # IDR → USD conversion
+            per_share_fx = ps_fx
         elif info_is_target:
             per_share_fx = 1.0
         else:
@@ -350,7 +376,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if row["grossProfit"] is None:
             gm = info.get("grossMargins")
             if gm is not None and row["revenue"] is not None:
-                # revenue already in target billions → gross profit in same unit, no extra division
                 gross = float(gm) * float(row["revenue"])
                 row["grossProfit"] = safe(gross, 1, 1.0)
             if row["grossProfit"] is None:
@@ -376,6 +401,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 except Exception:
                     pass
         if row["totalAsset"] is None:
+            # last attempt: maybe info has it in a different key
             row["totalAsset"] = fill_from_info("totalAssets")
         if row["cash"] is None:
             row["cash"] = fill_from_info("totalCash", "cash")
