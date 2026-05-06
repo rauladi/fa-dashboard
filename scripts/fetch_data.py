@@ -321,10 +321,24 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if row["grossProfit"] is not None and row["grossProfit"] < SMALL_THRESHOLD:
             row["grossProfit"] = None
 
-        # --- Info fallbacks (correct currency handling for IDX→USD) ---
-        use_raw = (exchange == "IDX" and target_cur == "USD")
-        info_div = 1e12 if use_raw else div
-        info_fx  = 1.0   if use_raw else total_fx
+        # --- Info fallbacks with automatic currency detection ---
+        # Determine if info already reports in the target currency (USD / AUD) or in the local currency.
+        info_revenue = info.get("totalRevenue") or info.get("revenue")
+        info_is_target = (
+            info_revenue is not None
+            and info_revenue > 1e8   # more than 100 million – definitely not trillions of IDR
+            and (target_cur == "USD" or target_cur == "AUD")
+        )
+        if info_is_target:
+            # info values are already in the target currency, use the same scaling as US stocks
+            info_div = 1e9
+            info_fx  = 1.0
+            eps_fx   = 1.0
+        else:
+            # info values are in the financial reporting currency (e.g., IDR)
+            info_div = div
+            info_fx  = total_fx
+            eps_fx   = ps_fx
 
         def fill_from_info(*candidates):
             for c in candidates:
@@ -345,12 +359,12 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if row["netProfit"] is None:
             row["netProfit"] = fill_from_info("netIncomeToCommon", "netIncome")
         if row["eps"] is None:
-            eps = info.get("trailingEps") or info.get("epsTrailingTwelveMonths")
-            row["eps"] = safe(eps, 1, ps_fx)   # EPS always per‑share, keep existing FX
+            eps_val = info.get("trailingEps") or info.get("epsTrailingTwelveMonths")
+            row["eps"] = safe(eps_val, 1, eps_fx)
         if row["dps"] is None:
             div_rate = info.get("dividendRate")
             if div_rate is not None:
-                row["dps"] = safe(div_rate, 1, ps_fx)
+                row["dps"] = safe(div_rate, 1, eps_fx)
             else:
                 try:
                     dividends = tick.dividends
@@ -359,7 +373,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                         trailing_dividends = dividends[dividends.index > one_year_ago]
                         if not trailing_dividends.empty:
                             total_dps = float(trailing_dividends.sum())
-                            row["dps"] = safe(total_dps, 1, ps_fx)
+                            row["dps"] = safe(total_dps, 1, eps_fx)
                 except Exception:
                     pass
         if row["totalAsset"] is None:
