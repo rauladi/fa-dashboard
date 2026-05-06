@@ -410,12 +410,14 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
 
         # *** Bank gross profit fix – run BEFORE small‑value cleanup ***
         if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
+            # Try to compute from revenue minus costOfRevenue
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
                 if computed_gp > 0:
                     row["grossProfit"] = round(computed_gp, 4)
                     if dbg:
                         print(f"  [DEBUG {sym}] Computed grossProfit (rev-cost) = {row['grossProfit']}", flush=True)
+            # If still missing, try Net Interest Income directly from inc_df
             if row["grossProfit"] is None or row["grossProfit"] == 0.0:
                 nii = extract_inc_item(inc_df, [
                     "Net Interest Income", "Net interest income",
@@ -566,7 +568,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                     avg_eq_rev = sum(ratio_vals) / len(ratio_vals)
                     row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
                     if dbg:
-                        print(f"  [DEBUG {sym}] Estimated totalEquity from historical equity/revenue ratio = {row['totalEquity']}", flush=True)
+                        print(f"  [DEBUG {sym}] Estimated totalEquity from historical ratio = {row['totalEquity']}", flush=True)
 
             if (row["totalAsset"] is None or row["totalAsset"] < 0.7 * float(row["revenue"])) and all(isOK(v) for v in rev_hist+ta_hist):
                 ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r and a and r > 0 and a > 0]
@@ -574,7 +576,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                     avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
                     row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
                     if dbg:
-                        print(f"  [DEBUG {sym}] Estimated totalAsset from historical asset/revenue ratio = {row['totalAsset']}", flush=True)
+                        print(f"  [DEBUG {sym}] Estimated totalAsset from historical ratio = {row['totalAsset']}", flush=True)
 
         # --- Final debug ---
         if dbg or all(v is None for v in row.values()):
