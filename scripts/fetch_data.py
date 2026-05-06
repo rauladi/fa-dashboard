@@ -408,16 +408,14 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             if dbg:
                 print(f"  [DEBUG {sym}] Direct totalEquity = {row['totalEquity']}", flush=True)
 
-        # --- Specific fix for banks: gross profit may still be zero ---
+        # Specific fix for banks: gross profit may still be zero
         if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
-            # Try to compute from revenue minus costOfRevenue
-            if isOK(row["revenue"]) and isOK(row["costOfRevenue"]):
+            if row["revenue"] is not None and row["costOfRevenue"] is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
                 if computed_gp > 0:
                     row["grossProfit"] = round(computed_gp, 4)
                     if dbg:
                         print(f"  [DEBUG {sym}] Computed grossProfit (rev-cost) = {row['grossProfit']}", flush=True)
-            # If still missing, fallback to Net Interest Income directly from inc_df
             if row["grossProfit"] is None or row["grossProfit"] == 0.0:
                 nii = extract_inc_item(inc_df, [
                     "Net Interest Income", "Net interest income",
@@ -547,15 +545,22 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 if dbg:
                     print(f"  [DEBUG {sym}] Reconstructed totalEquity = {row['totalEquity']}", flush=True)
 
-        # --- Correct mis‑scaled totalDebt for banks where "Total Debt" line item is tiny ---
-        if (row["totalDebt"] is not None and row["totalEquity"] is not None
-                and row["totalDebt"] < row["totalEquity"] * 0.5
-                and row["totalAsset"] is not None):
+        # --- Explicit corrections for known problematic tickers ---
+        # Banks: totalDebt should equal totalAssets – totalEquity (full liabilities)
+        if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
             new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
             if new_debt > 0:
                 row["totalDebt"] = new_debt
                 if dbg:
-                    print(f"  [DEBUG {sym}] Corrected totalDebt = {row['totalDebt']} (was small)", flush=True)
+                    print(f"  [DEBUG {sym}] Bank totalDebt corrected to {row['totalDebt']}", flush=True)
+
+        # Non‑banks where equity was missing: compute from assets & debt
+        if sym in {"ADRO", "ITMG", "POWR"} and row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
+            eq_val = round(float(row["totalAsset"]) - float(row["totalDebt"]), 4)
+            if eq_val > 0:
+                row["totalEquity"] = eq_val
+                if dbg:
+                    print(f"  [DEBUG {sym}] Computed totalEquity = {row['totalEquity']}", flush=True)
 
         # --- Final debug ---
         if dbg or all(v is None for v in row.values()):
