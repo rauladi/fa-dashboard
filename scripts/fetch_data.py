@@ -562,13 +562,23 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 if dbg:
                     print(f"  [DEBUG {sym}] Bank totalDebt corrected to {row['totalDebt']}", flush=True)
 
-        # Non‑banks where equity was missing: compute from assets & debt
-        if sym in {"ADRO", "ITMG", "POWR"} and row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
-            eq_val = round(float(row["totalAsset"]) - float(row["totalDebt"]), 4)
-            if eq_val > 0:
-                row["totalEquity"] = eq_val
-                if dbg:
-                    print(f"  [DEBUG {sym}] Computed totalEquity = {row['totalEquity']}", flush=True)
+        # --- Last resort for ADRO, ITMG, POWR: use pre‑2024 ratio if all else fails ---
+        if sym in {"ADRO", "ITMG", "POWR"} and (row["totalAsset"] is None or row["totalEquity"] is None):
+            pre = PRELOADED.get(sym, {})
+            rev_2024 = (pre.get("revenue") or [])[3] if pre.get("revenue") and len(pre.get("revenue", [])) > 3 else None
+            ta_2024  = (pre.get("totalAsset") or [])[3] if pre.get("totalAsset") and len(pre.get("totalAsset", [])) > 3 else None
+            te_2024  = (pre.get("totalEquity") or [])[3] if pre.get("totalEquity") and len(pre.get("totalEquity", [])) > 3 else None
+            rev_now  = row.get("revenue")
+            if rev_2024 is not None and rev_now is not None and rev_2024 > 0:
+                ratio = rev_now / rev_2024
+                if row["totalAsset"] is None and ta_2024 is not None:
+                    row["totalAsset"] = round(ta_2024 * ratio, 4)
+                    if dbg:
+                        print(f"  [DEBUG {sym}] Estimated totalAsset from 2024 ratio = {row['totalAsset']}", flush=True)
+                if row["totalEquity"] is None and te_2024 is not None:
+                    row["totalEquity"] = round(te_2024 * ratio, 4)
+                    if dbg:
+                        print(f"  [DEBUG {sym}] Estimated totalEquity from 2024 ratio = {row['totalEquity']}", flush=True)
 
         # --- Final debug ---
         if dbg or all(v is None for v in row.values()):
