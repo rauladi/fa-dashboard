@@ -326,7 +326,9 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         bal_fields = {
             "totalAsset": [
                 "Total Assets", "Total assets", "Total Asset",
-                "Jumlah aset", "Aset"
+                "Jumlah aset", "Aset",
+                "Total Capitalization", "Invested Capital", "Total Aset",
+                "Jumlah aktiva", "Total Aktiva"
             ],
             "cash": [
                 "Cash And Cash Equivalents", "Cash & Cash Equivalents",
@@ -344,7 +346,8 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 "Total Equity Gross Minority Interest",
                 "Stockholders Equity", "Total Stockholder Equity",
                 "Total Equity", "Shareholders' Equity", "Equity",
-                "Ekuitas", "Total ekuitas"
+                "Ekuitas", "Total ekuitas",
+                "Common Stock Equity", "Total Common Equity"
             ]
         }
 
@@ -361,7 +364,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             "dps": ["dps", "dividend per share", "dividen per saham"]
         }
         bal_sub = {
-            "totalAsset": ["total asset", "jumlah aset", "aset"],
+            "totalAsset": ["total asset", "jumlah aset", "aset", "total capital", "invested capital", "aktiva"],
             "cash": ["cash", "kas", "setara kas"],
             "totalDebt": ["total debt", "total utang", "utang", "total liabilit", "total kewajiban"],
             "totalEquity": ["equity", "ekuitas", "stockholder"]
@@ -375,38 +378,43 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         fill_from_annual(inc_df, row, inc_fields, inc_sub)
         fill_from_annual(bal_df, row, bal_fields, bal_sub)
 
-        # Direct DataFrame extraction for balance‑sheet items
-        if row["totalAsset"] is None:
-            ta = extract_bal_item(bal_df, [
-                "Total Assets", "Total assets", "Total Asset", "Aset",
-                "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva"
-            ], div, total_fx)
-            if ta is None:
-                ta = extract_bal_item(tick.quarterly_balance_sheet, [
-                    "Total Assets", "Total assets", "Total Asset", "Aset",
-                    "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva"
-                ], div, total_fx)
-            row["totalAsset"] = ta
-            if dbg:
-                print(f"  [DEBUG {sym}] Direct totalAsset = {row['totalAsset']}", flush=True)
+        # ===== Direct extraction with forced override if garbage (tiny) values =====
+        def force_better(df, label_list, current_val, divisor, fx):
+            """If current_val is None or tiny, try direct extraction from df."""
+            if df is None:
+                return current_val
+            new_val = extract_bal_item(df, label_list, divisor, fx)
+            if new_val is not None and (current_val is None or current_val < 0.01):
+                return new_val
+            return current_val
 
+        # totalAsset
+        row["totalAsset"] = force_better(bal_df, [
+            "Total Assets", "Total assets", "Total Asset", "Aset",
+            "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva",
+            "Total Capitalization", "Total Aset"
+        ], row["totalAsset"], div, total_fx)
+        if row["totalAsset"] is None:
+            row["totalAsset"] = force_better(tick.quarterly_balance_sheet, [
+                "Total Assets", "Total assets", "Total Asset", "Aset",
+                "Jumlah aset", "Total Aset", "Jumlah aktiva", "Total Aktiva",
+                "Total Capitalization", "Total Aset"
+            ], row["totalAsset"], div, total_fx)
+
+        # totalEquity
+        row["totalEquity"] = force_better(bal_df, [
+            "Stockholders Equity", "Total Equity Gross Minority Interest",
+            "Total Equity", "Common Stock Equity",
+            "Ekuitas", "Total ekuitas", "Total Stockholders Equity",
+            "Equity", "Shareholders' Equity", "Total Common Equity"
+        ], row["totalEquity"], div, total_fx)
         if row["totalEquity"] is None:
-            te = extract_bal_item(bal_df, [
+            row["totalEquity"] = force_better(tick.quarterly_balance_sheet, [
                 "Stockholders Equity", "Total Equity Gross Minority Interest",
                 "Total Equity", "Common Stock Equity",
                 "Ekuitas", "Total ekuitas", "Total Stockholders Equity",
-                "Equity", "Shareholders' Equity"
-            ], div, total_fx)
-            if te is None:
-                te = extract_bal_item(tick.quarterly_balance_sheet, [
-                    "Stockholders Equity", "Total Equity Gross Minority Interest",
-                    "Total Equity", "Common Stock Equity",
-                    "Ekuitas", "Total ekuitas", "Total Stockholders Equity",
-                    "Equity", "Shareholders' Equity"
-                ], div, total_fx)
-            row["totalEquity"] = te
-            if dbg:
-                print(f"  [DEBUG {sym}] Direct totalEquity = {row['totalEquity']}", flush=True)
+                "Equity", "Shareholders' Equity", "Total Common Equity"
+            ], row["totalEquity"], div, total_fx)
 
         # Specific fix for banks: gross profit may still be zero
         if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
