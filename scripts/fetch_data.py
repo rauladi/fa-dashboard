@@ -304,21 +304,42 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             fill_from_annual(q_inc, row, inc_fields, inc_sub)
             fill_from_annual(q_bal, row, bal_fields, bal_sub)
 
-        # --- Info fallbacks ---
+        # --- Discard unreasonably small values (mis‑scaled data) and re‑fill from info ---
+        # For "B" scale, anything < 0.01 is almost certainly wrong.
+        if row["revenue"] is not None and row["revenue"] < 0.01:
+            row["revenue"] = None
+        if row["totalAsset"] is not None and row["totalAsset"] < 0.01:
+            row["totalAsset"] = None
+        if row["netProfit"] is not None and row["netProfit"] < 0.001:
+            row["netProfit"] = None
+        if row["cash"] is not None and row["cash"] < 0.001:
+            row["cash"] = None
+        if row["totalDebt"] is not None and row["totalDebt"] < 0.001:
+            row["totalDebt"] = None
+        if row["totalEquity"] is not None and row["totalEquity"] < 0.001:
+            row["totalEquity"] = None
+        if row["grossProfit"] is not None and row["grossProfit"] < 0.001:
+            row["grossProfit"] = None
+
+        # --- Info fallbacks (compact helper) ---
+        def fill_from_info(*candidates):
+            for c in candidates:
+                v = info.get(c, None)
+                if v is not None:
+                    return safe(v, div, total_fx)
+            return None
+
         if row["revenue"] is None:
-            rev = info.get("totalRevenue") or info.get("revenue")
-            row["revenue"] = safe(rev, div, total_fx)
+            row["revenue"] = fill_from_info("totalRevenue", "revenue")
         if row["grossProfit"] is None:
-            gp_ratio = info.get("grossMargins")
-            if gp_ratio is not None and row["revenue"] is not None:
-                gross = float(gp_ratio) * float(row["revenue"]) if row["revenue"] else None
+            gm = info.get("grossMargins")
+            if gm is not None and row["revenue"] is not None:
+                gross = float(gm) * float(row["revenue"]) if row["revenue"] else None
                 row["grossProfit"] = safe(gross, div, total_fx)
-            else:
-                gp_direct = info.get("grossProfit")
-                row["grossProfit"] = safe(gp_direct, div, total_fx) or row["grossProfit"]
+            if row["grossProfit"] is None:
+                row["grossProfit"] = fill_from_info("grossProfit")
         if row["netProfit"] is None:
-            ni = info.get("netIncomeToCommon") or info.get("netIncome")
-            row["netProfit"] = safe(ni, div, total_fx)
+            row["netProfit"] = fill_from_info("netIncomeToCommon", "netIncome")
         if row["eps"] is None:
             eps = info.get("trailingEps") or info.get("epsTrailingTwelveMonths")
             row["eps"] = safe(eps, 1, ps_fx)
@@ -338,18 +359,15 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 except Exception:
                     pass
         if row["totalAsset"] is None:
-            ta = info.get("totalAssets")
-            row["totalAsset"] = safe(ta, div, total_fx)
+            row["totalAsset"] = fill_from_info("totalAssets")
         if row["cash"] is None:
-            cash = info.get("totalCash") or info.get("cash")
-            row["cash"] = safe(cash, div, total_fx)
+            row["cash"] = fill_from_info("totalCash", "cash")
         if row["totalDebt"] is None:
-            td = info.get("totalDebt")
-            row["totalDebt"] = safe(td, div, total_fx)
+            row["totalDebt"] = fill_from_info("totalDebt")
         if row["totalEquity"] is None:
-            te = info.get("totalStockholderEquity") or info.get("totalEquity")
-            row["totalEquity"] = safe(te, div, total_fx)
+            row["totalEquity"] = fill_from_info("totalStockholderEquity", "totalEquity")
 
+        # --- Final debug ---
         if dbg or all(v is None for v in row.values()):
             print(f"  [yfinance] {ticker_str}: Final row: {row}", flush=True)
             if inc_df is not None and not inc_df.empty:
