@@ -486,7 +486,7 @@ def build_arrays(yd, sym, rates):
             else: arr.append(None)
         out[f] = arr
     return out
-    
+
 # ---------- PRELOADED DATA (2021–2024) ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],
