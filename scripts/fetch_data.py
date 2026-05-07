@@ -95,6 +95,10 @@ def safe(val, div=1, fx=1.0):
         return round(f/div*fx, 4)
     except Exception: return None
 
+def isOK(v):
+    """Return True if v is a finite number (not None, NaN, or Inf)."""
+    return v is not None and not math.isnan(v) and not math.isinf(v)
+
 def get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd):
     target = target_cur.upper()
     fin = fin_cur.upper()
@@ -392,22 +396,27 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
             if new_debt > 0: row["totalDebt"] = new_debt
 
-        # *** Historical‑ratio fallback for ADRO, ITMG, POWR ***
+        # *** Historical‑ratio fallback for ADRO, ITMG, POWR – uses isOK from utils ***
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
             pre = PRELOADED.get(sym, {})
             rev_hist = (pre.get("revenue") or [])[:4]
             eq_hist  = (pre.get("totalEquity") or [])[:4]
             ta_hist  = (pre.get("totalAsset") or [])[:4]
 
-            if (row["totalEquity"] is None or row["totalEquity"] == 0.0) and all(isOK(v) for v in rev_hist+eq_hist):
-                ratio_vals = [e / r for r, e in zip(rev_hist, eq_hist) if r and e and r > 0 and e > 0]
+            # Check that we have valid positive numbers in all four years
+            if (row["totalEquity"] is None or row["totalEquity"] == 0.0) and \
+               all(isOK(r) and r > 0 for r in rev_hist) and \
+               all(isOK(e) and e > 0 for e in eq_hist):
+                ratio_vals = [e / r for r, e in zip(rev_hist, eq_hist) if r > 0 and e > 0]
                 if ratio_vals:
                     avg_eq_rev = sum(ratio_vals) / len(ratio_vals)
                     row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
                     if dbg: print(f"  [DEBUG {sym}] Estimated totalEquity from historical ratio = {row['totalEquity']}", flush=True)
 
-            if (row["totalAsset"] is None or row["totalAsset"] < 0.7 * float(row["revenue"])) and all(isOK(v) for v in rev_hist+ta_hist):
-                ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r and a and r > 0 and a > 0]
+            if (row["totalAsset"] is None or row["totalAsset"] < 0.7 * float(row["revenue"])) and \
+               all(isOK(r) and r > 0 for r in rev_hist) and \
+               all(isOK(a) and a > 0 for a in ta_hist):
+                ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r > 0 and a > 0]
                 if ratio_vals:
                     avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
                     row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
@@ -501,7 +510,7 @@ PRELOADED = {
     "NAB": {"totalAsset":[925.0,1005.0,1059.0,1080.0,None,None],"cash":[109.0,125.0,120.0,113.0,None,None],"totalDebt":[172.0,185.0,198.0,214.0,None,None],"totalEquity":[62.8,59.0,61.2,61.5,None,None],"revenue":[16.7,18.3,20.6,20.6,None,None],"grossProfit":[13.8,14.8,16.8,16.8,None,None],"netProfit":[6.4,6.9,7.4,7.0,None,None],
              "eps":[1.93,2.14,2.36,2.25,None,None],
              "dps":[0.82,1.24,1.38,1.52,None,None]},
-    "ANZ": {"totalAsset":[978.0,1085.7,1105.6,1229.1,None,None],"cash":[120.0,157.5,146.4,113.0,None,None],"totalDebt":[140.0,134.0,150.1,205.1,None,None],"totalEquity":[60.0,65.9,69.5,69.9,None,None],"revenue":[17.5,19.0,20.2,20.4,None,None],"grossProfit":[14.0,14.9,16.6,16.1,None,None],"netProfit":[6.0,7.1,7.1,6.5,None,None],
+    "ANZ": {"totalAsset":[978.0,1085.7,1105.6,1229.1,None,None],"cash":[120.0,157.5,146.4,113.0,None,None],"totalDebt":[140.0,134.0,150.1,205.1,None作案,None],"totalEquity":[60.0,65.9,69.5,69.9,None,None],"revenue":[17.5,19.0,20.2,20.4,None,None],"grossProfit":[14.0,14.9,16.6,16.1,None,None],"netProfit":[6.0,7.1,7.1,6.5,None,None],
              "eps":[2.00,2.50,2.37,2.18,None,None],
              "dps":[1.20,1.46,1.62,1.66,None,None]},
     "BBRI": {"totalAsset":[1635,1865,1965,2073,None,None],"cash":[163,186,196,207,None,None],"totalDebt":[1380,1570,1650,1730,None,None],"totalEquity":[255,295,315,343,None,None],"revenue":[135,150,165,187,None,None],"grossProfit":[85,95,104,118,None,None],"netProfit":[25,43,51,60,None,None],
@@ -580,7 +589,6 @@ PRELOADED = {
              "eps":[3.10,3.21,3.10,3.25,3.86,None],
              "dps":[0.90,1.06,1.13,1.21,1.27,None]},
 }
-
 # ---------- PROFILES & LEADERSHIP (unchanged) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
