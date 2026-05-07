@@ -1,4 +1,4 @@
-}        import json, os, math, time, requests
+import json, os, math, time, requests
 from datetime import datetime, timezone, timedelta
 import yfinance as yf
 import pandas as pd
@@ -307,7 +307,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         row["totalEquity"] = force_better(bal_df, ["Stockholders Equity","Total Equity Gross Minority Interest","Total Equity","Common Stock Equity","Ekuitas","Total ekuitas","Total Stockholders Equity","Equity","Shareholders' Equity","Total Common Equity"], row["totalEquity"], div, total_fx)
         if row["totalEquity"] is None: row["totalEquity"] = force_better(tick.quarterly_balance_sheet, ["Stockholders Equity","Total Equity Gross Minority Interest","Total Equity","Common Stock Equity","Ekuitas","Total ekuitas","Total Stockholders Equity","Equity","Shareholders' Equity","Total Common Equity"], row["totalEquity"], div, total_fx)
 
-        # *** Bank gross profit fix – MULTI‑STEP, before small‑value cleanup ***
+        # *** Bank gross profit fix – multi‑step, before small‑value cleanup ***
         if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
@@ -486,7 +486,7 @@ def build_arrays(yd, sym, rates):
             else: arr.append(None)
         out[f] = arr
     return out
-
+    
 # ---------- PRELOADED DATA (2021–2024) ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],
