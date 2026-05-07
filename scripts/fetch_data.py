@@ -1,4 +1,4 @@
-import json, os, math, time, requests
+}        import json, os, math, time, requests
 from datetime import datetime, timezone, timedelta
 import yfinance as yf
 import pandas as pd
@@ -250,41 +250,41 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             return found_any
 
         inc_fields = {
-            "revenue": ["Total Revenue", "Revenue", "Total revenue", "Operating Revenue", "Sales", "Net Sales", "Net revenue", "Revenues", "Pendapatan", "Total pendapatan", "Penjualan bersih"],
-            "costOfRevenue": ["Cost Of Revenue", "Cost of revenue", "Cost Of Sales", "Cost of goods sold", "COGS", "Beban pokok pendapatan", "Harga pokok penjualan"],
-            "grossProfit": ["Gross Profit", "Gross profit", "Gross margin", "Laba bruto", "Laba kotor", "Net Interest Income", "Net interest income", "Pendapatan bunga bersih", "Pendapatan Bunga Bersih"],
-            "operatingExpense": ["Operating Expense", "Operating Expenses", "Operating Cost", "Selling General & Admin Expense", "SG&A", "Beban operasional", "Beban usaha"],
-            "operatingIncome": ["Operating Income", "Operating income", "EBIT", "Laba operasi", "Laba usaha"],
-            "interestExpense": ["Interest Expense", "Interest expense", "Interest Cost", "Beban bunga", "Biaya bunga"],
-            "incomeTaxExpense": ["Income Tax Expense", "Tax Provision", "Provision for Income Taxes", "Beban pajak", "Pajak penghasilan"],
-            "netProfit": ["Net Income", "Net income", "Net Income Common Stockholders", "Profit after tax", "Net profit", "Net Profit", "Laba bersih", "Laba tahun berjalan"],
-            "eps": ["Diluted EPS", "Basic EPS", "EPS Diluted", "EPS Basic", "Earnings Per Share", "Earnings per share", "Laba per saham dasar", "Laba per saham dilusian"],
-            "dps": ["Dividends Per Share", "Dividend Per Share", "DPS", "Dividen per saham"]
+            "revenue": ["Total Revenue","Revenue","Total revenue","Operating Revenue","Sales","Net Sales","Net revenue","Revenues","Pendapatan","Total pendapatan","Penjualan bersih"],
+            "costOfRevenue": ["Cost Of Revenue","Cost of revenue","Cost Of Sales","Cost of goods sold","COGS","Beban pokok pendapatan","Harga pokok penjualan"],
+            "grossProfit": ["Gross Profit","Gross profit","Gross margin","Laba bruto","Laba kotor","Net Interest Income","Net interest income","Pendapatan bunga bersih","Pendapatan Bunga Bersih"],
+            "operatingExpense": ["Operating Expense","Operating Expenses","Operating Cost","Selling General & Admin Expense","SG&A","Beban operasional","Beban usaha"],
+            "operatingIncome": ["Operating Income","Operating income","EBIT","Laba operasi","Laba usaha"],
+            "interestExpense": ["Interest Expense","Interest expense","Interest Cost","Beban bunga","Biaya bunga"],
+            "incomeTaxExpense": ["Income Tax Expense","Tax Provision","Provision for Income Taxes","Beban pajak","Pajak penghasilan"],
+            "netProfit": ["Net Income","Net income","Net Income Common Stockholders","Profit after tax","Net profit","Net Profit","Laba bersih","Laba tahun berjalan"],
+            "eps": ["Diluted EPS","Basic EPS","EPS Diluted","EPS Basic","Earnings Per Share","Earnings per share","Laba per saham dasar","Laba per saham dilusian"],
+            "dps": ["Dividends Per Share","Dividend Per Share","DPS","Dividen per saham"]
         }
         bal_fields = {
-            "totalAsset": ["Total Assets", "Total assets", "Total Asset", "Jumlah aset", "Aset"],
-            "cash": ["Cash And Cash Equivalents", "Cash & Cash Equivalents", "Cash and cash equivalents", "Cash", "Cash & Equivalents", "Kas dan setara kas", "Kas"],
-            "totalDebt": ["Total Debt", "Total debt", "Total Debt, Net", "Long Term Debt + Short Term Debt", "Net Debt", "Total utang", "Utang", "Total Liabilities", "Total liabilities", "Total Kewajiban"],
-            "totalEquity": ["Total Equity Gross Minority Interest", "Stockholders Equity", "Total Stockholder Equity", "Total Equity", "Shareholders' Equity", "Equity", "Ekuitas", "Total ekuitas"]
+            "totalAsset": ["Total Assets","Total assets","Total Asset","Jumlah aset","Aset"],
+            "cash": ["Cash And Cash Equivalents","Cash & Cash Equivalents","Cash and cash equivalents","Cash","Cash & Equivalents","Kas dan setara kas","Kas"],
+            "totalDebt": ["Total Debt","Total debt","Total Debt, Net","Long Term Debt + Short Term Debt","Net Debt","Total utang","Utang","Total Liabilities","Total liabilities","Total Kewajiban"],
+            "totalEquity": ["Total Equity Gross Minority Interest","Stockholders Equity","Total Stockholder Equity","Total Equity","Shareholders' Equity","Equity","Ekuitas","Total ekuitas"]
         }
 
         inc_sub = {
-            "revenue": ["revenue", "pendapatan", "penjualan", "sales"],
-            "costOfRevenue": ["cost of revenue", "cogs", "beban pokok", "harga pokok"],
-            "grossProfit": ["gross", "laba kotor", "laba bruto", "net interest income", "pendapatan bunga bersih"],
-            "operatingExpense": ["operating expense", "sg&a", "beban operasional", "beban usaha"],
-            "operatingIncome": ["operating income", "ebit", "laba operasi", "laba usaha"],
-            "interestExpense": ["interest expense", "beban bunga", "biaya bunga"],
-            "incomeTaxExpense": ["income tax", "tax provision", "beban pajak", "pajak penghasilan"],
-            "netProfit": ["net income", "laba bersih", "laba tahun berjalan", "profit after tax"],
-            "eps": ["eps", "laba per saham", "earnings per share"],
-            "dps": ["dps", "dividend per share", "dividen per saham"]
+            "revenue": ["revenue","pendapatan","penjualan","sales"],
+            "costOfRevenue": ["cost of revenue","cogs","beban pokok","harga pokok"],
+            "grossProfit": ["gross","laba kotor","laba bruto","net interest income","pendapatan bunga bersih"],
+            "operatingExpense": ["operating expense","sg&a","beban operasional","beban usaha"],
+            "operatingIncome": ["operating income","ebit","laba operasi","laba usaha"],
+            "interestExpense": ["interest expense","beban bunga","biaya bunga"],
+            "incomeTaxExpense": ["income tax","tax provision","beban pajak","pajak penghasilan"],
+            "netProfit": ["net income","laba bersih","laba tahun berjalan","profit after tax"],
+            "eps": ["eps","laba per saham","earnings per share"],
+            "dps": ["dps","dividend per share","dividen per saham"]
         }
         bal_sub = {
-            "totalAsset": ["total asset", "jumlah aset", "aset"],
-            "cash": ["cash", "kas", "setara kas"],
-            "totalDebt": ["total debt", "total utang", "utang", "total liabilit", "total kewajiban"],
-            "totalEquity": ["equity", "ekuitas", "stockholder"]
+            "totalAsset": ["total asset","jumlah aset","aset"],
+            "cash": ["cash","kas","setara kas"],
+            "totalDebt": ["total debt","total utang","utang","total liabilit","total kewajiban"],
+            "totalEquity": ["equity","ekuitas","stockholder"]
         }
 
         inc_df = tick.financials
@@ -317,7 +317,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 nii = extract_inc_item(inc_df, ["Net Interest Income","Net interest income","Pendapatan bunga bersih","Pendapatan Bunga Bersih"], div, total_fx)
                 if nii is None and tick.quarterly_financials is not None: nii = extract_inc_item(tick.quarterly_financials, ["Net Interest Income","Net interest income","Pendapatan bunga bersih","Pendapatan Bunga Bersih"], div, total_fx)
                 if nii is not None: row["grossProfit"] = nii
-            # Reconstruct from available items (interestExpense can be missing → treat as 0)
+            # Reconstruct from bottom up, tolerate missing interestExpense
             if (row["grossProfit"] is None or row["grossProfit"] == 0.0) and row["netProfit"] is not None and row["operatingExpense"] is not None and row["incomeTaxExpense"] is not None:
                 int_exp = row["interestExpense"] if row["interestExpense"] is not None else 0.0
                 reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
@@ -382,7 +382,8 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
             if row["totalEquity"] is None: row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
 
-        if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None: row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
+        if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None:
+            row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
         if row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
             eq = float(row["totalAsset"]) - float(row["totalDebt"])
             if eq > 0: row["totalEquity"] = round(eq, 4)
@@ -391,17 +392,26 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
             if new_debt > 0: row["totalDebt"] = new_debt
 
+        # *** Historical‑ratio fallback for ADRO, ITMG, POWR ***
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
             pre = PRELOADED.get(sym, {})
             rev_hist = (pre.get("revenue") or [])[:4]
             eq_hist  = (pre.get("totalEquity") or [])[:4]
             ta_hist  = (pre.get("totalAsset") or [])[:4]
+
             if (row["totalEquity"] is None or row["totalEquity"] == 0.0) and all(isOK(v) for v in rev_hist+eq_hist):
-                ratios = [e/r for r,e in zip(rev_hist,eq_hist) if r and e and r>0 and e>0]
-                if ratios: row["totalEquity"] = round(float(row["revenue"]) * (sum(ratios)/len(ratios)), 4)
-            if (row["totalAsset"] is None or row["totalAsset"] < 0.7*float(row["revenue"])) and all(isOK(v) for v in rev_hist+ta_hist):
-                ratios = [a/r for r,a in zip(rev_hist,ta_hist) if r and a and r>0 and a>0]
-                if ratios: row["totalAsset"] = round(float(row["revenue"]) * (sum(ratios)/len(ratios)), 4)
+                ratio_vals = [e / r for r, e in zip(rev_hist, eq_hist) if r and e and r > 0 and e > 0]
+                if ratio_vals:
+                    avg_eq_rev = sum(ratio_vals) / len(ratio_vals)
+                    row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
+                    if dbg: print(f"  [DEBUG {sym}] Estimated totalEquity from historical ratio = {row['totalEquity']}", flush=True)
+
+            if (row["totalAsset"] is None or row["totalAsset"] < 0.7 * float(row["revenue"])) and all(isOK(v) for v in rev_hist+ta_hist):
+                ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r and a and r > 0 and a > 0]
+                if ratio_vals:
+                    avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
+                    row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
+                    if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset from historical ratio = {row['totalAsset']}", flush=True)
 
         if dbg or all(v is None for v in row.values()):
             print(f"  [yfinance] {ticker_str}: Final row: {row}", flush=True)
@@ -449,13 +459,11 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     if sym in ("AMZN",) and row.get("dps") == 0: row["dps"] = None
 
     pre_dps = PRELOADED.get(sym, {}).get("dps", [])
-    if pre_dps:
-        valid = [v for v in pre_dps if v is not None and v > 0]
-        if valid and row.get("dps") is not None and row["dps"] > 5*max(valid): row["dps"] = None
+    valid_dps = [v for v in pre_dps if v is not None and v > 0]
+    if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps): row["dps"] = None
     pre_eps = PRELOADED.get(sym, {}).get("eps", [])
-    if pre_eps:
-        valid = [v for v in pre_eps if v is not None and v > 0]
-        if valid and row.get("eps") is not None and row["eps"] > 5*max(valid): row["eps"] = None
+    valid_eps = [v for v in pre_eps if v is not None and v > 0]
+    if valid_eps and row.get("eps") is not None and row["eps"] > 5 * max(valid_eps): row["eps"] = None
 
     return {LATEST_YEAR: row, CURRENT_YEAR: {f: None for f in FIELDS}}, {"method":"annual","label":src,"quarters":0}, src
 
