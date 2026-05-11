@@ -395,6 +395,15 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
             new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
             if new_debt > 0: row["totalDebt"] = new_debt
+        
+        # DMAS: compute totalDebt from totalAsset & totalEquity if still missing
+        if sym == "DMAS" and (row["totalDebt"] is None or row["totalDebt"] == 0.0):
+            if row["totalAsset"] is not None and row["totalEquity"] is not None:
+                computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
+                if computed_debt > 0:
+                    row["totalDebt"] = computed_debt
+                    if dbg:
+                        print(f"  [DEBUG {sym}] Computed totalDebt = {row['totalDebt']}", flush=True)
 
         # *** Historical‑ratio fallback for ADRO, ITMG, POWR – uses isOK from utils ***
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
