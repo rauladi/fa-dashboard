@@ -239,7 +239,7 @@ INC_SUB = {
     "dps": ["dps","dividend per share","dividen per saham"]
 }
 BAL_CANDIDATES = {
-    "totalAsset": ["Total Assets","Total assets","Total Asset","Jumlah aset","Aset","Total Capitalization","Total Aset"],
+    "totalAsset": ["Total Assets","Total assets","Total Asset","Jumlah aset","Aset","Total Capitalization","Total Aset","Total Aktiva"],
     "cash": ["Cash And Cash Equivalents","Cash & Cash Equivalents","Cash and cash equivalents","Cash","Cash & Equivalents","Kas dan setara kas","Kas"],
     "totalDebt": ["Total Debt","Total debt","Total Debt, Net","Long Term Debt + Short Term Debt","Net Debt","Total utang","Utang","Total Liabilities","Total liabilities","Total Kewajiban"],
     "totalEquity": ["Total Equity Gross Minority Interest","Stockholders Equity","Total Stockholder Equity","Total Equity","Shareholders' Equity","Equity","Ekuitas","Total ekuitas","Common Stock Equity"]
@@ -300,8 +300,9 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         row["totalEquity"] = force_better(bal_df, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
         if row["totalEquity"] is None: row["totalEquity"] = force_better(tick.quarterly_balance_sheet, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
 
-        # Bank GP fix
-        if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
+        # Bank GP fix (extended to all major banks)
+        BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}  # add more if needed
+        if sym in BANK_SET and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
                 if computed_gp > 0: row["grossProfit"] = round(computed_gp, 4)
@@ -389,7 +390,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
                 if computed_debt > 0: row["totalDebt"] = computed_debt
 
-        # Historical‑ratio fallback
+        # Historical‑ratio fallback for ADRO/ITMG/POWR
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
             pre = PRELOADED.get(sym, {})
             rev_hist = (pre.get("revenue") or [])[:4]
@@ -473,9 +474,9 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 if val is not None:
                     row[k] = safe(val, div, total_fx)
 
-        # 3) Apply the same corrections as yf_fetch_2025
-        # Bank GP fix
-        if sym in {"BBRI", "BTPS"} and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
+        # 3) Apply same corrections as yf_fetch_2025
+        BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
+        if sym in BANK_SET and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
                 if computed_gp > 0: row["grossProfit"] = round(computed_gp, 4)
@@ -492,13 +493,12 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                     if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
 
         # Small-value cleanup
-        SMALL_THRESHOLD = 0.01
         for field in ["revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome",
                       "interestExpense","incomeTaxExpense","netProfit","totalAsset","cash",
                       "totalDebt","totalEquity"]:
-            if row[field] is not None and row[field] < SMALL_THRESHOLD: row[field] = None
-        if row["eps"] is not None and row["eps"] == 0.0: row["eps"] = None
-        if row["dps"] is not None and row["dps"] == 0.0: row["dps"] = None
+            if row[field] is not None and abs(row[field]) < 0.01: row[field] = None
+        if row["eps"] is not None and abs(row["eps"]) < 0.001: row["eps"] = None
+        if row["dps"] is not None and abs(row["dps"]) < 0.001: row["dps"] = None
 
         # Info fallbacks
         info_revenue = info.get("totalRevenue") or info.get("revenue")
@@ -578,6 +578,10 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 if ratio_vals:
                     avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
                     row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
+
+        # Final sanity: remove negative equity/gross profit (can happen for some quarters)
+        if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
+        if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
 
     except Exception as e:
         print(f"  [Quarterly] {ticker_str}: Exception: {e}", flush=True)
