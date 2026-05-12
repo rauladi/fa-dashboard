@@ -395,15 +395,13 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
             new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
             if new_debt > 0: row["totalDebt"] = new_debt
-        
-        # DMAS: compute totalDebt from totalAsset & totalEquity if still missing
+
+        # DMAS total debt correction
         if sym == "DMAS" and (row["totalDebt"] is None or row["totalDebt"] == 0.0):
             if row["totalAsset"] is not None and row["totalEquity"] is not None:
                 computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
                 if computed_debt > 0:
                     row["totalDebt"] = computed_debt
-                    if dbg:
-                        print(f"  [DEBUG {sym}] Computed totalDebt = {row['totalDebt']}", flush=True)
 
         # *** Historical‑ratio fallback for ADRO, ITMG, POWR – uses isOK from utils ***
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
@@ -412,7 +410,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             eq_hist  = (pre.get("totalEquity") or [])[:4]
             ta_hist  = (pre.get("totalAsset") or [])[:4]
 
-            # Check that we have valid positive numbers in all four years
             if (row["totalEquity"] is None or row["totalEquity"] == 0.0) and \
                all(isOK(r) and r > 0 for r in rev_hist) and \
                all(isOK(e) and e > 0 for e in eq_hist):
@@ -447,11 +444,119 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
 
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
 
+
+# ---------- Quarterly annualisation for the current year (2026) ----------
+def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
+    """
+    Fetch quarterly data for the current year and annualise according to:
+        - 1 quarter -> value × 4
+        - 2 quarters -> average × 4
+        - 3 quarters -> average × 4
+        - 4 quarters -> sum (full year)
+    For balance‑sheet items, take the latest quarter’s value (point in time).
+    """
+    if sym == "TSM": fin_cur = "TWD"
+    else: fin_cur = financial_currency(exchange)
+    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
+
+    row = {f: None for f in FIELDS}
+    try:
+        tick = yf.Ticker(ticker_str)
+        q_inc = tick.quarterly_financials
+        q_bal = tick.quarterly_balance_sheet
+
+        # --- Income statement: sum quarterly values, then annualise ---
+        # Identify columns that belong to the current year (CURRENT_YEAR)
+        inc_cols = [c for c in (q_inc.columns if q_inc is not None else []) if c.year == CURRENT_YEAR]
+        bal_cols = [c for c in (q_bal.columns if q_bal is not None else []) if c.year == CURRENT_YEAR]
+
+        # Helper to extract a value from the latest column of a DataFrame using candidate labels
+        def get_latest_val(df, label_candidates, default=None):
+            if df is None or df.empty: return default
+            series = df.iloc[:, 0]  # latest column
+            for lbl in label_candidates:
+                if lbl in series.index and pd.notna(series[lbl]):
+                    return float(series[lbl])
+            return default
+
+        # Income statement fields that should be annualised (summed and scaled)
+        inc_annualise = ["revenue","costOfRevenue","grossProfit","operatingExpense",
+                         "operatingIncome","interestExpense","incomeTaxExpense","netProfit"]
+        # EPS/DPS are summed directly (they are already per-share, so sum across quarters is TTM EPS)
+        per_share = ["eps","dps"]
+        # Balance sheet fields: just use the latest quarter
+        bal_items = ["totalAsset","cash","totalDebt","totalEquity"]
+
+        if inc_cols:
+            # Accumulate sums for each field
+            sums = {k: 0.0 for k in inc_annualise + per_share}
+            count = 0
+            for col in inc_cols:
+                series = q_inc[col]
+                # Extract values using candidate labels (same candidates as in yf_fetch_2025)
+                # For simplicity, we use a mapping of field -> candidates from the main function
+                # We'll define a small helper map
+                inc_map = {
+                    "revenue": ["Total Revenue","Revenue","Total revenue","Operating Revenue","Sales","Net Sales","Net revenue","Revenues","Pendapatan","Total pendapatan","Penjualan bersih"],
+                    "costOfRevenue": ["Cost Of Revenue","Cost of revenue","Cost Of Sales","Cost of goods sold","COGS","Beban pokok pendapatan","Harga pokok penjualan"],
+                    "grossProfit": ["Gross Profit","Gross profit","Gross margin","Laba bruto","Laba kotor","Net Interest Income","Net interest income","Pendapatan bunga bersih","Pendapatan Bunga Bersih"],
+                    "operatingExpense": ["Operating Expense","Operating Expenses","Operating Cost","Selling General & Admin Expense","SG&A","Beban operasional","Beban usaha"],
+                    "operatingIncome": ["Operating Income","Operating income","EBIT","Laba operasi","Laba usaha"],
+                    "interestExpense": ["Interest Expense","Interest expense","Interest Cost","Beban bunga","Biaya bunga"],
+                    "incomeTaxExpense": ["Income Tax Expense","Tax Provision","Provision for Income Taxes","Beban pajak","Pajak penghasilan"],
+                    "netProfit": ["Net Income","Net income","Net Income Common Stockholders","Profit after tax","Net profit","Net Profit","Laba bersih","Laba tahun berjalan"],
+                    "eps": ["Diluted EPS","Basic EPS","EPS Diluted","EPS Basic","Earnings Per Share","Earnings per share","Laba per saham dasar","Laba per saham dilusian"],
+                    "dps": ["Dividends Per Share","Dividend Per Share","DPS","Dividen per saham"]
+                }
+                has_data = False
+                for k in inc_annualise + per_share:
+                    candidates = inc_map.get(k, [])
+                    val = get_fin_val_from_series(series, candidates)
+                    if val is not None:
+                        sums[k] += val
+                        has_data = True
+                if has_data:
+                    count += 1
+
+            if count > 0:
+                multiplier = 4.0 / count
+                for k in inc_annualise + per_share:
+                    if sums[k] is not None:
+                        annual_val = sums[k] * multiplier
+                        # Apply currency scaling and division
+                        fx = ps_fx if k in per_share else total_fx
+                        d = 1 if k in per_share else div
+                        row[k] = safe(annual_val, d, fx)
+            # If no quarterly data, leave None
+
+        # --- Balance sheet: latest quarter value ---
+        if bal_cols:
+            latest_bal_col = bal_cols[0]  # most recent quarter in current year
+            bal_series = q_bal[latest_bal_col]
+            bal_map = {
+                "totalAsset": ["Total Assets","Total assets","Total Asset","Jumlah aset","Aset"],
+                "cash": ["Cash And Cash Equivalents","Cash & Cash Equivalents","Cash and cash equivalents","Cash","Cash & Equivalents","Kas dan setara kas","Kas"],
+                "totalDebt": ["Total Debt","Total debt","Total Debt, Net","Long Term Debt + Short Term Debt","Net Debt","Total utang","Utang","Total Liabilities","Total liabilities","Total Kewajiban"],
+                "totalEquity": ["Total Equity Gross Minority Interest","Stockholders Equity","Total Stockholder Equity","Total Equity","Shareholders' Equity","Equity","Ekuitas","Total ekuitas"]
+            }
+            for k, candidates in bal_map.items():
+                val = get_fin_val_from_series(bal_series, candidates)
+                if val is not None:
+                    row[k] = safe(val, div, total_fx)
+
+    except Exception as e:
+        print(f"  [Quarterly] {ticker_str}: Exception: {e}", flush=True)
+
+    return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
+
+
 # ---------- Main fetch router ----------
 def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     target_cur = hint_cur.upper()
-    row = None; src = ""
-    if exchange in ("NYSE","NASDAQ"):
+    row = None
+    src = ""
+
+    if exchange in ("NYSE", "NASDAQ"):
         print(f"\n[{sym}] (FMP) {ticker_str}", flush=True)
         row = fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
         src = "fmp"
@@ -459,16 +564,19 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             print(f"  [{sym}] FMP empty, falling back to yfinance", flush=True)
             row = yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
             src = "yfinance (fallback)"
-    elif exchange in ("ASX","IDX"):
+    elif exchange in ("ASX", "IDX"):
         print(f"\n[{sym}] (yfinance) {ticker_str}", flush=True)
         row = yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
         src = "yfinance"
     else:
-        row = {f: None for f in FIELDS}; src = "unknown"
+        row = {f: None for f in FIELDS}
+        src = "unknown"
 
     if not row or all(v is None for v in row.values()):
-        row = {f: None for f in FIELDS}; src += " (empty)"
+        row = {f: None for f in FIELDS}
+        src += " (empty)"
 
+    # Clean up zeros
     for bal in ("totalAsset","cash","totalDebt","totalEquity"):
         if row.get(bal) == 0: row[bal] = None
     for inc in ("revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome","interestExpense","incomeTaxExpense","netProfit"):
@@ -476,6 +584,7 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     if row.get("dps") == 0: row["dps"] = None
     if sym in ("AMZN",) and row.get("dps") == 0: row["dps"] = None
 
+    # Sanity checks
     pre_dps = PRELOADED.get(sym, {}).get("dps", [])
     valid_dps = [v for v in pre_dps if v is not None and v > 0]
     if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps): row["dps"] = None
@@ -483,7 +592,23 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     valid_eps = [v for v in pre_eps if v is not None and v > 0]
     if valid_eps and row.get("eps") is not None and row["eps"] > 5 * max(valid_eps): row["eps"] = None
 
-    return {LATEST_YEAR: row, CURRENT_YEAR: {f: None for f in FIELDS}}, {"method":"annual","label":src,"quarters":0}, src
+    # Prepare year dict: 2025 = latest annual, 2026 = initially None (we'll fill quarterly)
+    row_2026 = {f: None for f in FIELDS}
+    yd = {LATEST_YEAR: row, CURRENT_YEAR: row_2026}
+
+    # Fill 2026 with annualised quarterly data if available
+    try:
+        quarterly_row = fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd)
+        if quarterly_row and any(v is not None for v in quarterly_row.values()):
+            yd[CURRENT_YEAR] = quarterly_row
+            # Update source label to indicate quarterly annualisation
+            ann = {"method": "quarterly_annualised", "label": src + " (Q annualised)", "quarters": 0}
+        else:
+            ann = {"method": "annual", "label": src, "quarters": 0}
+    except Exception:
+        ann = {"method": "annual", "label": src, "quarters": 0}
+
+    return yd, ann, src
 
 def build_arrays(yd, sym, rates):
     out = {}
