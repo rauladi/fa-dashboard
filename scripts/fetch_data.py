@@ -418,7 +418,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
 
 
-# =================== QUARTERLY ANNUALISATION (2026) – CORRECT FISCAL YEAR ===================
+# =================== QUARTERLY ANNUALISATION (2026) – FISCAL YEAR RANGE ===================
 def fiscal_year_range(sym):
     """Return (start_date, end_date) of the fiscal year ending in CURRENT_YEAR."""
     m = FISCAL_YEAR_END.get(sym, 12)
@@ -427,7 +427,7 @@ def fiscal_year_range(sym):
         end = datetime(CURRENT_YEAR, 12, 31, 23, 59, 59)
     else:
         start = datetime(CURRENT_YEAR - 1, m + 1, 1)
-        end = datetime(CURRENT_YEAR, m, 30)  # safe day for all months
+        end = datetime(CURRENT_YEAR, m, 30)
     return start, end
 
 def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
@@ -512,61 +512,39 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
         if row["eps"] is not None and abs(row["eps"]) < 0.001: row["eps"] = None
         if row["dps"] is not None and abs(row["dps"]) < 0.001: row["dps"] = None
 
-        # Info fallbacks
-        info_revenue = info.get("totalRevenue") or info.get("revenue")
-        info_is_target = (info_revenue is not None and info_revenue > 1e8 and (target_cur == "USD" or target_cur == "AUD"))
-        if info_is_target: info_div, info_fx = 1e9, 1.0
-        else: info_div, info_fx = div, total_fx
+        # *** TTM fallback for ADRO/ITMG/POWR when quarterly data is insufficient ***
+        if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is None:
+            # Use trailingEps / epsTrailingTwelveMonths for EPS, and revenue / netIncome from info
+            info_rev = info.get("totalRevenue") or info.get("revenue")
+            info_ni = info.get("netIncomeToCommon") or info.get("netIncome")
+            info_eps = info.get("trailingEps") or info.get("epsTrailingTwelveMonths")
+            info_div = info.get("dividendRate")
+            info_ta = info.get("totalAssets")
+            info_cash = info.get("totalCash") or info.get("cash")
+            info_td = info.get("totalDebt")
+            info_te = info.get("totalStockholderEquity") or info.get("bookValue")
 
-        if exchange == "IDX" and target_cur == "USD": per_share_fx = ps_fx
-        elif info_is_target: per_share_fx = 1.0
-        else: per_share_fx = ps_fx
+            if info_rev is not None: row["revenue"] = safe(info_rev, div, total_fx)
+            if info_ni is not None: row["netProfit"] = safe(info_ni, div, total_fx)
+            if info_eps is not None: row["eps"] = safe(info_eps, 1, ps_fx)
+            if info_div is not None: row["dps"] = safe(info_div, 1, ps_fx)
+            if info_ta is not None: row["totalAsset"] = safe(info_ta, div, total_fx)
+            if info_cash is not None: row["cash"] = safe(info_cash, div, total_fx)
+            if info_td is not None: row["totalDebt"] = safe(info_td, div, total_fx)
+            if info_te is not None: row["totalEquity"] = safe(info_te, div, total_fx)
 
-        def fill_from_info(*candidates):
-            for c in candidates:
-                v = info.get(c, None)
-                if v is not None: return safe(v, info_div, info_fx)
-            return None
-
-        if row["revenue"] is None: row["revenue"] = fill_from_info("totalRevenue","revenue")
-        if row["costOfRevenue"] is None: row["costOfRevenue"] = fill_from_info("costOfRevenue")
-        if row["grossProfit"] is None:
-            gm = info.get("grossMargins")
-            if gm is not None and row["revenue"] is not None: row["grossProfit"] = safe(float(gm) * float(row["revenue"]), 1, 1.0)
-            if row["grossProfit"] is None: row["grossProfit"] = fill_from_info("grossProfit")
-        if row["operatingExpense"] is None: row["operatingExpense"] = fill_from_info("operatingExpenses","totalOperatingExpenses")
-        if row["operatingIncome"] is None: row["operatingIncome"] = fill_from_info("operatingIncome","ebit")
-        if row["interestExpense"] is None: row["interestExpense"] = fill_from_info("interestExpense")
-        if row["incomeTaxExpense"] is None: row["incomeTaxExpense"] = fill_from_info("incomeTaxExpense")
-        if row["netProfit"] is None: row["netProfit"] = fill_from_info("netIncomeToCommon","netIncome")
-        if row["eps"] is None: row["eps"] = safe(info.get("trailingEps") or info.get("epsTrailingTwelveMonths"), 1, per_share_fx)
-        if row["dps"] is None:
-            div_rate = info.get("dividendRate")
-            if div_rate is not None: row["dps"] = safe(div_rate, 1, per_share_fx)
-        if row["totalAsset"] is None: row["totalAsset"] = fill_from_info("totalAssets","totalAsset")
-        if row["cash"] is None: row["cash"] = fill_from_info("totalCash","cash")
-        if row["totalDebt"] is None: row["totalDebt"] = fill_from_info("totalDebt")
-        if row["totalEquity"] is None:
-            book_val = info.get("bookValue")
-            if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
-            if row["totalEquity"] is None: row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
-
-        # Reconstructions
-        if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None:
-            row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
-        if row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
-            eq = float(row["totalAsset"]) - float(row["totalDebt"])
-            if eq > 0: row["totalEquity"] = round(eq, 4)
-
-        if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
-            new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
-            if new_debt > 0: row["totalDebt"] = new_debt
-
+        # DMAS debt correction (also apply to quarterly)
         if sym == "DMAS" and (row["totalDebt"] is None or row["totalDebt"] == 0.0):
             if row["totalAsset"] is not None and row["totalEquity"] is not None:
                 computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
                 if computed_debt > 0: row["totalDebt"] = computed_debt
 
+        # Bank debt correction (also apply to quarterly)
+        if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
+            new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
+            if new_debt > 0: row["totalDebt"] = new_debt
+
+        # Historical‑ratio fallback for ADRO/ITMG/POWR (if info also failed)
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
             pre = PRELOADED.get(sym, {})
             rev_hist = (pre.get("revenue") or [])[:4]
