@@ -434,10 +434,9 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
         # Determine fiscal year 2026 date range
         fye_month = FISCAL_YEAR_END.get(sym, 12)
         # Fiscal year end date (approximate)
-        fy_end = datetime(CURRENT_YEAR, fye_month, 30)  # use 30th, safe for all months
+        fy_end = datetime(CURRENT_YEAR, fye_month, 30)
         fy_start = (fy_end - timedelta(days=365)).replace(hour=0, minute=0, second=0, microsecond=0)
 
-        # Filter quarterly columns that belong to this fiscal year
         inc_cols = [c for c in (q_inc.columns if q_inc is not None else [])
                     if fy_start <= c.to_pydatetime() <= fy_end]
         bal_cols = [c for c in (q_bal.columns if q_bal is not None else [])
@@ -471,7 +470,7 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
 
         # 2) Balance sheet: latest quarter of the fiscal year
         if bal_cols:
-            latest_bal_col = bal_cols[-1]   # most recent
+            latest_bal_col = bal_cols[-1]
             bal_series = q_bal[latest_bal_col]
             for k in ["totalAsset","cash","totalDebt","totalEquity"]:
                 val = get_fin_val_from_series(bal_series, BAL_CANDIDATES[k])
@@ -583,7 +582,7 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                     avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
                     row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
 
-        # Remove negative equity/gross profit that can appear in quarterly snapshots
+        # Remove negative equity/gross profit
         if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
         if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
 
