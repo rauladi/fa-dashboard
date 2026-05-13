@@ -418,7 +418,18 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
 
 
-# =================== QUARTERLY ANNUALISATION (2026) – FISCAL YEAR BASED ===================
+# =================== QUARTERLY ANNUALISATION (2026) – CORRECT FISCAL YEAR ===================
+def fiscal_year_range(sym):
+    """Return (start_date, end_date) of the fiscal year ending in CURRENT_YEAR."""
+    m = FISCAL_YEAR_END.get(sym, 12)
+    if m == 12:
+        start = datetime(CURRENT_YEAR, 1, 1)
+        end = datetime(CURRENT_YEAR, 12, 31, 23, 59, 59)
+    else:
+        start = datetime(CURRENT_YEAR - 1, m + 1, 1)
+        end = datetime(CURRENT_YEAR, m, 30)  # safe day for all months
+    return start, end
+
 def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     if sym == "TSM": fin_cur = "TWD"
     else: fin_cur = financial_currency(exchange)
@@ -431,11 +442,7 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
         q_inc = tick.quarterly_financials
         q_bal = tick.quarterly_balance_sheet
 
-        # Determine fiscal year 2026 date range
-        fye_month = FISCAL_YEAR_END.get(sym, 12)
-        # Fiscal year end date (approximate)
-        fy_end = datetime(CURRENT_YEAR, fye_month, 30)
-        fy_start = (fy_end - timedelta(days=365)).replace(hour=0, minute=0, second=0, microsecond=0)
+        fy_start, fy_end = fiscal_year_range(sym)
 
         inc_cols = [c for c in (q_inc.columns if q_inc is not None else [])
                     if fy_start <= c.to_pydatetime() <= fy_end]
