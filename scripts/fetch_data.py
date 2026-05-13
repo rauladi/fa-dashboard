@@ -300,8 +300,8 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         row["totalEquity"] = force_better(bal_df, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
         if row["totalEquity"] is None: row["totalEquity"] = force_better(tick.quarterly_balance_sheet, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
 
-        # Bank GP fix (extended to all major banks)
-        BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}  # add more if needed
+        # Bank GP fix
+        BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
         if sym in BANK_SET and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
@@ -373,14 +373,12 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
             if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
             if row["totalEquity"] is None: row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
 
-        # Reconstructions
         if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None:
             row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
         if row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
             eq = float(row["totalAsset"]) - float(row["totalDebt"])
             if eq > 0: row["totalEquity"] = round(eq, 4)
 
-        # Bank debt correction
         if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
             new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
             if new_debt > 0: row["totalDebt"] = new_debt
@@ -390,7 +388,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                 computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
                 if computed_debt > 0: row["totalDebt"] = computed_debt
 
-        # Historical‑ratio fallback for ADRO/ITMG/POWR
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
             pre = PRELOADED.get(sym, {})
             rev_hist = (pre.get("revenue") or [])[:4]
@@ -421,7 +418,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
 
 
-# =================== QUARTERLY ANNUALISATION (2026) ===================
+# =================== QUARTERLY ANNUALISATION (2026) – FISCAL YEAR BASED ===================
 def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     if sym == "TSM": fin_cur = "TWD"
     else: fin_cur = financial_currency(exchange)
@@ -434,8 +431,17 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
         q_inc = tick.quarterly_financials
         q_bal = tick.quarterly_balance_sheet
 
-        inc_cols = [c for c in (q_inc.columns if q_inc is not None else []) if c.year == CURRENT_YEAR]
-        bal_cols = [c for c in (q_bal.columns if q_bal is not None else []) if c.year == CURRENT_YEAR]
+        # Determine fiscal year 2026 date range
+        fye_month = FISCAL_YEAR_END.get(sym, 12)
+        # Fiscal year end date (approximate)
+        fy_end = datetime(CURRENT_YEAR, fye_month, 30)  # use 30th, safe for all months
+        fy_start = (fy_end - timedelta(days=365)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+        # Filter quarterly columns that belong to this fiscal year
+        inc_cols = [c for c in (q_inc.columns if q_inc is not None else [])
+                    if fy_start <= c.to_pydatetime() <= fy_end]
+        bal_cols = [c for c in (q_bal.columns if q_bal is not None else [])
+                    if fy_start <= c.to_pydatetime() <= fy_end]
 
         # 1) Sum quarterly income (EPS/DPS also summed)
         sums = {k: 0.0 for k in ["revenue","costOfRevenue","grossProfit","operatingExpense",
@@ -463,9 +469,9 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                     else:
                         row[k] = safe(annual, div, total_fx)
 
-        # 2) Balance sheet: latest quarter
+        # 2) Balance sheet: latest quarter of the fiscal year
         if bal_cols:
-            latest_bal_col = bal_cols[0]
+            latest_bal_col = bal_cols[-1]   # most recent
             bal_series = q_bal[latest_bal_col]
             for k in ["totalAsset","cash","totalDebt","totalEquity"]:
                 val = get_fin_val_from_series(bal_series, BAL_CANDIDATES[k])
@@ -474,7 +480,7 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 if val is not None:
                     row[k] = safe(val, div, total_fx)
 
-        # 3) Apply same corrections as yf_fetch_2025
+        # 3) Corrections identical to annual
         BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
         if sym in BANK_SET and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
@@ -482,7 +488,7 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 if computed_gp > 0: row["grossProfit"] = round(computed_gp, 4)
             if row["grossProfit"] is None or row["grossProfit"] == 0.0:
                 if inc_cols:
-                    latest_series = q_inc[inc_cols[0]]
+                    latest_series = q_inc[inc_cols[-1]]
                     nii = get_fin_val_from_series(latest_series, INC_CANDIDATES["grossProfit"])
                     if nii is not None: row["grossProfit"] = safe(nii, div, total_fx)
                 if (row["grossProfit"] is None or row["grossProfit"] == 0.0) and \
@@ -546,7 +552,6 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
             eq = float(row["totalAsset"]) - float(row["totalDebt"])
             if eq > 0: row["totalEquity"] = round(eq, 4)
 
-        # Bank debt correction
         if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
             new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
             if new_debt > 0: row["totalDebt"] = new_debt
@@ -556,7 +561,6 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
                 if computed_debt > 0: row["totalDebt"] = computed_debt
 
-        # Historical‑ratio fallback for ADRO/ITMG/POWR
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
             pre = PRELOADED.get(sym, {})
             rev_hist = (pre.get("revenue") or [])[:4]
@@ -579,7 +583,7 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                     avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
                     row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
 
-        # Final sanity: remove negative equity/gross profit (can happen for some quarters)
+        # Remove negative equity/gross profit that can appear in quarterly snapshots
         if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
         if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
 
@@ -663,7 +667,7 @@ def build_arrays(yd, sym, rates):
             else: arr.append(None)
         out[f] = arr
     return out
-
+    
 # ---------- PRELOADED DATA (2021–2024) ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],
