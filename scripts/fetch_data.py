@@ -300,7 +300,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         row["totalEquity"] = force_better(bal_df, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
         if row["totalEquity"] is None: row["totalEquity"] = force_better(tick.quarterly_balance_sheet, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
 
-        # Bank GP fix
         BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
         if sym in BANK_SET and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
@@ -418,9 +417,8 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
 
 
-# =================== QUARTERLY ANNUALISATION (2026) – CORRECT FISCAL YEAR ===================
+# =================== QUARTERLY ANNUALISATION (2026) ===================
 def fiscal_year_range(sym):
-    """Return (start_date, end_date) of the fiscal year ending in CURRENT_YEAR."""
     m = FISCAL_YEAR_END.get(sym, 12)
     if m == 12:
         start = datetime(CURRENT_YEAR, 1, 1)
@@ -429,6 +427,77 @@ def fiscal_year_range(sym):
         start = datetime(CURRENT_YEAR - 1, m + 1, 1)
         end = datetime(CURRENT_YEAR, m, 30)
     return start, end
+
+def apply_corrections(row, sym, inc_cols, q_inc, div, total_fx, ps_fx, dbg=False):
+    """Common corrections used by both quarterly and TTM fallback."""
+    BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
+    if sym in BANK_SET and (row.get("grossProfit") is None or row.get("grossProfit") == 0.0):
+        if row.get("revenue") is not None and row.get("costOfRevenue") is not None:
+            computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
+            if computed_gp > 0: row["grossProfit"] = round(computed_gp, 4)
+        if row.get("grossProfit") is None or row.get("grossProfit") == 0.0:
+            if inc_cols:
+                latest_series = q_inc[inc_cols[-1]]
+                nii = get_fin_val_from_series(latest_series, INC_CANDIDATES["grossProfit"])
+                if nii is not None: row["grossProfit"] = safe(nii, div, total_fx)
+            if (row.get("grossProfit") is None or row.get("grossProfit") == 0.0) and \
+               row.get("netProfit") is not None and row.get("operatingExpense") is not None and \
+               row.get("incomeTaxExpense") is not None:
+                int_exp = row.get("interestExpense") if row.get("interestExpense") is not None else 0.0
+                reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
+                if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
+
+    SMALL_THRESHOLD = 0.01
+    for field in ["revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome",
+                  "interestExpense","incomeTaxExpense","netProfit","totalAsset","cash",
+                  "totalDebt","totalEquity"]:
+        if row.get(field) is not None and abs(row[field]) < SMALL_THRESHOLD: row[field] = None
+    if row.get("eps") is not None and abs(row.get("eps")) < 0.001: row["eps"] = None
+    if row.get("dps") is not None and abs(row.get("dps")) < 0.001: row["dps"] = None
+
+    # Reconstructions
+    if row.get("totalAsset") is None and row.get("totalDebt") is not None and row.get("totalEquity") is not None:
+        row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
+    if row.get("totalEquity") is None and row.get("totalAsset") is not None and row.get("totalDebt") is not None:
+        eq = float(row["totalAsset"]) - float(row["totalDebt"])
+        if eq > 0: row["totalEquity"] = round(eq, 4)
+
+    if sym in {"BBRI", "BTPS"} and row.get("totalAsset") is not None and row.get("totalEquity") is not None:
+        new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
+        if new_debt > 0: row["totalDebt"] = new_debt
+
+    if sym == "DMAS" and (row.get("totalDebt") is None or row.get("totalDebt") == 0.0):
+        if row.get("totalAsset") is not None and row.get("totalEquity") is not None:
+            computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
+            if computed_debt > 0: row["totalDebt"] = computed_debt
+
+    if sym in {"ADRO", "ITMG", "POWR"} and row.get("revenue") is not None:
+        pre = PRELOADED.get(sym, {})
+        rev_hist = (pre.get("revenue") or [])[:4]
+        eq_hist  = (pre.get("totalEquity") or [])[:4]
+        ta_hist  = (pre.get("totalAsset") or [])[:4]
+
+        if (row.get("totalEquity") is None or row.get("totalEquity") == 0.0) and \
+           all(isOK(r) and r > 0 for r in rev_hist) and \
+           all(isOK(e) and e > 0 for e in eq_hist):
+            ratio_vals = [e / r for r, e in zip(rev_hist, eq_hist) if r > 0 and e > 0]
+            if ratio_vals:
+                avg_eq_rev = sum(ratio_vals) / len(ratio_vals)
+                row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
+                if dbg: print(f"  [DEBUG {sym}] Estimated totalEquity from historical ratio = {row['totalEquity']}", flush=True)
+
+        if (row.get("totalAsset") is None or row.get("totalAsset") < 0.7 * float(row["revenue"])) and \
+           all(isOK(r) and r > 0 for r in rev_hist) and \
+           all(isOK(a) and a > 0 for a in ta_hist):
+            ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r > 0 and a > 0]
+            if ratio_vals:
+                avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
+                row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
+                if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset from historical ratio = {row['totalAsset']}", flush=True)
+
+    if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
+    if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
+
 
 def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     if sym == "TSM": fin_cur = "TWD"
@@ -449,7 +518,7 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
         bal_cols = [c for c in (q_bal.columns if q_bal is not None else [])
                     if fy_start <= c.to_pydatetime() <= fy_end]
 
-        # 1) Sum quarterly income (EPS/DPS also summed)
+        # 1) Sum quarterly income
         sums = {k: 0.0 for k in ["revenue","costOfRevenue","grossProfit","operatingExpense",
                                  "operatingIncome","interestExpense","incomeTaxExpense",
                                  "netProfit","eps","dps"]}
@@ -475,7 +544,7 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                     else:
                         row[k] = safe(annual, div, total_fx)
 
-        # 2) Balance sheet: latest quarter of the fiscal year
+        # 2) Balance sheet: latest quarter
         if bal_cols:
             latest_bal_col = bal_cols[-1]
             bal_series = q_bal[latest_bal_col]
@@ -486,80 +555,12 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 if val is not None:
                     row[k] = safe(val, div, total_fx)
 
-        # 3) Corrections (bank GP, DMAS debt, etc.) – only when we already have some data
+        # 3) Apply corrections if we have some data
         if any(v is not None for v in row.values()):
-            BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
-            if sym in BANK_SET and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
-                if row["revenue"] is not None and row["costOfRevenue"] is not None:
-                    computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
-                    if computed_gp > 0: row["grossProfit"] = round(computed_gp, 4)
-                if row["grossProfit"] is None or row["grossProfit"] == 0.0:
-                    if inc_cols:
-                        latest_series = q_inc[inc_cols[-1]]
-                        nii = get_fin_val_from_series(latest_series, INC_CANDIDATES["grossProfit"])
-                        if nii is not None: row["grossProfit"] = safe(nii, div, total_fx)
-                    if (row["grossProfit"] is None or row["grossProfit"] == 0.0) and \
-                       row["netProfit"] is not None and row["operatingExpense"] is not None and \
-                       row["incomeTaxExpense"] is not None:
-                        int_exp = row["interestExpense"] if row["interestExpense"] is not None else 0.0
-                        reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
-                        if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
+            apply_corrections(row, sym, inc_cols, q_inc, div, total_fx, ps_fx, dbg=False)
 
-            # Small-value cleanup
-            SMALL_THRESHOLD = 0.01
-            for field in ["revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome",
-                          "interestExpense","incomeTaxExpense","netProfit","totalAsset","cash",
-                          "totalDebt","totalEquity"]:
-                if row[field] is not None and abs(row[field]) < SMALL_THRESHOLD: row[field] = None
-            if row["eps"] is not None and abs(row["eps"]) < 0.001: row["eps"] = None
-            if row["dps"] is not None and abs(row["dps"]) < 0.001: row["dps"] = None
-
-            # Reconstructions
-            if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None:
-                row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
-            if row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
-                eq = float(row["totalAsset"]) - float(row["totalDebt"])
-                if eq > 0: row["totalEquity"] = round(eq, 4)
-
-            if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
-                new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
-                if new_debt > 0: row["totalDebt"] = new_debt
-
-            if sym == "DMAS" and (row["totalDebt"] is None or row["totalDebt"] == 0.0):
-                if row["totalAsset"] is not None and row["totalEquity"] is not None:
-                    computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
-                    if computed_debt > 0: row["totalDebt"] = computed_debt
-
-            # Historical‑ratio fallback for ADRO/ITMG/POWR (if quarterly gave some revenue)
-            if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
-                pre = PRELOADED.get(sym, {})
-                rev_hist = (pre.get("revenue") or [])[:4]
-                eq_hist  = (pre.get("totalEquity") or [])[:4]
-                ta_hist  = (pre.get("totalAsset") or [])[:4]
-
-                if (row["totalEquity"] is None or row["totalEquity"] == 0.0) and \
-                   all(isOK(r) and r > 0 for r in rev_hist) and \
-                   all(isOK(e) and e > 0 for e in eq_hist):
-                    ratio_vals = [e / r for r, e in zip(rev_hist, eq_hist) if r > 0 and e > 0]
-                    if ratio_vals:
-                        avg_eq_rev = sum(ratio_vals) / len(ratio_vals)
-                        row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
-
-                if (row["totalAsset"] is None or row["totalAsset"] < 0.7 * float(row["revenue"])) and \
-                   all(isOK(r) and r > 0 for r in rev_hist) and \
-                   all(isOK(a) and a > 0 for a in ta_hist):
-                    ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r > 0 and a > 0]
-                    if ratio_vals:
-                        avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
-                        row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
-
-            # Remove negative equity/gross profit
-            if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
-            if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
-
-        # *** TTM fallback for ADRO/ITMG/POWR when quarterly data is insufficient ***
+        # 4) TTM fallback for ADRO/ITMG/POWR when quarterly data is insufficient
         if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is None:
-            # Use ticker.info with proper currency detection (same logic as annual)
             info_revenue = info.get("totalRevenue") or info.get("revenue")
             info_is_target = (info_revenue is not None and info_revenue > 1e8 and (target_cur == "USD" or target_cur == "AUD"))
             if info_is_target: info_div, info_fx = 1e9, 1.0
@@ -576,7 +577,6 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 return None
 
             row["revenue"] = fill_from_info("totalRevenue","revenue")
-            row["grossProfit"] = None   # will be computed below if possible
             if row["revenue"] is not None:
                 gm = info.get("grossMargins")
                 if gm is not None: row["grossProfit"] = safe(float(gm) * float(row["revenue"]), 1, 1.0)
@@ -591,9 +591,8 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
             if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
             if row["totalEquity"] is None: row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
 
-            # Also apply the bank GP fix for any bank in this set (unlikely for ADRO/ITMG/POWR but safe)
-            # and DMAS debt correction (not needed)
-            # Historical‑ratio fallback already handled above if revenue was present; here it's None, so we skip
+            # Apply the same corrections again (reconstructions, historical ratios)
+            apply_corrections(row, sym, inc_cols, q_inc, div, total_fx, ps_fx, dbg=False)
 
     except Exception as e:
         print(f"  [Quarterly] {ticker_str}: Exception: {e}", flush=True)
