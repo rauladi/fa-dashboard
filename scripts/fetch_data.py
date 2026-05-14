@@ -305,24 +305,25 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         row["totalEquity"] = force_better(bal_df, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
         if row["totalEquity"] is None: row["totalEquity"] = force_better(tick.quarterly_balance_sheet, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
 
-        # Bank GP fix (extended set)
-        BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
-        if sym in BANK_SET and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
-            if row["revenue"] is not None and row["costOfRevenue"] is not None:
+        # Universal gross profit fallback
+        if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
+            if row.get("revenue") is not None and row.get("costOfRevenue") is not None:
                 computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
-                if computed_gp > 0: row["grossProfit"] = round(computed_gp, 4)
-            if row["grossProfit"] is None or row["grossProfit"] == 0.0:
+                if computed_gp > 0:
+                    row["grossProfit"] = round(computed_gp, 4)
+            if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
+                # Try Net Interest Income (for banks)
                 nii = extract_inc_item(inc_df, INC_CANDIDATES["grossProfit"], div, total_fx)
                 if nii is None and tick.quarterly_financials is not None: nii = extract_inc_item(tick.quarterly_financials, INC_CANDIDATES["grossProfit"], div, total_fx)
                 if nii is not None: row["grossProfit"] = nii
-            if (row["grossProfit"] is None or row["grossProfit"] == 0.0) and row["netProfit"] is not None and row["operatingExpense"] is not None and row["incomeTaxExpense"] is not None:
-                int_exp = row["interestExpense"] if row["interestExpense"] is not None else 0.0
+            if (row.get("grossProfit") is None or row["grossProfit"] == 0.0) and row.get("netProfit") is not None and row.get("operatingExpense") is not None and row.get("incomeTaxExpense") is not None:
+                int_exp = row.get("interestExpense") if row.get("interestExpense") is not None else 0.0
                 reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
                 if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
-            # Final fallback: use revenue
-            if (row["grossProfit"] is None or row["grossProfit"] == 0.0) and row["revenue"] is not None and row["revenue"] > 0:
+            # Last resort: use revenue
+            if (row.get("grossProfit") is None or row["grossProfit"] == 0.0) and row.get("revenue") is not None and row["revenue"] > 0:
                 row["grossProfit"] = row["revenue"]
-                if dbg: print(f"  [DEBUG {sym}] Bank GP fallback: using revenue ({row['revenue']}) as gross profit", flush=True)
+                if dbg: print(f"  [DEBUG {sym}] Universal GP fallback: using revenue = {row['revenue']}", flush=True)
 
         if row["revenue"] is None or row["totalAsset"] is None:
             q_inc = tick.quarterly_financials
@@ -382,9 +383,19 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if row["cash"] is None: row["cash"] = fill_from_info("totalCash","cash")
         if row["totalDebt"] is None: row["totalDebt"] = fill_from_info("totalDebt")
         if row["totalEquity"] is None:
+            # Broader search in info
             book_val = info.get("bookValue")
             if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
-            if row["totalEquity"] is None: row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
+            if row["totalEquity"] is None:
+                # try substring match on all info keys
+                for k, v in info.items():
+                    if any(sub in k.lower() for sub in ["equity","stockholder","book value","common equity"]):
+                        if v is not None:
+                            row["totalEquity"] = safe(v, info_div, info_fx)
+                            if dbg: print(f"  [DEBUG {sym}] Found totalEquity via info key '{k}' = {row['totalEquity']}", flush=True)
+                            break
+            if row["totalEquity"] is None:
+                row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
 
         if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None:
             row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
@@ -444,27 +455,26 @@ def fiscal_year_range(sym):
 
 def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False):
     info = tick.info or {}
-    BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
 
-    if sym in BANK_SET and (row.get("grossProfit") is None or row.get("grossProfit") == 0.0):
+    # Universal gross profit fallback (same logic as annual)
+    if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
         if row.get("revenue") is not None and row.get("costOfRevenue") is not None:
             computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
             if computed_gp > 0: row["grossProfit"] = round(computed_gp, 4)
-        if row.get("grossProfit") is None or row.get("grossProfit") == 0.0:
+        if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
             if inc_cols:
                 latest_series = q_inc[inc_cols[-1]]
                 nii = get_fin_val_from_series(latest_series, INC_CANDIDATES["grossProfit"])
                 if nii is not None: row["grossProfit"] = safe(nii, div, total_fx)
-            if (row.get("grossProfit") is None or row.get("grossProfit") == 0.0) and \
+            if (row.get("grossProfit") is None or row["grossProfit"] == 0.0) and \
                row.get("netProfit") is not None and row.get("operatingExpense") is not None and \
                row.get("incomeTaxExpense") is not None:
                 int_exp = row.get("interestExpense") if row.get("interestExpense") is not None else 0.0
                 reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
                 if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
-        # Final fallback: use revenue
-        if (row.get("grossProfit") is None or row.get("grossProfit") == 0.0) and row.get("revenue") is not None and row["revenue"] > 0:
+        if (row.get("grossProfit") is None or row["grossProfit"] == 0.0) and row.get("revenue") is not None and row["revenue"] > 0:
             row["grossProfit"] = row["revenue"]
-            if dbg: print(f"  [DEBUG {sym}] Bank GP fallback: using revenue ({row['revenue']}) as gross profit", flush=True)
+            if dbg: print(f"  [DEBUG {sym}] Universal GP fallback: using revenue = {row['revenue']}", flush=True)
 
     SMALL_THRESHOLD = 0.01
     for field in ["revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome",
@@ -524,6 +534,13 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
     if row.get("totalEquity") is None:
         book_val = info.get("bookValue")
         if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
+        if row.get("totalEquity") is None:
+            for k, v in info.items():
+                if any(sub in k.lower() for sub in ["equity","stockholder","book value","common equity"]):
+                    if v is not None:
+                        row["totalEquity"] = safe(v, info_div, info_fx)
+                        if dbg: print(f"  [DEBUG {sym}] Found totalEquity via info key '{k}' = {row['totalEquity']}", flush=True)
+                        break
         if row.get("totalEquity") is None: row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
 
     if row.get("totalAsset") is None and row.get("totalDebt") is not None and row.get("totalEquity") is not None:
