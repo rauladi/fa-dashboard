@@ -434,11 +434,9 @@ def fiscal_year_range(sym):
     return start, end
 
 def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False):
-    """Common corrections used by both quarterly and TTM fallback."""
     info = tick.info or {}
     BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
 
-    # Bank GP fix
     if sym in BANK_SET and (row.get("grossProfit") is None or row.get("grossProfit") == 0.0):
         if row.get("revenue") is not None and row.get("costOfRevenue") is not None:
             computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
@@ -455,7 +453,6 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
                 reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
                 if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
 
-    # Small-value cleanup
     SMALL_THRESHOLD = 0.01
     for field in ["revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome",
                   "interestExpense","incomeTaxExpense","netProfit","totalAsset","cash",
@@ -617,14 +614,11 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 if val is not None:
                     row[k] = safe(val, div, total_fx)
 
-        # 3) If we have any data, apply corrections
+        # 3) Apply corrections if we have any data; otherwise fall back to TTM info (for all stocks)
         if any(v is not None for v in row.values()):
             apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
         else:
-            # No quarterly data at all – use TTM from info, but only if it won't duplicate 2025
-            # For ADRO/ITMG/POWR, skip TTM fallback to avoid showing 2025 data as 2026
-            if sym not in {"ADRO", "ITMG", "POWR"}:
-                apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
+            apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
 
     except Exception as e:
         print(f"  [Quarterly] {ticker_str}: Exception: {e}", flush=True)
