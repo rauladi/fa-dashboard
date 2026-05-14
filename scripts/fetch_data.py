@@ -300,7 +300,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         row["totalEquity"] = force_better(bal_df, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
         if row["totalEquity"] is None: row["totalEquity"] = force_better(tick.quarterly_balance_sheet, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
 
-        # Bank GP fix
         BANK_SET = {"BBRI","BTPS","CBA","NAB","ANZ","BAC","AXP","V","MA"}
         if sym in BANK_SET and (row["grossProfit"] is None or row["grossProfit"] == 0.0):
             if row["revenue"] is not None and row["costOfRevenue"] is not None:
@@ -327,8 +326,13 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         if row["eps"] is not None and row["eps"] == 0.0: row["eps"] = None
         if row["dps"] is not None and row["dps"] == 0.0: row["dps"] = None
 
-        info_revenue = info.get("totalRevenue") or info.get("revenue")
-        info_is_target = (info_revenue is not None and info_revenue > 1e8 and (target_cur == "USD" or target_cur == "AUD"))
+        # For TSM, always treat info as TWD (not target USD)
+        if sym == "TSM":
+            info_is_target = False
+        else:
+            info_revenue = info.get("totalRevenue") or info.get("revenue")
+            info_is_target = (info_revenue is not None and info_revenue > 1e8 and (target_cur == "USD" or target_cur == "AUD"))
+
         if info_is_target: info_div, info_fx = 1e9, 1.0
         else: info_div, info_fx = div, total_fx
 
@@ -418,7 +422,7 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
 
 
-# =================== QUARTERLY ANNUALISATION (2026) – CORRECT FISCAL YEAR ===================
+# =================== QUARTERLY ANNUALISATION (2026) – FISCAL YEAR RANGE ===================
 def fiscal_year_range(sym):
     m = FISCAL_YEAR_END.get(sym, 12)
     if m == 12:
@@ -460,9 +464,13 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
     if row.get("eps") is not None and abs(row.get("eps")) < 0.001: row["eps"] = None
     if row.get("dps") is not None and abs(row.get("dps")) < 0.001: row["dps"] = None
 
-    # Info fallbacks for everything (same logic as annual)
-    info_revenue = info.get("totalRevenue") or info.get("revenue")
-    info_is_target = (info_revenue is not None and info_revenue > 1e8 and (target_cur == "USD" or target_cur == "AUD"))
+    # For TSM, always treat info as TWD (not target USD)
+    if sym == "TSM":
+        info_is_target = False
+    else:
+        info_revenue = info.get("totalRevenue") or info.get("revenue")
+        info_is_target = (info_revenue is not None and info_revenue > 1e8 and (target_cur == "USD" or target_cur == "AUD"))
+
     if info_is_target: info_div, info_fx = 1e9, 1.0
     else: info_div, info_fx = div, total_fx
 
@@ -562,7 +570,6 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
     row = {f: None for f in FIELDS}
     try:
         tick = yf.Ticker(ticker_str)
-        info = tick.info or {}
         q_inc = tick.quarterly_financials
         q_bal = tick.quarterly_balance_sheet
 
@@ -610,23 +617,17 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 if val is not None:
                     row[k] = safe(val, div, total_fx)
 
-        # 3) If no quarterly data was found at all (empty inc_cols), fall back entirely to info
-        if quarter_count == 0 and not bal_cols:
-            # Use the info block from apply_corrections
-            pass   # apply_corrections will do info fallbacks
+        # 3) If we have any data, apply corrections
+        if any(v is not None for v in row.values()):
+            apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
         else:
-            # Apply corrections on whatever we got
-            apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx)
+            # No quarterly data at all – use TTM from info, but only if it won't duplicate 2025
+            # For ADRO/ITMG/POWR, skip TTM fallback to avoid showing 2025 data as 2026
+            if sym not in {"ADRO", "ITMG", "POWR"}:
+                apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
 
     except Exception as e:
         print(f"  [Quarterly] {ticker_str}: Exception: {e}", flush=True)
-
-    # Always run corrections – this fills any remaining gaps
-    try:
-        apply_corrections(row, sym, inc_cols if 'inc_cols' in locals() else [], q_inc if 'q_inc' in locals() else None,
-                          yf.Ticker(ticker_str), target_cur, exchange, div, total_fx, ps_fx)
-    except Exception:
-        pass
 
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
 
