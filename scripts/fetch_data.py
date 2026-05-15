@@ -10,10 +10,10 @@ LATEST_YEAR = CURRENT_YEAR - 1
 COMPLETED = list(range(LATEST_YEAR - 4, LATEST_YEAR + 1))   # 2021..2025
 ALL_YEARS = COMPLETED + [CURRENT_YEAR]                       # 2026
 
-FMP_API_KEY = os.environ.get("FMP_API_KEY")
+FMP_API_KEY = os.environ.get("FMP_API_KEY")   # kept for compatibility, not used for live fetch
 
 print(f"FA Dashboard fetch – {NOW.strftime('%Y-%m-%d %H:%M UTC')}", flush=True)
-print(f"Sources: FMP (US, fallback yfinance), yfinance (ASX & IDX)", flush=True)
+print(f"Sources: yfinance (live years 2025–2026)", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
 
 FISCAL_YEAR_END = {
@@ -123,48 +123,11 @@ def financial_currency(exchange):
     if exchange == "ASX": return "AUD"
     return "USD"
 
-# ---------- FMP (US stocks) ----------
-FMP_BASE = "https://financialmodelingprep.com/api/v3"
+# =============================================================================
+#  LIVE FETCHER – returns both 2025 (annual) and 2026 (quarterly annualised)
+# =============================================================================
 
-def fmp_get(endpoint, ticker):
-    if not FMP_API_KEY: return None
-    url = f"{FMP_BASE}/{endpoint}/{ticker}?apikey={FMP_API_KEY}"
-    try:
-        resp = requests.get(url, timeout=10)
-        if resp.status_code == 200: return resp.json()
-    except: pass
-    return None
-
-def fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
-    if sym == "TSM": fin_cur = "TWD"
-    else: fin_cur = financial_currency(exchange)
-    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
-
-    inc = fmp_get("income-statement", ticker_str)
-    bal = fmp_get("balance-sheet-statement", ticker_str)
-
-    row = {f: None for f in FIELDS}
-    if inc and inc[0].get("revenue") is not None:
-        i = inc[0]
-        row["revenue"]          = safe(i.get("revenue"), div, total_fx)
-        row["costOfRevenue"]    = safe(i.get("costOfRevenue"), div, total_fx)
-        row["grossProfit"]      = safe(i.get("grossProfit"), div, total_fx)
-        row["operatingExpense"] = safe(i.get("operatingExpenses"), div, total_fx)
-        row["operatingIncome"]  = safe(i.get("operatingIncome"), div, total_fx)
-        row["interestExpense"]  = safe(i.get("interestExpense"), div, total_fx)
-        row["incomeTaxExpense"] = safe(i.get("incomeTaxExpense"), div, total_fx)
-        row["netProfit"]        = safe(i.get("netIncome"), div, total_fx)
-        row["eps"]              = safe(i.get("earningsPerShare") or i.get("eps"), 1, ps_fx)
-        row["dps"]              = safe(i.get("dividendPerShare"), 1, ps_fx) if i.get("dividendPerShare") else None
-    if bal and bal[0].get("totalAssets") is not None:
-        b = bal[0]
-        row["totalAsset"]  = safe(b.get("totalAssets"), div, total_fx)
-        row["cash"]        = safe(b.get("cashAndCashEquivalents"), div, total_fx)
-        row["totalDebt"]   = safe(b.get("totalDebt"), div, total_fx)
-        row["totalEquity"] = safe(b.get("totalStockholdersEquity"), div, total_fx)
-    return row
-
-# ---------- yfinance (universal fetcher) ----------
+# Shared field‑matching utilities (unchanged)
 def get_fin_val_from_series(series, candidates):
     lowered = {k.lower().strip(): v for k, v in series.items()}
     for cand in candidates:
@@ -187,30 +150,6 @@ def get_fin_val_by_substring(series, substrings):
                     if hasattr(v, 'iloc'): v = v.iloc[0] if len(v) > 0 else None
                     return float(v)
                 except (ValueError, TypeError): continue
-    return None
-
-def extract_bal_item(df, labels, div, fx):
-    if df is None or df.empty: return None
-    idx_lower = {k.lower().strip(): k for k in df.index}
-    for lbl in labels:
-        key = lbl.lower().strip()
-        if key in idx_lower:
-            try:
-                val = df.loc[idx_lower[key]].iloc[0]
-                if pd.notna(val): return safe(float(val), div, fx)
-            except Exception: continue
-    return None
-
-def extract_inc_item(df, labels, div, fx):
-    if df is None or df.empty: return None
-    idx_lower = {k.lower().strip(): k for k in df.index}
-    for lbl in labels:
-        key = lbl.lower().strip()
-        if key in idx_lower:
-            try:
-                val = df.loc[idx_lower[key]].iloc[0]
-                if pd.notna(val): return safe(float(val), div, fx)
-            except Exception: continue
     return None
 
 # Shared candidate lists
@@ -250,8 +189,19 @@ BAL_CANDIDATES = {
     ]
 }
 
-# Universal correction block – applied both to annual and quarterly rows
-def universal_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False):
+# ---------- fiscal year range for 2026 ----------
+def fiscal_year_range(sym):
+    m = FISCAL_YEAR_END.get(sym, 12)
+    if m == 12:
+        start = datetime(CURRENT_YEAR, 1, 1)
+        end   = datetime(CURRENT_YEAR, 12, 31, 23, 59, 59)
+    else:
+        start = datetime(CURRENT_YEAR - 1, m + 1, 1)
+        end   = datetime(CURRENT_YEAR, m, 30)
+    return start, end
+
+# ---------- universal corrections (applied to BOTH 2025 and 2026 rows) ----------
+def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False):
     info = tick.info or {}
 
     # --- Gross Profit fallback ---
@@ -335,7 +285,6 @@ def universal_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange,
         book_val = info.get("bookValue")
         if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
         if row.get("totalEquity") is None:
-            # Substring search in info keys
             for k, v in info.items():
                 if any(sub in k.lower() for sub in ["equity","stockholder","book value","common equity"]):
                     if v is not None:
@@ -388,21 +337,28 @@ def universal_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange,
     if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
     if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
 
-# ---------- Annual fetcher ----------
-def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
+
+# ---------- LIVE FETCH (2025 annual + 2026 quarterly annualised) ----------
+def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
+    """Return a dict {2025: row, 2026: row} for one stock."""
     if sym == "TSM": fin_cur = "TWD"
     else: fin_cur = financial_currency(exchange)
     div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
-    row = {f: None for f in FIELDS}
 
-    debug_tickers = {"ADRO", "ITMG", "POWR", "BBRI", "BTPS", "BKNG"}
-    dbg = sym in debug_tickers
+    row_2025 = {f: None for f in FIELDS}
+    row_2026 = {f: None for f in FIELDS}
 
     try:
         tick = yf.Ticker(ticker_str)
         info = tick.info or {}
 
-        def fill_from_annual(df, row_dict, field_candidates_map, substring_map):
+        # ----- 2025: from annual statements -----
+        inc_df = tick.financials
+        bal_df = tick.balance_sheet
+        q_inc = tick.quarterly_financials
+        q_bal = tick.quarterly_balance_sheet
+
+        def fill_from_df(df, row_dict, field_candidates_map, substring_map):
             if df is None or df.empty: return False
             for col in df.columns:
                 series = df[col]
@@ -413,7 +369,6 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                         fx = ps_fx if field in ("eps","dps") else total_fx
                         d = 1 if field in ("eps","dps") else div
                         row_dict[field] = safe(val, d, fx)
-                        if dbg: print(f"  [DEBUG {sym}] Found exact {field} = {row_dict[field]}", flush=True)
                 for field, subs in substring_map.items():
                     if row_dict[field] is not None: continue
                     val = get_fin_val_by_substring(series, subs)
@@ -421,77 +376,49 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
                         fx = ps_fx if field in ("eps","dps") else total_fx
                         d = 1 if field in ("eps","dps") else div
                         row_dict[field] = safe(val, d, fx)
-                        if dbg: print(f"  [DEBUG {sym}] Found substring {field} = {row_dict[field]}", flush=True)
             return any(v is not None for v in row_dict.values())
 
-        inc_df = tick.financials
-        bal_df = tick.balance_sheet
-        if dbg:
-            print(f"  [DEBUG {sym}] Annual columns income: {list(inc_df.columns)[:3] if inc_df is not None and not inc_df.empty else 'None'}", flush=True)
-            print(f"  [DEBUG {sym}] Annual columns balance: {list(bal_df.columns)[:3] if bal_df is not None and not bal_df.empty else 'None'}", flush=True)
-        fill_from_annual(inc_df, row, INC_CANDIDATES, INC_SUB)
-        fill_from_annual(bal_df, row, BAL_CANDIDATES, {})
+        fill_from_df(inc_df, row_2025, INC_CANDIDATES, INC_SUB)
+        fill_from_df(bal_df, row_2025, BAL_CANDIDATES, {})
 
+        # Force better extraction for balance items
         def force_better(df, label_list, current_val, divisor, fx):
             if df is None: return current_val
-            new_val = extract_bal_item(df, label_list, divisor, fx)
-            if new_val is not None and (current_val is None or current_val < 0.01): return new_val
+            idx_lower = {k.lower().strip(): k for k in df.index}
+            for lbl in label_list:
+                key = lbl.lower().strip()
+                if key in idx_lower:
+                    try:
+                        val = df.loc[idx_lower[key]].iloc[0]
+                        if pd.notna(val):
+                            v = safe(float(val), divisor, fx)
+                            if v is not None and (current_val is None or current_val < 0.01):
+                                return v
+                    except Exception: continue
             return current_val
 
-        row["totalAsset"] = force_better(bal_df, BAL_CANDIDATES["totalAsset"], row["totalAsset"], div, total_fx)
-        if row["totalAsset"] is None: row["totalAsset"] = force_better(tick.quarterly_balance_sheet, BAL_CANDIDATES["totalAsset"], row["totalAsset"], div, total_fx)
+        row_2025["totalAsset"] = force_better(bal_df, BAL_CANDIDATES["totalAsset"], row_2025["totalAsset"], div, total_fx)
+        if row_2025["totalAsset"] is None: row_2025["totalAsset"] = force_better(q_bal, BAL_CANDIDATES["totalAsset"], row_2025["totalAsset"], div, total_fx)
 
-        row["totalEquity"] = force_better(bal_df, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
-        if row["totalEquity"] is None: row["totalEquity"] = force_better(tick.quarterly_balance_sheet, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
+        row_2025["totalEquity"] = force_better(bal_df, BAL_CANDIDATES["totalEquity"], row_2025["totalEquity"], div, total_fx)
+        if row_2025["totalEquity"] is None: row_2025["totalEquity"] = force_better(q_bal, BAL_CANDIDATES["totalEquity"], row_2025["totalEquity"], div, total_fx)
 
-        if row["revenue"] is None or row["totalAsset"] is None:
-            q_inc = tick.quarterly_financials
-            q_bal = tick.quarterly_balance_sheet
-            fill_from_annual(q_inc, row, INC_CANDIDATES, INC_SUB)
-            fill_from_annual(q_bal, row, BAL_CANDIDATES, {})
+        # Run corrections
+        inc_cols = list(inc_df.columns)[:1] if inc_df is not None else []
+        apply_corrections(row_2025, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
 
-        # Run universal corrections
-        universal_corrections(row, sym, list(inc_df.columns)[:1] if inc_df is not None else [], q_inc if row["revenue"] is None else None, tick, target_cur, exchange, div, total_fx, ps_fx, dbg)
-
-    except Exception as e:
-        print(f"  [yfinance] {ticker_str}: Exception: {e}", flush=True)
-
-    return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
-
-# =================== QUARTERLY ANNUALISATION (2026) – FISCAL YEAR RANGE ===================
-def fiscal_year_range(sym):
-    m = FISCAL_YEAR_END.get(sym, 12)
-    if m == 12:
-        start = datetime(CURRENT_YEAR, 1, 1)
-        end = datetime(CURRENT_YEAR, 12, 31, 23, 59, 59)
-    else:
-        start = datetime(CURRENT_YEAR - 1, m + 1, 1)
-        end = datetime(CURRENT_YEAR, m, 30)
-    return start, end
-
-def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
-    if sym == "TSM": fin_cur = "TWD"
-    else: fin_cur = financial_currency(exchange)
-    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
-
-    row = {f: None for f in FIELDS}
-    try:
-        tick = yf.Ticker(ticker_str)
-        q_inc = tick.quarterly_financials
-        q_bal = tick.quarterly_balance_sheet
-
+        # ----- 2026: quarterly annualisation -----
         fy_start, fy_end = fiscal_year_range(sym)
-
-        inc_cols = [c for c in (q_inc.columns if q_inc is not None else [])
-                    if fy_start <= c.to_pydatetime() <= fy_end]
-        bal_cols = [c for c in (q_bal.columns if q_bal is not None else [])
-                    if fy_start <= c.to_pydatetime() <= fy_end]
+        q_inc_cols = [c for c in (q_inc.columns if q_inc is not None else [])
+                      if fy_start <= c.to_pydatetime() <= fy_end]
+        q_bal_cols = [c for c in (q_bal.columns if q_bal is not None else [])
+                      if fy_start <= c.to_pydatetime() <= fy_end]
 
         sums = {k: 0.0 for k in ["revenue","costOfRevenue","grossProfit","operatingExpense",
                                  "operatingIncome","interestExpense","incomeTaxExpense",
                                  "netProfit","eps","dps"]}
         quarter_count = 0
-        for col in inc_cols:
+        for col in q_inc_cols:
             series = q_inc[col]
             has_data = False
             for k in sums:
@@ -508,82 +435,54 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 if sums[k] is not None:
                     annual = sums[k] * multiplier
                     if k in ("eps","dps"):
-                        row[k] = safe(annual, 1, ps_fx)
+                        row_2026[k] = safe(annual, 1, ps_fx)
                     else:
-                        row[k] = safe(annual, div, total_fx)
+                        row_2026[k] = safe(annual, div, total_fx)
 
-        if bal_cols:
-            latest_bal_col = bal_cols[-1]
+        if q_bal_cols:
+            latest_bal_col = q_bal_cols[-1]
             bal_series = q_bal[latest_bal_col]
             for k in ["totalAsset","cash","totalDebt","totalEquity"]:
                 val = get_fin_val_from_series(bal_series, BAL_CANDIDATES[k])
-                if val is None:
-                    val = get_fin_val_by_substring(bal_series, [k])
-                if val is not None:
-                    row[k] = safe(val, div, total_fx)
+                if val is None: val = get_fin_val_by_substring(bal_series, [k])
+                if val is not None: row_2026[k] = safe(val, div, total_fx)
 
-        # Always apply corrections – they will fill gaps with info fallbacks
-        universal_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
+        apply_corrections(row_2026, sym, q_inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
 
     except Exception as e:
-        print(f"  [Quarterly] {ticker_str}: Exception: {e}", flush=True)
+        print(f"  [Live] {ticker_str}: Exception: {e}", flush=True)
 
-    return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
-
+    return {LATEST_YEAR: row_2025, CURRENT_YEAR: row_2026}
 
 # ---------- Main fetch router ----------
 def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     target_cur = hint_cur.upper()
-    row = None
-    src = ""
+    src = "yfinance"
 
-    if exchange in ("NYSE", "NASDAQ"):
-        print(f"\n[{sym}] (FMP) {ticker_str}", flush=True)
-        row = fmp_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
-        src = "fmp"
-        if not row or all(v is None for v in row.values()):
-            print(f"  [{sym}] FMP empty, falling back to yfinance", flush=True)
-            row = yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
-            src = "yfinance (fallback)"
-    elif exchange in ("ASX", "IDX"):
-        print(f"\n[{sym}] (yfinance) {ticker_str}", flush=True)
-        row = yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd)
-        src = "yfinance"
-    else:
-        row = {f: None for f in FIELDS}
-        src = "unknown"
+    print(f"\n[{sym}] (yfinance) {ticker_str}", flush=True)
+    yd = fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd)
 
-    if not row or all(v is None for v in row.values()):
-        row = {f: None for f in FIELDS}
-        src += " (empty)"
+    # Clean up zeros
+    for yr_row in yd.values():
+        for bal in ("totalAsset","cash","totalDebt","totalEquity"):
+            if yr_row.get(bal) == 0: yr_row[bal] = None
+        for inc in ("revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome","interestExpense","incomeTaxExpense","netProfit"):
+            if yr_row.get(inc) == 0: yr_row[inc] = None
+        if yr_row.get("dps") == 0: yr_row["dps"] = None
 
-    for bal in ("totalAsset","cash","totalDebt","totalEquity"):
-        if row.get(bal) == 0: row[bal] = None
-    for inc in ("revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome","interestExpense","incomeTaxExpense","netProfit"):
-        if row.get(inc) == 0: row[inc] = None
-    if row.get("dps") == 0: row["dps"] = None
-    if sym in ("AMZN",) and row.get("dps") == 0: row["dps"] = None
-
+    # Sanity checks on DPS/EPS using PRELOADED
     pre_dps = PRELOADED.get(sym, {}).get("dps", [])
     valid_dps = [v for v in pre_dps if v is not None and v > 0]
-    if valid_dps and row.get("dps") is not None and row["dps"] > 5 * max(valid_dps): row["dps"] = None
+    for yr_row in yd.values():
+        if valid_dps and yr_row.get("dps") is not None and yr_row["dps"] > 5 * max(valid_dps):
+            yr_row["dps"] = None
     pre_eps = PRELOADED.get(sym, {}).get("eps", [])
     valid_eps = [v for v in pre_eps if v is not None and v > 0]
-    if valid_eps and row.get("eps") is not None and row["eps"] > 5 * max(valid_eps): row["eps"] = None
+    for yr_row in yd.values():
+        if valid_eps and yr_row.get("eps") is not None and yr_row["eps"] > 5 * max(valid_eps):
+            yr_row["eps"] = None
 
-    row_2026 = {f: None for f in FIELDS}
-    yd = {LATEST_YEAR: row, CURRENT_YEAR: row_2026}
-
-    try:
-        quarterly_row = fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd)
-        if quarterly_row and any(v is not None for v in quarterly_row.values()):
-            yd[CURRENT_YEAR] = quarterly_row
-            ann = {"method": "quarterly_annualised", "label": src + " (Q annualised)", "quarters": 0}
-        else:
-            ann = {"method": "annual", "label": src, "quarters": 0}
-    except Exception:
-        ann = {"method": "annual", "label": src, "quarters": 0}
-
+    ann = {"method": "annual", "label": src, "quarters": 0}
     return yd, ann, src
 
 def build_arrays(yd, sym, rates):
