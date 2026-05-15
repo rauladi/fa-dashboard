@@ -250,6 +250,145 @@ BAL_CANDIDATES = {
     ]
 }
 
+# Universal correction block – applied both to annual and quarterly rows
+def universal_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False):
+    info = tick.info or {}
+
+    # --- Gross Profit fallback ---
+    if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
+        if row.get("revenue") is not None and row.get("costOfRevenue") is not None:
+            computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
+            if computed_gp > 0: row["grossProfit"] = round(computed_gp, 4)
+        if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
+            if inc_cols:
+                latest_series = q_inc[inc_cols[-1]]
+                nii = get_fin_val_from_series(latest_series, INC_CANDIDATES["grossProfit"])
+                if nii is not None: row["grossProfit"] = safe(nii, div, total_fx)
+        if (row.get("grossProfit") is None or row["grossProfit"] == 0.0) and \
+           row.get("netProfit") is not None and row.get("operatingExpense") is not None and \
+           row.get("incomeTaxExpense") is not None:
+            int_exp = row.get("interestExpense") if row.get("interestExpense") is not None else 0.0
+            reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
+            if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
+        # Final fallback – revenue (for banks) or revenue‑minus‑cost if available
+        if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
+            if row.get("revenue") is not None and row["revenue"] > 0:
+                row["grossProfit"] = row["revenue"]
+                if dbg: print(f"  [DEBUG {sym}] Universal GP fallback: using revenue = {row['revenue']}", flush=True)
+
+    # --- Small‑value cleanup ---
+    for field in ["revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome",
+                  "interestExpense","incomeTaxExpense","netProfit","totalAsset","cash",
+                  "totalDebt","totalEquity"]:
+        if row.get(field) is not None and abs(row[field]) < 0.01: row[field] = None
+    if row.get("eps") is not None and abs(row.get("eps")) < 0.001: row["eps"] = None
+    if row.get("dps") is not None and abs(row.get("dps")) < 0.001: row["dps"] = None
+
+    # --- Currency detection for info fallbacks ---
+    if sym == "TSM": info_is_target = False
+    else:
+        info_revenue = info.get("totalRevenue") or info.get("revenue")
+        info_is_target = (info_revenue is not None and info_revenue > 1e8 and (target_cur == "USD" or target_cur == "AUD"))
+
+    if info_is_target: info_div, info_fx = 1e9, 1.0
+    else: info_div, info_fx = div, total_fx
+
+    if exchange == "IDX" and target_cur == "USD": per_share_fx = ps_fx
+    elif info_is_target: per_share_fx = 1.0
+    else: per_share_fx = ps_fx
+
+    def fill_from_info(*candidates):
+        for c in candidates:
+            v = info.get(c, None)
+            if v is not None: return safe(v, info_div, info_fx)
+        return None
+
+    if row.get("revenue") is None: row["revenue"] = fill_from_info("totalRevenue","revenue")
+    if row.get("costOfRevenue") is None: row["costOfRevenue"] = fill_from_info("costOfRevenue")
+    if row.get("grossProfit") is None:
+        gm = info.get("grossMargins")
+        if gm is not None and row.get("revenue") is not None:
+            row["grossProfit"] = safe(float(gm) * float(row["revenue"]), 1, 1.0)
+        if row.get("grossProfit") is None: row["grossProfit"] = fill_from_info("grossProfit")
+    if row.get("operatingExpense") is None: row["operatingExpense"] = fill_from_info("operatingExpenses","totalOperatingExpenses")
+    if row.get("operatingIncome") is None: row["operatingIncome"] = fill_from_info("operatingIncome","ebit")
+    if row.get("interestExpense") is None: row["interestExpense"] = fill_from_info("interestExpense")
+    if row.get("incomeTaxExpense") is None: row["incomeTaxExpense"] = fill_from_info("incomeTaxExpense")
+    if row.get("netProfit") is None: row["netProfit"] = fill_from_info("netIncomeToCommon","netIncome")
+    if row.get("eps") is None:
+        row["eps"] = safe(info.get("trailingEps") or info.get("epsTrailingTwelveMonths"), 1, per_share_fx)
+    if row.get("dps") is None:
+        div_rate = info.get("dividendRate")
+        if div_rate is not None: row["dps"] = safe(div_rate, 1, per_share_fx)
+        else:
+            try:
+                dividends = tick.dividends
+                if not dividends.empty:
+                    one_year_ago = dividends.index.max() - timedelta(days=365)
+                    trailing = dividends[dividends.index > one_year_ago]
+                    if not trailing.empty: row["dps"] = safe(float(trailing.sum()), 1, per_share_fx)
+            except Exception: pass
+    if row.get("totalAsset") is None: row["totalAsset"] = fill_from_info("totalAssets","totalAsset")
+    if row.get("cash") is None: row["cash"] = fill_from_info("totalCash","cash")
+    if row.get("totalDebt") is None: row["totalDebt"] = fill_from_info("totalDebt")
+    if row.get("totalEquity") is None:
+        book_val = info.get("bookValue")
+        if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
+        if row.get("totalEquity") is None:
+            # Substring search in info keys
+            for k, v in info.items():
+                if any(sub in k.lower() for sub in ["equity","stockholder","book value","common equity"]):
+                    if v is not None:
+                        row["totalEquity"] = safe(v, info_div, info_fx)
+                        if dbg: print(f"  [DEBUG {sym}] Found totalEquity via info key '{k}' = {row['totalEquity']}", flush=True)
+                        break
+        if row.get("totalEquity") is None: row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
+
+    # Reconstructions
+    if row.get("totalAsset") is None and row.get("totalDebt") is not None and row.get("totalEquity") is not None:
+        row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
+    if row.get("totalEquity") is None and row.get("totalAsset") is not None and row.get("totalDebt") is not None:
+        eq = float(row["totalAsset"]) - float(row["totalDebt"])
+        if eq > 0: row["totalEquity"] = round(eq, 4)
+
+    # Specific stock fixes
+    if sym in {"BBRI", "BTPS"} and row.get("totalAsset") is not None and row.get("totalEquity") is not None:
+        new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
+        if new_debt > 0: row["totalDebt"] = new_debt
+
+    if sym == "DMAS" and (row.get("totalDebt") is None or row.get("totalDebt") == 0.0):
+        if row.get("totalAsset") is not None and row.get("totalEquity") is not None:
+            computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
+            if computed_debt > 0: row["totalDebt"] = computed_debt
+
+    if sym in {"ADRO", "ITMG", "POWR"} and row.get("revenue") is not None:
+        pre = PRELOADED.get(sym, {})
+        rev_hist = (pre.get("revenue") or [])[:4]
+        eq_hist  = (pre.get("totalEquity") or [])[:4]
+        ta_hist  = (pre.get("totalAsset") or [])[:4]
+
+        if (row.get("totalEquity") is None or row.get("totalEquity") == 0.0) and \
+           all(isOK(r) and r > 0 for r in rev_hist) and \
+           all(isOK(e) and e > 0 for e in eq_hist):
+            ratio_vals = [e / r for r, e in zip(rev_hist, eq_hist) if r > 0 and e > 0]
+            if ratio_vals:
+                avg_eq_rev = sum(ratio_vals) / len(ratio_vals)
+                row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
+                if dbg: print(f"  [DEBUG {sym}] Estimated totalEquity from historical ratio = {row['totalEquity']}", flush=True)
+
+        if (row.get("totalAsset") is None or row.get("totalAsset") < 0.7 * float(row["revenue"])) and \
+           all(isOK(r) and r > 0 for r in rev_hist) and \
+           all(isOK(a) and a > 0 for a in ta_hist):
+            ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r > 0 and a > 0]
+            if ratio_vals:
+                avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
+                row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
+                if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset from historical ratio = {row['totalAsset']}", flush=True)
+
+    if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
+    if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
+
+# ---------- Annual fetcher ----------
 def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     if sym == "TSM": fin_cur = "TWD"
     else: fin_cur = financial_currency(exchange)
@@ -305,142 +444,19 @@ def yf_fetch_2025(sym, ticker_str, target_cur, exchange, usd_aud, usd_idr, twd_u
         row["totalEquity"] = force_better(bal_df, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
         if row["totalEquity"] is None: row["totalEquity"] = force_better(tick.quarterly_balance_sheet, BAL_CANDIDATES["totalEquity"], row["totalEquity"], div, total_fx)
 
-        # Universal gross profit fallback
-        if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
-            if row.get("revenue") is not None and row.get("costOfRevenue") is not None:
-                computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
-                if computed_gp > 0:
-                    row["grossProfit"] = round(computed_gp, 4)
-            if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
-                # Try Net Interest Income (for banks)
-                nii = extract_inc_item(inc_df, INC_CANDIDATES["grossProfit"], div, total_fx)
-                if nii is None and tick.quarterly_financials is not None: nii = extract_inc_item(tick.quarterly_financials, INC_CANDIDATES["grossProfit"], div, total_fx)
-                if nii is not None: row["grossProfit"] = nii
-            if (row.get("grossProfit") is None or row["grossProfit"] == 0.0) and row.get("netProfit") is not None and row.get("operatingExpense") is not None and row.get("incomeTaxExpense") is not None:
-                int_exp = row.get("interestExpense") if row.get("interestExpense") is not None else 0.0
-                reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
-                if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
-            # Last resort: use revenue
-            if (row.get("grossProfit") is None or row["grossProfit"] == 0.0) and row.get("revenue") is not None and row["revenue"] > 0:
-                row["grossProfit"] = row["revenue"]
-                if dbg: print(f"  [DEBUG {sym}] Universal GP fallback: using revenue = {row['revenue']}", flush=True)
-
         if row["revenue"] is None or row["totalAsset"] is None:
             q_inc = tick.quarterly_financials
             q_bal = tick.quarterly_balance_sheet
             fill_from_annual(q_inc, row, INC_CANDIDATES, INC_SUB)
             fill_from_annual(q_bal, row, BAL_CANDIDATES, {})
 
-        SMALL_THRESHOLD = 0.01
-        for field in ["revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome","interestExpense","incomeTaxExpense","netProfit","totalAsset","cash","totalDebt","totalEquity"]:
-            if row[field] is not None and row[field] < SMALL_THRESHOLD: row[field] = None
-        if row["eps"] is not None and row["eps"] == 0.0: row["eps"] = None
-        if row["dps"] is not None and row["dps"] == 0.0: row["dps"] = None
-
-        # TSM always treat as TWD
-        if sym == "TSM": info_is_target = False
-        else:
-            info_revenue = info.get("totalRevenue") or info.get("revenue")
-            info_is_target = (info_revenue is not None and info_revenue > 1e8 and (target_cur == "USD" or target_cur == "AUD"))
-
-        if info_is_target: info_div, info_fx = 1e9, 1.0
-        else: info_div, info_fx = div, total_fx
-
-        if exchange == "IDX" and target_cur == "USD": per_share_fx = ps_fx
-        elif info_is_target: per_share_fx = 1.0
-        else: per_share_fx = ps_fx
-
-        def fill_from_info(*candidates):
-            for c in candidates:
-                v = info.get(c, None)
-                if v is not None: return safe(v, info_div, info_fx)
-            return None
-
-        if row["revenue"] is None: row["revenue"] = fill_from_info("totalRevenue","revenue")
-        if row["costOfRevenue"] is None: row["costOfRevenue"] = fill_from_info("costOfRevenue")
-        if row["grossProfit"] is None:
-            gm = info.get("grossMargins")
-            if gm is not None and row["revenue"] is not None: row["grossProfit"] = safe(float(gm) * float(row["revenue"]), 1, 1.0)
-            if row["grossProfit"] is None: row["grossProfit"] = fill_from_info("grossProfit")
-        if row["operatingExpense"] is None: row["operatingExpense"] = fill_from_info("operatingExpenses","totalOperatingExpenses")
-        if row["operatingIncome"] is None: row["operatingIncome"] = fill_from_info("operatingIncome","ebit")
-        if row["interestExpense"] is None: row["interestExpense"] = fill_from_info("interestExpense")
-        if row["incomeTaxExpense"] is None: row["incomeTaxExpense"] = fill_from_info("incomeTaxExpense")
-        if row["netProfit"] is None: row["netProfit"] = fill_from_info("netIncomeToCommon","netIncome")
-        if row["eps"] is None: row["eps"] = safe(info.get("trailingEps") or info.get("epsTrailingTwelveMonths"), 1, per_share_fx)
-        if row["dps"] is None:
-            div_rate = info.get("dividendRate")
-            if div_rate is not None: row["dps"] = safe(div_rate, 1, per_share_fx)
-            else:
-                try:
-                    dividends = tick.dividends
-                    if not dividends.empty:
-                        one_year_ago = dividends.index.max() - timedelta(days=365)
-                        trailing = dividends[dividends.index > one_year_ago]
-                        if not trailing.empty: row["dps"] = safe(float(trailing.sum()), 1, per_share_fx)
-                except Exception: pass
-        if row["totalAsset"] is None: row["totalAsset"] = fill_from_info("totalAssets","totalAsset")
-        if row["cash"] is None: row["cash"] = fill_from_info("totalCash","cash")
-        if row["totalDebt"] is None: row["totalDebt"] = fill_from_info("totalDebt")
-        if row["totalEquity"] is None:
-            # Broader search in info
-            book_val = info.get("bookValue")
-            if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
-            if row["totalEquity"] is None:
-                # try substring match on all info keys
-                for k, v in info.items():
-                    if any(sub in k.lower() for sub in ["equity","stockholder","book value","common equity"]):
-                        if v is not None:
-                            row["totalEquity"] = safe(v, info_div, info_fx)
-                            if dbg: print(f"  [DEBUG {sym}] Found totalEquity via info key '{k}' = {row['totalEquity']}", flush=True)
-                            break
-            if row["totalEquity"] is None:
-                row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
-
-        if row["totalAsset"] is None and row["totalDebt"] is not None and row["totalEquity"] is not None:
-            row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
-        if row["totalEquity"] is None and row["totalAsset"] is not None and row["totalDebt"] is not None:
-            eq = float(row["totalAsset"]) - float(row["totalDebt"])
-            if eq > 0: row["totalEquity"] = round(eq, 4)
-
-        if sym in {"BBRI", "BTPS"} and row["totalAsset"] is not None and row["totalEquity"] is not None:
-            new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
-            if new_debt > 0: row["totalDebt"] = new_debt
-
-        if sym == "DMAS" and (row["totalDebt"] is None or row["totalDebt"] == 0.0):
-            if row["totalAsset"] is not None and row["totalEquity"] is not None:
-                computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
-                if computed_debt > 0: row["totalDebt"] = computed_debt
-
-        if sym in {"ADRO", "ITMG", "POWR"} and row["revenue"] is not None:
-            pre = PRELOADED.get(sym, {})
-            rev_hist = (pre.get("revenue") or [])[:4]
-            eq_hist  = (pre.get("totalEquity") or [])[:4]
-            ta_hist  = (pre.get("totalAsset") or [])[:4]
-
-            if (row["totalEquity"] is None or row["totalEquity"] == 0.0) and \
-               all(isOK(r) and r > 0 for r in rev_hist) and \
-               all(isOK(e) and e > 0 for e in eq_hist):
-                ratio_vals = [e / r for r, e in zip(rev_hist, eq_hist) if r > 0 and e > 0]
-                if ratio_vals:
-                    avg_eq_rev = sum(ratio_vals) / len(ratio_vals)
-                    row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
-                    if dbg: print(f"  [DEBUG {sym}] Estimated totalEquity from historical ratio = {row['totalEquity']}", flush=True)
-
-            if (row["totalAsset"] is None or row["totalAsset"] < 0.7 * float(row["revenue"])) and \
-               all(isOK(r) and r > 0 for r in rev_hist) and \
-               all(isOK(a) and a > 0 for a in ta_hist):
-                ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r > 0 and a > 0]
-                if ratio_vals:
-                    avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
-                    row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
-                    if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset from historical ratio = {row['totalAsset']}", flush=True)
+        # Run universal corrections
+        universal_corrections(row, sym, list(inc_df.columns)[:1] if inc_df is not None else [], q_inc if row["revenue"] is None else None, tick, target_cur, exchange, div, total_fx, ps_fx, dbg)
 
     except Exception as e:
         print(f"  [yfinance] {ticker_str}: Exception: {e}", flush=True)
 
     return row if any(v is not None for v in row.values()) else {f: None for f in FIELDS}
-
 
 # =================== QUARTERLY ANNUALISATION (2026) – FISCAL YEAR RANGE ===================
 def fiscal_year_range(sym):
@@ -452,139 +468,6 @@ def fiscal_year_range(sym):
         start = datetime(CURRENT_YEAR - 1, m + 1, 1)
         end = datetime(CURRENT_YEAR, m, 30)
     return start, end
-
-def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False):
-    info = tick.info or {}
-
-    # Universal gross profit fallback (same logic as annual)
-    if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
-        if row.get("revenue") is not None and row.get("costOfRevenue") is not None:
-            computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
-            if computed_gp > 0: row["grossProfit"] = round(computed_gp, 4)
-        if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
-            if inc_cols:
-                latest_series = q_inc[inc_cols[-1]]
-                nii = get_fin_val_from_series(latest_series, INC_CANDIDATES["grossProfit"])
-                if nii is not None: row["grossProfit"] = safe(nii, div, total_fx)
-            if (row.get("grossProfit") is None or row["grossProfit"] == 0.0) and \
-               row.get("netProfit") is not None and row.get("operatingExpense") is not None and \
-               row.get("incomeTaxExpense") is not None:
-                int_exp = row.get("interestExpense") if row.get("interestExpense") is not None else 0.0
-                reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
-                if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
-        if (row.get("grossProfit") is None or row["grossProfit"] == 0.0) and row.get("revenue") is not None and row["revenue"] > 0:
-            row["grossProfit"] = row["revenue"]
-            if dbg: print(f"  [DEBUG {sym}] Universal GP fallback: using revenue = {row['revenue']}", flush=True)
-
-    SMALL_THRESHOLD = 0.01
-    for field in ["revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome",
-                  "interestExpense","incomeTaxExpense","netProfit","totalAsset","cash",
-                  "totalDebt","totalEquity"]:
-        if row.get(field) is not None and abs(row[field]) < SMALL_THRESHOLD: row[field] = None
-    if row.get("eps") is not None and abs(row.get("eps")) < 0.001: row["eps"] = None
-    if row.get("dps") is not None and abs(row.get("dps")) < 0.001: row["dps"] = None
-
-    # TSM always treat as TWD
-    if sym == "TSM": info_is_target = False
-    else:
-        info_revenue = info.get("totalRevenue") or info.get("revenue")
-        info_is_target = (info_revenue is not None and info_revenue > 1e8 and (target_cur == "USD" or target_cur == "AUD"))
-
-    if info_is_target: info_div, info_fx = 1e9, 1.0
-    else: info_div, info_fx = div, total_fx
-
-    if exchange == "IDX" and target_cur == "USD": per_share_fx = ps_fx
-    elif info_is_target: per_share_fx = 1.0
-    else: per_share_fx = ps_fx
-
-    def fill_from_info(*candidates):
-        for c in candidates:
-            v = info.get(c, None)
-            if v is not None: return safe(v, info_div, info_fx)
-        return None
-
-    if row.get("revenue") is None: row["revenue"] = fill_from_info("totalRevenue","revenue")
-    if row.get("costOfRevenue") is None: row["costOfRevenue"] = fill_from_info("costOfRevenue")
-    if row.get("grossProfit") is None:
-        gm = info.get("grossMargins")
-        if gm is not None and row.get("revenue") is not None:
-            row["grossProfit"] = safe(float(gm) * float(row["revenue"]), 1, 1.0)
-        if row.get("grossProfit") is None: row["grossProfit"] = fill_from_info("grossProfit")
-    if row.get("operatingExpense") is None: row["operatingExpense"] = fill_from_info("operatingExpenses","totalOperatingExpenses")
-    if row.get("operatingIncome") is None: row["operatingIncome"] = fill_from_info("operatingIncome","ebit")
-    if row.get("interestExpense") is None: row["interestExpense"] = fill_from_info("interestExpense")
-    if row.get("incomeTaxExpense") is None: row["incomeTaxExpense"] = fill_from_info("incomeTaxExpense")
-    if row.get("netProfit") is None: row["netProfit"] = fill_from_info("netIncomeToCommon","netIncome")
-    if row.get("eps") is None:
-        row["eps"] = safe(info.get("trailingEps") or info.get("epsTrailingTwelveMonths"), 1, per_share_fx)
-    if row.get("dps") is None:
-        div_rate = info.get("dividendRate")
-        if div_rate is not None: row["dps"] = safe(div_rate, 1, per_share_fx)
-        else:
-            try:
-                dividends = tick.dividends
-                if not dividends.empty:
-                    one_year_ago = dividends.index.max() - timedelta(days=365)
-                    trailing = dividends[dividends.index > one_year_ago]
-                    if not trailing.empty: row["dps"] = safe(float(trailing.sum()), 1, per_share_fx)
-            except Exception: pass
-    if row.get("totalAsset") is None: row["totalAsset"] = fill_from_info("totalAssets","totalAsset")
-    if row.get("cash") is None: row["cash"] = fill_from_info("totalCash","cash")
-    if row.get("totalDebt") is None: row["totalDebt"] = fill_from_info("totalDebt")
-    if row.get("totalEquity") is None:
-        book_val = info.get("bookValue")
-        if book_val is not None: row["totalEquity"] = safe(book_val, info_div, info_fx)
-        if row.get("totalEquity") is None:
-            for k, v in info.items():
-                if any(sub in k.lower() for sub in ["equity","stockholder","book value","common equity"]):
-                    if v is not None:
-                        row["totalEquity"] = safe(v, info_div, info_fx)
-                        if dbg: print(f"  [DEBUG {sym}] Found totalEquity via info key '{k}' = {row['totalEquity']}", flush=True)
-                        break
-        if row.get("totalEquity") is None: row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
-
-    if row.get("totalAsset") is None and row.get("totalDebt") is not None and row.get("totalEquity") is not None:
-        row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
-    if row.get("totalEquity") is None and row.get("totalAsset") is not None and row.get("totalDebt") is not None:
-        eq = float(row["totalAsset"]) - float(row["totalDebt"])
-        if eq > 0: row["totalEquity"] = round(eq, 4)
-
-    if sym in {"BBRI", "BTPS"} and row.get("totalAsset") is not None and row.get("totalEquity") is not None:
-        new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
-        if new_debt > 0: row["totalDebt"] = new_debt
-
-    if sym == "DMAS" and (row.get("totalDebt") is None or row.get("totalDebt") == 0.0):
-        if row.get("totalAsset") is not None and row.get("totalEquity") is not None:
-            computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
-            if computed_debt > 0: row["totalDebt"] = computed_debt
-
-    if sym in {"ADRO", "ITMG", "POWR"} and row.get("revenue") is not None:
-        pre = PRELOADED.get(sym, {})
-        rev_hist = (pre.get("revenue") or [])[:4]
-        eq_hist  = (pre.get("totalEquity") or [])[:4]
-        ta_hist  = (pre.get("totalAsset") or [])[:4]
-
-        if (row.get("totalEquity") is None or row.get("totalEquity") == 0.0) and \
-           all(isOK(r) and r > 0 for r in rev_hist) and \
-           all(isOK(e) and e > 0 for e in eq_hist):
-            ratio_vals = [e / r for r, e in zip(rev_hist, eq_hist) if r > 0 and e > 0]
-            if ratio_vals:
-                avg_eq_rev = sum(ratio_vals) / len(ratio_vals)
-                row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
-                if dbg: print(f"  [DEBUG {sym}] Estimated totalEquity from historical ratio = {row['totalEquity']}", flush=True)
-
-        if (row.get("totalAsset") is None or row.get("totalAsset") < 0.7 * float(row["revenue"])) and \
-           all(isOK(r) and r > 0 for r in rev_hist) and \
-           all(isOK(a) and a > 0 for a in ta_hist):
-            ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r > 0 and a > 0]
-            if ratio_vals:
-                avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
-                row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
-                if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset from historical ratio = {row['totalAsset']}", flush=True)
-
-    if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
-    if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
-
 
 def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     if sym == "TSM": fin_cur = "TWD"
@@ -639,10 +522,8 @@ def fetch_quarterly_annualized(ticker_str, sym, target_cur, exchange, usd_aud, u
                 if val is not None:
                     row[k] = safe(val, div, total_fx)
 
-        if any(v is not None for v in row.values()):
-            apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
-        else:
-            apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
+        # Always apply corrections – they will fill gaps with info fallbacks
+        universal_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
 
     except Exception as e:
         print(f"  [Quarterly] {ticker_str}: Exception: {e}", flush=True)
