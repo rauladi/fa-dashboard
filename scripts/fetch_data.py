@@ -134,6 +134,39 @@ def financial_currency(exchange):
     return "USD"
 
 # =============================================================================
+#  NEWS FETCHER (free via yfinance)
+# =============================================================================
+def fetch_news(sym, ticker_str, max_items=5):
+    """Return list of recent news articles (up to max_items) using yfinance."""
+    try:
+        tick = yf.Ticker(ticker_str)
+        news_list = tick.news
+        if not news_list:
+            return []
+        articles = []
+        for item in news_list[:max_items]:
+            # yfinance news structure: title, link, publisher, providerPublishTime
+            title = item.get('title', '')
+            link = item.get('link', '')
+            publisher = item.get('publisher', '')
+            # Convert timestamp to ISO format
+            pub_ts = item.get('providerPublishTime')
+            if pub_ts:
+                pub_date = datetime.fromtimestamp(pub_ts, tz=timezone.utc).isoformat()
+            else:
+                pub_date = None
+            articles.append({
+                "title": title,
+                "link": link,
+                "publisher": publisher,
+                "published": pub_date
+            })
+        return articles
+    except Exception as e:
+        print(f"  [News] {sym}: {e}", flush=True)
+        return []
+
+# =============================================================================
 #  LIVE FETCHER – returns both 2025 (annual) and 2026 (quarterly annualised)
 # =============================================================================
 
@@ -1589,8 +1622,10 @@ def generate_static_profiles(out):
         profile_text = build_profile_with_insights(sym, m, exchange, currency)
         out["stocks"][sym]["profile"] = profile_text
         out["stocks"][sym]["profileDate"] = NOW.isoformat()
-        out["stocks"][sym]["news"] = "For latest news, please refer to company announcements and recent filings."
-        out["stocks"][sym]["newsDate"] = NOW.isoformat()
+        # News is already fetched and added earlier; we skip the static placeholder.
+        # Ensure there is a newsDate field.
+        if "newsDate" not in out["stocks"][sym]:
+            out["stocks"][sym]["newsDate"] = NOW.isoformat()
 
 # ---------- main ----------
 def main():
@@ -1624,11 +1659,16 @@ def main():
             src = "fallback"
             cur_ann = {"method":"none","label":None}
 
+        # Fetch news
+        news_items = fetch_news(sym, ticker_str, max_items=5)
+
         out["stocks"][sym] = {
             "name": name, "exchange": exchange, "currency": currency,
             "ticker": ticker_str, "source": src, "fyEndMonth": FISCAL_YEAR_END.get(sym, 12)
         }
         out["stocks"][sym].update(arrs)
+        out["stocks"][sym]["news"] = news_items
+        out["stocks"][sym]["newsDate"] = NOW.isoformat()
         out["annualisation"][sym] = cur_ann
 
     generate_static_profiles(out)
