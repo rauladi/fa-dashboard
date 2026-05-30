@@ -247,12 +247,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .pur { color: var(--accent-purple); }
 .blu { color: var(--accent-blue); }
 .src-bar { background: rgba(8, 16, 24, 0.7); backdrop-filter: blur(8px); border-radius: 20px; padding: 12px 20px; margin-bottom: 20px; border: 1px solid rgba(0,228,255,0.2); }
-.news-card { background: var(--bg-surface-1); border-radius: 20px; padding: 16px; margin-bottom: 12px; border-left: 3px solid var(--accent-cyan); transition: 0.2s; }
-.news-card:hover { background: rgba(0,228,255,0.05); transform: translateX(4px); }
-.news-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
-.news-title a { color: var(--text-primary); text-decoration: none; }
-.news-title a:hover { color: var(--accent-cyan); text-decoration: underline; }
-.news-meta { font-size: 10px; color: var(--text-muted); display: flex; gap: 12px; flex-wrap: wrap; }
 #debugPanel {
   position: fixed; bottom: 10px; right: 10px;
   background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
@@ -285,7 +279,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
   <button class="t-btn" id="t-chart" onclick="setTab('chart')">📈 Chart</button>
   <button class="t-btn" id="t-rankings" onclick="setTab('rankings')">🏆 Rankings</button>
   <button class="t-btn" id="t-insights" onclick="setTab('insights')">💡 Insights</button>
-  <button class="t-btn" id="t-news" onclick="setTab('news')">📰 News</button>
 </div>
 <div id="cont"></div>
 <div id="addModal" class="modal-bg" style="display:none"><div class="modal"><div class="modal-h"><h3>＋ Add New Stock</h3><button class="modal-x" onclick="hideAdd()">×</button></div><div class="modal-b" id="addBody"></div></div></div>
@@ -293,7 +286,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 <div id="debugPanel"></div>
 
 <script>
-// ======================== FULL SCRIPT WITH NEWS TAB ========================
+// ======================== FULL SCRIPT WITH FIXED 2021 DATA MERGE ========================
 const CURRENT_YEAR = new Date().getFullYear();
 const LATEST_YEAR = CURRENT_YEAR - 1;
 const YEARS = Array.from({length:5}, (_,i) => LATEST_YEAR - 4 + i).concat([CURRENT_YEAR]);
@@ -542,7 +535,7 @@ function tabData(sym,st){
     const cg=cagr(m.Y.map(y=>y[r.k]));
     return `<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="background:rgba(0,196,224,.04)">${N2(a,2)}</td><td class="tc num ${!isOK(cg)?'':cg>=0?'pos':'neg'}" style="background:rgba(0,217,126,.03)">${isOK(cg)?N2(cg,1)+'%':'N/A'}</td></tr>`;
   }).join('');
-  return `${srcBar(sym,st)}<div class="sec"><div class="tw"><td><thead><tr><th style="min-width:150px">Metric (${st.currency})</th>${yH}<th class="tc" style="color:var(--accent-cyan);min-width:75px">Avg</th><th class="tc" style="color:var(--accent-green);min-width:70px">CAGR</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  return `${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead><tr><th style="min-width:150px">Metric (${st.currency})</th>${yH}<th class="tc" style="color:var(--accent-cyan);min-width:75px">Avg</th><th class="tc" style="color:var(--accent-green);min-width:70px">CAGR</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 function tabRatios(sym, st){
   const m=calcM(sym);
@@ -738,7 +731,7 @@ function showManual(sym){
     const cells=YEARS.map((_,j)=>`<td style="padding:2px 2px"><input type="number" value="${isOK(MA.vals[r.k][j])?MA.vals[r.k][j]:''}" oninput="MA.vals['${r.k}'][${j}]=this.value" style="width:58px;background:var(--bg-deep);border:1px solid var(--border-light);border-radius:8px;padding:3px 5px;font-size:11px;color:var(--text-primary);text-align:center"/></td>`).join('');
     return `<tr class="${i%2?'ev':''}"><td class="lbl" style="padding:5px 10px;font-size:11px">${r.l}</td>${cells}</tr>`;
   }).join('');
-  document.getElementById('addBody').innerHTML=`<p style="font-size:12px;color:var(--text-muted);margin-bottom:12px"><strong style="color:var(--text-primary)">${sym} — ${st.name}</strong> · ${st.exchange} · ${st.currency}<br>Enter data for ${YEARS[0]}–${YEARS[YEARS.length-1]}. Leave blank for unavailable years.</p><div class="tw"><td><thead><tr><th style="min-width:150px">Metric</th>${yH}</tr></thead><tbody>${rows}</tbody></table></div><div id="aErr" class="err" style="display:none"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-ghost" onclick="hideAdd()">Cancel</button><button class="btn btn-cyan" onclick="submitManualData()">✓ Save Data</button></div>`;
+  document.getElementById('addBody').innerHTML=`<p style="font-size:12px;color:var(--text-muted);margin-bottom:12px"><strong style="color:var(--text-primary)">${sym} — ${st.name}</strong> · ${st.exchange} · ${st.currency}<br>Enter data for ${YEARS[0]}–${YEARS[YEARS.length-1]}. Leave blank for unavailable years.</p><div class="tw"><table><thead><tr><th style="min-width:150px">Metric</th>${yH}</tr></thead><tbody>${rows}</tbody></table></div><div id="aErr" class="err" style="display:none"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-ghost" onclick="hideAdd()">Cancel</button><button class="btn btn-cyan" onclick="submitManualData()">✓ Save Data</button></div>`;
   document.getElementById('addModal').style.display='flex';
 }
 function submitManualData(){
@@ -785,24 +778,24 @@ function renderSBar(){
     return `<button class="s-btn${S.sel===k?' on':''}" onclick="selStock('${k}')">${dot}${k}<span class="xbadge ${bc}">${ex}</span></button>`;
   }).join('');
 }
-function renderTabBtns(){['data','ratios','chart','rankings','insights','news'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
+function renderTabBtns(){['data','ratios','chart','rankings','insights'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
 function renderMain(){
-  if(S.tab==='rankings'){document.getElementById('cont').innerHTML=tabRankings();return;}
-  if(S.tab==='insights'){const st=S.stocks[S.sel];document.getElementById('cont').innerHTML=tabInsights(S.sel,st);return;}
-  if(S.tab==='news'){const st=S.stocks[S.sel];document.getElementById('cont').innerHTML=tabNews(S.sel,st);return;}
+  const cont=document.getElementById('cont');
+  if(S.tab==='rankings'){cont.innerHTML=tabRankings();return;}
+  if(S.tab==='insights'){const st=S.stocks[S.sel];cont.innerHTML=tabInsights(S.sel,st);return;}
   const st=S.stocks[S.sel];
   const stat=S.status[S.sel]||'idle';
   if(stat==='loading'){
-    document.getElementById('cont').innerHTML=`<div class="state-box"><div class="spinner"></div><div class="state-title">Refreshing ${S.sel} from Yahoo Finance…</div><div class="state-sub">Attempting live refresh for <em>${st.name}</em><br>Ticker: <code style="background:rgba(0,0,0,.3);padding:1px 7px;border-radius:4px">${yahooTicker(S.sel,st.exchange||'')}</code><br>Built-in data remains active if refresh fails.</div><span class="data-badge db-ld">⏳ Trying Yahoo Finance…</span></div>`;
+    cont.innerHTML=`<div class="state-box"><div class="spinner"></div><div class="state-title">Refreshing ${S.sel} from Yahoo Finance…</div><div class="state-sub">Attempting live refresh for <em>${st.name}</em><br>Ticker: <code style="background:rgba(0,0,0,.3);padding:1px 7px;border-radius:4px">${yahooTicker(S.sel,st.exchange||'')}</code><br>Built-in data remains active if refresh fails.</div><span class="data-badge db-ld">⏳ Trying Yahoo Finance…</span></div>`;
     return;
   }
   if(!S.data[S.sel]){
-    document.getElementById('cont').innerHTML=`<div class="state-box"><div style="font-size:36px;margin-bottom:12px">📋</div><div class="state-title">No data for ${S.sel}</div><div class="state-sub" style="max-width:500px;margin:0 auto 16px">${!!S.custom[S.sel]?`<strong>${st.name}</strong> was added but data hasn't been fetched yet.<br><br>To fetch automatically:<br>1. Make sure <code style="background:rgba(0,0,0,.2);padding:1px 6px;border-radius:3px">${S.sel}</code> is in your <strong>stocks_config.json</strong> on GitHub<br>2. Go to <strong>Actions → Refresh Financial Data → Run workflow</strong><br>3. Refresh this page after the workflow completes (~1 min)`: `This stock has no data yet.`}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-cyan" onclick="showManual('${S.sel}')">✏ Enter Data Manually</button>${!!S.custom[S.sel]?`<button class="btn btn-red btn-sm" onclick="delStock('${S.sel}')">🗑 Remove ${S.sel}</button>`:''}</div>${!!S.custom[S.sel]?`<div style="margin-top:12px"><a href="https://github.com/rauladi/fa-dashboard/actions" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🚀 Open GitHub Actions</a></div>`:''}</div>`;
+    cont.innerHTML=`<div class="state-box"><div style="font-size:36px;margin-bottom:12px">📋</div><div class="state-title">No data for ${S.sel}</div><div class="state-sub" style="max-width:500px;margin:0 auto 16px">${!!S.custom[S.sel]?`<strong>${st.name}</strong> was added but data hasn't been fetched yet.<br><br>To fetch automatically:<br>1. Make sure <code style="background:rgba(0,0,0,.2);padding:1px 6px;border-radius:3px">${S.sel}</code> is in your <strong>stocks_config.json</strong> on GitHub<br>2. Go to <strong>Actions → Refresh Financial Data → Run workflow</strong><br>3. Refresh this page after the workflow completes (~1 min)`: `This stock has no data yet.`}</div><div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap"><button class="btn btn-cyan" onclick="showManual('${S.sel}')">✏ Enter Data Manually</button>${!!S.custom[S.sel]?`<button class="btn btn-red btn-sm" onclick="delStock('${S.sel}')">🗑 Remove ${S.sel}</button>`:''}</div>${!!S.custom[S.sel]?`<div style="margin-top:12px"><a href="https://github.com/rauladi/fa-dashboard/actions" target="_blank" class="btn btn-ghost btn-sm" style="text-decoration:none">🚀 Open GitHub Actions</a></div>`:''}</div>`;
     return;
   }
-  if(S.tab==='data')document.getElementById('cont').innerHTML=tabData(S.sel,st);
-  else if(S.tab==='ratios')document.getElementById('cont').innerHTML=tabRatios(S.sel,st);
-  else if(S.tab==='chart'){document.getElementById('cont').innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}
+  if(S.tab==='data')cont.innerHTML=tabData(S.sel,st);
+  else if(S.tab==='ratios')cont.innerHTML=tabRatios(S.sel,st);
+  else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}
 }
 function render(){renderSBar();renderTabBtns();renderMain();saveLS();updateDebugInfo();}
 function forceRefresh(){
@@ -824,47 +817,104 @@ function updateDebugInfo(){
   const liveCount=Object.values(S.data).filter(d=>d?.source==='yfinance').length;
   panel.innerHTML=`<strong>🐞 Debug</strong><br>Source: ${liveCount>0?'📡 Live':'📋 Built-in'}<br>Stocks: ${Object.keys(S.stocks).length}<br>Ranked: ${ks.length}<br>Checksum: ${checksum.slice(0,30)}...`;
 }
-// ======================== NEWS TAB FUNCTION ========================
-function tabNews(sym, st) {
-  const stock = S.data[sym];
-  let newsHtml = '';
-  if (stock && stock.news) {
-    if (Array.isArray(stock.news) && stock.news.length > 0) {
-      newsHtml = `<div class="sec"><div class="sec-t">Latest News (up to 5 articles)</div>`;
-      for (const article of stock.news) {
-        const title = article.title || 'No title';
-        const link = article.link || '#';
-        const publisher = article.publisher || 'Yahoo Finance';
-        let published = article.published ? new Date(article.published).toLocaleString() : '';
-        newsHtml += `
-          <div class="news-card">
-            <div class="news-title"><a href="${link}" target="_blank" rel="noopener noreferrer">${escapeHtml(title)}</a></div>
-            <div class="news-meta">${escapeHtml(publisher)} ${published ? '· ' + published : ''}</div>
-          </div>
-        `;
+
+async function boot(){
+  loadLS();
+  let liveData = null;
+  let dataSource = 'built-in';
+  let generatedTimestamp = null;
+  let fetchError = null;
+
+  if(location.protocol !== 'file:'){
+    try{
+      const res = await fetch('./data.json?_=' + Date.now(), { cache: 'reload' });
+      if(res.ok){
+        liveData = await res.json();
+        generatedTimestamp = liveData.generated;
+        const storedTimestamp = localStorage.getItem(DATA_VERSION_KEY);
+        if(generatedTimestamp && generatedTimestamp !== storedTimestamp){
+          S.data = {};
+          S.status = {};
+          localStorage.setItem(DATA_VERSION_KEY, generatedTimestamp);
+          saveLS();
+        }
+        dataSource = 'yfinance';
+      } else {
+        fetchError = `HTTP ${res.status}`;
       }
-      newsHtml += `</div><p style="font-size:10px;color:var(--text-muted);margin-top:8px">📰 News provided by Yahoo Finance. Last fetch: ${stock.newsDate ? new Date(stock.newsDate).toLocaleString() : 'unknown'}</p>`;
-    } else if (typeof stock.news === 'string') {
-      // Old static placeholder
-      newsHtml = `<div class="state-box"><p>${escapeHtml(stock.news)}</p></div>`;
-    } else {
-      newsHtml = `<div class="state-box"><p>No recent news available for ${sym}.</p></div>`;
+    } catch(e){
+      fetchError = e.message;
+      console.warn('data.json fetch failed:', e);
     }
-  } else {
-    newsHtml = `<div class="state-box"><p>No news data available. Please run the data fetch workflow to get latest news.</p></div>`;
   }
-  return `${srcBar(sym, st)}${newsHtml}`;
-}
-function escapeHtml(str) {
-  if (!str) return '';
-  return str.replace(/[&<>]/g, function(m) {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
+
+  initPreloadedData();
+
+  if(liveData && liveData.stocks){
+    ANNUALISATION = liveData.annualisation || {};
+    const ts = Date.now();
+    Object.entries(liveData.stocks).forEach(([sym, sd]) => {
+      const hasData = Array.isArray(sd.revenue) && sd.revenue.some(v => v !== null);
+      S.stocks[sym] = {
+        name: sd.name || sym,
+        exchange: sd.exchange || 'NYSE',
+        currency: sd.currency || 'B USD'
+      };
+      const existing = S.data[sym];
+      if(!existing || existing.source !== 'user-edited'){
+        // Start with existing (fallback) data if available, then overlay live non-null values
+        const base = existing ? {...existing} : {};
+        const fields = ['totalAsset','cash','totalDebt','totalEquity','revenue','grossProfit','netProfit','eps','dps'];
+        fields.forEach(f => {
+          const liveArr = sd[f];
+          const baseArr = base[f] || Array(N_YEARS).fill(null);
+          // Only overwrite with non-null live values
+          const merged = baseArr.map((v, idx) => {
+            if (idx < liveArr.length && liveArr[idx] !== null && liveArr[idx] !== undefined) {
+              return liveArr[idx];
+            }
+            return v;
+          });
+          base[f] = merged;
+        });
+        S.data[sym] = {
+          ...base,
+          fetchedAt: ts,
+          source: sd.source === 'yfinance' ? 'yfinance' : 'built-in',
+          ticker: sd.ticker,
+          generated: liveData.generated,
+          profile: sd.profile,
+          profileDate: sd.profileDate,
+          news: sd.news,
+          newsDate: sd.newsDate
+        };
+        S.status[sym] = hasData ? 'ok' : 'idle';
+      }
+    });
+    const genDate = new Date(liveData.generated).toLocaleDateString();
+    const n = Object.keys(liveData.stocks).length;
+    const hSub = document.getElementById('hSub');
+    if(hSub) hSub.textContent = `ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]} · 📡 Live`;
+    if(!S.stocks[S.sel]) S.sel = Object.keys(S.stocks)[0] || 'BHP';
+  } else {
+    const hSub = document.getElementById('hSub');
+    let msg = `ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · 📋 Built-in`;
+    if(fetchError) msg += ` (fetch failed: ${fetchError})`;
+    if(hSub) hSub.textContent = msg;
+    if(!S.stocks[S.sel]) S.sel = 'BHP';
+  }
+
+  Object.keys(S.stocks).forEach(k => {
+    if(!S.status[k]) S.status[k] = S.data[k] ? 'ok' : 'idle';
   });
+
+  render();
 }
-// ======================== INSIGHTS TAB WITH RICH PROFILES (unchanged) ========================
+boot();
+
+function fetchAll(){showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan');}
+
+// ======================== INSIGHTS TAB WITH RICH PROFILES ========================
 function markdownToHtml(md) { if (!md) return ''; return md.replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/^- (.+)$/gm, '<li>$1</li>').replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>').replace(/\n/g, '<br>'); }
 const LEADERSHIP = {
   BHP:{ceo:"Brandon Craig (incoming, effective 1 July 2026)",cfo:"David Lamont (since 2021)",track:"Craig succeeds Mike Henry. A 25+ year BHP veteran, he previously led the Americas and WA iron ore. Focused on copper growth and the Jansen potash project."},
@@ -1087,100 +1137,6 @@ function tabInsights(sym, st) {
   }
   return `<div class="ai-panel"><div style="margin-bottom:20px;"><div style="font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px;"><span>${st.name}</span><span style="font-size:12px;color:var(--text-muted);">${sym} · ${st.exchange} · ${st.currency}</span></div><div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Analysis based on annual reports & market data</div></div><div class="insights-two-col"><div>${leftHtml || '<div class="ai-content"><p>Business model and strategic analysis will appear after data refresh.</p></div>'}</div><div>${rightHtml}</div></div><div class="ai-cache-note" style="font-size:10px;color:var(--text-muted);margin-top:12px;">📚 Data sources: IDX/ASX/NYSE filings · Annual Reports · Yahoo Finance · StockAnalysis.com · IDNFinancials · Bloomberg · AFR${stockData?.profileDate ? `<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}` : ''}</div></div>`;
 }
-async function boot(){
-  loadLS();
-  let liveData = null;
-  let dataSource = 'built-in';
-  let generatedTimestamp = null;
-  let fetchError = null;
-
-  if(location.protocol !== 'file:'){
-    try{
-      const res = await fetch('./data.json?_=' + Date.now(), { cache: 'reload' });
-      if(res.ok){
-        liveData = await res.json();
-        generatedTimestamp = liveData.generated;
-        const storedTimestamp = localStorage.getItem(DATA_VERSION_KEY);
-        if(generatedTimestamp && generatedTimestamp !== storedTimestamp){
-          S.data = {};
-          S.status = {};
-          localStorage.setItem(DATA_VERSION_KEY, generatedTimestamp);
-          saveLS();
-        }
-        dataSource = 'yfinance';
-      } else {
-        fetchError = `HTTP ${res.status}`;
-      }
-    } catch(e){
-      fetchError = e.message;
-      console.warn('data.json fetch failed:', e);
-    }
-  }
-
-  initPreloadedData();
-
-  if(liveData && liveData.stocks){
-    ANNUALISATION = liveData.annualisation || {};
-    const ts = Date.now();
-    Object.entries(liveData.stocks).forEach(([sym, sd]) => {
-      const hasData = Array.isArray(sd.revenue) && sd.revenue.some(v => v !== null);
-      S.stocks[sym] = {
-        name: sd.name || sym,
-        exchange: sd.exchange || 'NYSE',
-        currency: sd.currency || 'B USD'
-      };
-      const existing = S.data[sym];
-      if(!existing || existing.source !== 'user-edited'){
-        // Start with existing (fallback) data if available, then overlay live non-null values
-        const base = existing ? {...existing} : {};
-        const fields = ['totalAsset','cash','totalDebt','totalEquity','revenue','grossProfit','netProfit','eps','dps'];
-        fields.forEach(f => {
-          const liveArr = sd[f];
-          const baseArr = base[f] || Array(N_YEARS).fill(null);
-          // Only overwrite with non-null live values
-          const merged = baseArr.map((v, idx) => {
-            if (idx < liveArr.length && liveArr[idx] !== null && liveArr[idx] !== undefined) {
-              return liveArr[idx];
-            }
-            return v;
-          });
-          base[f] = merged;
-        });
-        S.data[sym] = {
-          ...base,
-          fetchedAt: ts,
-          source: sd.source === 'yfinance' ? 'yfinance' : 'built-in',
-          ticker: sd.ticker,
-          generated: liveData.generated,
-          profile: sd.profile,
-          profileDate: sd.profileDate,
-          news: sd.news,
-          newsDate: sd.newsDate
-        };
-        S.status[sym] = hasData ? 'ok' : 'idle';
-      }
-    });
-    const genDate = new Date(liveData.generated).toLocaleDateString();
-    const n = Object.keys(liveData.stocks).length;
-    const hSub = document.getElementById('hSub');
-    if(hSub) hSub.textContent = `ASX · IDX · NYSE/NASDAQ — Auto-refreshed ${genDate} · ${n} stocks · ${YEARS[0]}–${YEARS[N_YEARS-1]} · 📡 Live`;
-    if(!S.stocks[S.sel]) S.sel = Object.keys(S.stocks)[0] || 'BHP';
-  } else {
-    const hSub = document.getElementById('hSub');
-    let msg = `ASX · IDX · NYSE/NASDAQ — Built-in data · ${YEARS[0]}–${YEARS[N_YEARS-1]} · 📋 Built-in`;
-    if(fetchError) msg += ` (fetch failed: ${fetchError})`;
-    if(hSub) hSub.textContent = msg;
-    if(!S.stocks[S.sel]) S.sel = 'BHP';
-  }
-
-  Object.keys(S.stocks).forEach(k => {
-    if(!S.status[k]) S.status[k] = S.data[k] ? 'ok' : 'idle';
-  });
-
-  render();
-}
-boot();
-function fetchAll(){showToast('Manual refresh not needed – data is built‑in. Use Edit button to update numbers.','cyan');}
 </script>
 </body>
 </html>
