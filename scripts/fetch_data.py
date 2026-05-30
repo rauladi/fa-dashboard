@@ -30,8 +30,6 @@ FISCAL_YEAR_END = {
     "BAC":12,
     "ANZ":9,
     "AVGO":10,
-    "WBC":9,   # Westpac – 30 September
-    "RO":12,   # Roche – 31 December
 }
 
 STOCKS = {
@@ -65,8 +63,6 @@ STOCKS = {
     "CVX":  ("Chevron Corporation",    "NYSE",   "CVX",     "B USD", 1e9,  "USD"),
     "AXP":  ("American Express",       "NYSE",   "AXP",     "B USD", 1e9,  "USD"),
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
-    "WBC":  ("Westpac Banking Corp",   "ASX",    "WBC.AX",  "B AUD", 1e9,  "AUD"),
-    "RO":   ("Roche Holding AG",       "SIX",    "RO.SW",   "B CHF", 1e9,  "CHF"),
 }
 
 FIELDS = [
@@ -79,18 +75,17 @@ FIELDS = [
 
 # ---------- exchange rates ----------
 def get_rates():
-    usd_aud, usd_idr, twd_usd, usd_chf = 1.58, 16300, 0.031, 0.91
+    usd_aud, usd_idr, twd_usd = 1.58, 16300, 0.031
     try:
         resp = requests.get("https://api.exchangerate-api.com/v4/latest/USD", timeout=10)
         data = resp.json()
         usd_aud = round(data["rates"]["AUD"], 4)
         usd_idr = round(data["rates"]["IDR"], 0)
         twd_usd = round(1/data["rates"]["TWD"], 6) if "TWD" in data["rates"] else 0.031
-        usd_chf = round(data["rates"]["CHF"], 6) if "CHF" in data["rates"] else 0.91
-        print(f"  USD→AUD: {usd_aud}  USD→IDR: {usd_idr:.0f}  TWD→USD: {twd_usd}  USD→CHF: {usd_chf}", flush=True)
+        print(f"  USD→AUD: {usd_aud}  USD→IDR: {usd_idr:.0f}  TWD→USD: {twd_usd}", flush=True)
     except Exception as e:
         print(f"  FX fallback to static rates ({e})", flush=True)
-    return usd_aud, usd_idr, twd_usd, usd_chf
+    return usd_aud, usd_idr, twd_usd
 
 def safe(val, div=1, fx=1.0):
     if val is None: return None
@@ -103,7 +98,7 @@ def safe(val, div=1, fx=1.0):
 def isOK(v):
     return v is not None and not math.isnan(v) and not math.isinf(v)
 
-def get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd, usd_chf):
+def get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd):
     target = target_cur.upper()
     fin = fin_cur.upper()
     if target == "IDR": div = 1e12
@@ -113,7 +108,6 @@ def get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd, usd_chf):
         if fin == "IDR": conv = 1.0 / usd_idr
         elif fin == "TWD": conv = twd_usd
         elif fin == "AUD": conv = 1.0 / usd_aud
-        elif fin == "CHF": conv = 1.0 / usd_chf
         else: conv = 1.0
     elif target == "AUD":
         if fin == "USD": conv = usd_aud
@@ -121,50 +115,13 @@ def get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd, usd_chf):
     elif target == "IDR":
         if fin == "USD": conv = usd_idr
         else: conv = 1.0
-    elif target == "CHF":
-        if fin == "USD": conv = usd_chf
-        else: conv = 1.0
     else: conv = 1.0
     return div, conv, conv
 
 def financial_currency(exchange):
     if exchange == "IDX": return "IDR"
     if exchange == "ASX": return "AUD"
-    if exchange == "SIX": return "CHF"
     return "USD"
-
-# =============================================================================
-#  NEWS FETCHER (free via yfinance)
-# =============================================================================
-def fetch_news(sym, ticker_str, max_items=5):
-    """Return list of recent news articles (up to max_items) using yfinance."""
-    try:
-        tick = yf.Ticker(ticker_str)
-        news_list = tick.news
-        if not news_list:
-            return []
-        articles = []
-        for item in news_list[:max_items]:
-            # yfinance news structure: title, link, publisher, providerPublishTime
-            title = item.get('title', '')
-            link = item.get('link', '')
-            publisher = item.get('publisher', '')
-            # Convert timestamp to ISO format
-            pub_ts = item.get('providerPublishTime')
-            if pub_ts:
-                pub_date = datetime.fromtimestamp(pub_ts, tz=timezone.utc).isoformat()
-            else:
-                pub_date = None
-            articles.append({
-                "title": title,
-                "link": link,
-                "publisher": publisher,
-                "published": pub_date
-            })
-        return articles
-    except Exception as e:
-        print(f"  [News] {sym}: {e}", flush=True)
-        return []
 
 # =============================================================================
 #  LIVE FETCHER – returns both 2025 (annual) and 2026 (quarterly annualised)
@@ -382,11 +339,11 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
 
 
 # ---------- LIVE FETCH (2025 annual + 2026 quarterly annualised) ----------
-def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd, usd_chf):
+def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     """Return a dict {2025: row, 2026: row} for one stock."""
     if sym == "TSM": fin_cur = "TWD"
     else: fin_cur = financial_currency(exchange)
-    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd, usd_chf)
+    div, total_fx, ps_fx = get_fx(target_cur, fin_cur, usd_aud, usd_idr, twd_usd)
 
     row_2025 = {f: None for f in FIELDS}
     row_2026 = {f: None for f in FIELDS}
@@ -498,12 +455,12 @@ def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, tw
     return {LATEST_YEAR: row_2025, CURRENT_YEAR: row_2026}
 
 # ---------- Main fetch router ----------
-def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd, usd_chf):
+def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     target_cur = hint_cur.upper()
     src = "yfinance"
 
     print(f"\n[{sym}] (yfinance) {ticker_str}", flush=True)
-    yd = fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd, usd_chf)
+    yd = fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd)
 
     # Clean up zeros
     for yr_row in yd.values():
@@ -640,15 +597,9 @@ PRELOADED = {
     "BAC": {"totalAsset":[2900.0,3051.4,3180.2,3261.3,3411.7,None],"cash":[220.0,237.5,341.4,296.5,239.3,None],"totalDebt":[280.0,302.9,334.3,326.7,365.9,None],"totalEquity":[260.0,273.2,291.6,294.0,303.2,None],"revenue":[90.0,95.0,102.8,105.9,113.1,None],"grossProfit":[48.0,52.5,56.9,56.1,60.1,None],"netProfit":[26.0,27.5,26.3,27.0,30.5,None],
              "eps":[3.10,3.21,3.10,3.25,3.86,None],
              "dps":[0.90,1.06,1.13,1.21,1.27,None]},
-    "WBC": {"totalAsset":[980,1020,1060,1090,None,None],"cash":[95,105,110,115,None,None],"totalDebt":[175,182,190,198,None,None],"totalEquity":[65,68,70,72,None,None],"revenue":[18.5,19.2,20.0,20.8,None,None],"grossProfit":[15.0,15.6,16.2,16.9,None,None],"netProfit":[6.2,6.8,7.0,7.2,None,None],
-             "eps":[1.82,1.95,2.00,2.05,None,None],
-             "dps":[1.20,1.30,1.42,1.48,None,None]},
-    "RO": {"totalAsset":[90,92,95,97,None,None],"cash":[8.5,9.0,9.5,10.0,None,None],"totalDebt":[32,31,30,28,None,None],"totalEquity":[45,47,49,51,None,None],"revenue":[58.5,60.2,61.5,62.8,None,None],"grossProfit":[42.0,43.5,44.8,46.0,None,None],"netProfit":[14.2,13.5,13.8,14.0,None,None],
-             "eps":[16.5,15.8,16.2,16.8,None,None],
-             "dps":[9.50,9.60,9.70,9.80,None,None]},
 }
 
-# ---------- PROFILES & LEADERSHIP (unchanged except additions) ----------
+# ---------- PROFILES & LEADERSHIP (unchanged) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -1490,62 +1441,6 @@ CEO Hock Tan is renowned for disciplined M&A and cost management. The VMware acq
 
 ## Future Outlook
 AI networking demand is a major tailwind. VMware subscription transition will smooth revenue. Watch debt reduction progress and competitive dynamics in AI chips.""",
-    "WBC": """## Business Model Canvas
-**Key Partners:** Australian government, mortgage brokers, Visa/Mastercard, fintech partners (e.g., Zip), wealth management platforms, BT Financial Group (acquired by Mercer but legacy tech).
-**Key Activities:** Retail banking (home loans, deposits); business banking; institutional banking; wealth management (BT, sold to Mercer but still a partner); digital banking (Westpac App, live chat AI).
-**Key Resources:** #2 home lender in Australia (~20% market share); strong deposit base; large branch network; "Bank of Melbourne", "St.George", "BankSA" brands; digital transformation investments.
-**Value Proposition:** Comprehensive retail and business banking services; strong regional presence; digital innovation (Westpac App, AI assistant); 'Westpac Reimagined' cost-cutting program; dividend yield above peers.
-**Customer Relationships:** Branch network, relationship managers, digital app, call centres, third-party brokers.
-**Channels:** Branches, Westpac App, online banking, brokers, phone banking.
-**Customer Segments:** Retail consumers, small businesses, corporates, institutions, wealth clients.
-**Cost Structure:** Branch network, staff, technology (core banking modernization), regulatory compliance, marketing.
-**Revenue Streams:** Net interest income (home loans, business lending), non-interest income (fees, transaction services, wealth management), institutional banking.
-
-## SWOT Analysis
-**Strengths:** #2 home lender, strong brand portfolio, large deposit base, digital transformation progressing, turnaround under new CEO.
-**Weaknesses:** Legacy technology issues, historic AUSTRAC scandal (money-laundering fines), higher cost-to-income ratio than CBA.
-**Opportunities:** Cost reduction ('Reimagined' program), home loan refinancing wave, business lending growth, digital banking features.
-**Threats:** Rising interest rates causing mortgage stress, fintech disruption, regulatory scrutiny, economic slowdown.
-
-## PESTLE Analysis
-**Political:** Banking regulation (APRA), open banking, CDR. **Economic:** Interest rates, housing market, unemployment. **Social:** Digital adoption, trust in banks. **Technological:** AI, core modernization, cybersecurity. **Legal:** AML/CTF compliance, privacy law. **Environmental:** Climate risk in lending.
-
-## Porter's Five Forces
-**Rivalry:** High – Big 4 plus regional banks, neobanks. **New Entrants:** Moderate – digital banks easier but scale hard. **Supplier Power:** Low – depositors fragmented. **Buyer Power:** High – customers can switch easily. **Substitutes:** Non-bank lenders, peer-to-peer.
-
-## Management & Decision Making
-CEO Peter King (interim then permanent) led cleanup from AUSTRAC scandal, simplification, and cost-out program. Focus on digital and capital returns. Dividends gradually restored.
-
-## Future Outlook
-Cost reduction program. Home loan refinancing. Digital adoption. Watch mortgage stress, competition, and economic cycle.""",
-    "RO": """## Business Model Canvas
-**Key Partners:** Research institutions, biotech partners (e.g., Spark Therapeutics, Genentech – wholly owned), CROs, diagnostic companies, healthcare providers, governments (procurement).
-**Key Activities:** Pharmaceutical R&D; diagnostics development; commercialisation of oncology, immunology, neurology, ophthalmology drugs; manufacturing and supply chain.
-**Key Resources:** Strong pipeline (oncology, neuroscience, rare diseases); diagnostics division; global sales force; manufacturing scale; patent portfolio.
-**Value Proposition:** Leading oncology drugs (Herceptin, Perjeta, Kadcyla, Tecentriq); innovative diagnostics; personalised healthcare; reliable quality.
-**Customer Relationships:** Direct sales force to hospitals and physicians; patient support programs; diagnostic partnerships.
-**Channels:** Pharmaceutical sales reps; diagnostic labs; hospital procurement; online info portals.
-**Customer Segments:** Oncology patients, neurologists, immunologists, diagnostic labs, hospitals, government healthcare systems.
-**Cost Structure:** R&D (high), manufacturing, sales and marketing, regulatory compliance.
-**Revenue Streams:** Drug sales (Pharmaceuticals), diagnostic test sales (Diagnostics), licensing/royalties.
-
-## SWOT Analysis
-**Strengths:** Global pharma leader, strong oncology franchise, diagnostics integration, robust pipeline, high-margin patented drugs.
-**Weaknesses:** Patent cliffs on key drugs (Herceptin, Avastin, Rituxan), biosimilar competition, reliance on few blockbusters.
-**Opportunities:** New drug approvals (Hemlibra, Ocrevus, Evrysdi), expansion in emerging markets, personalized healthcare, digital diagnostics.
-**Threats:** Pricing pressure, biosimilars, drug development failures, regulatory hurdles, competition from Pfizer, Novartis, Merck.
-
-## PESTLE Analysis
-**Political:** Drug pricing regulation, trade agreements, patent laws. **Economic:** Healthcare spending, currency fluctuations (CHF). **Social:** Aging population, chronic disease prevalence. **Technological:** Personalized medicine, digital health, AI in drug discovery. **Legal:** Patent expirations, litigation. **Environmental:** Sustainable manufacturing.
-
-## Porter's Five Forces
-**Rivalry:** High – large pharma competitors. **New Entrants:** Very high – R&D costs, regulatory barriers. **Supplier Power:** Low – many raw material suppliers. **Buyer Power:** Moderate – governments and insurers. **Substitutes:** Biosimilars, generic drugs, alternative therapies.
-
-## Management & Decision Making**
-CEO Thomas Schinecker (since March 2023) – focused on oncology pipeline, diagnostics integration, and digital transformation. Strong R&D discipline.
-
-## Future Outlook
-New drug launches (Hemlibra, Ocrevus) offset patent cliffs. Diagnostics segment growth. Emerging market expansion. Watch biosimilar impact, regulatory changes, and pipeline success.""",
 }
 
 # ---------- LEADERSHIP ----------
@@ -1580,8 +1475,6 @@ LEADERSHIP = {
     "CVX": {"ceo": "Mike Wirth (since 2018)", "cfo": "Pierre Breber (since 2019)", "track": "Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."},
     "AXP": {"ceo": "Stephen Squeri (since 2018)", "cfo": "Christophe Le Caillec (since 2023)", "track": "Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."},
     "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
-    "WBC": {"ceo": "Peter King (since 2020, interim then permanent)", "cfo": "Michael Correa (since 2019)", "track": "King led bank through AUSTRAC remediation, initiated 'Westpac Reimagined' cost program, restored dividend, simplified operations."},
-    "RO": {"ceo": "Thomas Schinecker (since March 2023)", "cfo": "Alan Hippe (since 2019)", "track": "Schinecker driving oncology pipeline, diagnostics integration, digital transformation. Focus on R&D and shareholder returns."},
 }
 
 def build_profile_with_insights(sym, m, exchange, currency):
@@ -1622,15 +1515,13 @@ def generate_static_profiles(out):
         profile_text = build_profile_with_insights(sym, m, exchange, currency)
         out["stocks"][sym]["profile"] = profile_text
         out["stocks"][sym]["profileDate"] = NOW.isoformat()
-        # News is already fetched and added earlier; we skip the static placeholder.
-        # Ensure there is a newsDate field.
-        if "newsDate" not in out["stocks"][sym]:
-            out["stocks"][sym]["newsDate"] = NOW.isoformat()
+        out["stocks"][sym]["news"] = "For latest news, please refer to company announcements and recent filings."
+        out["stocks"][sym]["newsDate"] = NOW.isoformat()
 
 # ---------- main ----------
 def main():
-    usd_aud, usd_idr, twd_usd, usd_chf = get_rates()
-    rates = {"usd_aud": usd_aud, "usd_idr": usd_idr, "twd_usd": twd_usd, "usd_chf": usd_chf}
+    usd_aud, usd_idr, twd_usd = get_rates()
+    rates = {"usd_aud": usd_aud, "usd_idr": usd_idr, "twd_usd": twd_usd}
     all_stocks = {**STOCKS}
     print(f"\nTotal stocks: {len(all_stocks)}\n{'='*50}", flush=True)
 
@@ -1638,8 +1529,8 @@ def main():
         "generated": NOW.isoformat(),
         "years": ALL_YEARS, "completedYears": COMPLETED,
         "currentYear": CURRENT_YEAR, "latestYear": LATEST_YEAR,
-        "rates": {"usdToAud":usd_aud,"usdToIdr":usd_idr,"twdToUsd":twd_usd,"usdToChf":usd_chf,
-                  "audToUsd":round(1.0/usd_aud,6),"idrToUsd":round(1.0/usd_idr,9),"chfToUsd":round(1.0/usd_chf,6)},
+        "rates": {"usdToAud":usd_aud,"usdToIdr":usd_idr,"twdToUsd":twd_usd,
+                  "audToUsd":round(1.0/usd_aud,6),"idrToUsd":round(1.0/usd_idr,9)},
         "fiscalYearEnd": FISCAL_YEAR_END,
         "annualisation": {}, "stocks": {}
     }
@@ -1649,7 +1540,7 @@ def main():
         if i > 0:
             time.sleep(1.2)   # gentle rate limiting
         try:
-            yd, cur_ann, src = fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd, usd_chf)
+            yd, cur_ann, src = fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
             arrs = build_arrays(yd, sym, rates)
             if any(v is not None for r in yd.values() for v in r.values()):
                 ok += 1
@@ -1659,16 +1550,11 @@ def main():
             src = "fallback"
             cur_ann = {"method":"none","label":None}
 
-        # Fetch news
-        news_items = fetch_news(sym, ticker_str, max_items=5)
-
         out["stocks"][sym] = {
             "name": name, "exchange": exchange, "currency": currency,
             "ticker": ticker_str, "source": src, "fyEndMonth": FISCAL_YEAR_END.get(sym, 12)
         }
         out["stocks"][sym].update(arrs)
-        out["stocks"][sym]["news"] = news_items
-        out["stocks"][sym]["newsDate"] = NOW.isoformat()
         out["annualisation"][sym] = cur_ann
 
     generate_static_profiles(out)
