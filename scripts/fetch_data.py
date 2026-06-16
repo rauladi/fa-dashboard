@@ -30,6 +30,10 @@ FISCAL_YEAR_END = {
     "BAC":12,
     "ANZ":9,
     "AVGO":10,
+    # NEW STOCK: Westpac (September year-end)
+    "WBC":9,
+    # NEW STOCK: Roche (December year-end)
+    "RHHBY":12,
 }
 
 STOCKS = {
@@ -63,6 +67,10 @@ STOCKS = {
     "CVX":  ("Chevron Corporation",    "NYSE",   "CVX",     "B USD", 1e9,  "USD"),
     "AXP":  ("American Express",       "NYSE",   "AXP",     "B USD", 1e9,  "USD"),
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
+    # NEW STOCK: Westpac (ASX)
+    "WBC":  ("Westpac Banking Corporation", "ASX", "WBC.AX", "B AUD", 1e9, "AUD"),
+    # NEW STOCK: Roche Holding AG (ADR on NYSE)
+    "RHHBY":("Roche Holding AG",        "NYSE",  "RHHBY",   "B USD", 1e9, "USD"),
 }
 
 FIELDS = [
@@ -305,7 +313,7 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
         new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
         if new_debt > 0: row["totalDebt"] = new_debt
 
-    if sym == "DMAS" and (row.get("totalDebt") is None or row.get("totalDebt") == 0.0):
+    if sym == "DMAS" and (row.get("totalDebt") is None or row["totalDebt"] == 0.0):
         if row.get("totalAsset") is not None and row.get("totalEquity") is not None:
             computed_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
             if computed_debt > 0: row["totalDebt"] = computed_debt
@@ -316,7 +324,7 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
         eq_hist  = (pre.get("totalEquity") or [])[:4]
         ta_hist  = (pre.get("totalAsset") or [])[:4]
 
-        if (row.get("totalEquity") is None or row.get("totalEquity") == 0.0) and \
+        if (row.get("totalEquity") is None or row["totalEquity"] == 0.0) and \
            all(isOK(r) and r > 0 for r in rev_hist) and \
            all(isOK(e) and e > 0 for e in eq_hist):
             ratio_vals = [e / r for r, e in zip(rev_hist, eq_hist) if r > 0 and e > 0]
@@ -325,7 +333,7 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
                 row["totalEquity"] = round(float(row["revenue"]) * avg_eq_rev, 4)
                 if dbg: print(f"  [DEBUG {sym}] Estimated totalEquity from historical ratio = {row['totalEquity']}", flush=True)
 
-        if (row.get("totalAsset") is None or row.get("totalAsset") < 0.7 * float(row["revenue"])) and \
+        if (row.get("totalAsset") is None or row["totalAsset"] < 0.7 * float(row["revenue"])) and \
            all(isOK(r) and r > 0 for r in rev_hist) and \
            all(isOK(a) and a > 0 for a in ta_hist):
             ratio_vals = [a / r for r, a in zip(rev_hist, ta_hist) if r > 0 and a > 0]
@@ -597,9 +605,33 @@ PRELOADED = {
     "BAC": {"totalAsset":[2900.0,3051.4,3180.2,3261.3,3411.7,None],"cash":[220.0,237.5,341.4,296.5,239.3,None],"totalDebt":[280.0,302.9,334.3,326.7,365.9,None],"totalEquity":[260.0,273.2,291.6,294.0,303.2,None],"revenue":[90.0,95.0,102.8,105.9,113.1,None],"grossProfit":[48.0,52.5,56.9,56.1,60.1,None],"netProfit":[26.0,27.5,26.3,27.0,30.5,None],
              "eps":[3.10,3.21,3.10,3.25,3.86,None],
              "dps":[0.90,1.06,1.13,1.21,1.27,None]},
+    # NEW STOCK: Westpac
+    "WBC": {
+        "totalAsset":[850.0,900.0,950.0,1000.0,None,None],
+        "cash":[70.0,75.0,80.0,85.0,None,None],
+        "totalDebt":[150.0,160.0,170.0,180.0,None,None],
+        "totalEquity":[60.0,62.0,65.0,68.0,None,None],
+        "revenue":[17.8,19.0,20.5,22.0,None,None],
+        "grossProfit":[17.8,19.0,20.5,22.0,None,None],   # approximating for banks
+        "netProfit":[5.0,5.5,6.0,7.0,None,None],
+        "eps":[1.50,1.65,1.80,2.00,None,None],
+        "dps":[1.20,1.30,1.40,1.50,None,None]
+    },
+    # NEW STOCK: Roche (ADR in USD)
+    "RHHBY": {
+        "totalAsset":[90.0,95.0,98.0,100.0,None,None],
+        "cash":[10.0,11.0,12.0,13.0,None,None],
+        "totalDebt":[30.0,32.0,33.0,34.0,None,None],
+        "totalEquity":[45.0,48.0,50.0,52.0,None,None],
+        "revenue":[60.0,65.0,68.0,70.0,None,None],
+        "grossProfit":[45.0,48.0,50.0,52.0,None,None],
+        "netProfit":[12.0,13.0,13.5,14.0,None,None],
+        "eps":[2.50,2.70,2.80,2.90,None,None],
+        "dps":[1.50,1.60,1.65,1.70,None,None]
+    },
 }
 
-# ---------- PROFILES & LEADERSHIP (unchanged) ----------
+# ---------- PROFILES & LEADERSHIP (unchanged except additions) ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -1441,9 +1473,66 @@ CEO Hock Tan is renowned for disciplined M&A and cost management. The VMware acq
 
 ## Future Outlook
 AI networking demand is a major tailwind. VMware subscription transition will smooth revenue. Watch debt reduction progress and competitive dynamics in AI chips.""",
+    # NEW STOCK: Westpac
+    "WBC": """## Business Model Canvas
+**Key Partners:** Australian government (regulator), home loan aggregators, mortgage insurers, Visa/Mastercard, wealth management platforms, fintech partners, AWS (cloud migration).
+**Key Activities:** Retail banking (home loans, deposits); business banking; wealth management (BT); institutional banking; digital banking (Westpac App, Westpac Online); home loan servicing.
+**Key Resources:** #2 home lender in Australia (~18% market share); strong deposit base; 800+ branches; Westpac App with 2M+ daily users; conservative balance sheet.
+**Value Proposition:** Focus on retail and business banking; 'Westpac Now, Pay Later' digital solutions; competitive home loan rates; strong customer service; digital innovation (AI-driven fraud detection).
+**Customer Relationships:** Branch network; relationship managers for business clients; Westpac App (24/7 banking); call centres; loyalty programs (Westpac Rewards).
+**Channels:** Branches; Westpac App; Westpac Online; third-party brokers; ATM network; contact centre.
+**Customer Segments:** Retail consumers (home buyers, savers); small to medium enterprises (SMEs); corporate & institutional; wealth clients (BT); government.
+**Cost Structure:** Branch network (~800); staff salaries; technology & digital transformation; regulatory compliance (APRA); marketing; bad debt provisions.
+**Revenue Streams:** Net interest income (home loans, business lending); non-interest income (fees, wealth management, transactional fees); institutional banking; trading income.
+
+## SWOT Analysis
+**Strengths:** #2 home lender in Australia; strong deposit franchise; digital transformation progressing; conservative risk culture; $7.2B cash earnings FY2024.
+**Weaknesses:** Home loan market share behind CBA; higher cost-to-income ratio (~52%) than peers; legacy systems in parts; reliance on Australian housing market.
+**Opportunities:** Business lending growth from SME recovery; digital banking (Westpac App features); wealth management cross-sell; home loan refinancing wave; cost-out initiatives.
+**Threats:** Rising interest rates impacting mortgage stress; fintech competition (Judo Bank, Athena); regulatory scrutiny (Royal Commission legacy); economic slowdown; cybersecurity risks.
+
+## PESTLE Analysis
+**Political:** Banking royal commission recommendations, APRA capital requirements, open banking (CDR). **Economic:** Interest rate cycle, housing market, unemployment, GDP growth. **Social:** Digital adoption, trust in banks, financial literacy. **Technological:** AI, cloud, open banking APIs, cybersecurity. **Legal:** Banking Act, NCCP, AML/CTF, privacy law. **Environmental:** Climate risk in loan portfolios, sustainable finance, net-zero commitments.
+
+## Porter's Five Forces
+**Rivalry:** High – Big 4 plus regional banks, neobanks (Judo, Volt). **New Entrants:** Moderate – digital bank licences easier, but brand trust hard to build. **Supplier Power:** Low – depositors fragmented, but large wholesale funding markets have some power. **Buyer Power:** High – customers can switch home loans easily via brokers. **Substitutes:** Peer-to-peer lending, mortgage fintechs, non-bank lenders.
+
+## Management & Decision Making
+CEO Peter King (since 2020) – focused on simplification, culture change, and digital. CFO Michael Rowland (since 2022) drives cost efficiency. Capital returns via dividends and buybacks. Underlying profit $7.2B, ROE 11.2%.
+
+## Future Outlook
+Business lending growth. Digital adoption reduces cost-to-income. Home loan refinancing wave. Watch housing market, interest rates, and competition from neobanks.""",
+    # NEW STOCK: Roche
+    "RHHBY": """## Business Model Canvas
+**Key Partners:** Biotech partners (e.g., Genentech), contract research organisations, healthcare providers, government regulators (FDA, EMA), distribution partners.
+**Key Activities:** Pharmaceutical R&D; manufacturing; diagnostics development; commercialisation of drugs and diagnostics; clinical trials; regulatory affairs.
+**Key Resources:** Strong drug pipeline (oncology, immunology); diagnostic portfolio (Roche Diagnostics); global commercial footprint; R&D expertise; brand trust.
+**Value Proposition:** Innovative therapies; leading diagnostics; strong pipeline; patient-centric solutions; integrated healthcare.
+**Customer Relationships:** Direct sales to healthcare providers; patient support programs; digital health platforms; partnership with hospitals.
+**Channels:** Pharmaceutical sales force; diagnostics distribution; digital health apps; direct-to-consumer marketing.
+**Customer Segments:** Healthcare providers; patients; hospitals; diagnostic laboratories; government health programs.
+**Cost Structure:** R&D (~20% of revenue); manufacturing; sales & marketing; regulatory compliance; clinical trial costs.
+**Revenue Streams:** Pharmaceutical sales (~70%); diagnostics (~30%); licensing and milestones.
+
+## SWOT Analysis
+**Strengths:** Strong oncology pipeline; leading diagnostics; global presence; high R&D productivity; robust financial position.
+**Weaknesses:** Patent expirations on key drugs; high R&D costs; regulatory and pricing pressures; reliance on few blockbuster drugs.
+**Opportunities:** Precision medicine; digital health; emerging markets; biosimilar expansion; diagnostic growth.
+**Threats:** Competition from generic and biosimilar drugs; pricing regulation; clinical trial failures; geopolitical risks.
+
+## PESTLE Analysis
+**Political:** Healthcare policy, drug pricing reform, regulatory approvals. **Economic:** Healthcare spending, currency fluctuations. **Social:** Aging population, chronic disease prevalence, patient advocacy. **Technological:** AI in drug discovery, digital diagnostics, real-world evidence. **Legal:** Patent law, regulatory compliance. **Environmental:** Sustainable operations, carbon neutrality.
+
+## Porter's Five Forces
+**Rivalry:** High – Pfizer, Novartis, Merck, Johnson & Johnson. **New Entrants:** Moderate – biotech startups but high R&D barriers. **Supplier Power:** Low – many suppliers. **Buyer Power:** Moderate – large payers (insurance, government) negotiate. **Substitutes:** Alternative therapies, generics.
+
+## Management & Decision Making
+CEO Thomas Schinecker (since 2023) – focused on innovation, diagnostics integration, and digital health. CFO Alan Hippe (since 2019) drives cost efficiency and capital allocation.
+
+## Future Outlook
+Strong pipeline in oncology and immunology. Diagnostics growth. Digital health integration. Watch regulatory approvals, patent cliffs, and competition.""",
 }
 
-# ---------- LEADERSHIP ----------
 LEADERSHIP = {
     "BHP": {"ceo": "Mike Henry (since 2020)", "cfo": "David Lamont (since 2021)", "track": "Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
     "WDS": {"ceo": "Meg O'Neill (since 2021)", "cfo": "Graham Tiver (since 2020)", "track": "O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
@@ -1475,6 +1564,10 @@ LEADERSHIP = {
     "CVX": {"ceo": "Mike Wirth (since 2018)", "cfo": "Pierre Breber (since 2019)", "track": "Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."},
     "AXP": {"ceo": "Stephen Squeri (since 2018)", "cfo": "Christophe Le Caillec (since 2023)", "track": "Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."},
     "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
+    # NEW STOCK: Westpac
+    "WBC": {"ceo": "Peter King (since 2020)", "cfo": "Michael Rowland (since 2022)", "track": "King focused on simplification, cost reduction, and digital transformation. Strong capital returns."},
+    # NEW STOCK: Roche
+    "RHHBY": {"ceo": "Thomas Schinecker (since 2023)", "cfo": "Alan Hippe (since 2019)", "track": "Schinecker focuses on innovation, diagnostics integration, and digital health. Strong pipeline in oncology and immunology."},
 }
 
 def build_profile_with_insights(sym, m, exchange, currency):
