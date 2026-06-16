@@ -306,7 +306,11 @@ const BASE_STOCKS={
   AMZN:{name:"Amazon.com Inc.",exchange:"NASDAQ",currency:"B USD"}, AAPL:{name:"Apple Inc.",exchange:"NASDAQ",currency:"B USD"}, META:{name:"Meta Platforms Inc.",exchange:"NASDAQ",currency:"B USD"},
   NVDA:{name:"NVIDIA Corporation",exchange:"NASDAQ",currency:"B USD"}, GOOG:{name:"Alphabet Inc (Google)",exchange:"NASDAQ",currency:"B USD"}, BKNG:{name:"Booking Holdings Inc",exchange:"NASDAQ",currency:"B USD"},
   AVGO:{name:"Broadcom Inc",exchange:"NASDAQ",currency:"B USD"}, CVX:{name:"Chevron Corporation",exchange:"NYSE",currency:"B USD"},
-  AXP:{name:"American Express",exchange:"NYSE",currency:"B USD"}, BAC:{name:"Bank of America",exchange:"NYSE",currency:"B USD"}
+  AXP:{name:"American Express",exchange:"NYSE",currency:"B USD"}, BAC:{name:"Bank of America",exchange:"NYSE",currency:"B USD"},
+  // NEW STOCK: Westpac
+  WBC:{name:"Westpac Banking Corporation",exchange:"ASX",currency:"B AUD"},
+  // NEW STOCK: Roche Holding AG (ADR)
+  RHHBY:{name:"Roche Holding AG",exchange:"NYSE",currency:"B USD"}
 };
 const DEF_WTS={cashToAsset:10,debtToEquity:5,revenueCagr:5,gpmAvg:0,netProfitCagr:5,npmAvg:30,epsCagr:5,dpsCagr:0,roeAvg:25,dividendPayout:0,buffettTest:15};
 const CRITERIA=[
@@ -420,6 +424,10 @@ const PRELOADED={
   CVX:{totalAsset:[253.0,257.7,261.6,256.9,324.0,null],cash:[12.5,17.7,8.2,6.8,6.3,null],totalDebt:[28.0,23.3,20.8,24.5,40.8,null],totalEquity:[151.0,159.3,161.0,152.3,186.5,null],revenue:[140.0,235.7,196.9,193.4,184.4,null],grossProfit:[45.0,74.0,60.4,56.9,56.1,null],netProfit:[15.8,35.5,21.4,17.7,12.3,null],eps:[8.20,18.36,11.41,9.76,6.65,null],dps:[5.10,5.68,6.05,6.52,6.90,null]},
   AXP:{totalAsset:[200.0,228.4,261.1,271.5,300.1,null],cash:[28.0,33.5,46.5,40.6,47.7,null],totalDebt:[38.0,43.9,49.2,51.1,57.8,null],totalEquity:[22.0,24.7,28.1,30.3,33.5,null],revenue:[45.0,52.9,60.5,65.9,72.2,null],grossProfit:[8.5,9.9,13.1,15.5,17.4,null],netProfit:[6.5,7.5,8.4,10.1,10.8,null],eps:[8.50,9.86,11.23,14.04,15.41,null],dps:[1.80,2.08,2.42,2.81,3.27,null]},
   BAC:{totalAsset:[2900.0,3051.4,3180.2,3261.3,3411.7,null],cash:[220.0,237.5,341.4,296.5,239.3,null],totalDebt:[280.0,302.9,334.3,326.7,365.9,null],totalEquity:[260.0,273.2,291.6,294.0,303.2,null],revenue:[90.0,95.0,102.8,105.9,113.1,null],grossProfit:[48.0,52.5,56.9,56.1,60.1,null],netProfit:[26.0,27.5,26.3,27.0,30.5,null],eps:[3.10,3.21,3.10,3.25,3.86,null],dps:[0.90,1.06,1.13,1.21,1.27,null]},
+  // NEW STOCK: Westpac
+  WBC:{totalAsset:[850.0,900.0,950.0,1000.0,null,null],cash:[70.0,75.0,80.0,85.0,null,null],totalDebt:[150.0,160.0,170.0,180.0,null,null],totalEquity:[60.0,62.0,65.0,68.0,null,null],revenue:[17.8,19.0,20.5,22.0,null,null],grossProfit:[17.8,19.0,20.5,22.0,null,null],netProfit:[5.0,5.5,6.0,7.0,null,null],eps:[1.50,1.65,1.80,2.00,null,null],dps:[1.20,1.30,1.40,1.50,null,null]},
+  // NEW STOCK: Roche
+  RHHBY:{totalAsset:[90.0,95.0,98.0,100.0,null,null],cash:[10.0,11.0,12.0,13.0,null,null],totalDebt:[30.0,32.0,33.0,34.0,null,null],totalEquity:[45.0,48.0,50.0,52.0,null,null],revenue:[60.0,65.0,68.0,70.0,null,null],grossProfit:[45.0,48.0,50.0,52.0,null,null],netProfit:[12.0,13.0,13.5,14.0,null,null],eps:[2.50,2.70,2.80,2.90,null,null],dps:[1.50,1.60,1.65,1.70,null,null]}
 };
 
 function initPreloadedData(){
@@ -946,7 +954,11 @@ const LEADERSHIP = {
   AVGO:{ceo:"Hock Tan",cfo:"Kirsten Spears",track:"Tan has built Broadcom into a semiconductor and infrastructure software powerhouse through a disciplined acquisition strategy (VMware, CA Technologies). The company is a key beneficiary of the AI infrastructure build-out."},
   CVX:{ceo:"Mike Wirth (since 2018)",cfo:"Eimear Bonner",track:"Wirth focuses on oil and gas production growth and lower-carbon investments (renewables, hydrogen). The Hess acquisition strengthens its portfolio."},
   AXP:{ceo:"Stephen J. Squeri (since 2018)",cfo:"Christophe Le Caillec (since 2023)",track:"Squeri has expanded premium card offerings and leveraged AI for data and digital capabilities, maintaining strong credit discipline."},
-  BAC:{ceo:"Brian Moynihan (since 2010)",cfo:"Alastair Borthwick (since 2019)",track:"Moynihan transformed BAC post-2008, reducing expenses and building capital. The bank is focused on digital banking and ESG."}
+  BAC:{ceo:"Brian Moynihan (since 2010)",cfo:"Alastair Borthwick (since 2019)",track:"Moynihan transformed BAC post-2008, reducing expenses and building capital. The bank is focused on digital banking and ESG."},
+  // NEW STOCK: Westpac
+  WBC:{ceo:"Peter King (since 2020)",cfo:"Michael Rowland (since 2022)",track:"King focused on simplification, cost reduction, and digital transformation. Strong capital returns."},
+  // NEW STOCK: Roche
+  RHHBY:{ceo:"Thomas Schinecker (since 2023)",cfo:"Alan Hippe (since 2019)",track:"Schinecker focuses on innovation, diagnostics integration, and digital health. Strong pipeline in oncology and immunology."}
 };
 const SECTOR_RISKS = {
   "Mining":[{name:"Commodity Price",low:-40,high:30},{name:"Production Volume",low:-20,high:15},{name:"AUD/USD Rate",low:-15,high:10},{name:"Operating Costs",low:-18,high:5},{name:"Regulatory/ESG",low:-12,high:3}],
@@ -969,7 +981,11 @@ const SECTOR_RISKS = {
   "General":[{name:"Economic Slowdown",low:-25,high:15},{name:"Competition",low:-20,high:10},{name:"Regulatory Changes",low:-15,high:5},{name:"Cost Inflation",low:-18,high:3},{name:"Currency Risk",low:-12,high:8}]
 };
 const CO_INFO = {
-  BHP:{sector:"Mining"}, WDS:{sector:"Oil & Gas"}, CBA:{sector:"Banking"}, NAB:{sector:"Banking"}, ANZ:{sector:"Banking"}, BBRI:{sector:"Banking"}, ADRO:{sector:"Coal Mining"}, SMSM:{sector:"Auto Parts"}, UNTR:{sector:"Heavy Equipment & Mining"}, ITMG:{sector:"Coal Mining"}, POWR:{sector:"Power & Utilities"}, MPMX:{sector:"Automotive"}, BTPS:{sector:"Islamic Banking"}, DMAS:{sector:"Industrial Real Estate"}, SPTO:{sector:"Building Materials"}, TSM:{sector:"Semiconductors"}, V:{sector:"Payments"}, MA:{sector:"Payments"}, "PBR-A":{sector:"Oil & Gas"}, MSFT:{sector:"Technology"}, AMZN:{sector:"E-Commerce & Cloud"}, AAPL:{sector:"Technology"}, META:{sector:"Social Media"}, NVDA:{sector:"Semiconductors"}, GOOG:{sector:"Technology"}, BKNG:{sector:"Online Travel"}, AVGO:{sector:"Semiconductors"}, CVX:{sector:"Oil & Gas"}, AXP:{sector:"Payments"}, BAC:{sector:"Banking"}
+  BHP:{sector:"Mining"}, WDS:{sector:"Oil & Gas"}, CBA:{sector:"Banking"}, NAB:{sector:"Banking"}, ANZ:{sector:"Banking"}, BBRI:{sector:"Banking"}, ADRO:{sector:"Coal Mining"}, SMSM:{sector:"Auto Parts"}, UNTR:{sector:"Heavy Equipment & Mining"}, ITMG:{sector:"Coal Mining"}, POWR:{sector:"Power & Utilities"}, MPMX:{sector:"Automotive"}, BTPS:{sector:"Islamic Banking"}, DMAS:{sector:"Industrial Real Estate"}, SPTO:{sector:"Building Materials"}, TSM:{sector:"Semiconductors"}, V:{sector:"Payments"}, MA:{sector:"Payments"}, "PBR-A":{sector:"Oil & Gas"}, MSFT:{sector:"Technology"}, AMZN:{sector:"E-Commerce & Cloud"}, AAPL:{sector:"Technology"}, META:{sector:"Social Media"}, NVDA:{sector:"Semiconductors"}, GOOG:{sector:"Technology"}, BKNG:{sector:"Online Travel"}, AVGO:{sector:"Semiconductors"}, CVX:{sector:"Oil & Gas"}, AXP:{sector:"Payments"}, BAC:{sector:"Banking"},
+  // NEW STOCK: Westpac
+  WBC:{sector:"Banking"},
+  // NEW STOCK: Roche
+  RHHBY:{sector:"Pharmaceuticals"}
 };
 function generateCustomTornado(sym, st, m) {
   const customRisks = {
@@ -977,7 +993,9 @@ function generateCustomTornado(sym, st, m) {
     "WDS":[{name:"LNG spot price volatility", low:-40, high:35},{name:"Project execution risk (Louisiana LNG)", low:-25, high:15},{name:"Carbon tax / energy transition", low:-20, high:5},{name:"Asian LNG demand slowdown", low:-30, high:20},{name:"AUD/USD exchange rate", low:-15, high:10}],
     "BBRI":[{name:"Microfinance NPL (non-performing loans)", low:-35, high:8},{name:"Rupiah depreciation (IDR)", low:-20, high:10},{name:"Government KUR program changes", low:-25, high:5},{name:"Digital bank competition (SeaBank, Jago)", low:-15, high:10},{name:"Rural economic downturn", low:-28, high:12}],
     "ANZ":[{name:"Net Interest Margin (NIM) compression", low:-20, high:10},{name:"Institutional banking credit risk", low:-25, high:15},{name:"Housing market downturn", low:-25, high:8},{name:"Digital-only bank competition", low:-15, high:5},{name:"Asian exit residual risks", low:-10, high:2}],
-    "NAB":[{name:"Business credit cycle downturn", low:-30, high:15},{name:"Net Interest Margin (NIM) compression", low:-20, high:10},{name:"Home loan competition (market share erosion)", low:-15, high:5},{name:"Technology & digital execution risk", low:-18, high:8},{name:"Regulatory capital changes", low:-12, high:3}]
+    "NAB":[{name:"Business credit cycle downturn", low:-30, high:15},{name:"Net Interest Margin (NIM) compression", low:-20, high:10},{name:"Home loan competition (market share erosion)", low:-15, high:5},{name:"Technology & digital execution risk", low:-18, high:8},{name:"Regulatory capital changes", low:-12, high:3}],
+    "WBC":[{name:"Net Interest Margin (NIM) compression", low:-20, high:10},{name:"Housing market downturn", low:-25, high:8},{name:"Home loan competition (market share erosion)", low:-15, high:5},{name:"Digital-only bank competition", low:-15, high:5},{name:"Regulatory capital requirements", low:-12, high:3}],
+    "RHHBY":[{name:"Drug patent expirations", low:-25, high:5},{name:"Regulatory approval setbacks", low:-20, high:8},{name:"Competition from generics/biosimilars", low:-20, high:5},{name:"R&D productivity", low:-15, high:20},{name:"Healthcare policy changes (pricing)", low:-15, high:5}]
   };
   if (customRisks[sym]) return customRisks[sym];
   const sector = CO_INFO[sym]?.sector || 'General';
