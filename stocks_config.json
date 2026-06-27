@@ -3,6 +3,14 @@
   "_format": "symbol, name, exchange (ASX/IDX/NYSE/NASDAQ), display currency, yfinance ticker, hint_cur (USD/AUD/IDR/TWD etc)",
   "custom_stocks": [
     {
+    "symbol": "ESSA",
+      "name": "ESSA Industries Indonesia Tbk PT",
+      "exchange": "IDX",
+      "currency": "T IDR",
+      "ticker": "ESSA",
+      "hint_cur": "IDR"
+    }
+    {
       "symbol": "CBA",
       "name": "Commonwealth Bank of Australia",
       "exchange": "ASX",
