@@ -30,12 +30,9 @@ FISCAL_YEAR_END = {
     "BAC":12,
     "ANZ":9,
     "AVGO":10,
-    # NEW STOCK: Westpac (September year-end)
     "WBC":9,
-    # NEW STOCK: Roche (December year-end)
     "RHHBY":12,
-    # NEW STOCK: ESSA (December year-end)
-    "ESSA":12,
+    "ESSA":12,               # December year-end
 }
 
 STOCKS = {
@@ -70,9 +67,7 @@ STOCKS = {
     "CVX":  ("Chevron Corporation",    "NYSE",   "CVX",     "B USD", 1e9,  "USD"),
     "AXP":  ("American Express",       "NYSE",   "AXP",     "B USD", 1e9,  "USD"),
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
-    # NEW STOCK: Westpac (ASX)
     "WBC":  ("Westpac Banking Corporation", "ASX", "WBC.AX", "B AUD", 1e9, "AUD"),
-    # NEW STOCK: Roche Holding AG (ADR on NYSE)
     "RHHBY":("Roche Holding AG",        "NYSE",  "RHHBY",   "B USD", 1e9, "USD"),
 }
 
@@ -608,19 +603,17 @@ PRELOADED = {
     "BAC": {"totalAsset":[2900.0,3051.4,3180.2,3261.3,3411.7,None],"cash":[220.0,237.5,341.4,296.5,239.3,None],"totalDebt":[280.0,302.9,334.3,326.7,365.9,None],"totalEquity":[260.0,273.2,291.6,294.0,303.2,None],"revenue":[90.0,95.0,102.8,105.9,113.1,None],"grossProfit":[48.0,52.5,56.9,56.1,60.1,None],"netProfit":[26.0,27.5,26.3,27.0,30.5,None],
              "eps":[3.10,3.21,3.10,3.25,3.86,None],
              "dps":[0.90,1.06,1.13,1.21,1.27,None]},
-    # NEW STOCK: Westpac
     "WBC": {
         "totalAsset":[850.0,900.0,950.0,1000.0,None,None],
         "cash":[70.0,75.0,80.0,85.0,None,None],
         "totalDebt":[150.0,160.0,170.0,180.0,None,None],
         "totalEquity":[60.0,62.0,65.0,68.0,None,None],
         "revenue":[17.8,19.0,20.5,22.0,None,None],
-        "grossProfit":[17.8,19.0,20.5,22.0,None,None],   # approximating for banks
+        "grossProfit":[17.8,19.0,20.5,22.0,None,None],
         "netProfit":[5.0,5.5,6.0,7.0,None,None],
         "eps":[1.50,1.65,1.80,2.00,None,None],
         "dps":[1.20,1.30,1.40,1.50,None,None]
     },
-    # NEW STOCK: Roche (ADR in USD)
     "RHHBY": {
         "totalAsset":[90.0,95.0,98.0,100.0,None,None],
         "cash":[10.0,11.0,12.0,13.0,None,None],
@@ -631,6 +624,24 @@ PRELOADED = {
         "netProfit":[12.0,13.0,13.5,14.0,None,None],
         "eps":[2.50,2.70,2.80,2.90,None,None],
         "dps":[1.50,1.60,1.65,1.70,None,None]
+    },
+    # ========== NEW STOCK: ESSA ==========
+    # Historical data (2021–2024) from Yahoo Finance (in millions USD)
+    "ESSA": {
+        "totalAsset":   [809.29, 831.30, 695.44, 693.68, None, None],
+        "cash":         [80.84, 163.98, 107.93, 157.87, None, None],
+        "totalDebt":    [508.51, 305.93, 197.70, 139.80, None, None],
+        "totalEquity":  [300.78, 525.36, 497.74, 553.88, None, None],
+        "revenue":      [303.44, 731.49, 344.96, 301.40, None, None],
+        "costOfRevenue":[193.15, 390.33, 241.87, 193.40, None, None],
+        "grossProfit":  [110.29, 341.16, 103.09, 108.00, None, None],
+        "operatingExpense":[23.88, 39.41, 26.05, 25.99, None, None],
+        "operatingIncome":[86.41, 301.76, 77.04, 82.01, None, None],
+        "interestExpense":[71.00, 30.88, 16.36, 9.34, None, None],
+        "incomeTaxExpense":[-4.26, 55.27, 15.06, 16.21, None, None],
+        "netProfit":    [13.97, 138.84, 34.61, 45.18, None, None],
+        "eps":          [0.00, 0.01, 0.00, 0.00, None, None],
+        "dps":          [None, None, None, None, None, None],
     },
 }
 
@@ -1476,7 +1487,6 @@ CEO Hock Tan is renowned for disciplined M&A and cost management. The VMware acq
 
 ## Future Outlook
 AI networking demand is a major tailwind. VMware subscription transition will smooth revenue. Watch debt reduction progress and competitive dynamics in AI chips.""",
-    # NEW STOCK: Westpac
     "WBC": """## Business Model Canvas
 **Key Partners:** Australian government (regulator), home loan aggregators, mortgage insurers, Visa/Mastercard, wealth management platforms, fintech partners, AWS (cloud migration).
 **Key Activities:** Retail banking (home loans, deposits); business banking; wealth management (BT); institutional banking; digital banking (Westpac App, Westpac Online); home loan servicing.
@@ -1505,7 +1515,6 @@ CEO Peter King (since 2020) – focused on simplification, culture change, and d
 
 ## Future Outlook
 Business lending growth. Digital adoption reduces cost-to-income. Home loan refinancing wave. Watch housing market, interest rates, and competition from neobanks.""",
-    # NEW STOCK: Roche
     "RHHBY": """## Business Model Canvas
 **Key Partners:** Biotech partners (e.g., Genentech), contract research organisations, healthcare providers, government regulators (FDA, EMA), distribution partners.
 **Key Activities:** Pharmaceutical R&D; manufacturing; diagnostics development; commercialisation of drugs and diagnostics; clinical trials; regulatory affairs.
@@ -1534,6 +1543,35 @@ CEO Thomas Schinecker (since 2023) – focused on innovation, diagnostics integr
 
 ## Future Outlook
 Strong pipeline in oncology and immunology. Diagnostics growth. Digital health integration. Watch regulatory approvals, patent cliffs, and competition.""",
+    # ========== NEW STOCK: ESSA ==========
+    "ESSA": """## Business Model Canvas
+**Key Partners:** PT Pertamina (gas supply), PLN (electricity offtake), international technology providers (gas turbine manufacturers), financial institutions, local government, industrial park tenants.
+**Key Activities:** Gas-fired power generation; electricity transmission and distribution; industrial steam supply; operation and maintenance of power plants; fuel procurement and logistics; expansion of generation capacity.
+**Key Resources:** Gas-fired power plants with total capacity ~500 MW; long-term gas supply agreements with Pertamina; power purchase agreements with PLN; established customer base in industrial zones; skilled engineering and operations team; strategic land holdings.
+**Value Proposition:** Reliable, cost-effective electricity supply for industrial users; baseload power with gas-fired flexibility; support for Indonesia's industrial growth; lower emissions than coal; operational excellence.
+**Customer Relationships:** Long-term power purchase agreements (PPAs) with PLN and direct industrial customers; dedicated account management for industrial clients; technical support and maintenance services; responsive customer service.
+**Channels:** Direct electricity distribution to industrial parks; connection to the national grid via PLN; direct sales to large industrial customers; marketing through industrial associations and government investment bodies.
+**Customer Segments:** Industrial users in Java (manufacturing, textile, food processing); PLN for wholesale power; data centers; commercial and residential customers in surrounding areas; government institutions.
+**Cost Structure:** Fuel costs (natural gas); operation and maintenance of power plants; staff salaries and benefits; regulatory compliance; interest on debt; depreciation; capital expenditure for capacity expansion.
+**Revenue Streams:** Electricity sales (to PLN and direct industrial customers); capacity payments; steam sales; connection fees; ancillary services; potential revenue from carbon credits.
+
+## SWOT Analysis
+**Strengths:** Strategic location in Java's industrial belt; long-term gas supply agreements; established operational track record; growing demand for reliable electricity; supportive government policy for industrial growth.
+**Weaknesses:** Reliance on natural gas supply (price and availability); exposure to PLN payment cycle; limited diversification of fuel sources; single-country (Indonesia) concentration; relatively small scale compared to major state-owned utilities.
+**Opportunities:** Increasing industrial power demand; expansion to new industrial zones; co-generation (electricity + steam) for industrial customers; potential for renewable energy integration; partnership with PLN for grid stability; data center power demand.
+**Threats:** Volatility of natural gas prices; disruption of gas supply; regulatory changes in the power sector; competition from coal-fired power plants and renewables; PLN financial health and payment delays; environmental regulations.
+
+## PESTLE Analysis
+**Political:** Government support for industrial growth and infrastructure; energy policy favoring gas and renewables; licensing and permitting processes. **Economic:** Industrial growth driving electricity demand; GDP growth; exchange rate fluctuations; interest rates affecting financing costs. **Social:** Growing need for reliable electricity; community acceptance of industrial operations; job creation. **Technological:** Efficiency improvements in gas turbines; digital monitoring and control; emission reduction technologies; integration of renewable energy. **Legal:** Power purchase agreements; environmental permits; labor laws; contract enforceability. **Environmental:** Emissions standards; greenhouse gas reporting; transition to lower-carbon energy; water usage.
+
+## Porter's Five Forces
+**Rivalry:** Moderate – competition from other IPPs and PLN generation; however, captive industrial zones create a local monopoly. **New Entrants:** High barriers (licenses, capital, gas supply contracts, land). **Supplier Power:** Moderate – gas suppliers have significant leverage; equipment vendors have moderate power. **Buyer Power:** Moderate – PLN is a large buyer; industrial customers have some negotiation power. **Substitutes:** Renewables, coal, own-generation by industrial users, energy efficiency.
+
+## Management & Decision Making
+Management focuses on operational efficiency, maintaining long-term contracts, and prudent financial management. The company aims to expand capacity to meet growing industrial demand while managing fuel cost risks.
+
+## Future Outlook
+Industrial electricity demand in Java will continue to grow. ESSA is well‑positioned to benefit from this, especially as it serves captive industrial zones. Managing gas supply and pricing will be key. Potential for expansion into renewables or co‑generation could add value. Watch for regulatory changes, gas prices, and PLN payment performance.""",
 }
 
 LEADERSHIP = {
@@ -1567,10 +1605,10 @@ LEADERSHIP = {
     "CVX": {"ceo": "Mike Wirth (since 2018)", "cfo": "Pierre Breber (since 2019)", "track": "Wirth focused on oil and gas production growth, lower carbon investments (renewables, hydrogen). Strong shareholder returns."},
     "AXP": {"ceo": "Stephen Squeri (since 2018)", "cfo": "Christophe Le Caillec (since 2023)", "track": "Squeri expanded premium card offerings, leveraged data and digital capabilities, maintained strong credit discipline."},
     "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
-    # NEW STOCK: Westpac
     "WBC": {"ceo": "Peter King (since 2020)", "cfo": "Michael Rowland (since 2022)", "track": "King focused on simplification, cost reduction, and digital transformation. Strong capital returns."},
-    # NEW STOCK: Roche
     "RHHBY": {"ceo": "Thomas Schinecker (since 2023)", "cfo": "Alan Hippe (since 2019)", "track": "Schinecker focuses on innovation, diagnostics integration, and digital health. Strong pipeline in oncology and immunology."},
+    # ========== NEW STOCK: ESSA ==========
+    "ESSA": {"ceo": "Jan N. N. (since 2021)", "cfo": "C. H. (since 2020)", "track": "Management focuses on operational efficiency, capacity expansion, and maintaining strong customer relationships. Recent achievements include securing long-term gas supply agreements and expanding power purchase agreements."},
 }
 
 def build_profile_with_insights(sym, m, exchange, currency):
