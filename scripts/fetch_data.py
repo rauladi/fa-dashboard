@@ -34,6 +34,8 @@ FISCAL_YEAR_END = {
     "WBC":9,
     # NEW STOCK: Roche (December year-end)
     "RHHBY":12,
+    # NEW STOCK: ESSA (December year-end)
+    "ESSA":12,
 }
 
 STOCKS = {
@@ -52,6 +54,7 @@ STOCKS = {
     "BTPS": ("Bank BTPN Syariah",       "IDX",    "BTPS.JK", "T IDR", 1e12, "IDR"),
     "DMAS": ("Puradelta Lestari",       "IDX",    "DMAS.JK", "T IDR", 1e12, "IDR"),
     "SPTO": ("Surya Toto Indonesia",    "IDX",    "SPTO.JK", "T IDR", 1e12, "IDR"),
+    "ESSA": ("ESSA Industries Indonesia Tbk","IDX","ESSA.JK","T IDR", 1e12, "IDR"),
     "TSM":  ("Taiwan Semiconductor",   "NYSE",   "TSM",     "B USD", 1e9,  "USD"),
     "V":    ("Visa Inc.",              "NYSE",   "V",       "B USD", 1e9,  "USD"),
     "MA":   ("Mastercard Inc.",        "NYSE",   "MA",      "B USD", 1e9,  "USD"),
