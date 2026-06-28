@@ -364,6 +364,12 @@ def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, tw
         q_inc = tick.quarterly_financials
         q_bal = tick.quarterly_balance_sheet
 
+        # Debug: print available columns for ESSA
+        if sym == "ESSA":
+            print(f"  [DEBUG ESSA] inc_df columns: {list(inc_df.columns) if inc_df is not None else None}")
+            print(f"  [DEBUG ESSA] bal_df columns: {list(bal_df.columns) if bal_df is not None else None}")
+            print(f"  [DEBUG ESSA] q_inc columns: {list(q_inc.columns) if q_inc is not None else None}")
+
         def fill_from_df(df, row_dict, field_candidates_map, substring_map):
             if df is None or df.empty: return False
             for col in df.columns:
@@ -625,10 +631,9 @@ PRELOADED = {
         "eps":[2.50,2.70,2.80,2.90,None,None],
         "dps":[1.50,1.60,1.65,1.70,None,None]
     },
-    # ========== ESSA – corrected historical data ==========
-    # All values are in original currency (IDR for EPS/DPS, USD millions for others)
-    # Shares outstanding ~3.96B; EPS = (netProfit in USD * usd_idr) / shares
-    # DPS from actual dividend announcements (approximate)
+    # ========== ESSA – corrected historical data (2021–2024) ==========
+    # All monetary values (except EPS/DPS) are in millions of USD.
+    # EPS and DPS are in IDR per share.
     "ESSA": {
         "totalAsset":   [809.29, 831.30, 695.44, 693.68, None, None],
         "cash":         [80.84, 163.98, 107.93, 157.87, None, None],
@@ -642,8 +647,8 @@ PRELOADED = {
         "interestExpense":[71.00, 30.88, 16.36, 9.34, None, None],
         "incomeTaxExpense":[-4.26, 55.27, 15.06, 16.21, None, None],
         "netProfit":    [13.97, 138.84, 34.61, 45.18, None, None],
-        "eps":          [53, 526, 131, 171, None, None],      # IDR per share (rounded)
-        "dps":          [15, 40, 20, 30, None, None],        # IDR per share (estimated from dividends)
+        "eps":          [53, 526, 131, 171, None, None],    # IDR per share
+        "dps":          [15, 40, 20, 30, None, None],      # IDR per share
     },
 }
 
