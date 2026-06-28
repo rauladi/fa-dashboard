@@ -1551,36 +1551,35 @@ CEO Thomas Schinecker (since 2023) – focused on innovation, diagnostics integr
 ## Future Outlook
 Strong pipeline in oncology and immunology. Diagnostics growth. Digital health integration. Watch regulatory approvals, patent cliffs, and competition.""",
     # ========== NEW STOCK: ESSA ==========
-    "ESSA": """## Business Model Canvas
-**Key Partners:** PT Pertamina (gas supply), PLN (electricity offtake), international technology providers (gas turbine manufacturers), financial institutions, local government, industrial park tenants.
-**Key Activities:** Gas-fired power generation; electricity transmission and distribution; industrial steam supply; operation and maintenance of power plants; fuel procurement and logistics; expansion of generation capacity.
-**Key Resources:** Gas-fired power plants with total capacity ~500 MW; long-term gas supply agreements with Pertamina; power purchase agreements with PLN; established customer base in industrial zones; skilled engineering and operations team; strategic land holdings.
-**Value Proposition:** Reliable, cost-effective electricity supply for industrial users; baseload power with gas-fired flexibility; support for Indonesia's industrial growth; lower emissions than coal; operational excellence.
-**Customer Relationships:** Long-term power purchase agreements (PPAs) with PLN and direct industrial customers; dedicated account management for industrial clients; technical support and maintenance services; responsive customer service.
-**Channels:** Direct electricity distribution to industrial parks; connection to the national grid via PLN; direct sales to large industrial customers; marketing through industrial associations and government investment bodies.
-**Customer Segments:** Industrial users in Java (manufacturing, textile, food processing); PLN for wholesale power; data centers; commercial and residential customers in surrounding areas; government institutions.
-**Cost Structure:** Fuel costs (natural gas); operation and maintenance of power plants; staff salaries and benefits; regulatory compliance; interest on debt; depreciation; capital expenditure for capacity expansion.
-**Revenue Streams:** Electricity sales (to PLN and direct industrial customers); capacity payments; steam sales; connection fees; ancillary services; potential revenue from carbon credits.
+
+"ESSA": """## Business Model Canvas
+**Key Partners:** PT Pertamina (gas supply), PT Panca Amara Utama (ammonia subsidiary), international LPG offtakers, fertilizer manufacturers, industrial gas distributors, financial institutions, Indonesian government (regulatory).
+**Key Activities:** Natural gas processing and refining into LPG and condensate; ammonia production; procurement and distribution of natural and artificial gas; oil mining support; trading of solid, liquid, and gas fuels; plant operations and maintenance.
+**Key Resources:** LPG refinery in Palembang, South Sumatra (190 tons/day LPG, 500 barrels/day condensate); ammonia plant in Banggai, Central Sulawesi (>700,000 tons/year capacity); long-term gas supply agreements; established distribution network; skilled technical workforce.
+**Value Proposition:** Integrated energy and petrochemical producer; domestic LPG supply for household, commercial, and industrial use; ammonia as key feedstock for fertilizers, explosives, dyes, and nylon; strategic diversification across energy and chemicals; rebranded to reflect broader industrial footprint.
+**Customer Relationships:** Long-term supply contracts with LPG distributors and industrial buyers; ammonia offtake agreements with fertilizer and chemical companies; direct sales to industrial customers; responsive customer service and technical support.
+**Channels:** Direct distribution to LPG buyers; pipeline and shipping for ammonia exports; distribution network across Indonesia; trading desk for fuel products; marketing through industrial associations.
+**Customer Segments:** Household LPG consumers (through distributors); commercial establishments (hotels, shopping centers); industrial users (welding, construction, manufacturing); fertilizer producers; chemical and dye manufacturers; nylon producers.
+**Cost Structure:** Natural gas feedstock; plant operation and maintenance; staff salaries; regulatory compliance; transportation and logistics; depreciation; capital expenditure for maintenance and expansion.
+**Revenue Streams:** LPG sales; condensate sales; ammonia sales; processing fees; trading income from fuel products; supporting services for oil and gas mining.
 
 ## SWOT Analysis
-**Strengths:** Strategic location in Java's industrial belt; long-term gas supply agreements; established operational track record; growing demand for reliable electricity; supportive government policy for industrial growth.
-**Weaknesses:** Reliance on natural gas supply (price and availability); exposure to PLN payment cycle; limited diversification of fuel sources; single-country (Indonesia) concentration; relatively small scale compared to major state-owned utilities.
-**Opportunities:** Increasing industrial power demand; expansion to new industrial zones; co-generation (electricity + steam) for industrial customers; potential for renewable energy integration; partnership with PLN for grid stability; data center power demand.
-**Threats:** Volatility of natural gas prices; disruption of gas supply; regulatory changes in the power sector; competition from coal-fired power plants and renewables; PLN financial health and payment delays; environmental regulations.
+**Strengths:** Vertically integrated energy and chemical producer; established LPG refinery and large-scale ammonia plant; long-term gas supply agreements; strategic diversification across LPG and ammonia; rebranding reflects broader capabilities.
+**Weaknesses:** Exposure to natural gas price and supply volatility; dependency on domestic market; relatively small scale compared to state-owned energy majors; single-country concentration.
+**Opportunities:** Growing domestic LPG demand; ammonia demand for fertilizers and industrial chemicals; export potential for ammonia to regional markets; expansion into downstream chemical products; renewable energy integration.
+**Threats:** Volatility of natural gas prices; disruption of gas supply; regulatory changes in energy and chemical sectors; competition from imported LPG and ammonia; environmental regulations and carbon pricing.
 
 ## PESTLE Analysis
-**Political:** Government support for industrial growth and infrastructure; energy policy favoring gas and renewables; licensing and permitting processes. **Economic:** Industrial growth driving electricity demand; GDP growth; exchange rate fluctuations; interest rates affecting financing costs. **Social:** Growing need for reliable electricity; community acceptance of industrial operations; job creation. **Technological:** Efficiency improvements in gas turbines; digital monitoring and control; emission reduction technologies; integration of renewable energy. **Legal:** Power purchase agreements; environmental permits; labor laws; contract enforceability. **Environmental:** Emissions standards; greenhouse gas reporting; transition to lower-carbon energy; water usage.
+**Political:** Government energy policy, domestic gas allocation requirements, licensing and permitting. **Economic:** GDP growth driving energy demand, fertilizer subsidies affecting ammonia demand, exchange rate fluctuations. **Social:** Growing household LPG adoption, urbanization driving energy consumption. **Technological:** Efficiency improvements in gas processing and ammonia production, carbon capture technologies, digital monitoring and automation. **Legal:** Mining and energy regulations, environmental permits, trade policies. **Environmental:** Emissions standards, greenhouse gas reporting, transition to lower-carbon energy.
 
 ## Porter's Five Forces
-**Rivalry:** Moderate – competition from other IPPs and PLN generation; however, captive industrial zones create a local monopoly. **New Entrants:** High barriers (licenses, capital, gas supply contracts, land). **Supplier Power:** Moderate – gas suppliers have significant leverage; equipment vendors have moderate power. **Buyer Power:** Moderate – PLN is a large buyer; industrial customers have some negotiation power. **Substitutes:** Renewables, coal, own-generation by industrial users, energy efficiency.
+**Rivalry:** Moderate – competition from other domestic LPG producers and imports; ammonia market has few large players. **New Entrants:** High barriers (capital, gas supply contracts, permits, technology). **Supplier Power:** Moderate – gas suppliers have significant leverage. **Buyer Power:** Moderate – LPG distributors and fertilizer buyers have some negotiation power. **Substitutes:** Imported LPG, alternative fuels, imported ammonia.
 
 ## Management & Decision Making
-Management focuses on operational efficiency, maintaining long-term contracts, and prudent financial management. The company aims to expand capacity to meet growing industrial demand while managing fuel cost risks.
+Management focuses on operational efficiency, maintaining gas supply security, and expanding production capacity. The company has successfully diversified from LPG into ammonia production and is positioned to benefit from growing domestic energy and fertilizer demand. Recent rebranding reflects strategic commitment to the energy and chemical sectors.
 
 ## Future Outlook
-Industrial electricity demand in Java will continue to grow. ESSA is well‑positioned to benefit from this, especially as it serves captive industrial zones. Managing gas supply and pricing will be key. Potential for expansion into renewables or co‑generation could add value. Watch for regulatory changes, gas prices, and PLN payment performance.""",
-}
-
+Domestic LPG demand continues to grow with population and urbanization. Ammonia demand is supported by fertilizer needs and industrial applications. Export opportunities to regional markets could drive growth. Key risks include gas supply stability, regulatory changes, and competition from imports. Watch for capacity expansion plans, export market development, and gas supply agreements.""",
 LEADERSHIP = {
     "BHP": {"ceo": "Mike Henry (since 2020)", "cfo": "David Lamont (since 2021)", "track": "Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
     "WDS": {"ceo": "Meg O'Neill (since 2021)", "cfo": "Graham Tiver (since 2020)", "track": "O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
@@ -1614,7 +1613,7 @@ LEADERSHIP = {
     "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
     "WBC": {"ceo": "Peter King (since 2020)", "cfo": "Michael Rowland (since 2022)", "track": "King focused on simplification, cost reduction, and digital transformation. Strong capital returns."},
     "RHHBY": {"ceo": "Thomas Schinecker (since 2023)", "cfo": "Alan Hippe (since 2019)", "track": "Schinecker focuses on innovation, diagnostics integration, and digital health. Strong pipeline in oncology and immunology."},
-    "ESSA": {"ceo": "Jan N. N. (since 2021)", "cfo": "C. H. (since 2020)", "track": "Management focuses on operational efficiency, capacity expansion, and maintaining strong customer relationships. Recent achievements include securing long-term gas supply agreements and expanding power purchase agreements."},
+    "ESSA": {"ceo": "Kanishk Laroya (CEO & President Director since 2023)", "cfo": "Prakash Chand Bumb (CFO & Director since 2013)", "track": "Under Laroya's leadership, the company rebranded from PT Surya Esa Perkasa to PT ESSA Industries Indonesia Tbk in 2023, reflecting diversification beyond LPG into ammonia and petrochemicals. The ammonia plant in Banggai has become a key growth driver, establishing ESSA as a major player in Indonesia's petrochemical sector."},
 }
 
 def build_profile_with_insights(sym, m, exchange, currency):
