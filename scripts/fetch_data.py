@@ -32,7 +32,7 @@ FISCAL_YEAR_END = {
     "AVGO":10,
     "WBC":9,
     "RHHBY":12,
-    "ESSA":12,               # December year-end
+    "ESSA":12,
 }
 
 STOCKS = {
@@ -364,12 +364,6 @@ def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, tw
         q_inc = tick.quarterly_financials
         q_bal = tick.quarterly_balance_sheet
 
-        # Debug: print available columns for ESSA
-        if sym == "ESSA":
-            print(f"  [DEBUG ESSA] inc_df columns: {list(inc_df.columns) if inc_df is not None else None}")
-            print(f"  [DEBUG ESSA] bal_df columns: {list(bal_df.columns) if bal_df is not None else None}")
-            print(f"  [DEBUG ESSA] q_inc columns: {list(q_inc.columns) if q_inc is not None else None}")
-
         def fill_from_df(df, row_dict, field_candidates_map, substring_map):
             if df is None or df.empty: return False
             for col in df.columns:
@@ -631,9 +625,7 @@ PRELOADED = {
         "eps":[2.50,2.70,2.80,2.90,None,None],
         "dps":[1.50,1.60,1.65,1.70,None,None]
     },
-    # ========== ESSA – corrected historical data (2021–2024) ==========
-    # All monetary values (except EPS/DPS) are in millions of USD.
-    # EPS and DPS are in IDR per share.
+    # ========== ESSA – correct historical data (2021–2024) ==========
     "ESSA": {
         "totalAsset":   [809.29, 831.30, 695.44, 693.68, None, None],
         "cash":         [80.84, 163.98, 107.93, 157.87, None, None],
@@ -647,12 +639,12 @@ PRELOADED = {
         "interestExpense":[71.00, 30.88, 16.36, 9.34, None, None],
         "incomeTaxExpense":[-4.26, 55.27, 15.06, 16.21, None, None],
         "netProfit":    [13.97, 138.84, 34.61, 45.18, None, None],
-        "eps":          [53, 526, 131, 171, None, None],    # IDR per share
-        "dps":          [15, 40, 20, 30, None, None],      # IDR per share
+        "eps":          [53, 526, 131, 171, None, None],
+        "dps":          [15, 40, 20, 30, None, None],
     },
 }
 
-# ---------- PROFILES & LEADERSHIP (unchanged except additions) ----------
+# ---------- PROFILES & LEADERSHIP ----------
 PROFILES = {
     "BHP": """## Business Model Canvas
 **Key Partners:** Mitsubishi (BMA coal JV 50/50), Lundin Mining (Filo Corp 50/50), JESCO (Jansen potash JV), Vale (Samarco JV), BlackRock GIP (iron ore network), Bechtel, Thiess (EPC contractors), Commonwealth Bank, HSBC.
@@ -1550,9 +1542,8 @@ CEO Thomas Schinecker (since 2023) – focused on innovation, diagnostics integr
 
 ## Future Outlook
 Strong pipeline in oncology and immunology. Diagnostics growth. Digital health integration. Watch regulatory approvals, patent cliffs, and competition.""",
-    # ========== NEW STOCK: ESSA ==========
-
-"ESSA": """## Business Model Canvas
+    # ========== CORRECTED ESSA PROFILE ==========
+    "ESSA": """## Business Model Canvas
 **Key Partners:** PT Pertamina (gas supply), PT Panca Amara Utama (ammonia subsidiary), international LPG offtakers, fertilizer manufacturers, industrial gas distributors, financial institutions, Indonesian government (regulatory).
 **Key Activities:** Natural gas processing and refining into LPG and condensate; ammonia production; procurement and distribution of natural and artificial gas; oil mining support; trading of solid, liquid, and gas fuels; plant operations and maintenance.
 **Key Resources:** LPG refinery in Palembang, South Sumatra (190 tons/day LPG, 500 barrels/day condensate); ammonia plant in Banggai, Central Sulawesi (>700,000 tons/year capacity); long-term gas supply agreements; established distribution network; skilled technical workforce.
@@ -1580,6 +1571,8 @@ Management focuses on operational efficiency, maintaining gas supply security, a
 
 ## Future Outlook
 Domestic LPG demand continues to grow with population and urbanization. Ammonia demand is supported by fertilizer needs and industrial applications. Export opportunities to regional markets could drive growth. Key risks include gas supply stability, regulatory changes, and competition from imports. Watch for capacity expansion plans, export market development, and gas supply agreements.""",
+}
+
 LEADERSHIP = {
     "BHP": {"ceo": "Mike Henry (since 2020)", "cfo": "David Lamont (since 2021)", "track": "Henry drove portfolio simplification (sold petroleum to Woodside), disciplined capital returns, Jansen potash approval."},
     "WDS": {"ceo": "Meg O'Neill (since 2021)", "cfo": "Graham Tiver (since 2020)", "track": "O'Neill led acquisition of BHP's petroleum assets, Louisiana LNG FID, Beaumont ammonia purchase."},
@@ -1613,6 +1606,7 @@ LEADERSHIP = {
     "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
     "WBC": {"ceo": "Peter King (since 2020)", "cfo": "Michael Rowland (since 2022)", "track": "King focused on simplification, cost reduction, and digital transformation. Strong capital returns."},
     "RHHBY": {"ceo": "Thomas Schinecker (since 2023)", "cfo": "Alan Hippe (since 2019)", "track": "Schinecker focuses on innovation, diagnostics integration, and digital health. Strong pipeline in oncology and immunology."},
+    # ========== CORRECTED ESSA LEADERSHIP ==========
     "ESSA": {"ceo": "Kanishk Laroya (CEO & President Director since 2023)", "cfo": "Prakash Chand Bumb (CFO & Director since 2013)", "track": "Under Laroya's leadership, the company rebranded from PT Surya Esa Perkasa to PT ESSA Industries Indonesia Tbk in 2023, reflecting diversification beyond LPG into ammonia and petrochemicals. The ammonia plant in Banggai has become a key growth driver, establishing ESSA as a major player in Indonesia's petrochemical sector."},
 }
 
