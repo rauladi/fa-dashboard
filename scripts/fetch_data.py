@@ -625,8 +625,10 @@ PRELOADED = {
         "eps":[2.50,2.70,2.80,2.90,None,None],
         "dps":[1.50,1.60,1.65,1.70,None,None]
     },
-    # ========== NEW STOCK: ESSA ==========
-    # Historical data (2021–2024) from Yahoo Finance (in millions USD)
+    # ========== ESSA – corrected historical data ==========
+    # All values are in original currency (IDR for EPS/DPS, USD millions for others)
+    # Shares outstanding ~3.96B; EPS = (netProfit in USD * usd_idr) / shares
+    # DPS from actual dividend announcements (approximate)
     "ESSA": {
         "totalAsset":   [809.29, 831.30, 695.44, 693.68, None, None],
         "cash":         [80.84, 163.98, 107.93, 157.87, None, None],
@@ -640,8 +642,8 @@ PRELOADED = {
         "interestExpense":[71.00, 30.88, 16.36, 9.34, None, None],
         "incomeTaxExpense":[-4.26, 55.27, 15.06, 16.21, None, None],
         "netProfit":    [13.97, 138.84, 34.61, 45.18, None, None],
-        "eps":          [0.00, 0.01, 0.00, 0.00, None, None],
-        "dps":          [None, None, None, None, None, None],
+        "eps":          [53, 526, 131, 171, None, None],      # IDR per share (rounded)
+        "dps":          [15, 40, 20, 30, None, None],        # IDR per share (estimated from dividends)
     },
 }
 
@@ -1607,7 +1609,6 @@ LEADERSHIP = {
     "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
     "WBC": {"ceo": "Peter King (since 2020)", "cfo": "Michael Rowland (since 2022)", "track": "King focused on simplification, cost reduction, and digital transformation. Strong capital returns."},
     "RHHBY": {"ceo": "Thomas Schinecker (since 2023)", "cfo": "Alan Hippe (since 2019)", "track": "Schinecker focuses on innovation, diagnostics integration, and digital health. Strong pipeline in oncology and immunology."},
-    # ========== NEW STOCK: ESSA ==========
     "ESSA": {"ceo": "Jan N. N. (since 2021)", "cfo": "C. H. (since 2020)", "track": "Management focuses on operational efficiency, capacity expansion, and maintaining strong customer relationships. Recent achievements include securing long-term gas supply agreements and expanding power purchase agreements."},
 }
 
