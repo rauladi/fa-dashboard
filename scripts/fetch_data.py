@@ -17,9 +17,11 @@ print(f"Sources: yfinance (live years 2025–2026)", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
 
 FISCAL_YEAR_END = {
-    "BHP":6,"WDS":12,"CBA":6,
+    "BHP":6,"WDS":12,"CBA":6,"WBC":9,
+    "FMG":6,   # Fortescue – June year‑end
     "BBRI":12,"ADRO":12,"SMSM":12,"UNTR":12,
     "ITMG":12,"POWR":12,"MPMX":12,"BTPS":12,"DMAS":12,"SPTO":12,
+    "ESSA":12,
     "TSM":12,"V":9,"MA":12,
     "MSFT":6,"AMZN":12,"AAPL":9,"META":12,"NVDA":1,
     "GOOG":12,"BKNG":12,
@@ -30,10 +32,7 @@ FISCAL_YEAR_END = {
     "BAC":12,
     "ANZ":9,
     "AVGO":10,
-    "WBC":9,
     "RHHBY":12,
-    "ESSA":12,
-    "FMG":6,   # Fortescue – June year‑end
 }
 
 STOCKS = {
@@ -42,6 +41,8 @@ STOCKS = {
     "CBA":  ("Commonwealth Bank",       "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
     "NAB":  ("National Australia Bank", "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
     "ANZ":  ("ANZ Group Holdings Ltd",  "ASX",    "ANZ.AX",  "B AUD", 1e9,  "AUD"),
+    "WBC":  ("Westpac Banking Corporation", "ASX", "WBC.AX", "B AUD", 1e9, "AUD"),
+    "FMG":  ("Fortescue Metals Group",  "ASX",   "FMG.AX",  "B USD", 1e9, "USD"),
     "BBRI": ("Bank Rakyat Indonesia",   "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
     "ADRO": ("Alamtri Resources Indonesia", "IDX","ADRO.JK", "T IDR", 1e12, "USD"),
     "SMSM": ("Selamat Sempurna",        "IDX",    "SMSM.JK", "T IDR", 1e12, "IDR"),
@@ -68,9 +69,7 @@ STOCKS = {
     "CVX":  ("Chevron Corporation",    "NYSE",   "CVX",     "B USD", 1e9,  "USD"),
     "AXP":  ("American Express",       "NYSE",   "AXP",     "B USD", 1e9,  "USD"),
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
-    "WBC":  ("Westpac Banking Corporation", "ASX", "WBC.AX", "B AUD", 1e9, "AUD"),
     "RHHBY":("Roche Holding AG",        "NYSE",  "RHHBY",   "B USD", 1e9, "USD"),
-    "FMG":  ("Fortescue Metals Group",  "ASX",   "FMG.AX",  "B USD", 1e9, "USD"),
 }
 
 FIELDS = [
