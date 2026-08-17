@@ -17,11 +17,9 @@ print(f"Sources: yfinance (live years 2025–2026)", flush=True)
 print(f"Years: {ALL_YEARS}", flush=True)
 
 FISCAL_YEAR_END = {
-    "BHP":6,"WDS":12,"CBA":6,"WBC":9,
-    "FMG":6,   # Fortescue – June year‑end
+    "BHP":6,"WDS":12,"CBA":6,
     "BBRI":12,"ADRO":12,"SMSM":12,"UNTR":12,
     "ITMG":12,"POWR":12,"MPMX":12,"BTPS":12,"DMAS":12,"SPTO":12,
-    "ESSA":12,
     "TSM":12,"V":9,"MA":12,
     "MSFT":6,"AMZN":12,"AAPL":9,"META":12,"NVDA":1,
     "GOOG":12,"BKNG":12,
@@ -32,7 +30,10 @@ FISCAL_YEAR_END = {
     "BAC":12,
     "ANZ":9,
     "AVGO":10,
+    "WBC":9,
     "RHHBY":12,
+    "ESSA":12,
+    "FMG":6,   # Fortescue – June year‑end
 }
 
 STOCKS = {
@@ -41,8 +42,6 @@ STOCKS = {
     "CBA":  ("Commonwealth Bank",       "ASX",    "CBA.AX",  "B AUD", 1e9,  "AUD"),
     "NAB":  ("National Australia Bank", "ASX",    "NAB.AX",  "B AUD", 1e9,  "AUD"),
     "ANZ":  ("ANZ Group Holdings Ltd",  "ASX",    "ANZ.AX",  "B AUD", 1e9,  "AUD"),
-    "WBC":  ("Westpac Banking Corporation", "ASX", "WBC.AX", "B AUD", 1e9, "AUD"),
-    "FMG":  ("Fortescue Metals Group",  "ASX",   "FMG.AX",  "B USD", 1e9, "USD"),
     "BBRI": ("Bank Rakyat Indonesia",   "IDX",    "BBRI.JK", "T IDR", 1e12, "IDR"),
     "ADRO": ("Alamtri Resources Indonesia", "IDX","ADRO.JK", "T IDR", 1e12, "USD"),
     "SMSM": ("Selamat Sempurna",        "IDX",    "SMSM.JK", "T IDR", 1e12, "IDR"),
@@ -69,7 +68,9 @@ STOCKS = {
     "CVX":  ("Chevron Corporation",    "NYSE",   "CVX",     "B USD", 1e9,  "USD"),
     "AXP":  ("American Express",       "NYSE",   "AXP",     "B USD", 1e9,  "USD"),
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
+    "WBC":  ("Westpac Banking Corporation", "ASX", "WBC.AX", "B AUD", 1e9, "AUD"),
     "RHHBY":("Roche Holding AG",        "NYSE",  "RHHBY",   "B USD", 1e9, "USD"),
+    "FMG":  ("Fortescue Metals Group",  "ASX",   "FMG.AX",  "B USD", 1e9, "USD"),
 }
 
 FIELDS = [
@@ -340,6 +341,30 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
                 avg_ta_rev = sum(ratio_vals) / len(ratio_vals)
                 row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
                 if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset from historical ratio = {row['totalAsset']}", flush=True)
+
+    # ========== FMG specific correction ==========
+    if sym == "FMG" and row.get("revenue") is not None and row["revenue"] > 0:
+        pre = PRELOADED.get(sym, {})
+        rev_hist = (pre.get("revenue") or [])[:4]
+        ta_hist  = (pre.get("totalAsset") or [])[:4]
+        eq_hist  = (pre.get("totalEquity") or [])[:4]
+        # compute average ratios (ignore zeros)
+        ta_ratios = [ta / r for ta, r in zip(ta_hist, rev_hist) if r > 0 and ta > 0]
+        eq_ratios = [eq / r for eq, r in zip(eq_hist, rev_hist) if r > 0 and eq > 0]
+        # Override if asset is suspiciously low (< 10) or missing
+        if ta_ratios and (row.get("totalAsset") is None or row["totalAsset"] < 10):
+            avg_ta = sum(ta_ratios) / len(ta_ratios)
+            row["totalAsset"] = round(float(row["revenue"]) * avg_ta, 4)
+            if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset = {row['totalAsset']} (avg ratio {avg_ta:.2f})", flush=True)
+        if eq_ratios and (row.get("totalEquity") is None or row["totalEquity"] < 5):
+            avg_eq = sum(eq_ratios) / len(eq_ratios)
+            row["totalEquity"] = round(float(row["revenue"]) * avg_eq, 4)
+            if dbg: print(f"  [DEBUG {sym}] Estimated totalEquity = {row['totalEquity']} (avg ratio {avg_eq:.2f})", flush=True)
+        # If debt looks wrong (same as asset or missing), recompute as asset - equity
+        if row.get("totalAsset") is not None and row.get("totalEquity") is not None:
+            if row.get("totalDebt") is None or abs(row["totalDebt"] - row["totalAsset"]) < 0.1:
+                row["totalDebt"] = round(row["totalAsset"] - row["totalEquity"], 4)
+                if dbg: print(f"  [DEBUG {sym}] Recalculated totalDebt = {row['totalDebt']}", flush=True)
 
     if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
     if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
