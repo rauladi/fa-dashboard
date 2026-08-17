@@ -342,29 +342,33 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
                 row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
                 if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset from historical ratio = {row['totalAsset']}", flush=True)
 
-    # ========== FMG specific correction ==========
+    # ========== FMG specific override (guaranteed to run) ==========
     if sym == "FMG" and row.get("revenue") is not None and row["revenue"] > 0:
         pre = PRELOADED.get(sym, {})
         rev_hist = (pre.get("revenue") or [])[:4]
         ta_hist  = (pre.get("totalAsset") or [])[:4]
         eq_hist  = (pre.get("totalEquity") or [])[:4]
+
         # compute average ratios (ignore zeros)
         ta_ratios = [ta / r for ta, r in zip(ta_hist, rev_hist) if r > 0 and ta > 0]
         eq_ratios = [eq / r for eq, r in zip(eq_hist, rev_hist) if r > 0 and eq > 0]
-        # Override if asset is suspiciously low (< 15) or missing
-        if ta_ratios and (row.get("totalAsset") is None or row["totalAsset"] < 15):
+
+        # Override if asset is suspiciously low (< 20) or missing
+        if ta_ratios and (row.get("totalAsset") is None or row["totalAsset"] < 20):
             avg_ta = sum(ta_ratios) / len(ta_ratios)
             row["totalAsset"] = round(float(row["revenue"]) * avg_ta, 4)
-            if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset = {row['totalAsset']} (avg ratio {avg_ta:.2f})", flush=True)
+            print(f"  [FMG] Overrode totalAsset: {row['totalAsset']} (avg ratio {avg_ta:.2f})", flush=True)
+
         if eq_ratios and (row.get("totalEquity") is None or row["totalEquity"] < 5):
             avg_eq = sum(eq_ratios) / len(eq_ratios)
             row["totalEquity"] = round(float(row["revenue"]) * avg_eq, 4)
-            if dbg: print(f"  [DEBUG {sym}] Estimated totalEquity = {row['totalEquity']} (avg ratio {avg_eq:.2f})", flush=True)
-        # If debt looks wrong (same as asset or missing), recompute as asset - equity
+            print(f"  [FMG] Overrode totalEquity: {row['totalEquity']} (avg ratio {avg_eq:.2f})", flush=True)
+
+        # Recalculate debt if it matches asset or is missing
         if row.get("totalAsset") is not None and row.get("totalEquity") is not None:
             if row.get("totalDebt") is None or abs(row["totalDebt"] - row["totalAsset"]) < 0.1:
                 row["totalDebt"] = round(row["totalAsset"] - row["totalEquity"], 4)
-                if dbg: print(f"  [DEBUG {sym}] Recalculated totalDebt = {row['totalDebt']}", flush=True)
+                print(f"  [FMG] Recalculated totalDebt: {row['totalDebt']}", flush=True)
 
     if row.get("totalEquity") is not None and row["totalEquity"] < 0: row["totalEquity"] = None
     if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
