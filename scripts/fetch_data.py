@@ -351,8 +351,8 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
         # compute average ratios (ignore zeros)
         ta_ratios = [ta / r for ta, r in zip(ta_hist, rev_hist) if r > 0 and ta > 0]
         eq_ratios = [eq / r for eq, r in zip(eq_hist, rev_hist) if r > 0 and eq > 0]
-        # Override if asset is suspiciously low (< 10) or missing
-        if ta_ratios and (row.get("totalAsset") is None or row["totalAsset"] < 10):
+        # Override if asset is suspiciously low (< 15) or missing
+        if ta_ratios and (row.get("totalAsset") is None or row["totalAsset"] < 15):
             avg_ta = sum(ta_ratios) / len(ta_ratios)
             row["totalAsset"] = round(float(row["revenue"]) * avg_ta, 4)
             if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset = {row['totalAsset']} (avg ratio {avg_ta:.2f})", flush=True)
