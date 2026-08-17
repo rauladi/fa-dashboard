@@ -33,6 +33,7 @@ FISCAL_YEAR_END = {
     "WBC":9,
     "RHHBY":12,
     "ESSA":12,
+    "FMG":6,   # Fortescue – June year‑end
 }
 
 STOCKS = {
@@ -69,6 +70,7 @@ STOCKS = {
     "BAC":  ("Bank of America",        "NYSE",   "BAC",     "B USD", 1e9,  "USD"),
     "WBC":  ("Westpac Banking Corporation", "ASX", "WBC.AX", "B AUD", 1e9, "AUD"),
     "RHHBY":("Roche Holding AG",        "NYSE",  "RHHBY",   "B USD", 1e9, "USD"),
+    "FMG":  ("Fortescue Metals Group",  "ASX",   "FMG.AX",  "B USD", 1e9, "USD"),
 }
 
 FIELDS = [
@@ -642,6 +644,18 @@ PRELOADED = {
         "eps":          [53, 526, 131, 171, None, None],
         "dps":          [15, 40, 20, 30, None, None],
     },
+    # ========== FMG – Fortescue Metals Group (2021–2024 in USD billions) ==========
+    "FMG": {
+        "totalAsset":   [26.0, 30.5, 32.8, 34.6, None, None],
+        "cash":         [4.5, 5.2, 4.8, 5.0, None, None],
+        "totalDebt":    [6.5, 7.0, 6.8, 6.2, None, None],
+        "totalEquity":  [16.0, 18.5, 20.5, 22.0, None, None],
+        "revenue":      [16.0, 18.3, 16.7, 17.0, None, None],
+        "grossProfit":  [8.0, 10.0, 8.5, 8.7, None, None],
+        "netProfit":    [5.2, 7.0, 5.8, 5.6, None, None],
+        "eps":          [1.80, 2.45, 2.05, 1.95, None, None],
+        "dps":          [0.80, 1.20, 0.90, 0.85, None, None],
+    },
 }
 
 # ---------- PROFILES & LEADERSHIP ----------
@@ -818,7 +832,7 @@ Export growth continues. EV thermal management products. Indonesian auto penetra
 **Key Partners:** PT Astra International Tbk (59.5% parent); Komatsu Ltd Japan (exclusive distributor); UD Trucks, Scania, Bomag, Tadano; PT Pamapersada Nusantara (PAMA); PT Agincourt Resources (Martabe gold); Nickel Industries (19.99% stake); PT Acset Indonusa; PT Energia Prima Nusantara; PT Arkora Hydro; Indonesian Govt/ESDM.
 **Key Activities:** Heavy equipment distribution (Komatsu, UD Trucks, etc.); after-sales parts, service, reconditioning (REMAN); mining contracting via PAMA; coal mining; gold mining (Martabe); nickel mining; construction; renewable energy (solar, mini-hydro).
 **Key Resources:** Komatsu exclusive license; PAMA – Indonesia's largest mining contractor (829M bcm OB removal H1 2025); Martabe gold mine (2.5Moz Au + 26Moz Ag); coal assets; nickel ore; ~Rp130T revenue; Astra backing.
-**Value Proposition:** Largest heavy equipment company – sole Komatsu distributor; PAMA largest mining contractor; diversified beyond coal (gold, nickel, renewables); energy transition play; Astra Group backing.
+**Value Proposition:** Largest heavy equipment company – sole Komatsu distributor; PAMA largest contractor; diversified beyond coal (gold, nickel, renewables); energy transition play; Astra Group backing.
 **Customer Relationships:** Long-term equipment supply + service contracts (PAMA); Komatsu warranty & REMAN loyalty; coal offtake contracts; gold bullion spot & term; government/PLN.
 **Channels:** National Komatsu dealer network; PAMA direct contract; coal barge & shipping; gold to international hubs; construction bidding.
 **Customer Segments:** Mining companies (~50%); coal buyers (PLN, Asian importers); gold/commodity buyers; construction clients.
@@ -888,7 +902,7 @@ India import demand growing. BoCT terminal expansion. Solar hybrid projects. Wat
 **Threats:** PLN grid connection; rooftop solar + BESS; diesel generators for baseload too expensive; regulatory changes.
 
 ## PESTLE Analysis
-**Political:** PPU licence protection, energy policy. **Economic:** Industrial growth, data centre demand. **Social:** ESG expectations from multinational tenants. **Technological:** Solar, BESS, grid modernisation. **Legal:** PPU licence, environmental permits. **Environmental:** Emissions, renewable integration.
+**Political:** PPU licence protection, energy policy. **Economic:** Industrial growth, data centre demand. **Social:** ESG expectations from multinational tenants. **Technological:** Solar, BESS, grid modernisation. **Legal:** PPU licence, environmental. **Environmental:** Emissions, renewable integration.
 
 ## Porter's Five Forces
 **Rivalry:** Very low – sole private supplier in zone. **New Entrants:** Extremely unlikely – only one PPU licence per zone. **Supplier Power:** Moderate – gas from PGN, turbines from GE/Siemens. **Buyer Power:** Low – switching cost high, but large buyers have some leverage. **Substitutes:** PLN grid (inferior reliability), rooftop solar (limited by roof space).
@@ -1571,6 +1585,35 @@ Management focuses on operational efficiency, maintaining gas supply security, a
 
 ## Future Outlook
 Domestic LPG demand continues to grow with population and urbanization. Ammonia demand is supported by fertilizer needs and industrial applications. Export opportunities to regional markets could drive growth. Key risks include gas supply stability, regulatory changes, and competition from imports. Watch for capacity expansion plans, export market development, and gas supply agreements.""",
+    # ========== FMG PROFILE ==========
+    "FMG": """## Business Model Canvas
+**Key Partners:** Iron ore buyers (China Baowu, HBIS, Nippon Steel), mining contractors (Thiess), rail & port operators, equipment suppliers (Caterpillar, Komatsu), government regulators.
+**Key Activities:** Iron ore mining, processing, and export; development of green energy projects (hydrogen, solar); rail and port infrastructure management; exploration and resource development.
+**Key Resources:** Pilbara iron ore reserves (over 2 billion tonnes); world-class mining and logistics infrastructure (rail, port); low-cost producer (C1 cost ~$18/t); strong balance sheet; green energy initiatives.
+**Value Proposition:** Lowest-cost major iron ore producer; reliable supply to Asian steelmakers; commitment to decarbonisation (green hydrogen, solar); strong shareholder returns.
+**Customer Relationships:** Long-term supply agreements; spot market sales; direct relationships with Chinese and Japanese steel mills.
+**Channels:** Port Hedland export facility; rail network; direct shipping to Asia; marketing offices in Singapore and China.
+**Customer Segments:** Steel producers (China, Japan, South Korea, Southeast Asia); iron ore traders.
+**Cost Structure:** Mining and processing costs; rail and port maintenance; royalties; ESG investments; green energy capex.
+**Revenue Streams:** Iron ore sales (around 95% of revenue); other income (exploration, royalties).
+
+## SWOT Analysis
+**Strengths:** Lowest-cost iron ore producer; large-scale Pilbara operations; strong infrastructure; green energy vision.
+**Weaknesses:** 100% iron ore concentration; exposure to China steel demand; commodity price cyclicality.
+**Opportunities:** Green hydrogen and solar projects; diversification into battery minerals; India steel demand growth.
+**Threats:** Iron ore price volatility; Chinese economic slowdown; environmental regulations; competition from Rio Tinto and BHP.
+
+## PESTLE Analysis
+**Political:** Australian mining policy, China-Australia relations. **Economic:** Iron ore prices, China GDP, global steel demand. **Social:** ESG investor pressure, community relations. **Technological:** Automation, green hydrogen, solar. **Legal:** Mining permits, environmental laws. **Environmental:** Decarbonisation targets, water management.
+
+## Porter's Five Forces
+**Rivalry:** Oligopoly with Rio Tinto, BHP, Vale – volume competition. **New Entrants:** High barriers (capex, permits). **Supplier Power:** Low (commoditised equipment). **Buyer Power:** High (China concentration). **Substitutes:** Limited for iron ore, but scrap recycling reduces demand.
+
+## Management & Decision Making
+Management focused on cost leadership, shareholder returns (high dividends), and green energy transformation. Recent decisions: investment in green hydrogen and solar projects to reduce emissions.
+
+## Future Outlook
+Iron ore demand from India and Southeast Asia. Green energy projects could diversify earnings. Watch iron ore prices, China demand, and project execution.""",
 }
 
 LEADERSHIP = {
@@ -1608,6 +1651,8 @@ LEADERSHIP = {
     "RHHBY": {"ceo": "Thomas Schinecker (since 2023)", "cfo": "Alan Hippe (since 2019)", "track": "Schinecker focuses on innovation, diagnostics integration, and digital health. Strong pipeline in oncology and immunology."},
     # ========== CORRECTED ESSA LEADERSHIP ==========
     "ESSA": {"ceo": "Kanishk Laroya (CEO & President Director since 2023)", "cfo": "Prakash Chand Bumb (CFO & Director since 2013)", "track": "Under Laroya's leadership, the company rebranded from PT Surya Esa Perkasa to PT ESSA Industries Indonesia Tbk in 2023, reflecting diversification beyond LPG into ammonia and petrochemicals. The ammonia plant in Banggai has become a key growth driver, establishing ESSA as a major player in Indonesia's petrochemical sector."},
+    # ========== FMG LEADERSHIP ==========
+    "FMG": {"ceo": "Dino Otranto (since 2023)", "cfo": "Ian Wells (since 2021)", "track": "Otranto leads the company's cost leadership strategy and green energy transition. Fortescue has invested heavily in green hydrogen and solar projects while maintaining strong iron ore production and shareholder returns."},
 }
 
 def build_profile_with_insights(sym, m, exchange, currency):
