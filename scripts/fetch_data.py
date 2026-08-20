@@ -34,6 +34,7 @@ FISCAL_YEAR_END = {
     "RHHBY":12,
     "ESSA":12,
     "FMG":6,   # Fortescue – June year‑end
+    "STO":12,  # Santos – December year‑end
 }
 
 STOCKS = {
@@ -71,6 +72,7 @@ STOCKS = {
     "WBC":  ("Westpac Banking Corporation", "ASX", "WBC.AX", "B AUD", 1e9, "AUD"),
     "RHHBY":("Roche Holding AG",        "NYSE",  "RHHBY",   "B USD", 1e9, "USD"),
     "FMG":  ("Fortescue Metals Group",  "ASX",   "FMG.AX",  "B USD", 1e9, "USD"),
+    "STO":  ("Santos Ltd",              "ASX",   "STO.AX",  "B USD", 1e9, "USD"),
 }
 
 FIELDS = [
@@ -683,6 +685,18 @@ PRELOADED = {
         "netProfit":    [5.2, 7.0, 5.8, 5.6, None, None],
         "eps":          [1.80, 2.45, 2.05, 1.95, None, None],
         "dps":          [0.80, 1.20, 0.90, 0.85, None, None],
+    },
+    # ========== STO – Santos Ltd (2021–2024 in USD billions) ==========
+    "STO": {
+        "totalAsset":   [20.0, 24.0, 26.0, 27.0, None, None],
+        "cash":         [2.0, 3.0, 2.5, 2.0, None, None],
+        "totalDebt":    [7.0, 8.0, 9.0, 9.0, None, None],
+        "totalEquity":  [11.0, 13.0, 14.0, 15.0, None, None],
+        "revenue":      [4.3, 7.8, 5.9, 5.6, None, None],
+        "grossProfit":  [2.0, 4.0, 2.8, 2.6, None, None],
+        "netProfit":    [0.8, 2.8, 1.4, 1.2, None, None],
+        "eps":          [0.25, 0.85, 0.42, 0.36, None, None],
+        "dps":          [0.10, 0.30, 0.20, 0.18, None, None],
     },
 }
 
@@ -1642,6 +1656,35 @@ Management focused on cost leadership, shareholder returns (high dividends), and
 
 ## Future Outlook
 Iron ore demand from India and Southeast Asia. Green energy projects could diversify earnings. Watch iron ore prices, China demand, and project execution.""",
+    # ========== STO PROFILE ==========
+    "STO": """## Business Model Canvas
+**Key Partners:** LNG offtakers (Asian utilities), joint venture partners (e.g., PNG LNG, Gladstone LNG), governments (Australia, Papua New Guinea), oilfield service providers, technology partners for carbon capture.
+**Key Activities:** Oil & gas exploration, development, production; LNG liquefaction and export; pipeline operations; carbon capture and storage (CCS) projects; renewable energy investments.
+**Key Resources:** Large LNG assets (PNG LNG, Gladstone LNG, Darwin LNG); significant gas reserves in Australia and PNG; operational expertise; strong cash flow; existing infrastructure.
+**Value Proposition:** Leading Australian oil and gas producer with a focus on LNG; commitment to net zero emissions by 2050; diversified portfolio of assets; strong dividend yield.
+**Customer Relationships:** Long-term LNG supply agreements with Asian buyers (Japan, China, Korea); spot market sales; government and regulatory relationships.
+**Channels:** LNG carriers; pipeline networks; direct sales to industrial customers; domestic gas supply.
+**Customer Segments:** Asian energy utilities; industrial gas users; domestic commercial and residential customers.
+**Cost Structure:** Exploration & production costs; LNG liquefaction and shipping; pipeline maintenance; CCS investments; regulatory compliance; capex for growth projects.
+**Revenue Streams:** LNG sales; domestic gas sales; oil and condensate; pipeline transportation fees.
+
+## SWOT Analysis
+**Strengths:** Strong LNG portfolio; long-term contracts; low-cost operations; PNG and Australian reserves; commitment to CCS.
+**Weaknesses:** Oil & gas price sensitivity; LNG market oversupply risk; single‑commodity exposure; project execution risk.
+**Opportunities:** LNG demand growth in Asia; CCS projects (Moomba, Bayu-Undan); renewable energy diversification; potential M&A.
+**Threats:** Energy transition reducing fossil fuel demand; carbon pricing; competition from new LNG projects; regulatory changes.
+
+## PESTLE Analysis
+**Political:** Australian and PNG regulatory environment, emissions reduction targets. **Economic:** Oil & gas prices, global GDP growth, Asian LNG demand. **Social:** Community relations, workforce safety. **Technological:** CCS, digitalisation, offshore drilling. **Legal:** Environmental permits, climate litigation. **Environmental:** Net zero targets, methane emissions.
+
+## Porter's Five Forces
+**Rivalry:** High – competition from Woodside, Shell, global LNG players. **New Entrants:** High barriers (capex, LNG contracts). **Supplier Power:** Moderate – equipment and services. **Buyer Power:** Moderate – Asian utilities have bargaining power. **Substitutes:** Renewables, coal, nuclear.
+
+## Management & Decision Making
+CEO Kevin Gallagher (since 2016) – focused on disciplined capital allocation, cost reduction, and emissions reduction. Recent decisions: Bayu-Undan CCS, Moomba CCS, and renewable power investments. Management has a strong track record of operational efficiency.
+
+## Future Outlook
+LNG demand from Asia remains strong. CCS projects could generate carbon credits and reduce emissions. Watch oil/gas prices, project execution, and energy transition policies.""",
 }
 
 LEADERSHIP = {
@@ -1681,6 +1724,8 @@ LEADERSHIP = {
     "ESSA": {"ceo": "Kanishk Laroya (CEO & President Director since 2023)", "cfo": "Prakash Chand Bumb (CFO & Director since 2013)", "track": "Under Laroya's leadership, the company rebranded from PT Surya Esa Perkasa to PT ESSA Industries Indonesia Tbk in 2023, reflecting diversification beyond LPG into ammonia and petrochemicals. The ammonia plant in Banggai has become a key growth driver, establishing ESSA as a major player in Indonesia's petrochemical sector."},
     # ========== FMG LEADERSHIP ==========
     "FMG": {"ceo": "Dino Otranto (since 2023)", "cfo": "Ian Wells (since 2021)", "track": "Otranto leads the company's cost leadership strategy and green energy transition. Fortescue has invested heavily in green hydrogen and solar projects while maintaining strong iron ore production and shareholder returns."},
+    # ========== STO LEADERSHIP ==========
+    "STO": {"ceo": "Kevin Gallagher (since 2016)", "cfo": "António de Sousa (since 2016)", "track": "Gallagher has transformed Santos into a disciplined low-cost operator, focused on LNG, cost reduction, and emissions reduction (CCS projects). The company has delivered strong shareholder returns and is advancing CCS as a future growth area."},
 }
 
 def build_profile_with_insights(sym, m, exchange, currency):
