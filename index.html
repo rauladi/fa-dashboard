@@ -311,7 +311,13 @@ const BASE_STOCKS={
   WBC:{name:"Westpac Banking Corporation",exchange:"ASX",currency:"B AUD"},
   // NEW STOCK: Roche Holding AG (ADR)
   RHHBY:{name:"Roche Holding AG",exchange:"NYSE",currency:"B USD"}
-};
+// NEW STOCK: Ampol
+ALD:{name:"Ampol Limited",exchange:"ASX",currency:"B AUD"},
+// NEW STOCK: Macquarie Group
+MQG:{name:"Macquarie Group Limited",exchange:"ASX",currency:"B AUD"},
+// NEW STOCK: ASML
+ASML:{name:"ASML Holding NV",exchange:"NASDAQ",currency:"B USD"}
+  };
 const DEF_WTS={cashToAsset:10,debtToEquity:5,revenueCagr:5,gpmAvg:0,netProfitCagr:5,npmAvg:30,epsCagr:5,dpsCagr:0,roeAvg:25,dividendPayout:0,buffettTest:15};
 const CRITERIA=[
   {key:"cashToAsset",wKey:"cashToAsset",label:"Cash/Asset",hi:true},{key:"debtToEquity",wKey:"debtToEquity",label:"D/E Ratio",hi:false},
@@ -428,6 +434,39 @@ const PRELOADED={
   WBC:{totalAsset:[850.0,900.0,950.0,1000.0,null,null],cash:[70.0,75.0,80.0,85.0,null,null],totalDebt:[150.0,160.0,170.0,180.0,null,null],totalEquity:[60.0,62.0,65.0,68.0,null,null],revenue:[17.8,19.0,20.5,22.0,null,null],grossProfit:[17.8,19.0,20.5,22.0,null,null],netProfit:[5.0,5.5,6.0,7.0,null,null],eps:[1.50,1.65,1.80,2.00,null,null],dps:[1.20,1.30,1.40,1.50,null,null]},
   // NEW STOCK: Roche
   RHHBY:{totalAsset:[90.0,95.0,98.0,100.0,null,null],cash:[10.0,11.0,12.0,13.0,null,null],totalDebt:[30.0,32.0,33.0,34.0,null,null],totalEquity:[45.0,48.0,50.0,52.0,null,null],revenue:[60.0,65.0,68.0,70.0,null,null],grossProfit:[45.0,48.0,50.0,52.0,null,null],netProfit:[12.0,13.0,13.5,14.0,null,null],eps:[2.50,2.70,2.80,2.90,null,null],dps:[1.50,1.60,1.65,1.70,null,null]}
+,ALD:{
+  totalAsset:[12.5,12.8,12.9,12.9,null,null],
+  cash:[0.3,0.6,0.3,0.1,null,null],
+  totalDebt:[4.2,3.9,3.7,4.1,null,null],
+  totalEquity:[3.4,3.6,3.6,3.2,null,null],
+  revenue:[22.0,39.1,37.7,34.9,null,null],
+  grossProfit:[1.8,2.9,2.4,2.1,null,null],
+  netProfit:[0.6,0.8,0.5,0.1,null,null],
+  eps:[2.3,3.2,2.1,0.5,null,null],
+  dps:[1.1,1.5,1.6,1.5,null,null]
+},
+MQG:{
+  totalAsset:[255.8,245.7,399.2,387.9,403.4,null],
+  cash:[32.1,41.5,68.7,74.2,85.3,null],
+  totalDebt:[110.2,98.4,170.5,165.6,172.3,null],
+  totalEquity:[23.1,25.4,28.9,30.2,34.0,null],
+  revenue:[14.2,17.3,19.1,19.1,16.9,null],
+  grossProfit:[14.2,17.3,19.1,19.1,16.9,null],
+  netProfit:[3.0,4.7,5.2,5.2,3.5,null],
+  eps:[8.2,12.1,13.5,13.5,9.2,null],
+  dps:[4.7,6.8,7.5,7.5,6.2,null]
+},
+ASML:{
+  totalAsset:[30.2,36.3,39.9,48.6,null,null],
+  cash:[7.6,7.4,7.0,12.7,null,null],
+  totalDebt:[4.6,4.3,4.6,4.7,null,null],
+  totalEquity:[10.1,8.8,13.5,18.5,null,null],
+  revenue:[18.6,21.2,27.6,28.3,null,null],
+  grossProfit:[9.6,10.5,13.8,14.1,null,null],
+  netProfit:[5.9,5.6,7.8,7.6,null,null],
+  eps:[14.2,13.5,19.2,19.3,null,null],
+  dps:[2.8,3.2,4.4,5.4,null,null]
+  }
 };
 
 function initPreloadedData(){
@@ -959,6 +998,21 @@ const LEADERSHIP = {
   WBC:{ceo:"Peter King (since 2020)",cfo:"Michael Rowland (since 2022)",track:"King focused on simplification, cost reduction, and digital transformation. Strong capital returns."},
   // NEW STOCK: Roche
   RHHBY:{ceo:"Thomas Schinecker (since 2023)",cfo:"Alan Hippe (since 2019)",track:"Schinecker focuses on innovation, diagnostics integration, and digital health. Strong pipeline in oncology and immunology."}
+,ALD:{
+  ceo:"Matt Halliday (since June 2020)",
+  cfo:"Greg Barnes (since July 2021)",
+  track:"Halliday joined Ampol as CFO in 2019 and became CEO in 2020. He leads the integrated fuel supply chain strategy, EG Australia acquisition, and EV charging network expansion."
+},
+MQG:{
+  ceo:"Shemara Wikramanayake (since 2018) · Greg Ward (incoming, Nov 2026)",
+  cfo:"Frank Kwok (since 2026)",
+  track:"Wikramanayake has led Macquarie's diversified financial model and global infrastructure asset management expansion to $A403B AUM. Ward, a 30-year Macquarie veteran, will succeed her."
+},
+ASML:{
+  ceo:"Christophe Fouquet (since April 2024)",
+  cfo:"Roger Dassen (since 2018)",
+  track:"Fouquet, a 15-year ASML veteran, leads the EUV/High-NA roadmap and AI-driven growth strategy. ASML is Europe's most valuable company, driven by AI chip demand."
+}
 };
 const SECTOR_RISKS = {
   "Mining":[{name:"Commodity Price",low:-40,high:30},{name:"Production Volume",low:-20,high:15},{name:"AUD/USD Rate",low:-15,high:10},{name:"Operating Costs",low:-18,high:5},{name:"Regulatory/ESG",low:-12,high:3}],
@@ -986,6 +1040,9 @@ const CO_INFO = {
   WBC:{sector:"Banking"},
   // NEW STOCK: Roche
   RHHBY:{sector:"Pharmaceuticals"}
+,ALD:{sector:"Oil & Gas"},
+MQG:{sector:"Banking"},
+ASML:{sector:"Semiconductors"}
 };
 function generateCustomTornado(sym, st, m) {
   const customRisks = {
