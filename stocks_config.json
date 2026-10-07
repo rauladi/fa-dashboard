@@ -132,6 +132,14 @@
       "hint_cur": "USD"
     }
     {
+      "symbol": "ASML",
+      "name": "ASML Holding NV",
+      "exchange": "NASDAQ",
+      "currency": "B USD",
+      "ticker": "ASML",
+      "hint_cur": "USD"
+    }
+    {
     "symbol": "AVGO",
       "name": "Broadcom Inc",
       "exchange": "NASDAQ",
