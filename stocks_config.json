@@ -35,6 +35,14 @@
       "hint_cur": "AUD"
     }
     {
+      "symbol": "MGQ",
+      "name": "Macquarie Group Limited",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "MGQ.AX",
+      "hint_cur": "AUD"
+    }
+    {
       "symbol": "PBR-A",
       "name": "Petroleo Brasileiro S.A. ADR",
       "exchange": "NYSE",
