@@ -35,6 +35,14 @@
       "hint_cur": "AUD"
     }
     {
+      "symbol": "ALD",
+      "name": "Ampol Ltd",
+      "exchange": "ASX",
+      "currency": "B AUD",
+      "ticker": "ALD.AX",
+      "hint_cur": "AUD"
+    }
+    {
       "symbol": "MGQ",
       "name": "Macquarie Group Limited",
       "exchange": "ASX",
