@@ -35,6 +35,10 @@ FISCAL_YEAR_END = {
     "ESSA":12,
     "FMG":6,   # Fortescue – June year‑end
     "STO":12,  # Santos – December year‑end
+    # ---- NEW STOCKS ----
+    "ALD":12,  # Ampol – December year-end
+    "MQG":3,   # Macquarie – March year-end
+    "ASML":12, # ASML – December year-end
 }
 
 STOCKS = {
@@ -73,6 +77,10 @@ STOCKS = {
     "RHHBY":("Roche Holding AG",        "NYSE",  "RHHBY",   "B USD", 1e9, "USD"),
     "FMG":  ("Fortescue Metals Group",  "ASX",   "FMG.AX",  "B USD", 1e9, "USD"),
     "STO":  ("Santos Ltd",              "ASX",   "STO.AX",  "B USD", 1e9, "USD"),
+    # ---- NEW STOCKS ----
+    "ALD":  ("Ampol Limited",           "ASX",   "ALD.AX",  "B AUD", 1e9, "AUD"),
+    "MQG":  ("Macquarie Group Limited", "ASX",   "MQG.AX",  "B AUD", 1e9, "AUD"),
+    "ASML": ("ASML Holding NV",         "NASDAQ","ASML",    "B USD", 1e9, "USD"),
 }
 
 FIELDS = [
@@ -137,7 +145,6 @@ def financial_currency(exchange):
 #  LIVE FETCHER – returns both 2025 (annual) and 2026 (quarterly annualised)
 # =============================================================================
 
-# Shared field‑matching utilities (unchanged)
 def get_fin_val_from_series(series, candidates):
     lowered = {k.lower().strip(): v for k, v in series.items()}
     for cand in candidates:
@@ -162,7 +169,6 @@ def get_fin_val_by_substring(series, substrings):
                 except (ValueError, TypeError): continue
     return None
 
-# Shared candidate lists
 INC_CANDIDATES = {
     "revenue": ["Total Revenue","Revenue","Total revenue","Operating Revenue","Sales","Net Sales","Net revenue","Revenues","Pendapatan","Total pendapatan","Penjualan bersih"],
     "costOfRevenue": ["Cost Of Revenue","Cost of revenue","Cost Of Sales","Cost of goods sold","COGS","Beban pokok pendapatan","Harga pokok penjualan"],
@@ -199,7 +205,6 @@ BAL_CANDIDATES = {
     ]
 }
 
-# ---------- fiscal year range for 2026 ----------
 def fiscal_year_range(sym):
     m = FISCAL_YEAR_END.get(sym, 12)
     if m == 12:
@@ -210,11 +215,9 @@ def fiscal_year_range(sym):
         end   = datetime(CURRENT_YEAR, m, 30)
     return start, end
 
-# ---------- universal corrections (applied to BOTH 2025 and 2026 rows) ----------
 def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False):
     info = tick.info or {}
 
-    # --- Gross Profit fallback ---
     if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
         if row.get("revenue") is not None and row.get("costOfRevenue") is not None:
             computed_gp = float(row["revenue"]) - float(row["costOfRevenue"])
@@ -230,13 +233,11 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
             int_exp = row.get("interestExpense") if row.get("interestExpense") is not None else 0.0
             reconstructed = float(row["netProfit"]) + float(row["operatingExpense"]) + float(int_exp) + float(row["incomeTaxExpense"])
             if reconstructed > 0: row["grossProfit"] = round(reconstructed, 4)
-        # Final fallback – revenue (for banks) or revenue‑minus‑cost if available
         if row.get("grossProfit") is None or row["grossProfit"] == 0.0:
             if row.get("revenue") is not None and row["revenue"] > 0:
                 row["grossProfit"] = row["revenue"]
                 if dbg: print(f"  [DEBUG {sym}] Universal GP fallback: using revenue = {row['revenue']}", flush=True)
 
-    # --- Small‑value cleanup ---
     for field in ["revenue","costOfRevenue","grossProfit","operatingExpense","operatingIncome",
                   "interestExpense","incomeTaxExpense","netProfit","totalAsset","cash",
                   "totalDebt","totalEquity"]:
@@ -244,7 +245,6 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
     if row.get("eps") is not None and abs(row.get("eps")) < 0.001: row["eps"] = None
     if row.get("dps") is not None and abs(row.get("dps")) < 0.001: row["dps"] = None
 
-    # --- Currency detection for info fallbacks ---
     if sym == "TSM": info_is_target = False
     else:
         info_revenue = info.get("totalRevenue") or info.get("revenue")
@@ -303,14 +303,12 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
                         break
         if row.get("totalEquity") is None: row["totalEquity"] = fill_from_info("totalStockholderEquity","totalEquity")
 
-    # Reconstructions
     if row.get("totalAsset") is None and row.get("totalDebt") is not None and row.get("totalEquity") is not None:
         row["totalAsset"] = round(float(row["totalDebt"]) + float(row["totalEquity"]), 4)
     if row.get("totalEquity") is None and row.get("totalAsset") is not None and row.get("totalDebt") is not None:
         eq = float(row["totalAsset"]) - float(row["totalDebt"])
         if eq > 0: row["totalEquity"] = round(eq, 4)
 
-    # Specific stock fixes
     if sym in {"BBRI", "BTPS"} and row.get("totalAsset") is not None and row.get("totalEquity") is not None:
         new_debt = round(float(row["totalAsset"]) - float(row["totalEquity"]), 4)
         if new_debt > 0: row["totalDebt"] = new_debt
@@ -344,7 +342,6 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
                 row["totalAsset"] = round(float(row["revenue"]) * avg_ta_rev, 4)
                 if dbg: print(f"  [DEBUG {sym}] Estimated totalAsset from historical ratio = {row['totalAsset']}", flush=True)
 
-    # ========== FMG specific override ==========
     if sym == "FMG" and row.get("revenue") is not None and row["revenue"] > 0:
         pre = PRELOADED.get(sym, {})
         rev_hist = (pre.get("revenue") or [])[:4]
@@ -369,7 +366,6 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
                 row["totalDebt"] = round(row["totalAsset"] - row["totalEquity"], 4)
                 print(f"  [FMG] Recalculated totalDebt: {row['totalDebt']}", flush=True)
 
-    # ========== STO specific override ==========
     if sym == "STO" and row.get("revenue") is not None and row["revenue"] > 0:
         pre = PRELOADED.get(sym, {})
         rev_hist = (pre.get("revenue") or [])[:4]
@@ -398,7 +394,6 @@ def apply_corrections(row, sym, inc_cols, q_inc, tick, target_cur, exchange, div
     if row.get("grossProfit") is not None and row["grossProfit"] < 0: row["grossProfit"] = None
 
 
-# ---------- LIVE FETCH (2025 annual + 2026 quarterly annualised) ----------
 def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd):
     """Return a dict {2025: row, 2026: row} for one stock."""
     if sym == "TSM": fin_cur = "TWD"
@@ -412,7 +407,6 @@ def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, tw
         tick = yf.Ticker(ticker_str)
         info = tick.info or {}
 
-        # ----- 2025: from annual statements -----
         inc_df = tick.financials
         bal_df = tick.balance_sheet
         q_inc = tick.quarterly_financials
@@ -441,7 +435,6 @@ def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, tw
         fill_from_df(inc_df, row_2025, INC_CANDIDATES, INC_SUB)
         fill_from_df(bal_df, row_2025, BAL_CANDIDATES, {})
 
-        # Force better extraction for balance items
         def force_better(df, label_list, current_val, divisor, fx):
             if df is None: return current_val
             idx_lower = {k.lower().strip(): k for k in df.index}
@@ -463,11 +456,9 @@ def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, tw
         row_2025["totalEquity"] = force_better(bal_df, BAL_CANDIDATES["totalEquity"], row_2025["totalEquity"], div, total_fx)
         if row_2025["totalEquity"] is None: row_2025["totalEquity"] = force_better(q_bal, BAL_CANDIDATES["totalEquity"], row_2025["totalEquity"], div, total_fx)
 
-        # Run corrections
         inc_cols = list(inc_df.columns)[:1] if inc_df is not None else []
         apply_corrections(row_2025, sym, inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
 
-        # ----- 2026: quarterly annualisation -----
         fy_start, fy_end = fiscal_year_range(sym)
         q_inc_cols = [c for c in (q_inc.columns if q_inc is not None else [])
                       if fy_start <= c.to_pydatetime() <= fy_end]
@@ -514,7 +505,6 @@ def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, tw
 
     return {LATEST_YEAR: row_2025, CURRENT_YEAR: row_2026}
 
-# ---------- Main fetch router ----------
 def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     target_cur = hint_cur.upper()
     src = "yfinance"
@@ -522,7 +512,6 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
     print(f"\n[{sym}] (yfinance) {ticker_str}", flush=True)
     yd = fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, twd_usd)
 
-    # Clean up zeros
     for yr_row in yd.values():
         for bal in ("totalAsset","cash","totalDebt","totalEquity"):
             if yr_row.get(bal) == 0: yr_row[bal] = None
@@ -530,7 +519,6 @@ def fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd):
             if yr_row.get(inc) == 0: yr_row[inc] = None
         if yr_row.get("dps") == 0: yr_row["dps"] = None
 
-    # Sanity checks on DPS/EPS using PRELOADED
     pre_dps = PRELOADED.get(sym, {}).get("dps", [])
     valid_dps = [v for v in pre_dps if v is not None and v > 0]
     for yr_row in yd.values():
@@ -564,7 +552,7 @@ def build_arrays(yd, sym, rates):
             else: arr.append(None)
         out[f] = arr
     return out
-    
+
 # ---------- PRELOADED DATA (2021–2024) ----------
 PRELOADED = {
     "BHP": {"totalAsset":[54.2,51.9,55.7,81.5,None,None],"cash":[14.9,12.4,13.9,13.3,None,None],"totalDebt":[14.5,12.4,14.8,26.7,None,None],"totalEquity":[26.4,28.0,29.7,32.4,None,None],"revenue":[60.8,65.1,53.8,55.7,None,None],"grossProfit":[36.2,40.5,28.3,28.5,None,None],"netProfit":[11.3,30.9,12.9,7.9,None,None],
@@ -679,7 +667,6 @@ PRELOADED = {
         "eps":[2.50,2.70,2.80,2.90,None,None],
         "dps":[1.50,1.60,1.65,1.70,None,None]
     },
-    # ========== ESSA – correct historical data (2021–2024) ==========
     "ESSA": {
         "totalAsset":   [809.29, 831.30, 695.44, 693.68, None, None],
         "cash":         [80.84, 163.98, 107.93, 157.87, None, None],
@@ -696,7 +683,6 @@ PRELOADED = {
         "eps":          [53, 526, 131, 171, None, None],
         "dps":          [15, 40, 20, 30, None, None],
     },
-    # ========== FMG – Fortescue Metals Group (2021–2024 in USD billions) ==========
     "FMG": {
         "totalAsset":   [26.0, 30.5, 32.8, 34.6, None, None],
         "cash":         [4.5, 5.2, 4.8, 5.0, None, None],
@@ -708,7 +694,6 @@ PRELOADED = {
         "eps":          [1.80, 2.45, 2.05, 1.95, None, None],
         "dps":          [0.80, 1.20, 0.90, 0.85, None, None],
     },
-    # ========== STO – Santos Ltd (2021–2024 in USD billions) ==========
     "STO": {
         "totalAsset":   [20.0, 24.0, 26.0, 27.0, None, None],
         "cash":         [2.0, 3.0, 2.5, 2.0, None, None],
@@ -719,6 +704,40 @@ PRELOADED = {
         "netProfit":    [0.8, 2.8, 1.4, 1.2, None, None],
         "eps":          [0.25, 0.85, 0.42, 0.36, None, None],
         "dps":          [0.10, 0.30, 0.20, 0.18, None, None],
+    },
+    # ---- NEW STOCKS ----
+    "ALD": {
+        "totalAsset":   [12.5, 12.8, 12.9, 12.9, None, None],
+        "cash":         [0.3,  0.6,  0.3,  0.1,  None, None],
+        "totalDebt":    [4.2,  3.9,  3.7,  4.1,  None, None],
+        "totalEquity":  [3.4,  3.6,  3.6,  3.2,  None, None],
+        "revenue":      [22.0, 39.1, 37.7, 34.9, None, None],
+        "grossProfit":  [1.8,  2.9,  2.4,  2.1,  None, None],
+        "netProfit":    [0.6,  0.8,  0.5,  0.1,  None, None],
+        "eps":          [2.3,  3.2,  2.1,  0.5,  None, None],
+        "dps":          [1.1,  1.5,  1.6,  1.5,  None, None],
+    },
+    "MQG": {
+        "totalAsset":   [255.8, 245.7, 399.2, 387.9, 403.4, None],
+        "cash":         [32.1,  41.5,  68.7,  74.2,  85.3,  None],
+        "totalDebt":    [110.2, 98.4,  170.5, 165.6, 172.3, None],
+        "totalEquity":  [23.1,  25.4,  28.9,  30.2,  34.0,  None],
+        "revenue":      [14.2,  17.3,  19.1,  19.1,  16.9,  None],
+        "grossProfit":  [14.2,  17.3,  19.1,  19.1,  16.9,  None],
+        "netProfit":    [3.0,   4.7,   5.2,   5.2,   3.5,   None],
+        "eps":          [8.2,   12.1,  13.5,  13.5,  9.2,   None],
+        "dps":          [4.7,   6.8,   7.5,   7.5,   6.2,   None],
+    },
+    "ASML": {
+        "totalAsset":   [30.2,  36.3,  39.9,  48.6,  None, None],
+        "cash":         [7.6,   7.4,   7.0,   12.7,  None, None],
+        "totalDebt":    [4.6,   4.3,   4.6,   4.7,   None, None],
+        "totalEquity":  [10.1,  8.8,   13.5,  18.5,  None, None],
+        "revenue":      [18.6,  21.2,  27.6,  28.3,  None, None],
+        "grossProfit":  [9.6,   10.5,  13.8,  14.1,  None, None],
+        "netProfit":    [5.9,   5.6,   7.8,   7.6,   None, None],
+        "eps":          [14.2,  13.5,  19.2,  19.3,  None, None],
+        "dps":          [2.8,   3.2,   4.4,   5.4,   None, None],
     },
 }
 
@@ -752,6 +771,7 @@ Capital allocation disciplined: returned $7.1B dividends, avoided overpaying for
 
 ## Future Outlook
 Jansen potash 2026 first production. Copper demand from electrification. China stimulus potential. Watch commodity prices, China demand, and project execution.""",
+
     "WDS": """## Business Model Canvas
 **Key Partners:** Stonepeak (40% stake in Louisiana LNG, $5.7B), Williams (LNG pipeline), OCI Global (Beaumont ammonia), Japanese and Korean LNG offtakers, Santos (industry peer), government regulators.
 **Key Activities:** LNG production & liquefaction (North West Shelf, Pluto, Wheatstone, Louisiana); oil production (Sangomar); low-carbon ammonia production (Beaumont Texas); exploration & development (Scarborough, Browse); marketing & trading; carbon capture development.
@@ -780,6 +800,7 @@ Management committed to shareholder returns, Louisiana LNG de-risked via Stonepe
 
 ## Future Outlook
 Louisiana LNG 2026-27. Beaumont low-carbon ammonia. LNG as transition fuel. Watch project execution, gas prices, and energy transition policies.""",
+
     "CBA": """## Business Model Canvas
 **Key Partners:** AWS (core banking cloud migration), OpenAI (ChatGPT Enterprise partner), Microsoft, Visa/Mastercard, financial advisers, fintech partners (IPSI eCommerce), regulators.
 **Key Activities:** Retail, business and institutional banking; home lending; digital banking (CommBank app, CommBiz); wealth management; AI-driven fraud detection; core banking on AWS.
@@ -808,6 +829,7 @@ Completed AWS migration – largest system-of-record migration in 114 years. Ope
 
 ## Future Outlook
 AWS cloud enables faster AI integration. OpenAI partnership driving AI products. Interest rate cuts risk NIM compression but boost mortgage demand. Watch tech execution, competition, and credit quality.""",
+
     "BBRI": """## Business Model Canvas
 **Key Partners:** Indonesian government (53% ownership, KUR program), Bank Raya, Pegadaian, PNM (ultra-micro), Mastercard, BRILink agents (1.2M+), fintech partners, ASEAN Development Bank.
 **Key Activities:** Micro & SME lending (KUR); consumer banking (BRImo); corporate lending; treasury; digital banking via Bank Raya; ultra-micro via PNM; bancassurance; wealth management.
@@ -836,6 +858,7 @@ AWS cloud enables faster AI integration. OpenAI partnership driving AI products.
 
 ## Future Outlook
 Ultra-micro expansion. Digital lending reduces cost-to-serve. Bancassurance cross-selling. Watch NPL, digital competition, and KUR policy changes.""",
+
     "ADRO": """## Business Model Canvas
 **Key Partners:** PT Adaro Minerals Indonesia (ADMR 83.8%), PT SIS (mining contractor), aluminum smelter JV partners, PLTA Mentarang hydro JV, Japanese trading houses, Chinese steel mills, KIPI, Indonesian government.
 **Key Activities:** Metallurgical coal mining (ADMR 158Mt reserves, 5.6Mt FY2024); mining contracting (SIS 64.8Mt OB); aluminum smelter construction (500kt, North Kalimantan); renewable energy (Adaro Green); PLTA Mentarang hydropower; coal logistics.
@@ -864,6 +887,7 @@ Strategic pivot from thermal to metcoal + aluminum + renewables (rebranded Alamt
 
 ## Future Outlook
 Aluminum smelter ramping to 500kt by 2026/27. Hydropower for low-cost energy. India metcoal demand growth. Watch metcoal prices, smelter execution, and energy transition policies.""",
+
     "SMSM": """## Business Model Canvas
 **Key Partners:** PT Adrindo Intiperkasa (parent ADR Group); Toyota, Honda, Mitsubishi, Isuzu (OEM); Yanmar Diesel; Astra International; raw material suppliers; export logistics partners; ISO/SNI bodies; Gaikindo.
 **Key Activities:** Filter manufacturing (SAKURA); radiator & cooling (ADR); body & chassis parts; quality control (zero-defect OEM); R&D for EV thermal management; export development.
@@ -892,6 +916,7 @@ Export growth to 45+ countries. EV thermal management R&D. Maintained debt-free 
 
 ## Future Outlook
 Export growth continues. EV thermal management products. Indonesian auto penetration still low (9%) – long secular growth. Watch EV transition, raw material costs, and export demand.""",
+
     "UNTR": """## Business Model Canvas
 **Key Partners:** PT Astra International Tbk (59.5% parent); Komatsu Ltd Japan (exclusive distributor); UD Trucks, Scania, Bomag, Tadano; PT Pamapersada Nusantara (PAMA); PT Agincourt Resources (Martabe gold); Nickel Industries (19.99% stake); PT Acset Indonusa; PT Energia Prima Nusantara; PT Arkora Hydro; Indonesian Govt/ESDM.
 **Key Activities:** Heavy equipment distribution (Komatsu, UD Trucks, etc.); after-sales parts, service, reconditioning (REMAN); mining contracting via PAMA; coal mining; gold mining (Martabe); nickel mining; construction; renewable energy (solar, mini-hydro).
@@ -920,6 +945,7 @@ Komatsu 4,500 units target. PAMA still largest contractor. Martabe gold ~250koz/
 
 ## Future Outlook
 Battery minerals service contracts. Gold price ~$3,000/oz supports Martabe. Renewable energy investments. Watch coal transition, Komatsu competition, and gold prices.""",
+
     "ITMG": """## Business Model Canvas
 **Key Partners:** Banpu Minerals Singapore (60% owner); PT Thiess Indonesia; China coal importers (40% of exports); Japan/S. Korea utility buyers (17%); PLN (22% of sales); Bontang port operators; Komatsu, Caterpillar; Indonesian Govt/ESDM.
 **Key Activities:** Open-cut thermal coal mining (6 mines, Kalimantan); coal blending; terminal operations (BoCT); logistics (barging, port loading); power plant operations; solar hybrid PV; mining contracting.
@@ -948,6 +974,7 @@ High dividend payout (80-90%) rewards shareholders. Banpu parent may extract div
 
 ## Future Outlook
 India import demand growing. BoCT terminal expansion. Solar hybrid projects. Watch coal prices, energy transition policies, and Banpu parent strategy.""",
+
     "POWR": """## Business Model Canvas
 **Key Partners:** PGN/Pertamina (gas supply); PLN (grid backstop); industrial tenants (2,650 customers); GE/Siemens (turbines); Bechtel/Technip (EPC); government (PPU licence).
 **Key Activities:** Electricity generation (gas, coal); distribution to industrial estates; grid maintenance; capacity expansion; power purchase agreements.
@@ -976,6 +1003,7 @@ Conservative management, focused on contract renewals and grid reliability. Slow
 
 ## Future Outlook
 Data centre power demand. Industrial estate expansion. Watch PLN grid connection, solar adoption, and industrial tenant growth.""",
+
     "MPMX": """## Business Model Canvas
 **Key Partners:** AHM (Honda sole distributor); Carro JV; insurance reinsurers; banks (MPM Finance funding); AHM spare parts supply.
 **Key Activities:** Honda motorcycle distribution (East Java); automotive financing (MPM Finance); insurance (non-life); vehicle rental (MPMRent); used car digital (Carro JV).
@@ -1004,6 +1032,7 @@ Management focuses on Honda distribution, financing, and rental. Investing in EV
 
 ## Future Outlook
 EV motorcycle rollout. MPMRent EV fleet transition. Digital used car platform. Watch Honda EV strategy, interest rates, and competition.""",
+
     "BTPS": """## Business Model Canvas
 **Key Partners:** PT Bank SMBC Indonesia (70% parent); SMFG; Baznas; government ultra-micro programs (UMI); community groups (Tunas).
 **Key Activities:** Sharia microfinance (murabahah); group lending (Tunas solidarity model); field officer network; digital group meetings (Bestee).
@@ -1032,6 +1061,7 @@ Management focuses on community-based microfinance. Partnering with Baznas. Expl
 
 ## Future Outlook
 Digital group meetings (WhatsApp). Ultra-micro expansion. Sharia capital market products. Watch digital adoption, NPL, and OJK policy.""",
+
     "DMAS": """## Business Model Canvas
 **Key Partners:** Sojitz Corporation (Japanese partner); industrial tenants (data centres, manufacturers); Bekasi Regency; BKPM; Japan-Indonesia IJEPA.
 **Key Activities:** Industrial estate development (Kota Deltamas); land sales; infrastructure (roads, power, water); property management; township development.
@@ -1060,6 +1090,7 @@ Management focused on data centre land sales (60% of 2025 sales). Green estate i
 
 ## Future Outlook
 Data centre demand continues. Government manufacturing investment. Green building certification. Watch FDI inflows, land prices, and competition.""",
+
     "SPTO": """## Business Model Canvas
 **Key Partners:** TOTO Japan (exclusive sole-agent since 1977); Villeroy & Boch, Geberit, Franke, Jacuzzi, Kaldewei, Stiebel Eltron; property developers; hotel chains; architects.
 **Key Activities:** Distribution of premium bathroom products; showroom operations; specification sales to developers; project management; after-sales service.
@@ -1088,6 +1119,7 @@ Management focused on maintaining TOTO exclusivity. Expanding showrooms to Tier-
 
 ## Future Outlook
 Property supercycle. Data centre fit-out. Hotel pipeline. Watch JPY/IDR, TOTO relationship, and property market.""",
+
     "TSM": """## Business Model Canvas
 **Key Partners:** Apple, NVIDIA, AMD, Qualcomm, Broadcom (key customers); ASML (equipment); equipment vendors (Applied Materials, Lam Research); Taiwan government; research institutes.
 **Key Activities:** Semiconductor wafer fabrication; advanced node R&D (3nm, 2nm); capacity expansion; packaging (CoWoS); customer co-development.
@@ -1116,6 +1148,7 @@ Management committed to R&D and capex. Global expansion to reduce geopolitical r
 
 ## Future Outlook
 AI/HPC demand drives 2nm ramp. Global fabs in Arizona, Japan, Germany. Watch geopolitical tensions, competition, and capex efficiency.""",
+
     "V": """## Business Model Canvas
 **Key Partners:** Banks (issuers); merchants (acquirers); cardholders; VisaNet technology partners; fintechs (tokenisation).
 **Key Activities:** Payment network operation; transaction processing; fraud prevention; digital identity; value-added services (data analytics).
@@ -1144,6 +1177,7 @@ Management focused on digital innovation, tokenisation, and strategic partnershi
 
 ## Future Outlook
 Digital payments growth. Cross-border e-commerce. Tokenisation adoption. Watch regulatory caps, fintech competition, and consumer spending.""",
+
     "MA": """## Business Model Canvas
 **Key Partners:** Banks, merchants, fintechs, digital wallets, crypto platforms.
 **Key Activities:** Payment network; transaction processing; cyber security; data analytics; multi-rail solutions (credit, debit, prepaid, ACH).
@@ -1172,6 +1206,7 @@ Management focused on multi-rail expansion, crypto partnerships, and value-added
 
 ## Future Outlook
 Digital payments growth. Crypto integration. B2B payments. Watch regulation and fintech competition.""",
+
     "PBR-A": """## Business Model Canvas
 **Key Partners:** Brazilian government (controlling shareholder); Petrobras Distribuidora; pre-salt consortium partners; international oil companies.
 **Key Activities:** Oil & gas exploration (pre-salt); refining; distribution; biofuels; petrochemicals.
@@ -1200,6 +1235,7 @@ Management focused on pre-salt growth, debt reduction, and dividend policy. Rece
 
 ## Future Outlook
 Pre-salt production growth. Biofuels and offshore wind diversification. Debt reduction. Watch oil prices, government policy, and energy transition.""",
+
     "MSFT": """## Business Model Canvas
 **Key Partners:** OpenAI, LinkedIn, GitHub, Adobe (integration), cloud resellers, device manufacturers (OEMs).
 **Key Activities:** Cloud computing (Azure); productivity software (Office 365, Teams); AI (Copilot); gaming (Xbox); LinkedIn; Windows.
@@ -1228,6 +1264,7 @@ Management focused on AI (Copilot, OpenAI), cloud growth, and shareholder return
 
 ## Future Outlook
 AI monetisation (Copilot). Cloud growth. Gaming (Activision). Watch AI adoption, cloud competition, and regulation.""",
+
     "AMZN": """## Business Model Canvas
 **Key Partners:** Third-party sellers (marketplace); AWS customers; content creators; logistics partners.
 **Key Activities:** E-commerce (online retail); cloud computing (AWS); digital streaming (Prime Video); advertising; logistics.
@@ -1256,6 +1293,7 @@ Management focused on cost optimisation, AI investment, and AWS growth. Recent l
 
 ## Future Outlook
 AI (Bedrock, Trainium). Healthcare expansion. Project Kuiper. Watch e-commerce margins, cloud competition, and antitrust.""",
+
     "AAPL": """## Business Model Canvas
 **Key Partners:** TSMC (chip manufacturing); Foxconn, Pegatron (assembly); app developers; content providers (Apple Music, TV+).
 **Key Activities:** Hardware design (iPhone, Mac, iPad, Watch); software (iOS, macOS); services (App Store, Apple Music, iCloud); retail.
@@ -1284,6 +1322,7 @@ Management focused on services growth, AI integration, and Vision Pro. Strong ca
 
 ## Future Outlook
 AI integration (Apple Intelligence). Vision Pro. Services expansion. Watch iPhone cycle, regulatory risk, and innovation.""",
+
     "META": """## Business Model Canvas
 **Key Partners:** Advertisers; content creators; app developers; AI hardware vendors (NVIDIA).
 **Key Activities:** Social media (Facebook, Instagram, WhatsApp, Messenger); advertising; AI research (Llama); metaverse (Reality Labs).
@@ -1312,6 +1351,7 @@ Management focused on AI (Llama, Meta AI), efficiency (Year of Efficiency), and 
 
 ## Future Outlook
 AI monetisation (Meta AI). Reels growth. WhatsApp business. Watch TikTok competition, regulatory risk, and metaverse progress.""",
+
     "NVDA": """## Business Model Canvas
 **Key Partners:** TSMC (chip manufacturing); cloud providers (AWS, Azure, Google); server OEMs (Dell, HPE); AI startups.
 **Key Activities:** GPU design; AI platform (CUDA, DGX); networking (Mellanox); software ecosystem.
@@ -1340,6 +1380,7 @@ Management focused on AI dominance, Blackwell ramp, and software ecosystem. Aggr
 
 ## Future Outlook
 AI inference growth. Blackwell ramp. Sovereign AI. Watch competition, export controls, and AI capex cycle.""",
+
     "GOOG": """## Business Model Canvas
 **Key Partners:** Advertisers; content creators (YouTube); Android OEMs; cloud partners; AI research community.
 **Key Activities:** Search; advertising; YouTube; cloud (GCP); AI (Gemini, DeepMind); hardware (Pixel, Nest).
@@ -1368,6 +1409,7 @@ Management focused on AI (Gemini, DeepMind), cloud growth, and cost efficiency. 
 
 ## Future Outlook
 AI monetisation (Gemini, Search Generative Experience). Cloud growth. YouTube subscriptions. Watch antitrust, AI competition, and ad spend.""",
+
     "BKNG": """## Business Model Canvas
 **Key Partners:** Hotels; airlines; car rental companies; online travel agencies; payment providers.
 **Key Activities:** Online travel booking (Booking.com, Priceline, Kayak, OpenTable); merchant model; affiliate network.
@@ -1396,6 +1438,7 @@ Management focused on merchant model, US expansion, and connected trip. Sharehol
 
 ## Future Outlook
 US expansion. Alternative accommodations. AI personalisation. Watch travel demand, competition from Google, and regulation.""",
+
     "NAB": """## Business Model Canvas
 **Key Partners:** Australian government (regulator), home loan aggregators, mortgage insurers, Visa/Mastercard, wealth management platforms, fintech partners (e.g., 86 400 acquisition), AWS (cloud migration).
 **Key Activities:** Retail banking (home loans, deposits); business & corporate banking; wealth management (MLC); institutional banking; digital banking (NAB app, NAB Connect); home loan servicing.
@@ -1424,6 +1467,7 @@ CEO Ross McEwan (since 2019, ex-RBS) focused on simplification, culture change, 
 
 ## Future Outlook
 Business lending growth. Digital adoption reduces cost-to-income. Home loan refinancing wave. Watch housing market, interest rates, and competition from neobanks.""",
+
     "CVX": """## Business Model Canvas
 **Key Partners:** OPEC+ (oil price influence), national oil companies (e.g., Saudi Aramco), joint venture partners (e.g., Tengizchevroil), LNG offtakers, renewable energy technology partners.
 **Key Activities:** Oil & gas exploration & production (upstream); refining & marketing (downstream); LNG production (Gorgon, Wheatstone); low-carbon investments (renewables, hydrogen, carbon capture).
@@ -1452,6 +1496,7 @@ CEO Mike Wirth (since 2018) – focused on capital discipline, lower carbon inve
 
 ## Future Outlook
 Permian production growth. Lower-carbon investments (CCUS, renewable diesel). LNG demand. Watch oil prices, energy transition policies, and project execution.""",
+
     "AXP": """## Business Model Canvas
 **Key Partners:** Merchants (accept Amex cards); cardmembers; airlines/hotels (rewards transfer partners); third-party banks (co-brand cards); travel agencies.
 **Key Activities:** Charge card & credit card issuing; merchant acquiring; travel services; rewards & loyalty management; payment processing; fraud prevention.
@@ -1480,6 +1525,7 @@ CEO Stephen Squeri (since 2018) – focused on premium customer experience, digi
 
 ## Future Outlook
 Travel rebound drives spending. Small business expansion. International growth. Watch consumer spending, regulatory interchange caps, and competition from BNPL.""",
+
     "BAC": """## Business Model Canvas
 **Key Partners:** Depositors; borrowers; investment banking clients; wealth management clients (Merrill Lynch); fintech partners; government regulators.
 **Key Activities:** Consumer banking (deposits, loans, credit cards); wealth management (Merrill); investment banking & trading (BofA Securities); global banking (corporate lending, treasury).
@@ -1508,6 +1554,7 @@ CEO Brian Moynihan (since 2010) – transformed BAC post-2008, built capital, cu
 
 ## Future Outlook
 Interest rate tailwinds for NIM. Investment banking rebound. Digital adoption reduces cost. Watch credit quality, economic cycle, and regulatory environment.""",
+
     "ANZ": """## Business Model Canvas
 **Key Partners:** Institutional investors, mortgage brokers, fintech partners (e.g., Cashrewards), Visa/Mastercard, AWS (cloud migration), Australian government (regulator).
 **Key Activities:** Retail & commercial banking (home loans, deposits, business lending); institutional banking (markets, trade finance); wealth management (ANZ Private); digital banking (ANZ Plus, ANZ App); simplification of Asian operations.
@@ -1532,10 +1579,11 @@ Interest rate tailwinds for NIM. Investment banking rebound. Digital adoption re
 **Rivalry:** High – Big 4 plus regional banks, neobanks. **New Entrants:** Moderate – digital bank licences easier but scale hard. **Supplier Power:** Low – depositors fragmented. **Buyer Power:** High – customers can switch easily. **Substitutes:** Fintech lenders, neobanks.
 
 ## Management & Decision Making
-CEO Shayne Elliott has led a strategic simplification, exiting underperforming Asian businesses and focusing on Australia/NZ. Investment in digital (ANZ Plus) and AI. Capital returns via dividends and buybacks.
+CEO Shayne Elliott has led ANZ's simplification strategy, focusing on core banking in Australia and New Zealand while exiting underperforming Asian retail businesses. The bank is investing heavily in digital platforms and AI. Capital returns via dividends and buybacks.
 
 ## Future Outlook
 Digital banking growth, cost-out program completion, potential for improved NIM as rates stabilize. Watch housing market and competition.""",
+
     "AVGO": """## Business Model Canvas
 **Key Partners:** TSMC (chip manufacturing), cloud providers (AWS, Azure, Google), enterprise software customers (VMware), OEMs (Dell, HPE), AI chip customers (Google TPU, Meta).
 **Key Activities:** Semiconductor design (networking, broadband, storage, wireless); infrastructure software (VMware, CA, Symantec); AI accelerator development (custom ASICs); strategic acquisitions.
@@ -1564,6 +1612,7 @@ CEO Hock Tan is renowned for disciplined M&A and cost management. The VMware acq
 
 ## Future Outlook
 AI networking demand is a major tailwind. VMware subscription transition will smooth revenue. Watch debt reduction progress and competitive dynamics in AI chips.""",
+
     "WBC": """## Business Model Canvas
 **Key Partners:** Australian government (regulator), home loan aggregators, mortgage insurers, Visa/Mastercard, wealth management platforms, fintech partners, AWS (cloud migration).
 **Key Activities:** Retail banking (home loans, deposits); business banking; wealth management (BT); institutional banking; digital banking (Westpac App, Westpac Online); home loan servicing.
@@ -1592,6 +1641,7 @@ CEO Peter King (since 2020) – focused on simplification, culture change, and d
 
 ## Future Outlook
 Business lending growth. Digital adoption reduces cost-to-income. Home loan refinancing wave. Watch housing market, interest rates, and competition from neobanks.""",
+
     "RHHBY": """## Business Model Canvas
 **Key Partners:** Biotech partners (e.g., Genentech), contract research organisations, healthcare providers, government regulators (FDA, EMA), distribution partners.
 **Key Activities:** Pharmaceutical R&D; manufacturing; diagnostics development; commercialisation of drugs and diagnostics; clinical trials; regulatory affairs.
@@ -1620,7 +1670,7 @@ CEO Thomas Schinecker (since 2023) – focused on innovation, diagnostics integr
 
 ## Future Outlook
 Strong pipeline in oncology and immunology. Diagnostics growth. Digital health integration. Watch regulatory approvals, patent cliffs, and competition.""",
-    # ========== CORRECTED ESSA PROFILE ==========
+
     "ESSA": """## Business Model Canvas
 **Key Partners:** PT Pertamina (gas supply), PT Panca Amara Utama (ammonia subsidiary), international LPG offtakers, fertilizer manufacturers, industrial gas distributors, financial institutions, Indonesian government (regulatory).
 **Key Activities:** Natural gas processing and refining into LPG and condensate; ammonia production; procurement and distribution of natural and artificial gas; oil mining support; trading of solid, liquid, and gas fuels; plant operations and maintenance.
@@ -1649,7 +1699,7 @@ Management focuses on operational efficiency, maintaining gas supply security, a
 
 ## Future Outlook
 Domestic LPG demand continues to grow with population and urbanization. Ammonia demand is supported by fertilizer needs and industrial applications. Export opportunities to regional markets could drive growth. Key risks include gas supply stability, regulatory changes, and competition from imports. Watch for capacity expansion plans, export market development, and gas supply agreements.""",
-    # ========== FMG PROFILE ==========
+
     "FMG": """## Business Model Canvas
 **Key Partners:** Iron ore buyers (China Baowu, HBIS, Nippon Steel), mining contractors (Thiess), rail & port operators, equipment suppliers (Caterpillar, Komatsu), government regulators.
 **Key Activities:** Iron ore mining, processing, and export; development of green energy projects (hydrogen, solar); rail and port infrastructure management; exploration and resource development.
@@ -1678,7 +1728,7 @@ Management focused on cost leadership, shareholder returns (high dividends), and
 
 ## Future Outlook
 Iron ore demand from India and Southeast Asia. Green energy projects could diversify earnings. Watch iron ore prices, China demand, and project execution.""",
-    # ========== STO PROFILE ==========
+
     "STO": """## Business Model Canvas
 **Key Partners:** LNG offtakers (Asian utilities), joint venture partners (e.g., PNG LNG, Gladstone LNG), governments (Australia, Papua New Guinea), oilfield service providers, technology partners for carbon capture.
 **Key Activities:** Oil & gas exploration, development, production; LNG liquefaction and export; pipeline operations; carbon capture and storage (CCS) projects; renewable energy investments.
@@ -1707,6 +1757,97 @@ CEO Kevin Gallagher (since 2016) – focused on disciplined capital allocation, 
 
 ## Future Outlook
 LNG demand from Asia remains strong. CCS projects could generate carbon credits and reduce emissions. Watch oil/gas prices, project execution, and energy transition policies.""",
+
+    # ===================================================================
+    # =====================  NEW STOCKS  ================================
+    # ===================================================================
+
+    "ALD": """## Business Model Canvas
+**Key Partners:** Woolworths (jointly branded service stations), EG Australia (pending acquisition), Z Energy (NZ), fuel import terminals, logistics partners, QSR partners (McDonald's, KFC, Subway), EV charging network partners.
+**Key Activities:** Crude oil refining (Lytton, Brisbane); fuel import & distribution; wholesale fuel supply (largest in Australia, ~26% market share); convenience retail; EV charging network; international fuel trading; renewable fuels development.
+**Key Resources:** Lytton refinery (6.0B litres annual capacity); 2,000+ service stations (including 350+ Ampol/Woolworths); Kurnell import terminal; national supply chain & logistics; Z Energy network in NZ; AmpolCard loyalty; international trading desk.
+**Value Proposition:** Integrated value chain from refining to retail; Australia's leading transport fuel supplier; iconic Ampol brand; convenience retail growth; EV charging infrastructure; energy transition pivot.
+**Customer Relationships:** B2B fuel supply contracts (mining, transport, aviation); AmpolCard loyalty; retail convenience customers; EV drivers; international trading partners.
+**Channels:** Service stations; wholesale distribution; truck stops; AmpolCard; international trading desk; EV charging network.
+**Customer Segments:** Motorists; commercial fleets; mining & transport companies; aviation; convenience retail consumers; EV drivers.
+**Cost Structure:** Refinery operations; fuel procurement; distribution & logistics; retail site operations; EV charging capex; convenience retail fit-out.
+**Revenue Streams:** Fuel retail & wholesale margins; refining margins; convenience retail; international fuel trading; EV charging.
+
+## SWOT Analysis
+**Strengths:** Largest wholesale fuel supplier in Australia; integrated refining + distribution + retail; iconic brand; strategic logistics infrastructure; growing convenience retail.
+**Weaknesses:** Refining margin volatility; exposure to oil price cycles; Lytton refinery long-term viability; EV transition risk.
+**Opportunities:** Convenience retail expansion; EV charging network; EG Australia acquisition; international fuel trading; low-carbon fuels (renewable diesel, hydrogen).
+**Threats:** EV adoption reducing fuel demand; refinery closures in Australia; competition from Viva Energy; carbon transition policies; oil price volatility.
+
+## PESTLE Analysis
+**Political:** Australian fuel security policy, refinery subsidies, EV mandates, ACCC competition review (EG Australia). **Economic:** Oil prices, refining margins, consumer spending, AUD/USD. **Social:** Convenience retail trends, EV adoption, fuel price sensitivity. **Technological:** EV charging, refinery efficiency, low-carbon fuels. **Legal:** Fuel quality standards, environmental regulations, competition law. **Environmental:** Net zero by 2040, carbon emissions, refinery closures.
+
+## Porter's Five Forces
+**Rivalry:** High – Viva Energy, BP, Shell, Caltex, 7-Eleven. **New Entrants:** High barriers (refinery, logistics, retail network). **Supplier Power:** Moderate – crude oil suppliers, import terminals. **Buyer Power:** High – commercial fuel buyers negotiate; retail consumers price-sensitive. **Substitutes:** EVs, public transport, hydrogen.
+
+## Management & Decision Making
+CEO Matt Halliday (since 2020) leads integrated fuel supply chain strategy. CFO Greg Barnes (since 2021) manages capital discipline. Recent decisions: EG Australia acquisition, EV charging investment, Lytton refinery life extension, renewable fuels development.
+
+## Future Outlook
+Convenience retail growth (6% CAGR since 2020). EV charging network expansion. EG Australia acquisition strengthens retail footprint. Watch refining margins, EV adoption, and oil prices.""",
+
+    "MQG": """## Business Model Canvas
+**Key Partners:** Institutional investors, infrastructure asset partners, renewable energy developers, global commodity clients, corporate advisory clients, government infrastructure bodies.
+**Key Activities:** Asset management (infrastructure, renewables, real assets); banking & financial services; commodities & global markets; Macquarie Capital (investment banking, advisory, capital raising).
+**Key Resources:** Global infrastructure asset management platform ($A403.4B total assets); 20,600+ employees in 31 markets; annuity-style earnings base (~70%); risk management framework; renewable energy expertise; global platform.
+**Value Proposition:** Diversified financial services model distinct from traditional banks; world-leading infrastructure asset management; renewable energy transition expertise; global platform; strong risk-adjusted returns.
+**Customer Relationships:** Long-term institutional asset management mandates; corporate advisory relationships; commodity trading clients; retail & business banking customers.
+**Channels:** Direct institutional relationships; global offices; digital banking; commodity trading platforms.
+**Customer Segments:** Institutional investors; infrastructure funds; corporate clients; retail & business banking customers; commodity producers; renewable energy developers.
+**Cost Structure:** Staff (large global workforce); technology & infrastructure; regulatory compliance; funding costs.
+**Revenue Streams:** Asset management fees (annuity-style ~70%); banking & financial services; commodities & global markets trading; Macquarie Capital advisory & capital raising.
+
+## SWOT Analysis
+**Strengths:** World-leading infrastructure asset management (~$A403B AUM); diversified earnings mix (annuity + market-facing); strong risk management; global platform in 31 markets; renewable energy expertise.
+**Weaknesses:** Market-facing earnings volatility (30% of income); complexity across 31 markets; regulatory complexity; exposure to commodity markets.
+**Opportunities:** Global infrastructure investment supercycle; renewable energy transition; digital assets; Asian wealth management; private credit expansion.
+**Threats:** Market volatility impacting trading revenues; regulatory changes; competition from global investment banks; commodity price cycles; geopolitical risk.
+
+## PESTLE Analysis
+**Political:** Global financial regulation, infrastructure policy, renewable energy incentives, sovereign wealth fund relationships. **Economic:** Interest rates, commodity prices, global GDP, equity markets, infrastructure spending. **Social:** Infrastructure needs, energy transition, ageing populations, urbanisation. **Technological:** Digital banking, fintech competition, green technologies, AI analytics. **Legal:** APRA regulation, global compliance, tax laws, antitrust. **Environmental:** Renewable energy financing, ESG investing, carbon transition.
+
+## Porter's Five Forces
+**Rivalry:** Moderate – differentiated from Big 4 banks; competes globally with investment banks & asset managers. **New Entrants:** High barriers (capital, expertise, relationships, track record). **Supplier Power:** Low – diversified funding sources. **Buyer Power:** Moderate – institutional clients have alternatives. **Substitutes:** Traditional banks, private equity, hedge funds.
+
+## Management & Decision Making
+CEO Shemara Wikramanayake (since 2018) leads diversified financial model and global infrastructure expansion. CFO Frank Kwok (since 2026). Greg Ward appointed incoming CEO (effective Nov 2026), a 30-year Macquarie veteran who served as CFO during the GFC. Track record of disciplined capital allocation and risk management.
+
+## Future Outlook
+Global infrastructure investment supercycle. Renewable energy asset management growth. Asian wealth management expansion. Watch market volatility, regulatory changes, and commodity cycles.""",
+
+    "ASML": """## Business Model Canvas
+**Key Partners:** Zeiss (optics), Cymer (laser sources, ASML subsidiary), Trumpf (laser technology), TSMC, Samsung, Intel, SK Hynix, Micron (key customers); Dutch & EU governments; IMEC research institute.
+**Key Activities:** EUV lithography system design & manufacture; DUV lithography systems; metrology & inspection systems; customer service & field support; R&D (next-gen High-NA EUV).
+**Key Resources:** EUV monopoly (100% market share in EUV); DUV market leadership; 42,000+ employees; €4B+ annual R&D; integrated supply chain; customer trust; High-NA EUV roadmap.
+**Value Proposition:** Indispensable "technological toll gate" for advanced semiconductor manufacturing; no viable competition in EUV; enables Moore's Law continuation; AI chip enabler; High-NA EUV for 2nm+ nodes.
+**Customer Relationships:** Long-term partnerships with TSMC, Samsung, Intel; joint R&D; field service & maintenance contracts; upgrade sales to installed base (~30% of revenue).
+**Channels:** Direct sales; field service engineers; customer training; upgrade programs; EUV/DUV system installation.
+**Customer Segments:** Semiconductor foundries (TSMC, Samsung, Intel); memory manufacturers (SK Hynix, Micron); logic & foundry customers; emerging Chinese foundries.
+**Cost Structure:** R&D (~€4B annually); manufacturing; supply chain; field service; IP licensing.
+**Revenue Streams:** EUV system sales (~48% of system revenue); DUV system sales; metrology & inspection; installed base service & upgrades (30% of net revenue).
+
+## SWOT Analysis
+**Strengths:** EUV monopoly; DUV market leadership; indispensable for advanced chips; AI boom beneficiary; strong service revenue (installed base); High-NA EUV first-mover.
+**Weaknesses:** High customer concentration (TSMC, Samsung, Intel ~75% of revenue); semiconductor cycle exposure; geopolitical export restrictions (China); dependence on Zeiss & Cymer.
+**Opportunities:** AI/HPC demand driving EUV adoption; High-NA EUV (next-gen, ramp 2026+); installed base growth (11% sequential); advanced packaging; emerging markets.
+**Threats:** China export restrictions (US/Dutch); competition from Chinese DUV makers (SMEE); loss of EUV monopoly (long-term); AI bubble risk; semiconductor cycle downturn.
+
+## PESTLE Analysis
+**Political:** US-China export controls, EU technology sovereignty, Dutch export licensing, CHIPS Act. **Economic:** Semiconductor capex cycle, AI investment, global GDP, memory prices. **Social:** Chip demand for AI, IoT, EVs; talent competition; STEM education. **Technological:** High-NA EUV, quantum computing, chiplets, 2nm/1.4nm nodes. **Legal:** Export regulations, IP protection, antitrust. **Environmental:** Energy efficiency, carbon footprint, sustainable manufacturing.
+
+## Porter's Five Forces
+**Rivalry:** Low – EUV monopoly; DUV competition from Nikon, Canon (limited, mostly mature nodes). **New Entrants:** Extremely high barriers (IP, scale, supply chain, customer trust, €10B+ R&D). **Supplier Power:** Moderate – Zeiss & Cymer are critical, but long-term partnerships. **Buyer Power:** Low – customers depend on ASML for advanced nodes; no alternatives. **Substitutes:** None for EUV; DUV alternatives limited; new lithography tech (nanoimprint, directed self-assembly) years away.
+
+## Management & Decision Making
+CEO Christophe Fouquet (since April 2024) leads EUV/High-NA roadmap. CFO Roger Dassen (since 2018) manages capital allocation and investor relations. Co-presidents: Jim Koonmen (Customer Operations), Frédéric Schneider-Maunoury (Operations). Track record of disciplined R&D investment and customer partnerships. ASML is Europe's most valuable company, driven by AI chip demand.
+
+## Future Outlook
+AI/HPC demand drives EUV adoption. High-NA EUV ramp in 2026+. Installed base service revenue growing 11% sequentially. Watch export controls, semiconductor cycle, and competitive threats.""",
 }
 
 LEADERSHIP = {
@@ -1742,12 +1883,13 @@ LEADERSHIP = {
     "BAC": {"ceo": "Brian Moynihan (since 2010)", "cfo": "Alastair Borthwick (since 2019)", "track": "Moynihan transformed BAC post‑2008, reduced expenses, built capital, and focused on digital banking and ESG."},
     "WBC": {"ceo": "Peter King (since 2020)", "cfo": "Michael Rowland (since 2022)", "track": "King focused on simplification, cost reduction, and digital transformation. Strong capital returns."},
     "RHHBY": {"ceo": "Thomas Schinecker (since 2023)", "cfo": "Alan Hippe (since 2019)", "track": "Schinecker focuses on innovation, diagnostics integration, and digital health. Strong pipeline in oncology and immunology."},
-    # ========== CORRECTED ESSA LEADERSHIP ==========
     "ESSA": {"ceo": "Kanishk Laroya (CEO & President Director since 2023)", "cfo": "Prakash Chand Bumb (CFO & Director since 2013)", "track": "Under Laroya's leadership, the company rebranded from PT Surya Esa Perkasa to PT ESSA Industries Indonesia Tbk in 2023, reflecting diversification beyond LPG into ammonia and petrochemicals. The ammonia plant in Banggai has become a key growth driver, establishing ESSA as a major player in Indonesia's petrochemical sector."},
-    # ========== FMG LEADERSHIP ==========
     "FMG": {"ceo": "Dino Otranto (since 2023)", "cfo": "Ian Wells (since 2021)", "track": "Otranto leads the company's cost leadership strategy and green energy transition. Fortescue has invested heavily in green hydrogen and solar projects while maintaining strong iron ore production and shareholder returns."},
-    # ========== STO LEADERSHIP ==========
     "STO": {"ceo": "Kevin Gallagher (since 2016)", "cfo": "António de Sousa (since 2016)", "track": "Gallagher has transformed Santos into a disciplined low-cost operator, focused on LNG, cost reduction, and emissions reduction (CCS projects). The company has delivered strong shareholder returns and is advancing CCS as a future growth area."},
+    # ---- NEW STOCKS ----
+    "ALD": {"ceo": "Matt Halliday (since June 2020)", "cfo": "Greg Barnes (since July 2021)", "track": "Halliday joined Ampol as CFO in 2019 and became CEO in 2020. He leads the integrated fuel supply chain strategy, EG Australia acquisition, and EV charging network expansion. Prior to Ampol, he spent 20 years at Rio Tinto in various finance and operational roles."},
+    "MQG": {"ceo": "Shemara Wikramanayake (since 2018) · Greg Ward (incoming, effective Nov 2026)", "cfo": "Frank Kwok (since 2026)", "track": "Wikramanayake has led Macquarie's diversified financial model and global infrastructure asset management expansion to $A403B AUM. Ward, a 30-year Macquarie veteran and former CFO during the GFC, will succeed her. Both are known for disciplined capital allocation and risk management."},
+    "ASML": {"ceo": "Christophe Fouquet (since April 2024)", "cfo": "Roger Dassen (since 2018)", "track": "Fouquet, a 15-year ASML veteran who previously led EUV business, leads the EUV/High-NA roadmap and AI-driven growth strategy. Dassen manages capital allocation and investor relations. ASML is Europe's most valuable company, driven by AI chip demand and its indispensable EUV monopoly."},
 }
 
 def build_profile_with_insights(sym, m, exchange, currency):
@@ -1811,7 +1953,7 @@ def main():
     ok = 0
     for i, (sym, (name, exchange, ticker_str, currency, _div, hint_cur)) in enumerate(all_stocks.items()):
         if i > 0:
-            time.sleep(1.2)   # gentle rate limiting
+            time.sleep(1.2)
         try:
             yd, cur_ann, src = fetch_live(sym, exchange, ticker_str, hint_cur, usd_aud, usd_idr, twd_usd)
             arrs = build_arrays(yd, sym, rates)
