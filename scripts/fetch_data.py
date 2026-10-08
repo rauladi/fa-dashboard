@@ -491,12 +491,25 @@ def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, tw
                         row_2026[k] = safe(annual, div, total_fx)
 
         if q_bal_cols:
-            latest_bal_col = q_bal_cols[-1]
-            bal_series = q_bal[latest_bal_col]
-            for k in ["totalAsset","cash","totalDebt","totalEquity"]:
-                val = get_fin_val_from_series(bal_series, BAL_CANDIDATES[k])
-                if val is None: val = get_fin_val_by_substring(bal_series, [k])
-                if val is not None: row_2026[k] = safe(val, div, total_fx)
+    bal_sums = {k: 0.0 for k in ["totalAsset","cash","totalDebt","totalEquity"]}
+    bal_quarter_count = 0
+    for col in q_bal_cols:
+        bal_series = q_bal[col]
+        has_bal = False
+        for k in bal_sums:
+            val = get_fin_val_from_series(bal_series, BAL_CANDIDATES[k])
+            if val is None:
+                val = get_fin_val_by_substring(bal_series, [k])
+            if val is not None:
+                bal_sums[k] += val
+                has_bal = True
+        if has_bal:
+            bal_quarter_count += 1
+    if bal_quarter_count > 0:
+        multiplier = 4.0 / bal_quarter_count
+        for k in bal_sums:
+            if bal_sums[k] != 0:
+                row_2026[k] = safe(bal_sums[k] * multiplier, div, total_fx)
 
         apply_corrections(row_2026, sym, q_inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
 
