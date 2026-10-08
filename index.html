@@ -1,17 +1,3 @@
-This is a complete overhaul of the `rankings` tab to exactly match the layout, styling, and data visualization of your mockup. 
-
-I have rewritten the `tabRankings()` function, added the necessary CSS for the new layout (Podium, Scatter Plot, Selected Panel, Heatmap, Category Leaders), and integrated the Chart.js scatter plot with custom labels.
-
-### Key Features Implemented:
-1. **Top 3 Podium**: Visual gold/silver/bronze cards with the rank 1 card in the middle.
-2. **Quality vs Growth Scatter Plot**: Bubble chart where X-axis is Revenue CAGR, Y-axis is Avg ROE, and bubble size is Total Assets. Color-coded by overall rank. Includes ticker labels.
-3. **Selected Stock Panel**: Shows the selected stock's overall rank, score, factor breakdown bars (colored by percentile), and key strengths/weaknesses.
-4. **Full Ranking Heatmap**: A dense, color-coded table showing the rank of each stock across all 11 criteria. The cells are colored from green (best) to red (worst).
-5. **Category Leaders**: A row of cards at the bottom highlighting the #1 stock in each specific metric category.
-
-Replace your existing `index.html` with the code below:
-
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
