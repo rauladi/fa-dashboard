@@ -108,28 +108,37 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 
 /* Logos */
 .logo-container { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.logo-img { border-radius: 10px; background: #fff; padding: 2px; object-fit: contain; box-shadow: 0 0 0 1px rgba(255,255,255,0.08); display: block; }
+.logo-img {
+  border-radius: 10px; background: #fff; padding: 2px; object-fit: contain;
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.08); display: block;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: high-quality;
+  -webkit-backface-visibility: hidden; backface-visibility: hidden;
+  transform: translateZ(0); will-change: transform;
+}
 .logo-mono { display: none; align-items: center; justify-content: center; font-weight: 800; color: #03050b; background: linear-gradient(135deg, var(--accent-cyan), #0077b3); border-radius: 10px; font-family: 'Space Grotesk', sans-serif; }
 
-/* Podium (Top 5) */
-.podium-cards { display: flex; justify-content: center; align-items: flex-end; gap: 6px; padding: 8px 0 0; }
-.podium-card { background: var(--bg-surface-1); border-radius: 12px; padding: 10px 6px 10px; text-align: center; flex: 1; max-width: 88px; position: relative; border: 1px solid var(--border-light); transition: transform 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+/* Podium (Top 5) — 2-row layout */
+.podium-cards { display: flex; flex-direction: column; gap: 14px; padding: 8px 0 0; margin-top: auto; }
+.podium-row { display: flex; justify-content: center; align-items: flex-end; gap: 10px; }
+.podium-card { background: var(--bg-surface-1); border-radius: 14px; padding: 12px 8px 10px; text-align: center; position: relative; border: 1px solid var(--border-light); transition: transform 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 0 0 auto; }
 .podium-card:hover { transform: translateY(-4px); }
-.podium-card.rank-1 { height: 165px; border-color: rgba(255,207,74,0.7); background: linear-gradient(180deg, rgba(255,207,74,0.16), rgba(15,25,35,0.9)); box-shadow: 0 0 22px rgba(255,207,74,0.12); }
-.podium-card.rank-2 { height: 145px; border-color: rgba(173,198,255,0.55); background: linear-gradient(180deg, rgba(173,198,255,0.09), rgba(15,25,35,0.9)); }
-.podium-card.rank-3 { height: 145px; border-color: rgba(192,165,255,0.55); background: linear-gradient(180deg, rgba(192,165,255,0.09), rgba(15,25,35,0.9)); }
-.podium-card.rank-4 { height: 128px; border-color: rgba(0,245,160,0.4); background: linear-gradient(180deg, rgba(0,245,160,0.06), rgba(15,25,35,0.9)); }
-.podium-card.rank-5 { height: 128px; border-color: rgba(90,158,255,0.4); background: linear-gradient(180deg, rgba(90,158,255,0.06), rgba(15,25,35,0.9)); }
-.podium-rank { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 11px; }
-.rank-1 .podium-rank { background: var(--accent-gold); color: #000; box-shadow: 0 0 10px rgba(255,207,74,0.7); }
+.podium-card.rank-1 { width: 108px; height: 185px; border-color: rgba(255,207,74,0.7); background: linear-gradient(180deg, rgba(255,207,74,0.16), rgba(15,25,35,0.9)); box-shadow: 0 0 24px rgba(255,207,74,0.15); }
+.podium-card.rank-2 { width: 100px; height: 155px; border-color: rgba(173,198,255,0.55); background: linear-gradient(180deg, rgba(173,198,255,0.09), rgba(15,25,35,0.9)); }
+.podium-card.rank-3 { width: 100px; height: 155px; border-color: rgba(192,165,255,0.55); background: linear-gradient(180deg, rgba(192,165,255,0.09), rgba(15,25,35,0.9)); }
+.podium-card.rank-4 { width: 112px; height: 130px; border-color: rgba(0,245,160,0.4); background: linear-gradient(180deg, rgba(0,245,160,0.07), rgba(15,25,35,0.9)); }
+.podium-card.rank-5 { width: 112px; height: 130px; border-color: rgba(90,158,255,0.4); background: linear-gradient(180deg, rgba(90,158,255,0.07), rgba(15,25,35,0.9)); }
+.podium-rank { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
+.rank-1 .podium-rank { background: var(--accent-gold); color: #000; box-shadow: 0 0 12px rgba(255,207,74,0.7); }
 .rank-2 .podium-rank { background: #adc6ff; color: #000; }
 .rank-3 .podium-rank { background: var(--accent-purple); color: #000; }
 .rank-4 .podium-rank { background: var(--accent-green); color: #000; }
 .rank-5 .podium-rank { background: var(--accent-blue); color: #000; }
-.podium-logo-wrap { display: flex; justify-content: center; margin-bottom: 6px; }
-.podium-ticker { font-size: 13px; font-weight: 800; letter-spacing: -0.02em; }
-.podium-name { font-size: 8px; color: var(--text-muted); margin-bottom: 4px; height: 20px; overflow: hidden; line-height: 1.2; }
-.podium-score { font-size: 14px; font-weight: 700; color: var(--accent-cyan); }
+.podium-logo-wrap { display: flex; justify-content: center; margin-bottom: 8px; }
+.podium-ticker { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
+.podium-name { font-size: 9px; color: var(--text-muted); margin-bottom: 5px; height: 22px; overflow: hidden; line-height: 1.2; }
+.podium-score { font-size: 15px; font-weight: 700; color: var(--accent-cyan); }
 .podium-quote { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 18px; font-style: italic; letter-spacing: 0.02em; }
 
 /* Scatter Plot */
@@ -193,6 +202,13 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .cat-value { font-size: 10px; color: var(--accent-cyan); font-weight: 600; }
 .cat-badge { font-size: 9px; background: rgba(0,228,255,0.12); color: var(--accent-cyan); padding: 1px 5px; border-radius: 4px; font-weight: 700; display: inline-block; }
 .cat-desc { font-size: 9px; color: var(--text-muted); line-height: 1.35; padding-top: 6px; border-top: 1px dashed rgba(72,110,144,0.3); }
+
+/* Insights tab header */
+.insights-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 18px 22px; background: var(--bg-surface-2); border-radius: 20px; border: 1px solid var(--border-light); }
+.insights-header .header-info { flex: 1; min-width: 0; }
+.insights-header .header-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.insights-header .header-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+.insights-header .header-badge { font-size: 10px; background: rgba(0,228,255,0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-weight: 700; letter-spacing: 0.04em; }
 </style>
 </head>
 <body>
@@ -237,38 +253,67 @@ let ANNUALISATION = {};
 const LS_KEY='fa_v5';
 const DATA_VERSION_KEY = 'fa_data_version';
 
-// Company domain map for logo lookup
+// Domain map — includes known alternate domains for IDX stocks.
+// Values can be a single domain string, or a pipe-separated list "primary|alt1|alt2".
 const DOMAIN_MAP = {
+  // US / Global
   V:'visa.com', MA:'mastercard.com', GOOG:'abc.xyz', MSFT:'microsoft.com', NVDA:'nvidia.com',
-  ASML:'asml.com', BHP:'bhp.com', CBA:'commbank.com.au', NAB:'nab.com.au', ANZ:'anz.com.au',
-  WBC:'westpac.com.au', MQG:'macquarie.com', WDS:'woodside.com', TSM:'tsmc.com', AVGO:'broadcom.com',
-  CVX:'chevron.com', AXP:'americanexpress.com', BAC:'bankofamerica.com', BBRI:'bri.co.id',
-  ADRO:'alamtri.com', SMSM:'selamat.com', UNTR:'unitedtractors.com', ITMG:'itmg.co.id',
-  POWR:'cikaranglistrindo.com', MPMX:'mpmx.co.id', BTPS:'btpnsyariah.com', DMAS:'puradelta.com',
-  SPTO:'totowater.com', AAPL:'apple.com', AMZN:'amazon.com', META:'meta.com', BKNG:'booking.com',
-  ALD:'ampol.com.au', RHHBY:'roche.com', 'PBR-A':'petrobras.com.br'
+  ASML:'asml.com', TSM:'tsmc.com', AVGO:'broadcom.com', CVX:'chevron.com',
+  AXP:'americanexpress.com', BAC:'bankofamerica.com', AAPL:'apple.com', AMZN:'amazon.com',
+  META:'meta.com', BKNG:'booking.com', RHHBY:'roche.com', 'PBR-A':'petrobras.com.br',
+  // ASX
+  BHP:'bhp.com', CBA:'commbank.com.au', NAB:'nab.com.au', ANZ:'anz.com.au',
+  WBC:'westpac.com.au', MQG:'macquarie.com', WDS:'woodside.com', ALD:'ampol.com.au',
+  // IDX — with alternates
+  BBRI:'bri.co.id|ir.bri.co.id',
+  ADRO:'alamtri.com|adaro.com',
+  SMSM:'adrgroup.co.id|selamat.com',
+  UNTR:'unitedtractors.com',
+  ITMG:'itmg.co.id',
+  POWR:'cikaranglistrindo.com',
+  MPMX:'mpmx.co.id',
+  BTPS:'btpnsyariah.com',
+  DMAS:'puradelta.com',
+  SPTO:'suryatoto.com|toto.com'
 };
 
-window.handleLogoError = function(img, domain, size) {
-  if (!img.dataset.stage || img.dataset.stage === '0') {
-    img.dataset.stage = '1';
-    img.src = `https://www.google.com/s2/favicons?domain=${domain}&sz=${size*2}`;
-  } else {
-    img.style.display = 'none';
-    const mono = img.nextElementSibling;
-    if (mono) mono.style.display = 'flex';
+// Multi-stage logo fallback: Clearbit(domain1) -> Clearbit(domain2) -> ... -> Google(domain1) -> Google(domain2) -> ... -> Monogram
+window.handleLogoError = function(img, domainsCsv, size) {
+  const domains = domainsCsv.split('|');
+  const stage = parseInt(img.dataset.stage || '0');
+  // Stage layout: 0 = initial Clearbit already failed. Next attempts:
+  // 1..N: Clearbit for domains[1..N-1]
+  // N+1..2N: Google favicon for domains[0..N-1]
+  const totalClearbitAttempts = domains.length;
+  const nextStage = stage + 1;
+  if (nextStage < totalClearbitAttempts) {
+    // try Clearbit for next domain
+    img.dataset.stage = nextStage.toString();
+    img.src = `https://logo.clearbit.com/${domains[nextStage]}?size=128`;
+    return;
   }
+  const googleIdx = nextStage - totalClearbitAttempts;
+  if (googleIdx >= 0 && googleIdx < domains.length) {
+    img.dataset.stage = nextStage.toString();
+    img.src = `https://www.google.com/s2/favicons?domain=${domains[googleIdx]}&sz=128`;
+    return;
+  }
+  // Everything failed
+  img.style.display = 'none';
+  const mono = img.nextElementSibling;
+  if (mono) mono.style.display = 'flex';
 };
 
 function getLogoHtml(sym, size = 32) {
-  const domain = DOMAIN_MAP[sym];
+  const domainsCsv = DOMAIN_MAP[sym];
   const initials = sym.substring(0, 2).toUpperCase().replace(/[^A-Z]/g, '');
   const monoStyle = `width:${size}px;height:${size}px;font-size:${Math.round(size*0.42)}px;`;
-  if (!domain) {
+  if (!domainsCsv) {
     return `<div class="logo-container"><div class="logo-mono" style="display:flex;${monoStyle}">${initials}</div></div>`;
   }
-  const src = `https://logo.clearbit.com/${domain}?size=${size*2}`;
-  return `<div class="logo-container"><img src="${src}" class="logo-img" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this,'${domain}',${size})" loading="lazy" referrerpolicy="no-referrer"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
+  const firstDomain = domainsCsv.split('|')[0];
+  const src = `https://logo.clearbit.com/${firstDomain}?size=128`;
+  return `<div class="logo-container"><img src="${src}" class="logo-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this,'${domainsCsv}',${size})" loading="lazy" referrerpolicy="no-referrer"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
 }
 
 const BASE_STOCKS={
@@ -500,26 +545,30 @@ function tabRankings(){
   if(!rankedKs.length) return `<div class="state-box"><p>No ranked stocks available.</p></div>`;
   const maxRank = rankedKs.length;
 
-  // 1. Top 5 Podium
   const top5 = rankedKs.slice(0, 5);
-  // Arrange as: rank 4, rank 2, rank 1, rank 3, rank 5
-  const podiumOrder = [4, 2, 1, 3, 5].filter(r => r <= top5.length);
-  const podiumHtml = podiumOrder.map(rank => {
+  // Build two rows: [2,1,3] then [4,5]
+  const buildPodiumCard = (rank) => {
     const k = top5[rank - 1];
+    if (!k) return '';
     const st = S.stocks[k];
     const score = scores[k].ws.toFixed(2);
     return `
       <div class="podium-card rank-${rank}" onclick="selStock('${k}');render();">
         <div class="podium-rank">${rank}</div>
-        <div class="podium-logo-wrap">${getLogoHtml(k, 34)}</div>
+        <div class="podium-logo-wrap">${getLogoHtml(k, 38)}</div>
         <div class="podium-ticker">${k}</div>
         <div class="podium-name">${st.name}</div>
         <div class="podium-score">${score}</div>
       </div>
     `;
-  }).join('');
+  };
+  const rowTop = [2, 1, 3].filter(r => r <= top5.length).map(buildPodiumCard).join('');
+  const rowBottom = [4, 5].filter(r => r <= top5.length).map(buildPodiumCard).join('');
+  const podiumHtml = `
+    <div class="podium-row">${rowTop}</div>
+    ${rowBottom ? `<div class="podium-row">${rowBottom}</div>` : ''}
+  `;
 
-  // 3. Selected Stock Panel
   const selSym = S.sel;
   const selSt = S.stocks[selSym];
   const selRank = fr[selSym] || 'N/A';
@@ -552,7 +601,6 @@ function tabRankings(){
     </div>
   `;
 
-  // 4. Heatmap Table
   const heatmapRows = rankedKs.slice(0, 10).map(k => {
     const r = fr[k];
     const st = S.stocks[k];
@@ -609,7 +657,6 @@ function tabRankings(){
     </div>
   `;
 
-  // 5. Category Leaders — with actual values from calcM()
   const catLeaders = [
     { label: 'Best Balance Sheet', icon: '⚖️', key: 'cashToAsset', desc: 'Highest Cash / Total Asset ratio', fmt: 'pct' },
     { label: 'Best Growth', icon: '📈', key: 'revenueCagr', desc: 'Fastest Revenue CAGR over the period', fmt: 'pct' },
@@ -688,8 +735,8 @@ function tabRankings(){
         <div class="podium-quote">"Great companies win on multiple dimensions."<br><span style="font-size:9px;">LONG-TERM THINKING. REAL RESULTS.</span></div>
       </div>
       <div class="panel">
-        <div class="panel-header">Quality vs Growth</div>
-        <div class="panel-sub">Bubble size = Market Cap &nbsp;|&nbsp; Colour = Overall Rank</div>
+        <div class="panel-header">Profitability vs Growth</div>
+        <div class="panel-sub">X = DPS CAGR (Growth, rev CAGR fallback) &nbsp;|&nbsp; Y = Net Profit Margin (Profitability) &nbsp;|&nbsp; Bubble size = Total Assets &nbsp;|&nbsp; Colour = Rank</div>
         <div class="scatter-container"><canvas id="scatterChart"></canvas></div>
       </div>
       <div>${selectedPanelHtml}</div>
@@ -737,11 +784,15 @@ function renderMain(){
         const rankedKs = Object.keys(fr).sort((a,b)=>fr[a]-fr[b]);
         const scatterData = rankedKs.map(k => {
           const m = calcM(k);
+          const dpsX = m.cg.dps;
+          const revX = m.cg.rev;
+          const growthX = isOK(dpsX) ? dpsX : (isOK(revX) ? revX : 0);
+          const profitY = isOK(m.rm.npmAvg) ? m.rm.npmAvg : 0;
+          const taLatest = m.raw.ta[N_YEARS-2] || m.raw.ta[N_YEARS-1] || 1;
+          const sizeVal = Math.max(8, Math.min(26, 8 + Math.log10(Math.abs(taLatest) + 1) * 4.2));
           return {
-            x: m.rm.revenueCagr || 0,
-            y: m.rm.roeAvg || 0,
-            r: Math.max(6, Math.min(26, Math.sqrt(Math.abs(m.raw.ta[N_YEARS-2] || 1)) * 0.9)),
-            label: k, rank: fr[k]
+            x: growthX, y: profitY, r: sizeVal,
+            label: k, rank: fr[k], isFallback: !isOK(dpsX)
           };
         });
         if (window.scatterChartInst) window.scatterChartInst.destroy();
@@ -755,10 +806,10 @@ function renderMain(){
               meta.data.forEach((element, index) => {
                 const data = dataset.data[index];
                 if (data.label) {
-                  ctx.fillStyle = data.rank <= 10 ? '#f0f6ff' : '#b8d0ea';
+                  ctx.fillStyle = data.rank <= 10 ? '#f0f6ff' : '#c8daf0';
                   ctx.font = data.rank <= 3 ? '600 11px "Space Grotesk"' : '500 10px "Space Grotesk"';
-                  ctx.textAlign = 'center';
-                  ctx.fillText(data.label, element.x, element.y - 11);
+                  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                  ctx.fillText(data.label, element.x, element.y - element.options.radius - 6);
                 }
               });
             });
@@ -769,28 +820,35 @@ function renderMain(){
           type: 'bubble',
           data: { datasets: [{
             label: 'Stocks', data: scatterData,
-            backgroundColor: scatterData.map(d => d.rank <= 3 ? 'rgba(255,207,74,0.85)' : d.rank <= 10 ? 'rgba(0,245,160,0.6)' : 'rgba(90,158,255,0.35)'),
-            borderColor: scatterData.map(d => d.rank <= 3 ? '#ffcf4a' : d.rank <= 10 ? '#00f5a0' : '#5a9eff'),
-            borderWidth: 1.5, hoverBackgroundColor: '#00e4ff'
+            backgroundColor: scatterData.map(d => d.rank <= 3 ? '#ffcf4a' : d.rank <= 10 ? '#00d98e' : '#5a9eff'),
+            borderColor: scatterData.map(d => d.rank <= 3 ? '#ffe08a' : d.rank <= 10 ? '#4dffb8' : '#8fb8ff'),
+            borderWidth: 1.5, hoverBackgroundColor: '#00e4ff', hoverBorderColor: '#ffffff'
           }] },
           options: {
             responsive: true, maintainAspectRatio: false,
-            layout: { padding: { top: 20, right: 12, bottom: 6, left: 6 } },
+            layout: { padding: { top: 24, right: 16, bottom: 8, left: 8 } },
             plugins: {
               legend: { display: false },
               tooltip: {
-                backgroundColor: 'rgba(8,16,24,0.95)',
+                backgroundColor: 'rgba(8,16,24,0.96)', borderColor: 'rgba(0,228,255,0.4)', borderWidth: 1,
                 titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' },
-                bodyFont: { family: "'Space Grotesk'", size: 11 }, padding: 10,
+                bodyFont: { family: "'Space Grotesk'", size: 11 }, padding: 12, displayColors: false,
                 callbacks: {
                   title: (items) => items[0]?.raw?.label || '',
-                  label: (ctx) => { const d = ctx.raw; return [`Rank #${d.rank}`, `Growth: ${d.x.toFixed(1)}%`, `Quality: ${d.y.toFixed(1)}%`]; }
+                  label: (ctx) => {
+                    const d = ctx.raw;
+                    return [
+                      `Rank #${d.rank}`,
+                      `Growth (DPS CAGR): ${d.isFallback ? 'n/a — using Rev CAGR ' : ''}${d.x.toFixed(2)}%`,
+                      `Profitability (NP Margin): ${d.y.toFixed(2)}%`
+                    ];
+                  }
                 }
               }
             },
             scales: {
-              x: { title: { display: true, text: 'Growth Score (Revenue CAGR %)', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' }, padding: { top: 6 } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 } }, grid: { color: 'rgba(72,110,144,0.15)' } },
-              y: { title: { display: true, text: 'Quality Score (Avg ROE %)', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 } }, grid: { color: 'rgba(72,110,144,0.15)' } }
+              x: { title: { display: true, text: 'Growth — DPS CAGR % (Rev CAGR fallback)', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' }, padding: { top: 6 } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(72,110,144,0.15)' } },
+              y: { title: { display: true, text: 'Profitability — Net Profit Margin %', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(72,110,144,0.15)' } }
             },
             onClick: (e, elements) => { if (elements.length > 0) { const idx = elements[0].index; selStock(scatterData[idx].label); } }
           },
@@ -932,8 +990,18 @@ function tabInsights(sym,st){
   if(tornadoVars.length){rightHtml+=`<div class="ai-content"><h2>🌪️ Sensitivity Analysis</h2>${renderTornadoChart(tornadoVars)}</div>`;}
   const takeaways=extractKeyTakeaways(profileMd,m,sym);
   if(takeaways.length){rightHtml+=`<div class="ai-content"><h2>🔑 Key Takeaways</h2><ul>${takeaways.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;}
-  if(!leftHtml&&!rightHtml){return `<div class="state-box"><p>No insights available for ${sym} yet.</p></div>`;}
-  return `<div><div style="margin-bottom:20px;"><div style="font-size:18px;font-weight:700"><span>${st.name}</span> <span style="font-size:12px;color:var(--text-muted)">${sym} · ${st.exchange} · ${st.currency}</span></div></div><div class="insights-two-col"><div>${leftHtml||'<div class="ai-content"><p>Business model analysis will appear after data refresh.</p></div>'}</div><div>${rightHtml}</div></div><div style="font-size:10px;color:var(--text-muted);margin-top:12px;">📚 Sources: Company filings · Annual Reports · Yahoo Finance${stockData?.profileDate?`<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}`:''}</div></div>`;
+  const headerHtml = `
+    <div class="insights-header">
+      ${getLogoHtml(sym, 56)}
+      <div class="header-info">
+        <div class="header-name">${st.name}</div>
+        <div class="header-meta">${sym} · ${st.exchange} · ${st.currency} · Rank #${(calcRanks(S.wts).fr[sym]) || '—'}</div>
+      </div>
+      <div class="header-badge">${profileMd ? 'AI INSIGHTS' : 'NO PROFILE DATA'}</div>
+    </div>
+  `;
+  if(!leftHtml&&!rightHtml){return `<div>${headerHtml}<div class="state-box"><p>No insights available for ${sym} yet.</p></div></div>`;}
+  return `<div>${headerHtml}<div class="insights-two-col"><div>${leftHtml||'<div class="ai-content"><p>Business model analysis will appear after data refresh.</p></div>'}</div><div>${rightHtml}</div></div><div style="font-size:10px;color:var(--text-muted);margin-top:12px;">📚 Sources: Company filings · Annual Reports · Yahoo Finance${stockData?.profileDate?`<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}`:''}</div></div>`;
 }
 </script>
 </body>
