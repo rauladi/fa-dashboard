@@ -490,26 +490,27 @@ def fetch_live_years(ticker_str, sym, target_cur, exchange, usd_aud, usd_idr, tw
 
         # Annualise balance-sheet items using the SAME method as income items:
         # sum quarterly values, then multiply by 4 / quarter_count.
-        if q_bal_cols:
-            bal_sums = {k: 0.0 for k in ["totalAsset","cash","totalDebt","totalEquity"]}
-            bal_quarter_count = 0
-            for col in q_bal_cols:
-                bal_series = q_bal[col]
-                has_bal = False
-                for k in bal_sums:
-                    val = get_fin_val_from_series(bal_series, BAL_CANDIDATES[k])
-                    if val is None:
-                        val = get_fin_val_by_substring(bal_series, [k])
-                    if val is not None:
-                        bal_sums[k] += val
-                        has_bal = True
-                if has_bal:
-                    bal_quarter_count += 1
-            if bal_quarter_count > 0:
-                bal_multiplier = 4.0 / bal_quarter_count
-                for k in bal_sums:
-                    if bal_sums[k] != 0:
-                        row_2026[k] = safe(bal_sums[k] * bal_multiplier, div, total_fx)
+        # Balance-sheet items are point-in-time snapshots — take the latest quarter.
+if q_bal_cols:
+    latest_bal_col = q_bal_cols[-1]
+    bal_series = q_bal[latest_bal_col]
+    for k in ["totalAsset","cash","totalDebt","totalEquity"]:
+        val = get_fin_val_from_series(bal_series, BAL_CANDIDATES[k])
+        if val is None:
+            val = get_fin_val_by_substring(bal_series, [k])
+        if val is not None:
+            row_2026[k] = safe(val, div, total_fx)
+
+# Data-quality guard (applies to ALL stocks uniformly):
+# if 2026 balance-sheet value is missing or <50% / >150% of 2025,
+# carry forward 2025 (yfinance quarterly data can be partial/absent for
+# stocks with mid-year fiscal year-ends like MQG, or newly-added tickers).
+for k in ["totalAsset","cash","totalDebt","totalEquity"]:
+    v25 = row_2025.get(k)
+    v26 = row_2026.get(k)
+    if v25 is not None and v25 > 0:
+        if v26 is None or v26 < 0.5 * v25 or v26 > 1.5 * v25:
+            row_2026[k] = v25
 
         apply_corrections(row_2026, sym, q_inc_cols, q_inc, tick, target_cur, exchange, div, total_fx, ps_fx, dbg=False)
 
