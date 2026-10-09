@@ -118,27 +118,43 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 }
 .logo-mono { display: none; align-items: center; justify-content: center; font-weight: 800; color: #03050b; background: linear-gradient(135deg, var(--accent-cyan), #0077b3); border-radius: 10px; font-family: 'Space Grotesk', sans-serif; }
 
-/* Podium (Top 5) — 2-row layout */
-.podium-cards { display: flex; flex-direction: column; gap: 14px; padding: 8px 0 0; margin-top: auto; }
-.podium-row { display: flex; justify-content: center; align-items: flex-end; gap: 10px; }
-.podium-card { background: var(--bg-surface-1); border-radius: 14px; padding: 12px 8px 10px; text-align: center; position: relative; border: 1px solid var(--border-light); transition: transform 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 0 0 auto; }
+/* ========== Podium (Top 5) — Flexible full-width layout ========== */
+.podium-cards { display: flex; flex-direction: column; gap: 14px; margin-top: auto; padding-top: 12px; width: 100%; }
+.podium-row { display: flex; justify-content: center; align-items: flex-end; gap: 12px; width: 100%; }
+.podium-card {
+  background: var(--bg-surface-1);
+  border-radius: 16px;
+  padding: 16px 12px 14px;
+  text-align: center;
+  position: relative;
+  border: 1px solid var(--border-light);
+  transition: transform 0.2s;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+}
 .podium-card:hover { transform: translateY(-4px); }
-.podium-card.rank-1 { width: 108px; height: 185px; border-color: rgba(255,207,74,0.7); background: linear-gradient(180deg, rgba(255,207,74,0.16), rgba(15,25,35,0.9)); box-shadow: 0 0 24px rgba(255,207,74,0.15); }
-.podium-card.rank-2 { width: 100px; height: 155px; border-color: rgba(173,198,255,0.55); background: linear-gradient(180deg, rgba(173,198,255,0.09), rgba(15,25,35,0.9)); }
-.podium-card.rank-3 { width: 100px; height: 155px; border-color: rgba(192,165,255,0.55); background: linear-gradient(180deg, rgba(192,165,255,0.09), rgba(15,25,35,0.9)); }
-.podium-card.rank-4 { width: 112px; height: 130px; border-color: rgba(0,245,160,0.4); background: linear-gradient(180deg, rgba(0,245,160,0.07), rgba(15,25,35,0.9)); }
-.podium-card.rank-5 { width: 112px; height: 130px; border-color: rgba(90,158,255,0.4); background: linear-gradient(180deg, rgba(90,158,255,0.07), rgba(15,25,35,0.9)); }
+.podium-card.rank-1 { min-height: 210px; border-color: rgba(255,207,74,0.7); background: linear-gradient(180deg, rgba(255,207,74,0.16), rgba(15,25,35,0.9)); box-shadow: 0 0 24px rgba(255,207,74,0.15); }
+.podium-card.rank-2 { min-height: 175px; border-color: rgba(173,198,255,0.55); background: linear-gradient(180deg, rgba(173,198,255,0.09), rgba(15,25,35,0.9)); }
+.podium-card.rank-3 { min-height: 175px; border-color: rgba(192,165,255,0.55); background: linear-gradient(180deg, rgba(192,165,255,0.09), rgba(15,25,35,0.9)); }
+.podium-card.rank-4 { min-height: 160px; border-color: rgba(0,245,160,0.4); background: linear-gradient(180deg, rgba(0,245,160,0.07), rgba(15,25,35,0.9)); }
+.podium-card.rank-5 { min-height: 160px; border-color: rgba(90,158,255,0.4); background: linear-gradient(180deg, rgba(90,158,255,0.07), rgba(15,25,35,0.9)); }
 .podium-rank { position: absolute; top: -11px; left: 50%; transform: translateX(-50%); width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12px; }
 .rank-1 .podium-rank { background: var(--accent-gold); color: #000; box-shadow: 0 0 12px rgba(255,207,74,0.7); }
 .rank-2 .podium-rank { background: #adc6ff; color: #000; }
 .rank-3 .podium-rank { background: var(--accent-purple); color: #000; }
 .rank-4 .podium-rank { background: var(--accent-green); color: #000; }
 .rank-5 .podium-rank { background: var(--accent-blue); color: #000; }
-.podium-logo-wrap { display: flex; justify-content: center; margin-bottom: 8px; }
-.podium-ticker { font-size: 15px; font-weight: 800; letter-spacing: -0.02em; }
-.podium-name { font-size: 9px; color: var(--text-muted); margin-bottom: 5px; height: 22px; overflow: hidden; line-height: 1.2; }
-.podium-score { font-size: 15px; font-weight: 700; color: var(--accent-cyan); }
-.podium-quote { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 18px; font-style: italic; letter-spacing: 0.02em; }
+.podium-logo-wrap { display: flex; justify-content: center; margin-bottom: 10px; }
+.podium-ticker { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 2px; }
+.podium-name { font-size: 10px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.podium-score { font-size: 17px; font-weight: 700; color: var(--accent-cyan); margin-top: auto; }
+.podium-quote { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 14px; font-style: italic; letter-spacing: 0.02em; }
 
 /* Scatter Plot */
 .scatter-container { height: 340px; position: relative; flex: 1; }
@@ -543,10 +559,13 @@ function tabRankings(){
     if (!k) return '';
     const st = S.stocks[k];
     const score = scores[k].ws.toFixed(2);
+    // Scale logo size by rank — rank 1 gets biggest logo
+    const logoSizes = {1: 52, 2: 44, 3: 44, 4: 40, 5: 40};
+    const logoSize = logoSizes[rank] || 40;
     return `
       <div class="podium-card rank-${rank}" onclick="selStock('${k}');render();">
         <div class="podium-rank">${rank}</div>
-        <div class="podium-logo-wrap">${getLogoHtml(k, 38)}</div>
+        <div class="podium-logo-wrap">${getLogoHtml(k, logoSize)}</div>
         <div class="podium-ticker">${k}</div>
         <div class="podium-name">${st.name}</div>
         <div class="podium-score">${score}</div>
@@ -793,8 +812,6 @@ function renderSBar(){const ks=Object.keys(S.stocks);document.getElementById('sL
 function renderTabBtns(){['data','ratios','chart','rankings','insights'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
 
 // ============ QUADRANT PLUGIN ============
-// Draws 4 quadrants with tinted backgrounds, dashed axis lines, and corner labels.
-// Thresholds are passed via chart.options.plugins.quadrantPlugin.xThreshold / yThreshold.
 const quadrantPlugin = {
   id: 'quadrantPlugin',
   beforeDatasetsDraw(chart, args, options) {
@@ -812,27 +829,20 @@ const quadrantPlugin = {
     const xPix = xScale.getPixelForValue(xThreshold);
     const yPix = yScale.getPixelForValue(yThreshold);
     
-    // Skip drawing if threshold falls outside visible area
     if (xPix < chartArea.left || xPix > chartArea.right) return;
     if (yPix < chartArea.top || yPix > chartArea.bottom) return;
     
     ctx.save();
     
-    // Quadrant background tints (very subtle so bubbles remain clearly visible)
-    // Top-right: HIGH GROWTH · HIGH PROFIT (green)
     ctx.fillStyle = 'rgba(0, 245, 160, 0.045)';
     ctx.fillRect(xPix, chartArea.top, chartArea.right - xPix, yPix - chartArea.top);
-    // Top-left: LOW GROWTH · HIGH PROFIT (gold)
     ctx.fillStyle = 'rgba(255, 207, 74, 0.045)';
     ctx.fillRect(chartArea.left, chartArea.top, xPix - chartArea.left, yPix - chartArea.top);
-    // Bottom-right: HIGH GROWTH · LOW PROFIT (blue)
     ctx.fillStyle = 'rgba(90, 158, 255, 0.045)';
     ctx.fillRect(xPix, yPix, chartArea.right - xPix, chartArea.bottom - yPix);
-    // Bottom-left: LOW GROWTH · LOW PROFIT (red)
     ctx.fillStyle = 'rgba(255, 90, 122, 0.045)';
     ctx.fillRect(chartArea.left, yPix, xPix - chartArea.left, chartArea.bottom - yPix);
     
-    // Dashed axis lines
     ctx.strokeStyle = 'rgba(0, 228, 255, 0.55)';
     ctx.setLineDash([6, 5]);
     ctx.lineWidth = 1.3;
@@ -846,7 +856,6 @@ const quadrantPlugin = {
     ctx.stroke();
     ctx.setLineDash([]);
     
-    // Corner labels with small badge backgrounds for legibility
     ctx.font = '700 9px "Space Grotesk", sans-serif';
     ctx.textBaseline = 'middle';
     
@@ -860,7 +869,6 @@ const quadrantPlugin = {
       else if (align === 'center') boxX = x - (textW + padding * 2) / 2;
       const boxY = y - textH / 2 - padding / 2;
       
-      // Badge background
       ctx.fillStyle = 'rgba(8, 16, 24, 0.75)';
       ctx.beginPath();
       const r = 3;
@@ -878,12 +886,10 @@ const quadrantPlugin = {
       ctx.closePath();
       ctx.fill();
       
-      // Badge border
       ctx.strokeStyle = color;
       ctx.lineWidth = 1;
       ctx.stroke();
       
-      // Text
       ctx.fillStyle = color;
       ctx.textAlign = 'left';
       ctx.fillText(text, boxX + padding, y);
@@ -923,7 +929,6 @@ function renderMain(){
           };
         });
         
-        // Compute median thresholds for quadrant split
         const growthValues = scatterData.map(d => d.x).sort((a,b) => a - b);
         const profitValues = scatterData.map(d => d.y).sort((a,b) => a - b);
         const medianGrowth = growthValues.length ? growthValues[Math.floor(growthValues.length / 2)] : 0;
@@ -943,7 +948,6 @@ function renderMain(){
                   ctx.fillStyle = data.rank <= 10 ? '#f0f6ff' : '#c8daf0';
                   ctx.font = data.rank <= 3 ? '600 11px "Space Grotesk"' : '500 10px "Space Grotesk"';
                   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                  // Draw a subtle dark halo behind text so it's readable over quadrant tints
                   ctx.shadowColor = 'rgba(0,0,0,0.85)';
                   ctx.shadowBlur = 4;
                   ctx.fillText(data.label, element.x, element.y - element.options.radius - 6);
@@ -1005,7 +1009,7 @@ function renderMain(){
     }, 50);
     return;
   }
-  if(S.tab==='insights'){const st=S.stocks[S.sel];cont.innerHTML=tabInsights(S.sel,S.stocks[S.sel]);return;}
+  if(S.tab==='insights'){const st=S.stocks[S.sel];cont.innerHTML=tabInsights(S.sel,st);return;}
   const st=S.stocks[S.sel];
   if(!st){cont.innerHTML='<div class="state-box">No stock selected</div>';return;}
   if(!S.data[S.sel]){cont.innerHTML=`<div class="state-box"><p>No data for ${S.sel}</p></div>`;return;}
