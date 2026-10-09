@@ -1000,25 +1000,36 @@ function renderSelTabContent(){
   const {ranks, scores, fr} = calcRanks(S.wts);
   const rankedKs = Object.keys(fr).sort((a,b)=>fr[a]-fr[b]);
   const maxRank = rankedKs.length;
-  if (S.selTab === 'factor') {
+if (S.selTab === 'factor') {
     const factorBreakdown = CRITERIA.map(c => {
       const rank = ranks[selSym]?.[c.key];
       if (rank === undefined) return { label: c.label, rank: '—', pct: 0, color: 'var(--text-muted)' };
       const pct = Math.max(4, 100 - ((rank - 1) / maxRank) * 100);
+      // Match the bubble chart's exact tier scheme
       let color;
-      if (rank <= 3) color = 'var(--accent-gold)';
-      else if (rank <= Math.ceil(maxRank * 0.33)) color = 'var(--accent-green)';
-      else if (rank <= Math.ceil(maxRank * 0.66)) color = 'var(--accent-cyan)';
-      else color = 'var(--accent-red)';
+      if (rank <= 3) color = '#ffcf4a';        // Top 3
+      else if (rank <= 10) color = '#00d98e';  // Top 10
+      else if (rank <= 20) color = '#00e4ff';  // Top 20
+      else color = '#5a9eff';                  // Others
       return { label: c.label, rank, pct, color };
     });
     const factorHtml = factorBreakdown.map(f => `<div class="factor-row"><div class="factor-label">${f.label}</div><div class="factor-bar-bg"><div class="factor-bar-fill" style="width:${f.pct}%;background:${f.color}"></div></div><div class="factor-value" style="color:${f.color}">${f.rank}</div></div>`).join('');
+    
+    const legendHtml = `
+      <div class="factor-legend">
+        <div class="factor-legend-item"><span class="factor-legend-dot" style="background:#ffcf4a"></span>Top 3</div>
+        <div class="factor-legend-item"><span class="factor-legend-dot" style="background:#00d98e"></span>Top 10</div>
+        <div class="factor-legend-item"><span class="factor-legend-dot" style="background:#00e4ff"></span>Top 20</div>
+        <div class="factor-legend-item"><span class="factor-legend-dot" style="background:#5a9eff"></span>Others</div>
+      </div>
+    `;
+    
     const selM = calcM(selSym);
     const takeaways = extractKeyTakeaways(selM.profile || '', selM, selSym);
     const strengths = takeaways.filter(t => t.includes('✅') || t.includes('🚀') || t.includes('💰') || t.includes('🧠')).slice(0, 3);
     const weaknesses = takeaways.filter(t => t.includes('⚠️') || t.includes('📉') || t.includes('🐢')).slice(0, 3);
     const swHtml = `<div class="sw-panel"><div><div class="sw-title" style="color:var(--accent-green);">Key Strengths</div>${strengths.map(s => `<div class="sw-item"><span class="sw-icon">✅</span><span>${s.replace(/^[^ ]+ /, '')}</span></div>`).join('')}${strengths.length === 0 ? '<div class="sw-item" style="color:var(--text-muted);">None identified</div>' : ''}</div><div><div class="sw-title" style="color:var(--accent-red);">Key Weaknesses</div>${weaknesses.map(w => `<div class="sw-item"><span class="sw-icon">⚠️</span><span>${w.replace(/^[^ ]+ /, '')}</span></div>`).join('')}${weaknesses.length === 0 ? '<div class="sw-item" style="color:var(--text-muted);">None identified</div>' : ''}</div></div>`;
-    return `<div>${factorHtml}${swHtml}</div>`;
+    return `<div>${factorHtml}${legendHtml}${swHtml}</div>`;
   }
   if (S.selTab === 'radar') {
     return `<div id="radarWrap"><canvas id="radarChart"></canvas></div>`;
