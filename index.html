@@ -143,6 +143,9 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 
 /* Scatter Plot */
 .scatter-container { height: 340px; position: relative; flex: 1; }
+.scatter-legend { position: absolute; top: 0; right: 0; display: flex; gap: 12px; font-size: 10px; color: var(--text-muted); z-index: 10; background: rgba(15,25,35,0.6); padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(4px); }
+.scatter-legend span { display: flex; align-items: center; gap: 4px; }
+.scatter-legend .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
 
 /* Selected Stock Panel */
 .selected-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-light); }
@@ -179,8 +182,9 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .heatmap-legend span { display: flex; align-items: center; gap: 5px; }
 .legend-dot { width: 11px; height: 11px; border-radius: 2px; }
 
+.heatmap-table-wrap { max-height: 600px; overflow-y: auto; border-radius: 12px; }
 .heatmap-table { width: 100%; border-collapse: separate; border-spacing: 3px 3px; }
-.heatmap-table th { font-size: 9px; text-transform: uppercase; color: var(--text-muted); padding: 8px 4px; text-align: center; border: none; font-weight: 600; letter-spacing: 0.05em; white-space: nowrap; }
+.heatmap-table th { font-size: 9px; text-transform: uppercase; color: var(--text-muted); padding: 8px 4px; text-align: center; border: none; font-weight: 600; letter-spacing: 0.05em; white-space: nowrap; position: sticky; top: 0; background: #0a0c12; z-index: 10; }
 .heatmap-table th .weight { color: var(--accent-cyan); font-size: 8px; font-weight: 700; display: block; margin-top: 2px; }
 .heatmap-table td { font-size: 11px; font-weight: 600; padding: 9px 6px; text-align: center; cursor: pointer; transition: filter 0.15s; }
 .heatmap-table td:hover { filter: brightness(1.3); }
@@ -254,7 +258,6 @@ const LS_KEY='fa_v5';
 const DATA_VERSION_KEY = 'fa_data_version';
 
 // Domain map — includes known alternate domains for IDX stocks.
-// Values can be a single domain string, or a pipe-separated list "primary|alt1|alt2".
 const DOMAIN_MAP = {
   // US / Global
   V:'visa.com', MA:'mastercard.com', GOOG:'abc.xyz', MSFT:'microsoft.com', NVDA:'nvidia.com',
@@ -267,7 +270,7 @@ const DOMAIN_MAP = {
   // IDX — with alternates
   BBRI:'bri.co.id|ir.bri.co.id',
   ADRO:'alamtri.com|adaro.com',
-  SMSM:'adrgroup.co.id|selamat.com',
+  SMSM:'selamat.com|adrgroup.co.id',
   UNTR:'unitedtractors.com',
   ITMG:'itmg.co.id',
   POWR:'cikaranglistrindo.com',
@@ -277,43 +280,37 @@ const DOMAIN_MAP = {
   SPTO:'suryatoto.com|toto.com'
 };
 
-// Multi-stage logo fallback: Clearbit(domain1) -> Clearbit(domain2) -> ... -> Google(domain1) -> Google(domain2) -> ... -> Monogram
-window.handleLogoError = function(img, domainsCsv, size) {
-  const domains = domainsCsv.split('|');
-  const stage = parseInt(img.dataset.stage || '0');
-  // Stage layout: 0 = initial Clearbit already failed. Next attempts:
-  // 1..N: Clearbit for domains[1..N-1]
-  // N+1..2N: Google favicon for domains[0..N-1]
-  const totalClearbitAttempts = domains.length;
-  const nextStage = stage + 1;
-  if (nextStage < totalClearbitAttempts) {
-    // try Clearbit for next domain
-    img.dataset.stage = nextStage.toString();
-    img.src = `https://logo.clearbit.com/${domains[nextStage]}?size=128`;
+// Multi-stage logo fallback
+window.handleLogoError = function(img) {
+  const fallbacks = img.dataset.fallbacks ? img.dataset.fallbacks.split(',') : [];
+  if (fallbacks.length > 0) {
+    const nextUrl = fallbacks.shift();
+    img.src = nextUrl;
+    img.dataset.fallbacks = fallbacks.join(',');
     return;
   }
-  const googleIdx = nextStage - totalClearbitAttempts;
-  if (googleIdx >= 0 && googleIdx < domains.length) {
-    img.dataset.stage = nextStage.toString();
-    img.src = `https://www.google.com/s2/favicons?domain=${domains[googleIdx]}&sz=128`;
-    return;
-  }
-  // Everything failed
   img.style.display = 'none';
   const mono = img.nextElementSibling;
   if (mono) mono.style.display = 'flex';
 };
 
 function getLogoHtml(sym, size = 32) {
-  const domainsCsv = DOMAIN_MAP[sym];
+  const domains = (DOMAIN_MAP[sym] || '').split('|').filter(Boolean);
   const initials = sym.substring(0, 2).toUpperCase().replace(/[^A-Z]/g, '');
   const monoStyle = `width:${size}px;height:${size}px;font-size:${Math.round(size*0.42)}px;`;
-  if (!domainsCsv) {
+  if (!domains.length) {
     return `<div class="logo-container"><div class="logo-mono" style="display:flex;${monoStyle}">${initials}</div></div>`;
   }
-  const firstDomain = domainsCsv.split('|')[0];
-  const src = `https://logo.clearbit.com/${firstDomain}?size=128`;
-  return `<div class="logo-container"><img src="${src}" class="logo-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this,'${domainsCsv}',${size})" loading="lazy" referrerpolicy="no-referrer"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
+  
+  const urls = [];
+  domains.forEach(d => urls.push(`https://logo.clearbit.com/${d}?size=128`));
+  domains.forEach(d => urls.push(`https://www.google.com/s2/favicons?domain=${d}&sz=128`));
+  domains.forEach(d => urls.push(`https://icons.duckduckgo.com/ip3/${d}.ico`));
+  
+  const firstUrl = urls.shift();
+  const fallbackUrls = urls.join(',');
+  
+  return `<div class="logo-container"><img src="${firstUrl}" data-fallbacks="${fallbackUrls}" data-initials="${initials}" data-size="${size}" class="logo-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this)" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
 }
 
 const BASE_STOCKS={
@@ -346,14 +343,14 @@ const CRITERIA=[
 const CAT_GROUPS=[{id:'risk',label:'🛡 Risk',color:'var(--accent-blue)',bg:'rgba(90,158,255,0.07)',border:'rgba(90,158,255,0.3)',keys:['cashToAsset','debtToEquity']},{id:'profgrow',label:'📈 Profitability & Growth',color:'var(--accent-green)',bg:'rgba(0,245,160,0.06)',border:'rgba(0,245,160,0.25)',keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr','dpsCagr']},{id:'mgmt',label:'🎯 Management Effectiveness',color:'var(--accent-purple)',bg:'rgba(192,165,255,0.06)',border:'rgba(192,165,255,0.25)',keys:['roeAvg','dividendPayout','buffettTest']}];
 const CRIT_MAP=Object.fromEntries(CRITERIA.map(c=>[c.wKey,c]));
 const MKEYS=[{k:"totalAsset",l:"Total Asset"},{k:"cash",l:"Cash"},{k:"totalDebt",l:"Total Debt"},{k:"totalEquity",l:"Total Equity"},{k:"revenue",l:"Total Revenue"},{k:"grossProfit",l:"Gross Profit"},{k:"netProfit",l:"Net Profit"},{k:"eps",l:"EPS"},{k:"dps",l:"DPS"}];
-let S={stocks:{...BASE_STOCKS},custom:{},deleted:{},data:{},status:{},errmsg:{},sel:"BHP",tab:"data",wts:{...DEF_WTS},selTab:'factor',wtOpen:false};
+let S={stocks:{...BASE_STOCKS},custom:{},deleted:{},data:{},status:{},errmsg:{},sel:"BHP",tab:"data",wts:{...DEF_WTS},selTab:'factor',wtOpen:false,heatmapFilter:{exchange:'ALL',search:''}};
 
-function saveLS(){try{localStorage.setItem(LS_KEY,JSON.stringify({custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,status:S.status,deleted:S.deleted||{}}));}catch(e){}}
+function saveLS(){try{localStorage.setItem(LS_KEY,JSON.stringify({custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,status:S.status,deleted:S.deleted||{},heatmapFilter:S.heatmapFilter}));}catch(e){}}
 function loadLS(){try{const h=location.hash;if(h&&h.startsWith('#d=')){applyImport(JSON.parse(atob(decodeURIComponent(h.slice(3)))));history.replaceState(null,'',location.pathname);return;}const raw=localStorage.getItem(LS_KEY);if(raw)applyImport(JSON.parse(raw),true);}catch(e){}}
-function applyImport(d,quiet){if(d.custom){S.custom=d.custom||{};S.stocks={...BASE_STOCKS,...S.custom};}if(d.wts)S.wts={...DEF_WTS,...d.wts};if(d.sel&&S.stocks[d.sel])S.sel=d.sel;if(d.data)S.data={...d.data};if(d.deleted)S.deleted={...d.deleted};if(d.status){Object.keys(d.status).forEach(k=>{S.status[k]=d.status[k]==='ok'?'ok':'idle';});}if(!quiet)saveLS();}
-function exportJSON(){const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,status:S.status,at:new Date().toISOString()};const b=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='FA_Dashboard_sync.json';a.click();URL.revokeObjectURL(u);}
+function applyImport(d,quiet){if(d.custom){S.custom=d.custom||{};S.stocks={...BASE_STOCKS,...S.custom};}if(d.wts)S.wts={...DEF_WTS,...d.wts};if(d.sel&&S.stocks[d.sel])S.sel=d.sel;if(d.data)S.data={...d.data};if(d.deleted)S.deleted={...d.deleted};if(d.heatmapFilter)S.heatmapFilter={...S.heatmapFilter,...d.heatmapFilter};if(d.status){Object.keys(d.status).forEach(k=>{S.status[k]=d.status[k]==='ok'?'ok':'idle';});}if(!quiet)saveLS();}
+function exportJSON(){const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,status:S.status,heatmapFilter:S.heatmapFilter,at:new Date().toISOString()};const b=new Blob([JSON.stringify(d,null,2)],{type:"application/json"});const u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='FA_Dashboard_sync.json';a.click();URL.revokeObjectURL(u);}
 function importFile(file){const r=new FileReader();r.onload=e=>{try{applyImport(JSON.parse(e.target.result));render();hideSync();showToast('✓ Imported successfully','green');}catch(x){showToast('Error importing file: '+x.message,'red');}};r.readAsText(file);}
-function genLink(){const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data};return location.href.split('#')[0]+'#d='+encodeURIComponent(btoa(JSON.stringify(d)));}
+function genLink(){const d={custom:S.custom,wts:S.wts,sel:S.sel,data:S.data,heatmapFilter:S.heatmapFilter};return location.href.split('#')[0]+'#d='+encodeURIComponent(btoa(JSON.stringify(d)));}
 function showToast(msg,col='cyan'){let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;padding:10px 20px;border-radius:40px;font-size:12px;font-weight:600;background:rgba(0,0,0,0.8);backdrop-filter:blur(12px);border:1px solid rgba(0,228,255,0.4);color:var(--accent-cyan);font-family:Space Grotesk;pointer-events:none;transition:opacity .3s';document.body.appendChild(t);}const colors={green:'#00f5a0',red:'#ff5a7a',cyan:'#00e4ff'};t.style.color=colors[col]||colors.cyan;t.textContent=msg;t.style.opacity='1';clearTimeout(t._tid);t._tid=setTimeout(()=>t.style.opacity='0',3000);}
 
 const PRELOADED={
@@ -448,6 +445,7 @@ function heatStyle(pct) {
 
 function setSelTab(t){S.selTab=t;render();}
 function toggleWeights(){S.wtOpen=!S.wtOpen;render();}
+function setHeatmapFilter(key, val) { S.heatmapFilter[key] = val; render(); }
 
 function renderWeightsPanel(){
   const wCatBlocks = CAT_GROUPS.map(g => {
@@ -546,7 +544,6 @@ function tabRankings(){
   const maxRank = rankedKs.length;
 
   const top5 = rankedKs.slice(0, 5);
-  // Build two rows: [2,1,3] then [4,5]
   const buildPodiumCard = (rank) => {
     const k = top5[rank - 1];
     if (!k) return '';
@@ -601,7 +598,23 @@ function tabRankings(){
     </div>
   `;
 
-  const heatmapRows = rankedKs.slice(0, 10).map(k => {
+  // --- Heatmap Filtering ---
+  let filteredKs = rankedKs;
+  if (S.heatmapFilter.exchange === 'TOP10') {
+    filteredKs = rankedKs.slice(0, 10);
+  } else if (S.heatmapFilter.exchange === 'ASX') {
+    filteredKs = rankedKs.filter(k => S.stocks[k].exchange === 'ASX');
+  } else if (S.heatmapFilter.exchange === 'US') {
+    filteredKs = rankedKs.filter(k => ['NYSE', 'NASDAQ'].includes(S.stocks[k].exchange));
+  } else if (S.heatmapFilter.exchange === 'IDX') {
+    filteredKs = rankedKs.filter(k => S.stocks[k].exchange === 'IDX');
+  }
+  if (S.heatmapFilter.search) {
+    const q = S.heatmapFilter.search.toLowerCase();
+    filteredKs = filteredKs.filter(k => k.toLowerCase().includes(q) || (S.stocks[k].name && S.stocks[k].name.toLowerCase().includes(q)));
+  }
+
+  const heatmapRows = filteredKs.map(k => {
     const r = fr[k];
     const st = S.stocks[k];
     const cells = CRITERIA.map(c => {
@@ -612,7 +625,7 @@ function tabRankings(){
     }).join('');
     return `
       <tr>
-        <td class="rank-cell" onclick="selStock('${k}');render();"><span class="rc ${r<=3?'rc'+r:''}">${r}</span></td>
+        <td class="rank-cell" onclick="selStock('${k}');render();"><span class="rc ${r<=5?'rc'+r:''}">${r}</span></td>
         <td class="stock-cell" onclick="selStock('${k}');render();">${k}</td>
         <td class="company-cell" onclick="selStock('${k}');render();">${st.name}</td>
         ${cells}
@@ -626,12 +639,17 @@ function tabRankings(){
       <div class="heatmap-header">
         <div>
           <div class="panel-header">Full Ranking Heatmap</div>
-          <div class="panel-sub">Lower rank number = better (1 = best)</div>
+          <div class="panel-sub">Lower rank number = better (1 = best) · Showing ${filteredKs.length} of ${rankedKs.length} stocks</div>
         </div>
         <div class="heatmap-controls">
-          <input type="text" placeholder="Search stock..." />
-          <select><option>All Sectors</option></select>
-          <select><option>All Criteria</option></select>
+          <input type="text" placeholder="Search stock..." value="${S.heatmapFilter.search}" oninput="setHeatmapFilter('search', this.value)" />
+          <select onchange="setHeatmapFilter('exchange', this.value)">
+            <option value="ALL" ${S.heatmapFilter.exchange === 'ALL' ? 'selected' : ''}>All Shares</option>
+            <option value="TOP10" ${S.heatmapFilter.exchange === 'TOP10' ? 'selected' : ''}>Top 10</option>
+            <option value="ASX" ${S.heatmapFilter.exchange === 'ASX' ? 'selected' : ''}>ASX</option>
+            <option value="US" ${S.heatmapFilter.exchange === 'US' ? 'selected' : ''}>US (NYSE + NASDAQ)</option>
+            <option value="IDX" ${S.heatmapFilter.exchange === 'IDX' ? 'selected' : ''}>IDX (Indonesia)</option>
+          </select>
         </div>
         <div class="heatmap-legend">
           <span><span class="legend-dot" style="background:rgba(0,220,130,0.85);"></span> Top</span>
@@ -640,7 +658,7 @@ function tabRankings(){
           <span><span class="legend-dot" style="background:rgba(255,90,122,0.3);"></span> Weak</span>
         </div>
       </div>
-      <div style="overflow-x:auto;">
+      <div class="heatmap-table-wrap">
         <table class="heatmap-table">
           <thead>
             <tr>
@@ -736,8 +754,16 @@ function tabRankings(){
       </div>
       <div class="panel">
         <div class="panel-header">Profitability vs Growth</div>
-        <div class="panel-sub">X = DPS CAGR (Growth, rev CAGR fallback) &nbsp;|&nbsp; Y = Net Profit Margin (Profitability) &nbsp;|&nbsp; Bubble size = Total Assets &nbsp;|&nbsp; Colour = Rank</div>
-        <div class="scatter-container"><canvas id="scatterChart"></canvas></div>
+        <div class="panel-sub">X = EPS CAGR (Growth) &nbsp;|&nbsp; Y = Net Profit Margin (Profitability) &nbsp;|&nbsp; Bubble size = Total Assets</div>
+        <div class="scatter-container">
+          <div class="scatter-legend">
+            <span><span class="legend-dot" style="background:#ffcf4a;"></span> Top 3</span>
+            <span><span class="legend-dot" style="background:#00d98e;"></span> Top 10</span>
+            <span><span class="legend-dot" style="background:#00e4ff;"></span> Top 20</span>
+            <span><span class="legend-dot" style="background:#5a9eff;"></span> Others</span>
+          </div>
+          <canvas id="scatterChart"></canvas>
+        </div>
       </div>
       <div>${selectedPanelHtml}</div>
     </div>
@@ -784,15 +810,15 @@ function renderMain(){
         const rankedKs = Object.keys(fr).sort((a,b)=>fr[a]-fr[b]);
         const scatterData = rankedKs.map(k => {
           const m = calcM(k);
-          const dpsX = m.cg.dps;
+          const epsX = m.cg.eps;
           const revX = m.cg.rev;
-          const growthX = isOK(dpsX) ? dpsX : (isOK(revX) ? revX : 0);
+          const growthX = isOK(epsX) ? epsX : (isOK(revX) ? revX : 0);
           const profitY = isOK(m.rm.npmAvg) ? m.rm.npmAvg : 0;
           const taLatest = m.raw.ta[N_YEARS-2] || m.raw.ta[N_YEARS-1] || 1;
           const sizeVal = Math.max(8, Math.min(26, 8 + Math.log10(Math.abs(taLatest) + 1) * 4.2));
           return {
             x: growthX, y: profitY, r: sizeVal,
-            label: k, rank: fr[k], isFallback: !isOK(dpsX)
+            label: k, rank: fr[k], isFallback: !isOK(epsX)
           };
         });
         if (window.scatterChartInst) window.scatterChartInst.destroy();
@@ -820,9 +846,9 @@ function renderMain(){
           type: 'bubble',
           data: { datasets: [{
             label: 'Stocks', data: scatterData,
-            backgroundColor: scatterData.map(d => d.rank <= 3 ? '#ffcf4a' : d.rank <= 10 ? '#00d98e' : '#5a9eff'),
-            borderColor: scatterData.map(d => d.rank <= 3 ? '#ffe08a' : d.rank <= 10 ? '#4dffb8' : '#8fb8ff'),
-            borderWidth: 1.5, hoverBackgroundColor: '#00e4ff', hoverBorderColor: '#ffffff'
+            backgroundColor: scatterData.map(d => d.rank <= 3 ? '#ffcf4a' : d.rank <= 10 ? '#00d98e' : d.rank <= 20 ? '#00e4ff' : '#5a9eff'),
+            borderColor: scatterData.map(d => d.rank <= 3 ? '#ffe08a' : d.rank <= 10 ? '#4dffb8' : d.rank <= 20 ? '#80f0ff' : '#8fb8ff'),
+            borderWidth: 1.5, hoverBackgroundColor: '#ffffff', hoverBorderColor: '#00e4ff'
           }] },
           options: {
             responsive: true, maintainAspectRatio: false,
@@ -839,7 +865,7 @@ function renderMain(){
                     const d = ctx.raw;
                     return [
                       `Rank #${d.rank}`,
-                      `Growth (DPS CAGR): ${d.isFallback ? 'n/a — using Rev CAGR ' : ''}${d.x.toFixed(2)}%`,
+                      `Growth (EPS CAGR): ${d.isFallback ? 'n/a — using Rev CAGR ' : ''}${d.x.toFixed(2)}%`,
                       `Profitability (NP Margin): ${d.y.toFixed(2)}%`
                     ];
                   }
@@ -847,7 +873,7 @@ function renderMain(){
               }
             },
             scales: {
-              x: { title: { display: true, text: 'Growth — DPS CAGR % (Rev CAGR fallback)', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' }, padding: { top: 6 } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(72,110,144,0.15)' } },
+              x: { title: { display: true, text: 'Growth — EPS CAGR % (Rev CAGR fallback)', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' }, padding: { top: 6 } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(72,110,144,0.15)' } },
               y: { title: { display: true, text: 'Profitability — Net Profit Margin %', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 }, callback: v => v + '%' }, grid: { color: 'rgba(72,110,144,0.15)' } }
             },
             onClick: (e, elements) => { if (elements.length > 0) { const idx = elements[0].index; selStock(scatterData[idx].label); } }
