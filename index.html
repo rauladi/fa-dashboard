@@ -90,7 +90,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 #debugPanel { position: fixed; bottom: 10px; right: 10px; background: rgba(0,0,0,0.8); border: 1px solid var(--accent-cyan); border-radius: 12px; padding: 10px 15px; font-size: 10px; color: var(--text-muted); z-index: 9999; display: none; }
 #debugPanel.visible { display: block; }
 
-/* --- RANKINGS TAB STYLES --- */
 .rankings-top-grid { display: grid; grid-template-columns: 1.35fr 1.55fr 1.15fr; gap: 18px; margin-bottom: 24px; align-items: stretch; }
 @media (max-width: 1200px) { .rankings-top-grid { grid-template-columns: 1fr 1fr; } .rankings-top-grid > div:last-child { grid-column: span 2; } }
 @media (max-width: 768px) { .rankings-top-grid { grid-template-columns: 1fr; } .rankings-top-grid > div:last-child { grid-column: span 1; } }
@@ -105,7 +104,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .wt-panel { display: none; margin-bottom: 20px; }
 .wt-panel.open { display: block; }
 
-/* Logos */
 .logo-container { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .logo-img {
   border-radius: 10px; background: #fff; padding: 2px; object-fit: contain;
@@ -117,7 +115,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 }
 .logo-mono { display: none; align-items: center; justify-content: center; font-weight: 800; color: #03050b; background: linear-gradient(135deg, var(--accent-cyan), #0077b3); border-radius: 10px; font-family: 'Space Grotesk', sans-serif; }
 
-/* Podium */
 .podium-cards { display: flex; flex-direction: column; gap: 14px; margin-top: auto; padding-top: 12px; width: 100%; }
 .podium-row { display: flex; justify-content: center; align-items: flex-end; gap: 12px; width: 100%; }
 .podium-card { background: var(--bg-surface-1); border-radius: 16px; padding: 16px 12px 14px; text-align: center; position: relative; border: 1px solid var(--border-light); transition: transform 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1 1 0; min-width: 0; box-sizing: border-box; }
@@ -139,13 +136,11 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .podium-score { font-size: 17px; font-weight: 700; color: var(--accent-cyan); margin-top: auto; }
 .podium-quote { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 14px; font-style: italic; letter-spacing: 0.02em; }
 
-/* Scatter Plot */
 .scatter-container { height: 340px; position: relative; flex: 1; }
 .scatter-legend { position: absolute; top: 0; right: 0; display: flex; gap: 12px; font-size: 10px; color: var(--text-muted); z-index: 10; background: rgba(15,25,35,0.6); padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(4px); }
 .scatter-legend span { display: flex; align-items: center; gap: 4px; }
 .scatter-legend .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
 
-/* Selected Stock Panel */
 .selected-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border-light); }
 .selected-info { flex: 1; min-width: 0; }
 .selected-ticker { font-size: 16px; font-weight: 700; }
@@ -171,7 +166,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .insight-item { background: rgba(0, 228, 255, 0.05); border-left: 2px solid var(--accent-cyan); padding: 8px 10px; border-radius: 4px; font-size: 11px; line-height: 1.4; color: var(--text-secondary); }
 .insight-item strong { color: var(--accent-cyan); font-weight: 600; }
 
-/* Heatmap Table */
 .heatmap-section { margin-top: 24px; }
 .heatmap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
 .heatmap-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -190,7 +184,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .heatmap-table .stock-cell { text-align: left; padding-left: 6px; background: transparent !important; cursor: pointer; font-weight: 700; font-size: 12px; }
 .heatmap-table .company-cell { text-align: left; font-weight: 400; font-size: 10px; color: var(--text-muted); background: transparent !important; cursor: pointer; padding-right: 10px; }
 
-/* Category Leaders */
 .cat-leaders-section { margin-top: 0; margin-bottom: 24px; }
 .cat-cards { display: grid; grid-template-columns: repeat(9, 1fr); gap: 10px; }
 @media (max-width: 1200px) { .cat-cards { grid-template-columns: repeat(5, 1fr); } }
@@ -206,231 +199,69 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .cat-badge { font-size: 9px; background: rgba(0,228,255,0.12); color: var(--accent-cyan); padding: 1px 5px; border-radius: 4px; font-weight: 700; display: inline-block; }
 .cat-desc { font-size: 9px; color: var(--text-muted); line-height: 1.35; padding-top: 6px; border-top: 1px dashed rgba(72,110,144,0.3); }
 
-/* Insights tab header */
 .insights-header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 18px 22px; background: var(--bg-surface-2); border-radius: 20px; border: 1px solid var(--border-light); }
 .insights-header .header-info { flex: 1; min-width: 0; }
 .insights-header .header-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
 .insights-header .header-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 .insights-header .header-badge { font-size: 10px; background: rgba(0,228,255,0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-weight: 700; letter-spacing: 0.04em; }
 
-/* ============ CHART TAB REDESIGN ============ */
-.chart-tab-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
-  gap: 18px;
-  align-items: start;
-}
+.chart-tab-grid { display: grid; grid-template-columns: minmax(0, 1fr) 400px; gap: 18px; align-items: start; }
 @media (max-width: 1200px) { .chart-tab-grid { grid-template-columns: 1fr; } }
 .chart-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
 
-/* Company header card */
-.chart-header-card {
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 22px 24px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  flex-wrap: wrap;
-}
+.chart-header-card { background: var(--bg-surface-2); border: 1px solid var(--border-light); border-radius: 20px; padding: 22px 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
 .chart-header-logo { flex-shrink: 0; }
 .chart-header-info { flex: 1; min-width: 240px; }
-.chart-header-name {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  margin-bottom: 6px;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+.chart-header-name { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 6px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
 .chart-header-name .ticker-paren { font-size: 20px; color: var(--text-secondary); font-weight: 600; }
-.chart-header-sectors {
-  font-size: 12px;
-  color: var(--text-muted);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 10px;
-}
+.chart-header-sectors { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
 .chart-header-sectors .badge { color: var(--accent-cyan); font-weight: 600; }
 .chart-header-sectors .divider { color: var(--text-muted); opacity: 0.4; }
-.chart-header-tagline {
-  font-size: 12.5px;
-  color: var(--text-secondary);
-  line-height: 1.55;
-  max-width: 460px;
-}
+.chart-header-tagline { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; max-width: 460px; }
 
-/* Financial results panel */
-.financial-results-card {
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 20px 22px;
-}
-.financial-results-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 14px;
-  letter-spacing: -0.01em;
-}
+.financial-results-card { background: var(--bg-surface-2); border: 1px solid var(--border-light); border-radius: 20px; padding: 20px 22px; }
+.financial-results-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; letter-spacing: -0.01em; }
 .financial-results-table { width: 100%; font-size: 13px; }
 .financial-results-table tr { border-bottom: 1px solid rgba(72,110,144,0.12); }
 .financial-results-table tr:last-child { border-bottom: none; }
 .financial-results-table td { padding: 10px 0; }
 .financial-results-table .label { color: var(--text-secondary); font-weight: 500; }
-.financial-results-table .value {
-  text-align: right; font-weight: 700; color: var(--text-primary); padding-right: 14px;
-  font-variant-numeric: tabular-nums;
-}
-.financial-results-table .change {
-  text-align: right; font-weight: 700; font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  min-width: 70px;
-}
+.financial-results-table .value { text-align: right; font-weight: 700; color: var(--text-primary); padding-right: 14px; font-variant-numeric: tabular-nums; }
+.financial-results-table .change { text-align: right; font-weight: 700; font-size: 12px; font-variant-numeric: tabular-nums; min-width: 70px; }
 .financial-results-table .change.positive { color: var(--accent-green); }
 .financial-results-table .change.negative { color: var(--accent-red); }
 .financial-results-table .change.neutral { color: var(--text-muted); }
 
-/* KPI cards row */
-.kpi-cards-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
+.kpi-cards-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 @media (max-width: 900px) { .kpi-cards-row { grid-template-columns: repeat(2, 1fr); } }
-.kpi-card {
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  padding: 16px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 100px;
-}
-.kpi-label {
-  font-size: 11px;
-  color: var(--text-muted);
-  font-weight: 500;
-  line-height: 1.3;
-}
-.kpi-value-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: auto;
-}
-.kpi-value {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
+.kpi-card { background: var(--bg-surface-2); border: 1px solid var(--border-light); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; min-height: 100px; }
+.kpi-label { font-size: 11px; color: var(--text-muted); font-weight: 500; line-height: 1.3; }
+.kpi-value-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; margin-top: auto; }
+.kpi-value { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; font-variant-numeric: tabular-nums; }
 .kpi-value.positive { color: var(--accent-green); }
 .kpi-value.neutral { color: var(--text-primary); }
 .kpi-icon { opacity: 0.85; flex-shrink: 0; margin-bottom: 2px; }
 
-/* Main chart card */
-.chart-main-card {
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 22px 24px;
-}
-.chart-main-title {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 16px;
-  letter-spacing: -0.01em;
-}
-.chart-html-legend {
-  display: flex;
-  gap: 20px;
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-}
+.chart-main-card { background: var(--bg-surface-2); border: 1px solid var(--border-light); border-radius: 20px; padding: 22px 24px; }
+.chart-main-title { font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; letter-spacing: -0.01em; }
+.chart-html-legend { display: flex; gap: 20px; font-size: 12px; color: var(--text-secondary); margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
 .chart-html-legend .legend-item { display: flex; align-items: center; gap: 7px; font-weight: 500; }
 .chart-html-legend .legend-marker { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
 .chart-html-legend .legend-marker.line-marker { width: 18px; height: 3px; border-radius: 2px; }
 .chart-canvas-wrap { position: relative; height: 380px; }
-.chart-info-footer {
-  margin-top: 16px;
-  padding: 12px 16px;
-  background: rgba(90, 158, 255, 0.06);
-  border: 1px solid rgba(90, 158, 255, 0.18);
-  border-radius: 12px;
-  font-size: 11.5px;
-  color: var(--text-secondary);
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  line-height: 1.5;
-}
+.chart-info-footer { margin-top: 16px; padding: 12px 16px; background: rgba(90, 158, 255, 0.06); border: 1px solid rgba(90, 158, 255, 0.18); border-radius: 12px; font-size: 11.5px; color: var(--text-secondary); display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; }
 .chart-info-footer .info-icon { color: var(--accent-cyan); font-weight: 700; flex-shrink: 0; font-size: 14px; }
 
-/* Side panels */
-.side-panel {
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-light);
-  border-radius: 20px;
-  padding: 20px 22px;
-}
-.side-panel-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 14px;
-  letter-spacing: -0.01em;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.margin-comparison-legend {
-  display: flex;
-  gap: 16px;
-  font-size: 11px;
-  color: var(--text-secondary);
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-}
+.side-panel { background: var(--bg-surface-2); border: 1px solid var(--border-light); border-radius: 20px; padding: 20px 22px; }
+.side-panel-title { font-size: 15px; font-weight: 700; color: var(--text-primary); margin-bottom: 14px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+.margin-comparison-legend { display: flex; gap: 16px; font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; flex-wrap: wrap; }
 .margin-comparison-legend .legend-item { display: flex; align-items: center; gap: 5px; }
 .margin-comparison-legend .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 .margin-comparison-canvas-wrap { height: 190px; position: relative; }
 
-.takeaways-list {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.takeaways-list li {
-  font-size: 12.5px;
-  color: var(--text-secondary);
-  line-height: 1.55;
-  display: flex;
-  gap: 10px;
-  align-items: flex-start;
-}
-.takeaways-list li .check {
-  color: var(--accent-green);
-  font-weight: 800;
-  flex-shrink: 0;
-  margin-top: 1px;
-  font-size: 13px;
-}
+.takeaways-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.takeaways-list li { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; display: flex; gap: 10px; align-items: flex-start; }
+.takeaways-list li .check { color: var(--accent-green); font-weight: 800; flex-shrink: 0; margin-top: 1px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -475,6 +306,7 @@ let ANNUALISATION = {};
 const LS_KEY='fa_v5';
 const DATA_VERSION_KEY = 'fa_data_version';
 
+// Domain map — multiple domains per stock (parent, IR, brand alternate)
 const DOMAIN_MAP = {
   // US / Global
   V:'visa.com', MA:'mastercard.com', GOOG:'abc.xyz', MSFT:'microsoft.com', NVDA:'nvidia.com',
@@ -484,7 +316,7 @@ const DOMAIN_MAP = {
   // ASX
   BHP:'bhp.com', CBA:'commbank.com.au', NAB:'nab.com.au', ANZ:'anz.com.au',
   WBC:'westpac.com.au', MQG:'macquarie.com', WDS:'woodside.com', ALD:'ampol.com.au',
-  // IDX — multiple domains per stock (parent, IR, group brand)
+  // IDX — with alternates
   BBRI:'bri.co.id|ir.bri.co.id|bankbri.co.id',
   ADRO:'adaro.com|alamtri.com|adaroenergy.com',
   SMSM:'adrgroup.co.id|selamat.com|adr.co.id',
@@ -497,7 +329,75 @@ const DOMAIN_MAP = {
   SPTO:'suryatoto.com|totowater.com|toto.co.id'
 };
 
+// Wikipedia article titles for stocks where other services don't have logos.
+// Last-resort fallback to fetch a company logo from Wikipedia.
+const WIKI_NAMES = {
+  BBRI: 'Bank_Rakyat_Indonesia',
+  ADRO: 'Adaro_Energy',
+  SMSM: 'Selamat_Sempurna',
+  UNTR: 'United_Tractors',
+  ITMG: 'Indo_Tambangraya_Megah',
+  POWR: 'Cikarang_Listrindo',
+  MPMX: 'Mitra_Pinasthika_Mustika',
+  BTPS: 'Bank_BTPN_Syariah',
+  DMAS: 'Puradelta_Lestari',
+  SPTO: 'Toto_Ltd',
+  // Add for other stocks as needed
+  BHP: 'BHP',
+  CBA: 'Commonwealth_Bank',
+  NAB: 'National_Australia_Bank',
+  ANZ: 'ANZ_(bank)',
+  WBC: 'Westpac',
+  MQG: 'Macquarie_Group',
+  WDS: 'Woodside_Energy',
+  TSM: 'TSMC',
+  V: 'Visa_Inc.',
+  MA: 'Mastercard',
+  'PBR-A': 'Petrobras',
+  AMZN: 'Amazon_(company)',
+  AAPL: 'Apple_Inc.',
+  META: 'Meta_Platforms',
+  GOOG: 'Alphabet_Inc.',
+  NVDA: 'Nvidia',
+  MSFT: 'Microsoft',
+  AVGO: 'Broadcom_Inc.',
+  CVX: 'Chevron_Corporation',
+  AXP: 'American_Express',
+  BAC: 'Bank_of_America',
+  RHHBY: 'Roche',
+  ALD: 'Ampol'
+};
+
+// Simple in-memory cache so we don't refetch Wikipedia for the same ticker
+const WIKI_LOGO_CACHE = {};   // ticker -> url or null
+const WIKI_PENDING = {};      // ticker -> Promise
+
+function fetchWikiLogo(ticker, wikiName) {
+  if (Object.prototype.hasOwnProperty.call(WIKI_LOGO_CACHE, ticker)) {
+    return Promise.resolve(WIKI_LOGO_CACHE[ticker]);
+  }
+  if (WIKI_PENDING[ticker]) return WIKI_PENDING[ticker];
+  
+  const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiName)}?redirect=true`;
+  const promise = fetch(url)
+    .then(r => r.ok ? r.json() : null)
+    .then(data => {
+      const logo = (data && (data.thumbnail?.source || data.originalimage?.source)) || null;
+      WIKI_LOGO_CACHE[ticker] = logo;
+      delete WIKI_PENDING[ticker];
+      return logo;
+    })
+    .catch(() => {
+      WIKI_LOGO_CACHE[ticker] = null;
+      delete WIKI_PENDING[ticker];
+      return null;
+    });
+  WIKI_PENDING[ticker] = promise;
+  return promise;
+}
+
 window.handleLogoError = function(img) {
+  // 1. Try static fallback chain first
   const fallbacks = img.dataset.fallbacks ? img.dataset.fallbacks.split(';').filter(Boolean) : [];
   if (fallbacks.length > 0) {
     const nextUrl = fallbacks.shift();
@@ -505,6 +405,32 @@ window.handleLogoError = function(img) {
     img.dataset.fallbacks = fallbacks.join(';');
     return;
   }
+  
+  // 2. Static chain exhausted — try Wikipedia (async, cached)
+  const sym = img.dataset.sym;
+  const wikiName = img.dataset.wiki;
+  if (sym && wikiName && !img.dataset.wikiTried) {
+    img.dataset.wikiTried = '1';
+    fetchWikiLogo(sym, wikiName).then(logoUrl => {
+      if (logoUrl) {
+        // Replace the onerror handler so a bad Wikipedia URL falls through cleanly
+        img.onerror = function() {
+          img.style.display = 'none';
+          const mono = img.nextElementSibling;
+          if (mono) mono.style.display = 'flex';
+        };
+        img.src = logoUrl;
+        img.style.display = '';
+      } else {
+        img.style.display = 'none';
+        const mono = img.nextElementSibling;
+        if (mono) mono.style.display = 'flex';
+      }
+    });
+    return;
+  }
+  
+  // 3. Final fallback: monogram
   img.style.display = 'none';
   const mono = img.nextElementSibling;
   if (mono) mono.style.display = 'flex';
@@ -514,25 +440,24 @@ function getLogoHtml(sym, size = 32) {
   const domains = (DOMAIN_MAP[sym] || '').split('|').filter(Boolean);
   const initials = sym.substring(0, 2).toUpperCase().replace(/[^A-Z]/g, '');
   const monoStyle = `width:${size}px;height:${size}px;font-size:${Math.round(size*0.42)}px;`;
-  if (!domains.length) {
+  const wikiName = WIKI_NAMES[sym] || '';
+  
+  if (!domains.length && !wikiName) {
     return `<div class="logo-container"><div class="logo-mono" style="display:flex;${monoStyle}">${initials}</div></div>`;
   }
   
-  // Build fallback chain: try every service against every domain before giving up
+  // Build static fallback chain: try every service against every domain
   const urls = [];
-  // 1. Clearbit — best quality when available
   domains.forEach(d => urls.push(`https://logo.clearbit.com/${d}?size=128`));
-  // 2. Google S2 favicon — broad coverage
   domains.forEach(d => urls.push(`https://www.google.com/s2/favicons?domain=${d}&sz=128`));
-  // 3. DuckDuckGo — sometimes has icons Google lacks
   domains.forEach(d => urls.push(`https://icons.duckduckgo.com/ip3/${d}.ico`));
-  // 4. Icon Horse — additional coverage, especially for smaller sites
   domains.forEach(d => urls.push(`https://icon.horse/icon/${d}`));
   
-  const firstUrl = urls.shift();
+  // If no static URLs (only Wikipedia available), start with a tiny transparent pixel
+  const firstUrl = urls.shift() || 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
   const fallbackUrls = urls.join(';');
   
-  return `<div class="logo-container"><img src="${firstUrl}" data-fallbacks="${fallbackUrls}" class="logo-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this)" loading="lazy" referrerpolicy="no-referrer"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
+  return `<div class="logo-container"><img src="${firstUrl}" data-fallbacks="${fallbackUrls}" data-sym="${sym}" data-wiki="${wikiName}" class="logo-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this)" loading="lazy" referrerpolicy="no-referrer"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
 }
 
 const BASE_STOCKS={
