@@ -78,12 +78,11 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .ai-content ul { list-style: none; padding-left: 0; }
 .ai-content li { font-size: 12px; color: var(--b8d0ea, #b8d0ea); line-height: 1.6; padding-left: 14px; position: relative; margin-bottom: 6px; }
 .ai-content li:before { content: "▸"; position: absolute; left: 0; color: var(--accent-cyan); }
-.chart-box { background: var(--bg-surface-2); border-radius: 24px; padding: 18px; border: 1px solid rgba(0,228,255,0.2); }
-#chartWrap { position: relative; height: 450px; }
+#chartWrap { position: relative; }
 .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(12px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; }
 .modal { background: var(--bg-surface-2); border: 1px solid var(--accent-cyan); border-radius: 32px; width: 100%; max-width: 980px; max-height: 90vh; overflow-y: auto; }
 .modal-h { padding: 18px 24px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: inherit; backdrop-filter: blur(12px); }
-@media (max-width: 640px) { #cont { padding: 16px; } .cards { grid-template-columns: repeat(2,1fr); } .insights-two-col { grid-template-columns: 1fr; } .h-title { font-size: 15px; } #chartWrap { height: 280px; } }
+@media (max-width: 640px) { #cont { padding: 16px; } .cards { grid-template-columns: repeat(2,1fr); } .insights-two-col { grid-template-columns: 1fr; } .h-title { font-size: 15px; } }
 .pos { color: var(--accent-green); font-weight: 600; }
 .neg { color: var(--accent-red); }
 .cya { color: var(--accent-cyan); }
@@ -118,26 +117,10 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 }
 .logo-mono { display: none; align-items: center; justify-content: center; font-weight: 800; color: #03050b; background: linear-gradient(135deg, var(--accent-cyan), #0077b3); border-radius: 10px; font-family: 'Space Grotesk', sans-serif; }
 
-/* ========== Podium (Top 5) — Flexible full-width layout ========== */
+/* Podium */
 .podium-cards { display: flex; flex-direction: column; gap: 14px; margin-top: auto; padding-top: 12px; width: 100%; }
 .podium-row { display: flex; justify-content: center; align-items: flex-end; gap: 12px; width: 100%; }
-.podium-card {
-  background: var(--bg-surface-1);
-  border-radius: 16px;
-  padding: 16px 12px 14px;
-  text-align: center;
-  position: relative;
-  border: 1px solid var(--border-light);
-  transition: transform 0.2s;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  flex: 1 1 0;
-  min-width: 0;
-  box-sizing: border-box;
-}
+.podium-card { background: var(--bg-surface-1); border-radius: 16px; padding: 16px 12px 14px; text-align: center; position: relative; border: 1px solid var(--border-light); transition: transform 0.2s; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1 1 0; min-width: 0; box-sizing: border-box; }
 .podium-card:hover { transform: translateY(-4px); }
 .podium-card.rank-1 { min-height: 210px; border-color: rgba(255,207,74,0.7); background: linear-gradient(180deg, rgba(255,207,74,0.16), rgba(15,25,35,0.9)); box-shadow: 0 0 24px rgba(255,207,74,0.15); }
 .podium-card.rank-2 { min-height: 175px; border-color: rgba(173,198,255,0.55); background: linear-gradient(180deg, rgba(173,198,255,0.09), rgba(15,25,35,0.9)); }
@@ -228,6 +211,225 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .insights-header .header-name { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
 .insights-header .header-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
 .insights-header .header-badge { font-size: 10px; background: rgba(0,228,255,0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-weight: 700; letter-spacing: 0.04em; }
+
+/* ============ CHART TAB REDESIGN ============ */
+.chart-tab-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 1200px) { .chart-tab-grid { grid-template-columns: 1fr; } }
+.chart-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+
+/* Company header card */
+.chart-header-card {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.chart-header-logo { flex-shrink: 0; }
+.chart-header-info { flex: 1; min-width: 240px; }
+.chart-header-name {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.chart-header-name .ticker-paren { font-size: 20px; color: var(--text-secondary); font-weight: 600; }
+.chart-header-sectors {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.chart-header-sectors .badge { color: var(--accent-cyan); font-weight: 600; }
+.chart-header-sectors .divider { color: var(--text-muted); opacity: 0.4; }
+.chart-header-tagline {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  max-width: 460px;
+}
+
+/* Financial results panel */
+.financial-results-card {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 20px 22px;
+}
+.financial-results-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+}
+.financial-results-table { width: 100%; font-size: 13px; }
+.financial-results-table tr { border-bottom: 1px solid rgba(72,110,144,0.12); }
+.financial-results-table tr:last-child { border-bottom: none; }
+.financial-results-table td { padding: 10px 0; }
+.financial-results-table .label { color: var(--text-secondary); font-weight: 500; }
+.financial-results-table .value {
+  text-align: right; font-weight: 700; color: var(--text-primary); padding-right: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.financial-results-table .change {
+  text-align: right; font-weight: 700; font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  min-width: 70px;
+}
+.financial-results-table .change.positive { color: var(--accent-green); }
+.financial-results-table .change.negative { color: var(--accent-red); }
+.financial-results-table .change.neutral { color: var(--text-muted); }
+
+/* KPI cards row */
+.kpi-cards-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 900px) { .kpi-cards-row { grid-template-columns: repeat(2, 1fr); } }
+.kpi-card {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-light);
+  border-radius: 16px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 100px;
+}
+.kpi-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 500;
+  line-height: 1.3;
+}
+.kpi-value-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+}
+.kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-value.positive { color: var(--accent-green); }
+.kpi-value.neutral { color: var(--text-primary); }
+.kpi-icon { opacity: 0.85; flex-shrink: 0; margin-bottom: 2px; }
+
+/* Main chart card */
+.chart-main-card {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 22px 24px;
+}
+.chart-main-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+  letter-spacing: -0.01em;
+}
+.chart-html-legend {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.chart-html-legend .legend-item { display: flex; align-items: center; gap: 7px; font-weight: 500; }
+.chart-html-legend .legend-marker { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.chart-html-legend .legend-marker.line-marker { width: 18px; height: 3px; border-radius: 2px; }
+.chart-canvas-wrap { position: relative; height: 380px; }
+.chart-info-footer {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(90, 158, 255, 0.06);
+  border: 1px solid rgba(90, 158, 255, 0.18);
+  border-radius: 12px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+.chart-info-footer .info-icon { color: var(--accent-cyan); font-weight: 700; flex-shrink: 0; font-size: 14px; }
+
+/* Side panels */
+.side-panel {
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 20px 22px;
+}
+.side-panel-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 14px;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.margin-comparison-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.margin-comparison-legend .legend-item { display: flex; align-items: center; gap: 5px; }
+.margin-comparison-legend .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+.margin-comparison-canvas-wrap { height: 190px; position: relative; }
+
+.takeaways-list {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.takeaways-list li {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.takeaways-list li .check {
+  color: var(--accent-green);
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 13px;
+}
 </style>
 </head>
 <body>
@@ -311,15 +513,12 @@ function getLogoHtml(sym, size = 32) {
   if (!domains.length) {
     return `<div class="logo-container"><div class="logo-mono" style="display:flex;${monoStyle}">${initials}</div></div>`;
   }
-  
   const urls = [];
   domains.forEach(d => urls.push(`https://logo.clearbit.com/${d}?size=128`));
   domains.forEach(d => urls.push(`https://www.google.com/s2/favicons?domain=${d}&sz=128`));
   domains.forEach(d => urls.push(`https://icons.duckduckgo.com/ip3/${d}.ico`));
-  
   const firstUrl = urls.shift();
   const fallbackUrls = urls.join(';');
-  
   return `<div class="logo-container"><img src="${firstUrl}" data-fallbacks="${fallbackUrls}" class="logo-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this)" loading="lazy" referrerpolicy="no-referrer"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
 }
 
@@ -408,6 +607,14 @@ const avg=a=>{const v=a.filter(isOK);return v.length?v.reduce((s,x)=>s+x,0)/v.le
 const N2=(v,d=2)=>isOK(v)?Number(v).toFixed(d):'N/A';
 const P1=(v,d=1)=>isOK(v)?Number(v).toFixed(d)+'%':'N/A';
 function cagr(a){const v=a.filter(isOK);if(v.length<2)return null;const s=v[0],e=v[v.length-1],n=v.length-1;if(s===0||n===0)return null;if(s>0&&e>0)return(Math.pow(e/s,1/n)-1)*100;return null;}
+// Helper: latest two valid values in an array (returns {latest, latestIdx, prev, prevIdx})
+function latestTwo(arr) {
+  const idxs = arr.map((v,i)=>isOK(v)?i:-1).filter(i=>i!==-1);
+  if (!idxs.length) return {latest:null, latestIdx:-1, prev:null, prevIdx:-1};
+  const latestIdx = idxs[idxs.length-1];
+  const prevIdx = idxs.length>=2 ? idxs[idxs.length-2] : -1;
+  return {latest: arr[latestIdx], latestIdx, prev: prevIdx>=0 ? arr[prevIdx] : null, prevIdx};
+}
 
 function calcM(symbol){
   const data=S.data[symbol];
@@ -441,9 +648,420 @@ function yearColHeader(sym,yr){if(yr!==CURRENT_YEAR)return `<th class="tc" style
 function srcBar(sym,st){const d=S.data[sym];const isCustom=!!S.custom[sym];const ticker=d?.ticker||yahooTicker(sym,st.exchange||'');const src=d?.source||'built-in';let badge,note;if(src==='yfinance'){const gen=d?.generated?new Date(d.generated).toLocaleDateString():'—';badge=`<span>✓ Auto-refreshed</span>`;note=`Live via yfinance · Refreshed: ${gen}`;}else{badge=`<span>📋 Built-in data</span>`;note=`Embedded from annual reports`;}return `<div class="src-bar"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div>${badge}<div style="margin-top:4px;font-size:12px"><strong>${st.name}</strong> · ${st.exchange} · ${st.currency} · <code style="background:rgba(0,0,0,.2);padding:0 5px;border-radius:3px;font-size:9px">${ticker}</code><br><span style="font-size:11px;color:var(--text-muted)">${note}</span></div></div><div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-xs" onclick="showManual('${sym}')">✏ Edit</button>${isCustom?`<button class="btn btn-red btn-xs" onclick="delStock('${sym}')">🗑 Remove</button>`:''}</div></div></div>`;}
 function tabData(sym,st){const m=calcM(sym);if(!m)return '<p>No data</p>';const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');const rows=MKEYS.map((r,i)=>{const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}" style="text-align:right">${N2(v,2)}</td>`;}).join('');const a=avg(m.Y.map(y=>y[r.k]));const cg=cagr(m.Y.map(y=>y[r.k]));return `<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04)">${N2(a,2)}</td><td class="tc num ${!isOK(cg)?'':cg>=0?'pos':'neg'}" style="text-align:right;background:rgba(0,217,126,.03)">${isOK(cg)?N2(cg,1)+'%':'N/A'}</td></tr>`;}).join('');return `${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead><tr><th style="min-width:150px">Metric (${st.currency})</th>${yH}<th style="text-align:right;color:var(--accent-cyan);min-width:75px">Avg</th><th style="text-align:right;color:var(--accent-green);min-width:70px">CAGR</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;}
 function tabRatios(sym,st){const m=calcM(sym);if(!m)return `<div class="state-box"><p>Unable to calculate ratios.</p></div>`;const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');const rDefs=[{k:'cashToAsset',l:'Cash / Total Asset %',p:true},{k:'debtToEquity',l:'Debt / Equity %',p:true},{k:'gpm',l:'Gross Profit Margin %',p:true},{k:'npm',l:'Net Profit Margin %',p:true},{k:'roa',l:'Return on Asset %',p:true},{k:'roe',l:'Return on Equity %',p:true},{k:'divPayout',l:'Dividend Payout %',p:true},{k:'valLow',l:'Valuation Low (DPS×10)',p:false},{k:'valHigh',l:'Valuation High (DPS×20)',p:false},{k:'retEps',l:'Retained EPS (EPS−DPS)',p:false}];const rows=rDefs.map((r,i)=>{const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}" style="text-align:right">${r.p?P1(v):N2(v,2)}</td>`;}).join('');const a=avg(m.Y.map(y=>y[r.k]));return `<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04);font-weight:600">${r.p?P1(a):N2(a,2)}</td></tr>`;}).join('');const cards=[{l:'Revenue CAGR',v:P1(m.cg.rev),c:'var(--accent-green)'},{l:'Net Profit CAGR',v:P1(m.cg.np),c:'var(--accent-green)'},{l:'EPS CAGR',v:P1(m.cg.eps),c:'var(--accent-green)'},{l:`EPS Increase (${LATEST_YEAR-YEARS[0]}yr)`,v:N2(m.epsInc,2),c:'var(--accent-cyan)'},{l:'Total Retained EPS',v:N2(m.totRet,2),c:'var(--accent-cyan)'},{l:'Buffett $1 Test',v:P1(m.buff),c:m.buff>=100?'var(--accent-gold)':m.buff>=50?'var(--accent-green)':'var(--accent-red)'},{l:'Avg ROE',v:P1(m.av.roe),c:'var(--accent-purple)'},{l:'Avg NP Margin',v:P1(m.av.npm),c:'var(--accent-blue)'}].map(c=>`<div class="card"><div class="card-l">${c.l}</div><div class="card-v" style="color:${c.c}">${c.v}</div></div>`).join('');return `${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead><tr><th style="min-width:200px">Ratio</th>${yH}<th class="tc" style="text-align:right;color:var(--accent-cyan);min-width:80px">Average</th></tr></thead><tbody>${rows}</tbody></table></div></div><div class="sec"><div class="sec-t">Key Metrics Summary</div><div class="cards">${cards}</div></div>`;}
-function tabChartHTML(sym,st){return `${srcBar(sym,st)}<div class="sec"><div class="chart-box"><div style="font-size:11px;color:var(--text-muted);margin-bottom:10px">Revenue · Gross Profit · Net Profit <strong style="color:var(--accent-cyan)">(bars, left axis)</strong> &nbsp;|&nbsp;GP Margin % · NP Margin % <strong style="color:var(--accent-cyan)">(lines, right axis)</strong></div><div id="chartWrap"><div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-muted)">Building chart…</div></div></div></div>`;}
+
+// ========== CHART TAB REDESIGN ==========
+function formatCurrencyUnit(cur) {
+  const map = {'B USD': 'US$ Billions', 'B AUD': 'A$ Billions', 'T IDR': 'Rp Trillions'};
+  return map[cur] || cur;
+}
+
+function extractTagline(profileMd) {
+  if (!profileMd) return '';
+  const lines = profileMd.split('\n').map(l => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    if (line.startsWith('#') || line.startsWith('-') || line.startsWith('*') || line.startsWith('>') || line.startsWith('|')) continue;
+    if (line.length < 40) continue;
+    return line.length > 200 ? line.substring(0, 200) + '…' : line;
+  }
+  return '';
+}
+
+function median(arr) {
+  if (!arr.length) return null;
+  const s = [...arr].sort((a,b) => a-b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 ? s[mid] : (s[mid-1] + s[mid]) / 2;
+}
+function percentile(arr, p) {
+  if (!arr.length) return null;
+  const s = [...arr].sort((a,b) => a-b);
+  const idx = (s.length - 1) * p;
+  const lo = Math.floor(idx), hi = Math.ceil(idx);
+  if (lo === hi) return s[lo];
+  return s[lo] + (s[hi] - s[lo]) * (idx - lo);
+}
+
+function getSectorPeers(sym) {
+  const sector = CO_INFO[sym]?.sector;
+  const all = Object.keys(S.stocks).filter(k => S.status[k] === 'ok' && k !== sym);
+  if (!sector) return all;
+  const peers = all.filter(k => CO_INFO[k]?.sector === sector);
+  return peers.length >= 3 ? peers : all;
+}
+
+function fmtYoY(curr, prev) {
+  if (!isOK(curr) || !isOK(prev) || prev === 0) return {text: '—', cls: 'neutral'};
+  const delta = ((curr - prev) / Math.abs(prev)) * 100;
+  const sign = delta >= 0 ? '+' : '';
+  return {text: `${sign}${delta.toFixed(1)}%`, cls: delta >= 0 ? 'positive' : 'negative'};
+}
+function fmtPP(curr, prev) {
+  if (!isOK(curr) || !isOK(prev)) return {text: '—', cls: 'neutral'};
+  const delta = curr - prev;
+  const sign = delta >= 0 ? '+' : '';
+  return {text: `${sign}${delta.toFixed(1)} pp`, cls: delta >= 0 ? 'positive' : 'negative'};
+}
+
+function tabChartHTML(sym, st) {
+  const m = calcM(sym);
+  if (!m) return '<div class="state-box"><p>No data</p></div>';
+  const profileMd = S.data[sym]?.profile || '';
+  const tagline = extractTagline(profileMd);
+  const sector = CO_INFO[sym]?.sector || 'General';
+  const unitLabel = formatCurrencyUnit(st.currency);
+
+  // Latest values & YoY changes
+  const revLT = latestTwo(m.raw.rv);
+  const gpLT = latestTwo(m.raw.gp);
+  const npLT = latestTwo(m.raw.np);
+  const gpmSeries = m.Y.map(y => y.gpm);
+  const npmSeries = m.Y.map(y => y.npm);
+  const roeSeries = m.Y.map(y => y.roe);
+  const gpmLT = latestTwo(gpmSeries);
+  const npmLT = latestTwo(npmSeries);
+  const roeLT = latestTwo(roeSeries);
+
+  const revYoY = fmtYoY(revLT.latest, revLT.prev);
+  const gpYoY = fmtYoY(gpLT.latest, gpLT.prev);
+  const npYoY = fmtYoY(npLT.latest, npLT.prev);
+  const gpmPP = fmtPP(gpmLT.latest, gpmLT.prev);
+  const npmPP = fmtPP(npmLT.latest, npmLT.prev);
+
+  const latestYearLabel = revLT.latestIdx >= 0 ? YEARS[revLT.latestIdx] : LATEST_YEAR;
+  const revCagr = m.cg.rev;
+  const currencySymbolMap = {'B USD': '$', 'B AUD': 'A$', 'T IDR': 'Rp '};
+  const curSym = currencySymbolMap[st.currency] || '$';
+  const curUnitShort = st.currency.startsWith('T') ? 'T' : 'B';
+  const fmtBig = (v) => isOK(v) ? `${curSym}${v.toFixed(1)}${curUnitShort}` : '—';
+
+  // Margin comparison
+  const peers = getSectorPeers(sym);
+  const peerGPM = peers.map(k => calcM(k)?.av.gpm).filter(isOK);
+  const peerNPM = peers.map(k => calcM(k)?.av.npm).filter(isOK);
+  const sectorGPM = median(peerGPM);
+  const sectorNPM = median(peerNPM);
+  const topGPM = percentile(peerGPM, 0.75);
+  const topNPM = percentile(peerNPM, 0.75);
+
+  // Takeaway bullets
+  const takeaways = [];
+  if (isOK(revCagr)) takeaways.push(`Revenue has grown at a ${revCagr.toFixed(1)}% CAGR over the available period.`);
+  if (isOK(npmLT.latest)) takeaways.push(`Margins remain strong, with NP margin of ${npmLT.latest.toFixed(1)}% in ${latestYearLabel}.`);
+  if (isOK(gpmLT.latest) && isOK(sectorGPM)) {
+    const better = gpmLT.latest >= sectorGPM;
+    takeaways.push(`${better ? 'Outperforms' : 'Underperforms'} sector median on Gross Profit margin (${gpmLT.latest.toFixed(1)}% vs ${sectorGPM.toFixed(1)}%).`);
+  }
+  if (isOK(roeLT.latest)) takeaways.push(`Return on equity at ${roeLT.latest.toFixed(1)}% indicates ${roeLT.latest > 15 ? 'industry-leading' : 'solid'} returns.`);
+  if (isOK(m.buff) && m.buff >= 100) takeaways.push('Passes Buffett $1 test — retained earnings create shareholder value.');
+  else if (isOK(m.buff) && m.buff >= 50) takeaways.push('Moderate value creation from retained earnings (Buffett test).');
+  if (isOK(m.av.debtToEquity) && m.av.debtToEquity < 50) takeaways.push('Low leverage profile with conservative debt usage.');
+
+  return `
+    <div class="chart-tab-grid">
+      <div class="chart-col">
+        <!-- Company header card -->
+        <div class="chart-header-card">
+          <div class="chart-header-logo">${getLogoHtml(sym, 56)}</div>
+          <div class="chart-header-info">
+            <div class="chart-header-name">
+              ${st.name} <span class="ticker-paren">(${sym})</span>
+            </div>
+            <div class="chart-header-sectors">
+              <span class="badge">${sector}</span>
+              <span class="divider">|</span>
+              <span class="badge">${st.exchange}</span>
+              <span class="divider">|</span>
+              <span class="badge">${st.currency}</span>
+            </div>
+            ${tagline ? `<div class="chart-header-tagline">${tagline}</div>` : ''}
+          </div>
+        </div>
+
+        <!-- KPI cards -->
+        <div class="kpi-cards-row">
+          <div class="kpi-card">
+            <div class="kpi-label">Revenue CAGR</div>
+            <div class="kpi-value-row">
+              <div class="kpi-value ${isOK(revCagr) && revCagr >= 0 ? 'positive' : 'neutral'}">${isOK(revCagr) ? (revCagr >= 0 ? '+' : '') + revCagr.toFixed(1) + '%' : 'N/A'}</div>
+              <svg class="kpi-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="${isOK(revCagr) && revCagr >= 0 ? '#00f5a0' : '#6c8db0'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Gross Profit Margin<br><span style="opacity:0.7">(Latest)</span></div>
+            <div class="kpi-value-row">
+              <div class="kpi-value neutral">${isOK(gpmLT.latest) ? gpmLT.latest.toFixed(1) + '%' : 'N/A'}</div>
+              <svg class="kpi-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00f5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Net Profit Margin<br><span style="opacity:0.7">(Latest)</span></div>
+            <div class="kpi-value-row">
+              <div class="kpi-value neutral">${isOK(npmLT.latest) ? npmLT.latest.toFixed(1) + '%' : 'N/A'}</div>
+              <svg class="kpi-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00f5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Return on Equity<br><span style="opacity:0.7">(Latest)</span></div>
+            <div class="kpi-value-row">
+              <div class="kpi-value neutral">${isOK(roeLT.latest) ? roeLT.latest.toFixed(1) + '%' : 'N/A'}</div>
+              <svg class="kpi-icon" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#00f5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main chart -->
+        <div class="chart-main-card">
+          <div class="chart-main-title">Revenue, Profitability and Margins</div>
+          <div class="chart-html-legend">
+            <div class="legend-item"><span class="legend-marker" style="background:#5a9eff;"></span>Revenue</div>
+            <div class="legend-item"><span class="legend-marker" style="background:#14b8a6;"></span>Gross Profit</div>
+            <div class="legend-item"><span class="legend-marker" style="background:#22c55e;"></span>Net Profit</div>
+            <div class="legend-item"><span class="legend-marker line-marker" style="background:#f59e0b;"></span>Gross Profit Margin %</div>
+            <div class="legend-item"><span class="legend-marker line-marker" style="background:#ef4444;"></span>Net Profit Margin %</div>
+          </div>
+          <div class="chart-canvas-wrap" id="chartWrap">
+            <canvas id="mainC"></canvas>
+          </div>
+          <div class="chart-info-footer">
+            <span class="info-icon">ℹ</span>
+            <span>Revenue, gross profit and net profit are in ${unitLabel.toLowerCase()}. Margin percentages use the right axis. Latest figures (${latestYearLabel}) are highlighted.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-col">
+        <!-- Latest Financial Results -->
+        <div class="financial-results-card">
+          <div class="financial-results-title">Latest Financial Results (FY ${latestYearLabel})</div>
+          <table class="financial-results-table">
+            <tr>
+              <td class="label">Revenue</td>
+              <td class="value">${fmtBig(revLT.latest)}</td>
+              <td class="change ${revYoY.cls}">${revYoY.text}</td>
+            </tr>
+            <tr>
+              <td class="label">Gross Profit</td>
+              <td class="value">${fmtBig(gpLT.latest)}</td>
+              <td class="change ${gpYoY.cls}">${gpYoY.text}</td>
+            </tr>
+            <tr>
+              <td class="label">Net Profit</td>
+              <td class="value">${fmtBig(npLT.latest)}</td>
+              <td class="change ${npYoY.cls}">${npYoY.text}</td>
+            </tr>
+            <tr>
+              <td class="label">Gross Profit Margin</td>
+              <td class="value">${isOK(gpmLT.latest) ? gpmLT.latest.toFixed(1) + '%' : '—'}</td>
+              <td class="change ${gpmPP.cls}">${gpmPP.text}</td>
+            </tr>
+            <tr>
+              <td class="label">Net Profit Margin</td>
+              <td class="value">${isOK(npmLT.latest) ? npmLT.latest.toFixed(1) + '%' : '—'}</td>
+              <td class="change ${npmPP.cls}">${npmPP.text}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Margin Comparison -->
+        <div class="side-panel">
+          <div class="side-panel-title">Margin Comparison (FY ${latestYearLabel})</div>
+          <div class="margin-comparison-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#5a9eff;"></span>${sym}</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#94a3b8;"></span>Sector Median</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#cbd5e1;"></span>Top Quartile</div>
+          </div>
+          <div class="margin-comparison-canvas-wrap">
+            <canvas id="marginCompChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Key Takeaways -->
+        <div class="side-panel">
+          <div class="side-panel-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00e4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Key Takeaways
+          </div>
+          <ul class="takeaways-list">
+            ${takeaways.map(t => `<li><span class="check">✓</span><span>${t}</span></li>`).join('')}
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 let chartInst=null;
-function makeChart(symbol){const el=document.getElementById('chartWrap');if(!el)return;if(chartInst){try{chartInst.destroy();}catch(e){}chartInst=null;}el.innerHTML='<canvas id="mainC"></canvas>';const m=calcM(symbol);if(!m)return;const years=YEARS.map(String);const st=S.stocks[symbol];const safeArr=a=>a.map(v=>isOK(v)?v:0);chartInst=new Chart(document.getElementById('mainC').getContext('2d'),{data:{labels:years,datasets:[{type:'bar',label:'Revenue',data:safeArr(m.raw.rv),backgroundColor:'rgba(90,158,255,0.75)',borderRadius:4,yAxisID:'y'},{type:'bar',label:'Gross Profit',data:safeArr(m.raw.gp),backgroundColor:'rgba(0,245,160,0.7)',borderRadius:4,yAxisID:'y'},{type:'bar',label:'Net Profit',data:safeArr(m.raw.np),backgroundColor:'rgba(255,207,74,0.75)',borderRadius:4,yAxisID:'y'},{type:'line',label:'GP Margin %',data:m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.gp[i])?m.raw.gp[i]/v*100:null),borderColor:'#ff5a7a',borderWidth:2.5,pointRadius:4,fill:false,yAxisID:'y1',tension:.3,spanGaps:true},{type:'line',label:'NP Margin %',data:m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.np[i])?m.raw.np[i]/v*100:null),borderColor:'#c0a5ff',borderWidth:2.5,pointRadius:4,fill:false,yAxisID:'y1',tension:.3,borderDash:[5,3],spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#b8d0ea',font:{family:"'Space Grotesk', sans-serif",size:11}}}},scales:{x:{ticks:{color:'#6c8db0',font:{size:11}}},y:{ticks:{color:'#6c8db0',font:{size:11}}},y1:{position:'right',ticks:{color:'#6c8db0',font:{size:11}},grid:{drawOnChartArea:false}}}}});}
+let marginCompInst=null;
+
+function makeChart(symbol){
+  const el=document.getElementById('mainC');
+  if(!el)return;
+  if(chartInst){try{chartInst.destroy();}catch(e){}chartInst=null;}
+  const m=calcM(symbol);
+  if(!m)return;
+  const st=S.stocks[symbol];
+  const unitLabel = formatCurrencyUnit(st.currency);
+  const labels = YEARS.map(y => y.toString());
+
+  // Helper: highlight the last valid index for each dataset
+  const barColors = (arr, baseRgba, highlightRgba) => {
+    const idxs = arr.map((v,i)=>isOK(v)?i:-1).filter(i=>i!==-1);
+    const lastIdx = idxs.length ? idxs[idxs.length-1] : -1;
+    return arr.map((v, i) => i === lastIdx ? highlightRgba : baseRgba);
+  };
+
+  const rvColors = barColors(m.raw.rv, 'rgba(90,158,255,0.7)', 'rgba(120,180,255,1)');
+  const gpColors = barColors(m.raw.gp, 'rgba(20,184,166,0.7)', 'rgba(45,212,191,1)');
+  const npColors = barColors(m.raw.np, 'rgba(34,197,94,0.7)', 'rgba(74,222,128,1)');
+
+  const gpmData = m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.gp[i])?m.raw.gp[i]/v*100:null);
+  const npmData = m.raw.rv.map((v,i)=>isOK(v)&&v>0&&isOK(m.raw.np[i])?m.raw.np[i]/v*100:null);
+
+  chartInst = new Chart(el.getContext('2d'), {
+    data: {
+      labels,
+      datasets: [
+        { type:'bar', label:'Revenue', data: m.raw.rv, backgroundColor: rvColors, borderRadius: 4, yAxisID:'y', order: 3 },
+        { type:'bar', label:'Gross Profit', data: m.raw.gp, backgroundColor: gpColors, borderRadius: 4, yAxisID:'y', order: 3 },
+        { type:'bar', label:'Net Profit', data: m.raw.np, backgroundColor: npColors, borderRadius: 4, yAxisID:'y', order: 3 },
+        { type:'line', label:'GP Margin %', data: gpmData, borderColor:'#f59e0b', backgroundColor:'#f59e0b', borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#f59e0b', pointBorderColor:'#0a0c12', pointBorderWidth:1.5, fill:false, yAxisID:'y1', tension:.3, spanGaps:true, order: 1 },
+        { type:'line', label:'NP Margin %', data: npmData, borderColor:'#ef4444', backgroundColor:'#ef4444', borderWidth:2.5, pointRadius:4, pointBackgroundColor:'#ef4444', pointBorderColor:'#0a0c12', pointBorderWidth:1.5, fill:false, yAxisID:'y1', tension:.3, spanGaps:true, order: 1 }
+      ]
+    },
+    options: {
+      responsive:true,
+      maintainAspectRatio:false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(8,16,24,0.96)',
+          borderColor: 'rgba(0,228,255,0.4)',
+          borderWidth: 1,
+          titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' },
+          bodyFont: { family: "'Space Grotesk'", size: 11 },
+          padding: 12,
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed.y;
+              const dsLabel = ctx.dataset.label;
+              if (dsLabel.includes('Margin')) return `${dsLabel}: ${v.toFixed(1)}%`;
+              return `${dsLabel}: ${curSymFor(st.currency)}${v.toFixed(1)}${st.currency.startsWith('T')?'T':'B'}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 } },
+          grid: { display: false }
+        },
+        y: {
+          position: 'left',
+          title: { display: true, text: `Amount (${unitLabel})`, color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } },
+          ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 } },
+          grid: { color: 'rgba(72,110,144,0.12)' }
+        },
+        y1: {
+          position: 'right',
+          title: { display: true, text: 'Margin (%)', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } },
+          ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 }, callback: v => v + '%' },
+          grid: { drawOnChartArea: false },
+          suggestedMin: 0,
+          suggestedMax: 100
+        }
+      }
+    }
+  });
+
+  // Build margin comparison chart
+  const compEl = document.getElementById('marginCompChart');
+  if (compEl) {
+    if (marginCompInst) { try { marginCompInst.destroy(); } catch(e) {} marginCompInst = null; }
+    const peers = getSectorPeers(symbol);
+    const peerGPM = peers.map(k => calcM(k)?.av.gpm).filter(isOK);
+    const peerNPM = peers.map(k => calcM(k)?.av.npm).filter(isOK);
+    const sectorGPM = median(peerGPM);
+    const sectorNPM = median(peerNPM);
+    const topGPM = percentile(peerGPM, 0.75);
+    const topNPM = percentile(peerNPM, 0.75);
+    const thisGPM = m.Y.map(y=>y.gpm).filter(isOK).pop() ?? null;
+    const thisNPM = m.Y.map(y=>y.npm).filter(isOK).pop() ?? null;
+
+    marginCompInst = new Chart(compEl.getContext('2d'), {
+      type: 'bar',
+      data: {
+        labels: ['Gross Profit Margin', 'Net Profit Margin'],
+        datasets: [
+          {
+            label: symbol,
+            data: [thisGPM, thisNPM],
+            backgroundColor: '#5a9eff',
+            borderRadius: 6,
+            barPercentage: 0.7,
+            categoryPercentage: 0.7
+          },
+          {
+            label: 'Sector Median',
+            data: [sectorGPM, sectorNPM],
+            backgroundColor: '#94a3b8',
+            borderRadius: 6,
+            barPercentage: 0.7,
+            categoryPercentage: 0.7
+          },
+          {
+            label: 'Top Quartile',
+            data: [topGPM, topNPM],
+            backgroundColor: '#cbd5e1',
+            borderRadius: 6,
+            barPercentage: 0.7,
+            categoryPercentage: 0.7
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(8,16,24,0.96)',
+            borderColor: 'rgba(0,228,255,0.4)',
+            borderWidth: 1,
+            titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' },
+            bodyFont: { family: "'Space Grotesk'", size: 11 },
+            padding: 10,
+            displayColors: true,
+            callbacks: {
+              label: (ctx) => {
+                const v = ctx.parsed.y;
+                return `${ctx.dataset.label}: ${isOK(v) ? v.toFixed(1) + '%' : '—'}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#b8d0ea', font: { family: "'Space Grotesk'", size: 11, weight: '600' } },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 10 }, callback: v => v + '%' },
+            grid: { color: 'rgba(72,110,144,0.12)' }
+          }
+        }
+      }
+    });
+  }
+}
+
+function curSymFor(cur) {
+  const map = {'B USD': '$', 'B AUD': 'A$', 'T IDR': 'Rp '};
+  return map[cur] || '$';
+}
+// =======================================
+
 function calcRanks(wts){const ks=Object.keys(S.stocks).filter(k=>S.status[k]==='ok');const N=ks.length;if(!N)return{ranks:{},scores:{},fr:{}};const allM=Object.fromEntries(ks.map(k=>[k,calcM(k)]));const ranks=Object.fromEntries(ks.map(k=>[k,{}]));CRITERIA.forEach(c=>{const vs=ks.map(k=>({k,v:allM[k]?.rm[c.key]}));vs.sort((a,b)=>{if(!isOK(a.v)&&!isOK(b.v))return 0;if(!isOK(a.v))return 1;if(!isOK(b.v))return-1;return c.hi?b.v-a.v:a.v-b.v;});vs.forEach((x,i)=>{ranks[x.k][c.key]=i+1;});});const scores=Object.fromEntries(ks.map(k=>{const ws=CRITERIA.reduce((s,c)=>s+(ranks[k][c.key]||N)*(wts[c.wKey]||0)/100,0);return[k,{ranks:ranks[k],ws,m:allM[k]}];}));const sorted=[...ks].sort((a,b)=>scores[a].ws-scores[b].ws);const fr=Object.fromEntries(sorted.map((k,i)=>[k,i+1]));return{ranks,scores,fr};}
 
 function heatStyle(pct) {
@@ -559,7 +1177,6 @@ function tabRankings(){
     if (!k) return '';
     const st = S.stocks[k];
     const score = scores[k].ws.toFixed(2);
-    // Scale logo size by rank — rank 1 gets biggest logo
     const logoSizes = {1: 52, 2: 44, 3: 44, 4: 40, 5: 40};
     const logoSize = logoSizes[rank] || 40;
     return `
@@ -811,7 +1428,7 @@ function delStock(k){const isBuiltIn=!!BASE_STOCKS[k];let msg;if(isBuiltIn){msg=
 function renderSBar(){const ks=Object.keys(S.stocks);document.getElementById('sList').innerHTML=ks.map(k=>{const st=S.stocks[k];const ex=(st.exchange||'').toUpperCase();const st2=S.status[k];const dot=st2==='ok'?'<span class="s-dot-ok"></span>':st2==='error'?'<span class="s-dot-er"></span>':'';return `<button class="s-btn${S.sel===k?' on':''}" onclick="selStock('${k}')">${dot}${k}<span class="xbadge">${ex}</span></button>`;}).join('');}
 function renderTabBtns(){['data','ratios','chart','rankings','insights'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
 
-// ============ QUADRANT PLUGIN ============
+// Quadrant plugin
 const quadrantPlugin = {
   id: 'quadrantPlugin',
   beforeDatasetsDraw(chart, args, options) {
@@ -820,20 +1437,15 @@ const quadrantPlugin = {
     const xScale = chart.scales.x;
     const yScale = chart.scales.y;
     if (!xScale || !yScale) return;
-    
     const xThreshold = options?.xThreshold;
     const yThreshold = options?.yThreshold;
     if (xThreshold === undefined || yThreshold === undefined) return;
-    
     const ctx = chart.ctx;
     const xPix = xScale.getPixelForValue(xThreshold);
     const yPix = yScale.getPixelForValue(yThreshold);
-    
     if (xPix < chartArea.left || xPix > chartArea.right) return;
     if (yPix < chartArea.top || yPix > chartArea.bottom) return;
-    
     ctx.save();
-    
     ctx.fillStyle = 'rgba(0, 245, 160, 0.045)';
     ctx.fillRect(xPix, chartArea.top, chartArea.right - xPix, yPix - chartArea.top);
     ctx.fillStyle = 'rgba(255, 207, 74, 0.045)';
@@ -842,23 +1454,14 @@ const quadrantPlugin = {
     ctx.fillRect(xPix, yPix, chartArea.right - xPix, chartArea.bottom - yPix);
     ctx.fillStyle = 'rgba(255, 90, 122, 0.045)';
     ctx.fillRect(chartArea.left, yPix, xPix - chartArea.left, chartArea.bottom - yPix);
-    
     ctx.strokeStyle = 'rgba(0, 228, 255, 0.55)';
     ctx.setLineDash([6, 5]);
     ctx.lineWidth = 1.3;
-    ctx.beginPath();
-    ctx.moveTo(xPix, chartArea.top);
-    ctx.lineTo(xPix, chartArea.bottom);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(chartArea.left, yPix);
-    ctx.lineTo(chartArea.right, yPix);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(xPix, chartArea.top); ctx.lineTo(xPix, chartArea.bottom); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(chartArea.left, yPix); ctx.lineTo(chartArea.right, yPix); ctx.stroke();
     ctx.setLineDash([]);
-    
     ctx.font = '700 9px "Space Grotesk", sans-serif';
     ctx.textBaseline = 'middle';
-    
     const drawLabel = (text, align, x, y, color) => {
       const padding = 5;
       const metrics = ctx.measureText(text);
@@ -868,14 +1471,10 @@ const quadrantPlugin = {
       if (align === 'right') boxX = x - textW - padding * 2;
       else if (align === 'center') boxX = x - (textW + padding * 2) / 2;
       const boxY = y - textH / 2 - padding / 2;
-      
       ctx.fillStyle = 'rgba(8, 16, 24, 0.75)';
       ctx.beginPath();
-      const r = 3;
-      const bw = textW + padding * 2;
-      const bh = textH + padding;
-      ctx.moveTo(boxX + r, boxY);
-      ctx.lineTo(boxX + bw - r, boxY);
+      const r = 3; const bw = textW + padding * 2; const bh = textH + padding;
+      ctx.moveTo(boxX + r, boxY); ctx.lineTo(boxX + bw - r, boxY);
       ctx.quadraticCurveTo(boxX + bw, boxY, boxX + bw, boxY + r);
       ctx.lineTo(boxX + bw, boxY + bh - r);
       ctx.quadraticCurveTo(boxX + bw, boxY + bh, boxX + bw - r, boxY + bh);
@@ -885,26 +1484,18 @@ const quadrantPlugin = {
       ctx.quadraticCurveTo(boxX, boxY, boxX + r, boxY);
       ctx.closePath();
       ctx.fill();
-      
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      
-      ctx.fillStyle = color;
-      ctx.textAlign = 'left';
+      ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = color; ctx.textAlign = 'left';
       ctx.fillText(text, boxX + padding, y);
     };
-    
     const pad = 8;
     drawLabel('LOW GROWTH · HIGH PROFIT', 'left', chartArea.left + pad, chartArea.top + 14, '#ffcf4a');
     drawLabel('HIGH GROWTH · HIGH PROFIT', 'right', chartArea.right - pad, chartArea.top + 14, '#00f5a0');
     drawLabel('LOW GROWTH · LOW PROFIT', 'left', chartArea.left + pad, chartArea.bottom - 14, '#ff5a7a');
     drawLabel('HIGH GROWTH · LOW PROFIT', 'right', chartArea.right - pad, chartArea.bottom - 14, '#5a9eff');
-    
     ctx.restore();
   }
 };
-// ========================================
 
 function renderMain(){
   const cont=document.getElementById('cont');
@@ -923,18 +1514,15 @@ function renderMain(){
           const profitY = isOK(m.rm.npmAvg) ? m.rm.npmAvg : 0;
           const taLatest = m.raw.ta[N_YEARS-2] || m.raw.ta[N_YEARS-1] || 1;
           const sizeVal = Math.max(8, Math.min(26, 8 + Math.log10(Math.abs(taLatest) + 1) * 4.2));
-          return {
-            x: growthX, y: profitY, r: sizeVal,
-            label: k, rank: fr[k], isFallback: !isOK(epsX)
-          };
+          return { x: growthX, y: profitY, r: sizeVal, label: k, rank: fr[k], isFallback: !isOK(epsX) };
         });
-        
         const growthValues = scatterData.map(d => d.x).sort((a,b) => a - b);
         const profitValues = scatterData.map(d => d.y).sort((a,b) => a - b);
         const medianGrowth = growthValues.length ? growthValues[Math.floor(growthValues.length / 2)] : 0;
         const medianProfit = profitValues.length ? profitValues[Math.floor(profitValues.length / 2)] : 0;
-        
+
         if (window.scatterChartInst) window.scatterChartInst.destroy();
+        // IMPROVED LABEL PLUGIN — dark stroke halo for high contrast
         const labelPlugin = {
           id: 'labelPlugin',
           afterDatasetsDraw(chart) {
@@ -945,14 +1533,21 @@ function renderMain(){
               meta.data.forEach((element, index) => {
                 const data = dataset.data[index];
                 if (data.label) {
-                  ctx.fillStyle = data.rank <= 10 ? '#f0f6ff' : '#c8daf0';
-                  ctx.font = data.rank <= 3 ? '600 11px "Space Grotesk"' : '500 10px "Space Grotesk"';
-                  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                  ctx.shadowColor = 'rgba(0,0,0,0.85)';
-                  ctx.shadowBlur = 4;
-                  ctx.fillText(data.label, element.x, element.y - element.options.radius - 6);
-                  ctx.shadowColor = 'transparent';
-                  ctx.shadowBlur = 0;
+                  const text = data.label;
+                  const x = element.x;
+                  const y = element.y - element.options.radius - 7;
+                  ctx.font = data.rank <= 3 ? '700 11.5px "Space Grotesk"' : '600 10.5px "Space Grotesk"';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  // Strong dark outline for contrast on any background
+                  ctx.lineJoin = 'round';
+                  ctx.miterLimit = 2;
+                  ctx.strokeStyle = 'rgba(0, 0, 0, 0.95)';
+                  ctx.lineWidth = 4;
+                  ctx.strokeText(text, x, y);
+                  // Then fill with bright text on top
+                  ctx.fillStyle = data.rank <= 10 ? '#ffffff' : '#eaf3ff';
+                  ctx.fillText(text, x, y);
                 }
               });
             });
@@ -972,10 +1567,7 @@ function renderMain(){
             layout: { padding: { top: 24, right: 16, bottom: 8, left: 8 } },
             plugins: {
               legend: { display: false },
-              quadrantPlugin: {
-                xThreshold: medianGrowth,
-                yThreshold: medianProfit
-              },
+              quadrantPlugin: { xThreshold: medianGrowth, yThreshold: medianProfit },
               tooltip: {
                 backgroundColor: 'rgba(8,16,24,0.96)', borderColor: 'rgba(0,228,255,0.4)', borderWidth: 1,
                 titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' },
@@ -1013,7 +1605,9 @@ function renderMain(){
   const st=S.stocks[S.sel];
   if(!st){cont.innerHTML='<div class="state-box">No stock selected</div>';return;}
   if(!S.data[S.sel]){cont.innerHTML=`<div class="state-box"><p>No data for ${S.sel}</p></div>`;return;}
-  if(S.tab==='data')cont.innerHTML=tabData(S.sel,st);else if(S.tab==='ratios')cont.innerHTML=tabRatios(S.sel,st);else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}
+  if(S.tab==='data')cont.innerHTML=tabData(S.sel,st);
+  else if(S.tab==='ratios')cont.innerHTML=tabRatios(S.sel,st);
+  else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}
 }
 function render(){renderSBar();renderTabBtns();renderMain();saveLS();updateDebugInfo();}
 function forceRefresh(){if(confirm('Clear all cached data and reload?')){S.data={};S.status={};localStorage.removeItem(DATA_VERSION_KEY);saveLS();location.reload();}}
