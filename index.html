@@ -113,7 +113,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
   box-shadow: 0 0 0 1px rgba(255,255,255,0.08); display: block;
   image-rendering: -webkit-optimize-contrast;
   image-rendering: crisp-edges;
-  image-rendering: high-quality;
   -webkit-backface-visibility: hidden; backface-visibility: hidden;
   transform: translateZ(0); will-change: transform;
 }
@@ -257,17 +256,13 @@ let ANNUALISATION = {};
 const LS_KEY='fa_v5';
 const DATA_VERSION_KEY = 'fa_data_version';
 
-// Domain map — includes known alternate domains for IDX stocks.
 const DOMAIN_MAP = {
-  // US / Global
   V:'visa.com', MA:'mastercard.com', GOOG:'abc.xyz', MSFT:'microsoft.com', NVDA:'nvidia.com',
   ASML:'asml.com', TSM:'tsmc.com', AVGO:'broadcom.com', CVX:'chevron.com',
   AXP:'americanexpress.com', BAC:'bankofamerica.com', AAPL:'apple.com', AMZN:'amazon.com',
   META:'meta.com', BKNG:'booking.com', RHHBY:'roche.com', 'PBR-A':'petrobras.com.br',
-  // ASX
   BHP:'bhp.com', CBA:'commbank.com.au', NAB:'nab.com.au', ANZ:'anz.com.au',
   WBC:'westpac.com.au', MQG:'macquarie.com', WDS:'woodside.com', ALD:'ampol.com.au',
-  // IDX — with alternates
   BBRI:'bri.co.id|ir.bri.co.id',
   ADRO:'alamtri.com|adaro.com',
   SMSM:'selamat.com|adrgroup.co.id',
@@ -280,13 +275,13 @@ const DOMAIN_MAP = {
   SPTO:'suryatoto.com|toto.com'
 };
 
-// Multi-stage logo fallback
+// Multi-stage logo fallback. Uses ";" separator (safe for URLs).
 window.handleLogoError = function(img) {
-  const fallbacks = img.dataset.fallbacks ? img.dataset.fallbacks.split(',') : [];
+  const fallbacks = img.dataset.fallbacks ? img.dataset.fallbacks.split(';').filter(Boolean) : [];
   if (fallbacks.length > 0) {
     const nextUrl = fallbacks.shift();
     img.src = nextUrl;
-    img.dataset.fallbacks = fallbacks.join(',');
+    img.dataset.fallbacks = fallbacks.join(';');
     return;
   }
   img.style.display = 'none';
@@ -303,14 +298,18 @@ function getLogoHtml(sym, size = 32) {
   }
   
   const urls = [];
+  // Clearbit for each domain
   domains.forEach(d => urls.push(`https://logo.clearbit.com/${d}?size=128`));
+  // Google S2 favicons for each domain
   domains.forEach(d => urls.push(`https://www.google.com/s2/favicons?domain=${d}&sz=128`));
+  // DuckDuckGo icons for each domain
   domains.forEach(d => urls.push(`https://icons.duckduckgo.com/ip3/${d}.ico`));
   
   const firstUrl = urls.shift();
-  const fallbackUrls = urls.join(',');
+  const fallbackUrls = urls.join(';');
   
-  return `<div class="logo-container"><img src="${firstUrl}" data-fallbacks="${fallbackUrls}" data-initials="${initials}" data-size="${size}" class="logo-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this)" loading="lazy" referrerpolicy="no-referrer" crossorigin="anonymous"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
+  // NO crossorigin attribute — that's what broke it
+  return `<div class="logo-container"><img src="${firstUrl}" data-fallbacks="${fallbackUrls}" class="logo-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this)" loading="lazy" referrerpolicy="no-referrer"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
 }
 
 const BASE_STOCKS={
@@ -598,7 +597,6 @@ function tabRankings(){
     </div>
   `;
 
-  // --- Heatmap Filtering ---
   let filteredKs = rankedKs;
   if (S.heatmapFilter.exchange === 'TOP10') {
     filteredKs = rankedKs.slice(0, 10);
