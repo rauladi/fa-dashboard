@@ -156,6 +156,27 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .factor-bar-bg { flex: 1; height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; }
 .factor-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s ease; }
 .factor-value { font-size: 11px; font-weight: 700; width: 26px; text-align: right; flex-shrink: 0; }
+.factor-legend {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+  font-size: 9.5px;
+  color: var(--text-muted);
+}
+.factor-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.factor-legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
 .sw-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border-light); }
 .sw-title { font-size: 10px; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
 .sw-item { font-size: 10px; margin-bottom: 5px; display: flex; gap: 6px; line-height: 1.35; color: var(--text-secondary); }
