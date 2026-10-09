@@ -191,6 +191,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .heatmap-table .company-cell { text-align: left; font-weight: 400; font-size: 10px; color: var(--text-muted); background: transparent !important; cursor: pointer; padding-right: 10px; }
 
 /* Category Leaders */
+.cat-leaders-section { margin-top: 0; margin-bottom: 24px; }
 .cat-cards { display: grid; grid-template-columns: repeat(9, 1fr); gap: 10px; }
 @media (max-width: 1200px) { .cat-cards { grid-template-columns: repeat(5, 1fr); } }
 @media (max-width: 768px) { .cat-cards { grid-template-columns: repeat(3, 1fr); } }
@@ -475,22 +476,25 @@ const LS_KEY='fa_v5';
 const DATA_VERSION_KEY = 'fa_data_version';
 
 const DOMAIN_MAP = {
+  // US / Global
   V:'visa.com', MA:'mastercard.com', GOOG:'abc.xyz', MSFT:'microsoft.com', NVDA:'nvidia.com',
   ASML:'asml.com', TSM:'tsmc.com', AVGO:'broadcom.com', CVX:'chevron.com',
   AXP:'americanexpress.com', BAC:'bankofamerica.com', AAPL:'apple.com', AMZN:'amazon.com',
   META:'meta.com', BKNG:'booking.com', RHHBY:'roche.com', 'PBR-A':'petrobras.com.br',
+  // ASX
   BHP:'bhp.com', CBA:'commbank.com.au', NAB:'nab.com.au', ANZ:'anz.com.au',
   WBC:'westpac.com.au', MQG:'macquarie.com', WDS:'woodside.com', ALD:'ampol.com.au',
-  BBRI:'bri.co.id|ir.bri.co.id',
-  ADRO:'alamtri.com|adaro.com',
-  SMSM:'selamat.com|adrgroup.co.id',
-  UNTR:'unitedtractors.com',
-  ITMG:'itmg.co.id',
-  POWR:'cikaranglistrindo.com',
-  MPMX:'mpmx.co.id',
-  BTPS:'btpnsyariah.com',
-  DMAS:'puradelta.com',
-  SPTO:'suryatoto.com|toto.com'
+  // IDX — multiple domains per stock (parent, IR, group brand)
+  BBRI:'bri.co.id|ir.bri.co.id|bankbri.co.id',
+  ADRO:'adaro.com|alamtri.com|adaroenergy.com',
+  SMSM:'adrgroup.co.id|selamat.com|adr.co.id',
+  UNTR:'unitedtractors.com|ut.co.id|utmarketing.co.id',
+  ITMG:'itmg.co.id|indotambangraya.com',
+  POWR:'cikaranglistrindo.com|clpower.co.id',
+  MPMX:'mpmx.co.id|mpmmotor.co.id|mpmgroup.co.id',
+  BTPS:'btpnsyariah.com|btpn.com',
+  DMAS:'puradelta.com|puradeltalestari.com',
+  SPTO:'suryatoto.com|totowater.com|toto.co.id'
 };
 
 window.handleLogoError = function(img) {
@@ -513,12 +517,21 @@ function getLogoHtml(sym, size = 32) {
   if (!domains.length) {
     return `<div class="logo-container"><div class="logo-mono" style="display:flex;${monoStyle}">${initials}</div></div>`;
   }
+  
+  // Build fallback chain: try every service against every domain before giving up
   const urls = [];
+  // 1. Clearbit — best quality when available
   domains.forEach(d => urls.push(`https://logo.clearbit.com/${d}?size=128`));
+  // 2. Google S2 favicon — broad coverage
   domains.forEach(d => urls.push(`https://www.google.com/s2/favicons?domain=${d}&sz=128`));
+  // 3. DuckDuckGo — sometimes has icons Google lacks
   domains.forEach(d => urls.push(`https://icons.duckduckgo.com/ip3/${d}.ico`));
+  // 4. Icon Horse — additional coverage, especially for smaller sites
+  domains.forEach(d => urls.push(`https://icon.horse/icon/${d}`));
+  
   const firstUrl = urls.shift();
   const fallbackUrls = urls.join(';');
+  
   return `<div class="logo-container"><img src="${firstUrl}" data-fallbacks="${fallbackUrls}" class="logo-img" width="${size}" height="${size}" style="width:${size}px;height:${size}px;" onerror="handleLogoError(this)" loading="lazy" referrerpolicy="no-referrer"/><div class="logo-mono" style="display:none;${monoStyle}">${initials}</div></div>`;
 }
 
@@ -607,7 +620,6 @@ const avg=a=>{const v=a.filter(isOK);return v.length?v.reduce((s,x)=>s+x,0)/v.le
 const N2=(v,d=2)=>isOK(v)?Number(v).toFixed(d):'N/A';
 const P1=(v,d=1)=>isOK(v)?Number(v).toFixed(d)+'%':'N/A';
 function cagr(a){const v=a.filter(isOK);if(v.length<2)return null;const s=v[0],e=v[v.length-1],n=v.length-1;if(s===0||n===0)return null;if(s>0&&e>0)return(Math.pow(e/s,1/n)-1)*100;return null;}
-// Helper: latest two valid values in an array (returns {latest, latestIdx, prev, prevIdx})
 function latestTwo(arr) {
   const idxs = arr.map((v,i)=>isOK(v)?i:-1).filter(i=>i!==-1);
   if (!idxs.length) return {latest:null, latestIdx:-1, prev:null, prevIdx:-1};
@@ -710,7 +722,6 @@ function tabChartHTML(sym, st) {
   const sector = CO_INFO[sym]?.sector || 'General';
   const unitLabel = formatCurrencyUnit(st.currency);
 
-  // Latest values & YoY changes
   const revLT = latestTwo(m.raw.rv);
   const gpLT = latestTwo(m.raw.gp);
   const npLT = latestTwo(m.raw.np);
@@ -734,7 +745,6 @@ function tabChartHTML(sym, st) {
   const curUnitShort = st.currency.startsWith('T') ? 'T' : 'B';
   const fmtBig = (v) => isOK(v) ? `${curSym}${v.toFixed(1)}${curUnitShort}` : '—';
 
-  // Margin comparison
   const peers = getSectorPeers(sym);
   const peerGPM = peers.map(k => calcM(k)?.av.gpm).filter(isOK);
   const peerNPM = peers.map(k => calcM(k)?.av.npm).filter(isOK);
@@ -743,7 +753,6 @@ function tabChartHTML(sym, st) {
   const topGPM = percentile(peerGPM, 0.75);
   const topNPM = percentile(peerNPM, 0.75);
 
-  // Takeaway bullets
   const takeaways = [];
   if (isOK(revCagr)) takeaways.push(`Revenue has grown at a ${revCagr.toFixed(1)}% CAGR over the available period.`);
   if (isOK(npmLT.latest)) takeaways.push(`Margins remain strong, with NP margin of ${npmLT.latest.toFixed(1)}% in ${latestYearLabel}.`);
@@ -759,7 +768,6 @@ function tabChartHTML(sym, st) {
   return `
     <div class="chart-tab-grid">
       <div class="chart-col">
-        <!-- Company header card -->
         <div class="chart-header-card">
           <div class="chart-header-logo">${getLogoHtml(sym, 56)}</div>
           <div class="chart-header-info">
@@ -777,7 +785,6 @@ function tabChartHTML(sym, st) {
           </div>
         </div>
 
-        <!-- KPI cards -->
         <div class="kpi-cards-row">
           <div class="kpi-card">
             <div class="kpi-label">Revenue CAGR</div>
@@ -809,7 +816,6 @@ function tabChartHTML(sym, st) {
           </div>
         </div>
 
-        <!-- Main chart -->
         <div class="chart-main-card">
           <div class="chart-main-title">Revenue, Profitability and Margins</div>
           <div class="chart-html-legend">
@@ -830,7 +836,6 @@ function tabChartHTML(sym, st) {
       </div>
 
       <div class="chart-col">
-        <!-- Latest Financial Results -->
         <div class="financial-results-card">
           <div class="financial-results-title">Latest Financial Results (FY ${latestYearLabel})</div>
           <table class="financial-results-table">
@@ -862,7 +867,6 @@ function tabChartHTML(sym, st) {
           </table>
         </div>
 
-        <!-- Margin Comparison -->
         <div class="side-panel">
           <div class="side-panel-title">Margin Comparison (FY ${latestYearLabel})</div>
           <div class="margin-comparison-legend">
@@ -875,7 +879,6 @@ function tabChartHTML(sym, st) {
           </div>
         </div>
 
-        <!-- Key Takeaways -->
         <div class="side-panel">
           <div class="side-panel-title">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00e4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
@@ -903,7 +906,6 @@ function makeChart(symbol){
   const unitLabel = formatCurrencyUnit(st.currency);
   const labels = YEARS.map(y => y.toString());
 
-  // Helper: highlight the last valid index for each dataset
   const barColors = (arr, baseRgba, highlightRgba) => {
     const idxs = arr.map((v,i)=>isOK(v)?i:-1).filter(i=>i!==-1);
     const lastIdx = idxs.length ? idxs[idxs.length-1] : -1;
@@ -974,7 +976,6 @@ function makeChart(symbol){
     }
   });
 
-  // Build margin comparison chart
   const compEl = document.getElementById('marginCompChart');
   if (compEl) {
     if (marginCompInst) { try { marginCompInst.destroy(); } catch(e) {} marginCompInst = null; }
@@ -993,30 +994,9 @@ function makeChart(symbol){
       data: {
         labels: ['Gross Profit Margin', 'Net Profit Margin'],
         datasets: [
-          {
-            label: symbol,
-            data: [thisGPM, thisNPM],
-            backgroundColor: '#5a9eff',
-            borderRadius: 6,
-            barPercentage: 0.7,
-            categoryPercentage: 0.7
-          },
-          {
-            label: 'Sector Median',
-            data: [sectorGPM, sectorNPM],
-            backgroundColor: '#94a3b8',
-            borderRadius: 6,
-            barPercentage: 0.7,
-            categoryPercentage: 0.7
-          },
-          {
-            label: 'Top Quartile',
-            data: [topGPM, topNPM],
-            backgroundColor: '#cbd5e1',
-            borderRadius: 6,
-            barPercentage: 0.7,
-            categoryPercentage: 0.7
-          }
+          { label: symbol, data: [thisGPM, thisNPM], backgroundColor: '#5a9eff', borderRadius: 6, barPercentage: 0.7, categoryPercentage: 0.7 },
+          { label: 'Sector Median', data: [sectorGPM, sectorNPM], backgroundColor: '#94a3b8', borderRadius: 6, barPercentage: 0.7, categoryPercentage: 0.7 },
+          { label: 'Top Quartile', data: [topGPM, topNPM], backgroundColor: '#cbd5e1', borderRadius: 6, barPercentage: 0.7, categoryPercentage: 0.7 }
         ]
       },
       options: {
@@ -1522,7 +1502,6 @@ function renderMain(){
         const medianProfit = profitValues.length ? profitValues[Math.floor(profitValues.length / 2)] : 0;
 
         if (window.scatterChartInst) window.scatterChartInst.destroy();
-        // IMPROVED LABEL PLUGIN — dark stroke halo for high contrast
         const labelPlugin = {
           id: 'labelPlugin',
           afterDatasetsDraw(chart) {
@@ -1539,13 +1518,11 @@ function renderMain(){
                   ctx.font = data.rank <= 3 ? '700 11.5px "Space Grotesk"' : '600 10.5px "Space Grotesk"';
                   ctx.textAlign = 'center';
                   ctx.textBaseline = 'middle';
-                  // Strong dark outline for contrast on any background
                   ctx.lineJoin = 'round';
                   ctx.miterLimit = 2;
                   ctx.strokeStyle = 'rgba(0, 0, 0, 0.95)';
                   ctx.lineWidth = 4;
                   ctx.strokeText(text, x, y);
-                  // Then fill with bright text on top
                   ctx.fillStyle = data.rank <= 10 ? '#ffffff' : '#eaf3ff';
                   ctx.fillText(text, x, y);
                 }
