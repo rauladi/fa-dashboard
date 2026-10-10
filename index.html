@@ -98,7 +98,6 @@ thead th { background: rgba(0, 150, 180, 0.22); padding: 8px 10px; text-align: l
 tbody td { padding: 7px 10px; border-bottom: 1px solid rgba(72, 110, 144, 0.2); white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 
-/* Sticky first column for horizontal scroll on mobile */
 .tw table td:first-child,
 .tw table th:first-child {
   position: sticky; left: 0; z-index: 2;
@@ -294,7 +293,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 
 /* KPI STRIP — single-row, condenses gracefully on small screens */
 .kpi-cards-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
-@media (max-width: 1300px) { .kpi-cards-row { grid-template-columns: repeat(6, 1fr); } }
 @media (max-width: 1100px) { .kpi-cards-row { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 900px) {
   .kpi-cards-row {
@@ -334,6 +332,55 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .takeaways-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .takeaways-list li { font-size: 12px; color: var(--text-secondary); line-height: 1.5; display: flex; gap: 10px; align-items: flex-start; }
 .takeaways-list li .check { color: var(--accent-green); font-weight: 800; flex-shrink: 0; margin-top: 1px; font-size: 13px; }
+
+/* ============================================================
+   MOBILE CHART PROPORTIONALITY FIX
+   ============================================================ */
+@media (max-width: 1200px) {
+  .chart-canvas-wrap { height: 300px; }
+  .margin-comparison-canvas-wrap { height: 200px; }
+}
+@media (max-width: 900px) {
+  .chart-canvas-wrap { height: 260px; }
+  .margin-comparison-canvas-wrap { height: 210px; }
+}
+@media (max-width: 640px) {
+  .chart-canvas-wrap {
+    height: auto;
+    aspect-ratio: 4 / 3;
+    min-height: 240px;
+  }
+  .margin-comparison-canvas-wrap {
+    height: auto;
+    aspect-ratio: 4 / 3;
+    min-height: 200px;
+  }
+  .scatter-container {
+    height: auto;
+    aspect-ratio: 1 / 1;
+    min-height: 320px;
+  }
+  #radarWrap {
+    height: auto;
+    aspect-ratio: 1 / 1;
+    min-height: 260px;
+  }
+}
+.chart-canvas-wrap canvas,
+.margin-comparison-canvas-wrap canvas,
+.scatter-container canvas,
+#radarWrap canvas {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+@media (max-width: 640px) {
+  .chart-main-card { padding: 14px 12px; }
+  .side-panel { padding: 14px 12px; }
+  .chart-html-legend { gap: 10px; font-size: 10.5px; }
+  .chart-html-legend .legend-item { gap: 5px; }
+  .chart-info-footer { font-size: 10.5px; padding: 10px 12px; }
+}
 </style>
 </head>
 <body>
@@ -392,7 +439,6 @@ let ANNUALISATION = {};
 const LS_KEY='fa_v5';
 const DATA_VERSION_KEY = 'fa_data_version';
 
-// Domain map — multiple domains per stock (parent, IR, brand alternate)
 const DOMAIN_MAP = {
   V:'visa.com', MA:'mastercard.com', GOOG:'abc.xyz', MSFT:'microsoft.com', NVDA:'nvidia.com',
   ASML:'asml.com', TSM:'tsmc.com', AVGO:'broadcom.com', CVX:'chevron.com',
@@ -825,6 +871,7 @@ function makeChart(symbol){
   const st=S.stocks[symbol];
   const unitLabel = formatCurrencyUnit(st.currency);
   const labels = YEARS.map(y => y.toString());
+  const isMobile = window.innerWidth < 640;
   const barColors = (arr, baseRgba, highlightRgba) => { const idxs = arr.map((v,i)=>isOK(v)?i:-1).filter(i=>i!==-1); const lastIdx = idxs.length ? idxs[idxs.length-1] : -1; return arr.map((v, i) => i === lastIdx ? highlightRgba : baseRgba); };
   const rvColors = barColors(m.raw.rv, 'rgba(90,158,255,0.7)', 'rgba(120,180,255,1)');
   const gpColors = barColors(m.raw.gp, 'rgba(20,184,166,0.7)', 'rgba(45,212,191,1)');
@@ -845,9 +892,49 @@ function makeChart(symbol){
       interaction: { mode: 'index', intersect: false },
       plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(8,16,24,0.96)', borderColor: 'rgba(0,228,255,0.4)', borderWidth: 1, titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' }, bodyFont: { family: "'Space Grotesk'", size: 11 }, padding: 12, callbacks: { label: (ctx) => { const v = ctx.parsed.y; const dsLabel = ctx.dataset.label; if (dsLabel.includes('Margin')) return `${dsLabel}: ${v.toFixed(1)}%`; return `${dsLabel}: ${curSymFor(st.currency)}${v.toFixed(1)}${st.currency.startsWith('T')?'T':'B'}`; } } } },
       scales: {
-        x: { ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 } }, grid: { display: false } },
-        y: { position: 'left', title: { display: true, text: `Amount (${unitLabel})`, color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 } }, grid: { color: 'rgba(72,110,144,0.12)' } },
-        y1: { position: 'right', title: { display: true, text: 'Margin (%)', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11 }, callback: v => v + '%' }, grid: { drawOnChartArea: false }, suggestedMin: 0, suggestedMax: 100 }
+        x: {
+          ticks: {
+            color: '#8aa4c4',
+            font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 },
+            autoSkip: false,
+            maxRotation: isMobile ? 45 : 0,
+            minRotation: isMobile ? 45 : 0
+          },
+          grid: { display: false }
+        },
+        y: {
+          position: 'left',
+          title: {
+            display: !isMobile,
+            text: `Amount (${unitLabel})`,
+            color: '#8aa4c4',
+            font: { family: "'Space Grotesk'", size: 11, weight: '600' }
+          },
+          ticks: {
+            color: '#8aa4c4',
+            font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 },
+            maxTicksLimit: isMobile ? 5 : 8
+          },
+          grid: { color: 'rgba(72,110,144,0.12)' }
+        },
+        y1: {
+          position: 'right',
+          title: {
+            display: !isMobile,
+            text: 'Margin (%)',
+            color: '#8aa4c4',
+            font: { family: "'Space Grotesk'", size: 11, weight: '600' }
+          },
+          ticks: {
+            color: '#8aa4c4',
+            font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 },
+            callback: v => v + '%',
+            maxTicksLimit: isMobile ? 5 : 8
+          },
+          grid: { drawOnChartArea: false },
+          suggestedMin: 0,
+          suggestedMax: 100
+        }
       }
     }
   });
@@ -875,8 +962,25 @@ function makeChart(symbol){
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(8,16,24,0.96)', borderColor: 'rgba(0,228,255,0.4)', borderWidth: 1, titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' }, bodyFont: { family: "'Space Grotesk'", size: 11 }, padding: 10, displayColors: true, callbacks: { label: (ctx) => { const v = ctx.parsed.y; return `${ctx.dataset.label}: ${isOK(v) ? v.toFixed(1) + '%' : '—'}`; } } } },
         scales: {
-          x: { ticks: { color: '#b8d0ea', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, grid: { display: false } },
-          y: { beginAtZero: true, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 10 }, callback: v => v + '%' }, grid: { color: 'rgba(72,110,144,0.12)' } }
+          x: {
+            ticks: {
+              color: '#b8d0ea',
+              font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11, weight: '600' },
+              autoSkip: false,
+              maxRotation: isMobile ? 30 : 0
+            },
+            grid: { display: false }
+          },
+          y: {
+            beginAtZero: true,
+            ticks: {
+              color: '#8aa4c4',
+              font: { family: "'Space Grotesk'", size: isMobile ? 9 : 10 },
+              callback: v => v + '%',
+              maxTicksLimit: 5
+            },
+            grid: { color: 'rgba(72,110,144,0.12)' }
+          }
         }
       }
     });
@@ -1062,7 +1166,6 @@ function delStock(k){const isBuiltIn=!!BASE_STOCKS[k];let msg;if(isBuiltIn){msg=
 function renderSBar(){const ks=Object.keys(S.stocks);document.getElementById('sList').innerHTML=ks.map(k=>{const st=S.stocks[k];const ex=(st.exchange||'').toUpperCase();const st2=S.status[k];const dot=st2==='ok'?'<span class="s-dot-ok"></span>':st2==='error'?'<span class="s-dot-er"></span>':'';return `<button class="s-btn${S.sel===k?' on':''}" onclick="selStock('${k}')">${dot}${k}<span class="xbadge">${ex}</span></button>`;}).join('');}
 function renderTabBtns(){['data','ratios','chart','rankings','insights'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
 
-// Quadrant plugin
 const quadrantPlugin = {
   id: 'quadrantPlugin',
   beforeDatasetsDraw(chart, args, options) {
@@ -1294,6 +1397,24 @@ function tabInsights(sym,st){
   `;
   if(!leftHtml&&!rightHtml){return `<div>${headerHtml}<div class="state-box"><p>No insights available for ${sym} yet.</p></div></div>`;}
   return `<div>${headerHtml}<div class="insights-two-col"><div>${leftHtml||'<div class="ai-content"><p>Business model analysis will appear after data refresh.</p></div>'}</div><div>${rightHtml}</div></div><div style="font-size:10px;color:var(--text-muted);margin-top:12px;">📚 Sources: Company filings · Annual Reports · Yahoo Finance${stockData?.profileDate?`<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}`:''}</div></div>`;
+}
+
+/* ============================================================
+   FIX: ensure all charts reflow proportionally on resize
+   (orientation change, keyboard open, mobile browser chrome)
+   ============================================================ */
+let __resizeRaf = null;
+function reflowCharts() {
+  if (__resizeRaf) cancelAnimationFrame(__resizeRaf);
+  __resizeRaf = requestAnimationFrame(() => {
+    [chartInst, marginCompInst, window.scatterChartInst, window.radarChartInst]
+      .forEach(c => { try { if (c && typeof c.resize === 'function') c.resize(); } catch (e) {} });
+  });
+}
+window.addEventListener('resize', reflowCharts);
+window.addEventListener('orientationchange', () => setTimeout(reflowCharts, 200));
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', reflowCharts);
 }
 </script>
 </body>
