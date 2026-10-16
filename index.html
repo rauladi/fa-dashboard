@@ -170,10 +170,7 @@ body { background: radial-gradient(circle at 10% 20%, #0f1722, #03050b); color: 
   .btn .lbl { display: none; }
   .btn { padding: 7px 10px; }
   .stock-dropdown-toggle { max-width: 160px; padding: 6px 10px; }
-  /* Position share dropdown above the bottom nav if it would overflow */
-  #shareDropdown .dropdown-menu {
-    max-height: calc(100vh - 120px);
-  }
+  #shareDropdown .dropdown-menu { max-height: calc(100vh - 120px); }
 }
 
 /* ================= CONTENT ================= */
@@ -344,9 +341,8 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .insights-header .header-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
 .insights-header .header-badge { font-size: 10px; background: rgba(0,228,255,0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-weight: 700; letter-spacing: 0.04em; }
 
-/* ================= CHART TAB ================= */
-.chart-tab-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; align-items: start; }
-@media (max-width: 1200px) { .chart-tab-grid { grid-template-columns: 1fr; } }
+/* ================= CHART TAB (simplified) ================= */
+.chart-tab-grid { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start; }
 .chart-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 
 .chart-header-card { background: var(--bg-surface-2); border: 1px solid var(--border-light); border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
@@ -360,19 +356,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .chart-header-sectors .badge { color: var(--accent-cyan); font-weight: 600; }
 .chart-header-sectors .divider { color: var(--text-muted); opacity: 0.4; }
 .chart-header-tagline { font-size: 11.5px; color: var(--text-secondary); line-height: 1.5; }
-
-.financial-results-card { background: var(--bg-surface-2); border: 1px solid var(--border-light); border-radius: 16px; padding: 14px 18px; }
-.financial-results-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 10px; letter-spacing: -0.01em; }
-.financial-results-table { width: 100%; font-size: 12px; }
-.financial-results-table tr { border-bottom: 1px solid rgba(72,110,144,0.12); }
-.financial-results-table tr:last-child { border-bottom: none; }
-.financial-results-table td { padding: 7px 0; }
-.financial-results-table .label { color: var(--text-secondary); font-weight: 500; }
-.financial-results-table .value { text-align: right; font-weight: 700; color: var(--text-primary); padding-right: 12px; font-variant-numeric: tabular-nums; }
-.financial-results-table .change { text-align: right; font-weight: 700; font-size: 11.5px; font-variant-numeric: tabular-nums; min-width: 66px; }
-.financial-results-table .change.positive { color: var(--accent-green); }
-.financial-results-table .change.negative { color: var(--accent-red); }
-.financial-results-table .change.neutral { color: var(--text-muted); }
 
 .kpi-cards-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
 @media (max-width: 1100px) { .kpi-cards-row { grid-template-columns: repeat(3, 1fr); } }
@@ -395,46 +378,26 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .chart-html-legend .legend-item { display: flex; align-items: center; gap: 6px; font-weight: 500; }
 .chart-html-legend .legend-marker { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
 .chart-html-legend .legend-marker.line-marker { width: 16px; height: 3px; border-radius: 2px; }
-.chart-canvas-wrap { position: relative; height: 320px; }
+.chart-canvas-wrap { position: relative; height: 380px; }
 .chart-info-footer { margin-top: 12px; padding: 10px 14px; background: rgba(90, 158, 255, 0.06); border: 1px solid rgba(90, 158, 255, 0.18); border-radius: 10px; font-size: 11px; color: var(--text-secondary); display: flex; gap: 10px; align-items: flex-start; line-height: 1.5; }
 .chart-info-footer .info-icon { color: var(--accent-cyan); font-weight: 700; flex-shrink: 0; font-size: 13px; }
 
-.side-panel { background: var(--bg-surface-2); border: 1px solid var(--border-light); border-radius: 16px; padding: 14px 18px; }
-.side-panel-title { font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
-.margin-comparison-legend { display: flex; gap: 14px; font-size: 11px; color: var(--text-secondary); margin-bottom: 10px; flex-wrap: wrap; }
-.margin-comparison-legend .legend-item { display: flex; align-items: center; gap: 5px; }
-.margin-comparison-legend .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
-.margin-comparison-canvas-wrap { height: 175px; position: relative; }
-
-.takeaways-list { list-style: none; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.takeaways-list li { font-size: 12px; color: var(--text-secondary); line-height: 1.5; display: flex; gap: 10px; align-items: flex-start; }
-.takeaways-list li .check { color: var(--accent-green); font-weight: 800; flex-shrink: 0; margin-top: 1px; font-size: 13px; }
-
 @media (max-width: 1200px) {
-  .chart-canvas-wrap { height: 300px; }
-  .margin-comparison-canvas-wrap { height: 200px; }
+  .chart-canvas-wrap { height: 340px; }
 }
 @media (max-width: 900px) {
-  .chart-canvas-wrap { height: 260px; }
-  .margin-comparison-canvas-wrap { height: 210px; }
+  .chart-canvas-wrap { height: 300px; }
 }
 @media (max-width: 640px) {
-  .chart-canvas-wrap { height: auto; aspect-ratio: 4 / 3; min-height: 240px; }
-  .margin-comparison-canvas-wrap { height: auto; aspect-ratio: 4 / 3; min-height: 200px; }
-  .scatter-container { height: auto; aspect-ratio: 1 / 1; min-height: 320px; }
-  #radarWrap { height: auto; aspect-ratio: 1 / 1; min-height: 260px; }
+  .chart-canvas-wrap { height: auto; aspect-ratio: 4 / 3; min-height: 260px; }
 }
-.chart-canvas-wrap canvas,
-.margin-comparison-canvas-wrap canvas,
-.scatter-container canvas,
-#radarWrap canvas {
+.chart-canvas-wrap canvas {
   display: block !important;
   width: 100% !important;
   height: 100% !important;
 }
 @media (max-width: 640px) {
   .chart-main-card { padding: 14px 12px; }
-  .side-panel { padding: 14px 12px; }
   .chart-html-legend { gap: 10px; font-size: 10.5px; }
   .chart-html-legend .legend-item { gap: 5px; }
   .chart-info-footer { font-size: 10.5px; padding: 10px 12px; }
@@ -453,7 +416,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
     </div>
   </div>
   <div class="h-actions">
-    <!-- STOCK SELECTOR DROPDOWN -->
     <div class="dropdown" id="stockDropdown">
       <button class="stock-dropdown-toggle" onclick="toggleStockDropdown(event)">
         <span class="dot" id="stockDot"></span>
@@ -463,8 +425,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
       </button>
       <div class="dropdown-menu right" id="stockMenu"></div>
     </div>
-
-    <!-- SHARE ACTIONS DROPDOWN -->
     <div class="dropdown" id="shareDropdown">
       <button class="dropdown-toggle" onclick="toggleDropdown(event)" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:40px;border:1px solid rgba(0,228,255,0.2);background:rgba(255,255,255,0.05);color:var(--text-secondary);cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;min-height:34px;">
         <span>☁️</span><span class="lbl"> Share</span><span class="chevron" style="font-size:9px;transition:transform 0.2s ease;">▼</span>
@@ -499,7 +459,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
   </div>
 </div>
 
-<!-- ================= NAV (desktop tabs) ================= -->
 <div id="navWrap">
   <div id="tBar">
     <button class="t-btn on" id="t-data" onclick="setTab('data')">📋 Financials</button>
@@ -511,7 +470,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 
 <div id="cont"></div>
 
-<!-- ================= BOTTOM NAV (mobile only) ================= -->
 <nav id="bottomNav">
   <button class="bn-btn on" id="bn-data" onclick="setTab('data')">
     <span class="bn-icon">📋</span>
@@ -550,27 +508,10 @@ let ANNUALISATION = {};
 const LS_KEY='fa_v5';
 const DATA_VERSION_KEY = 'fa_data_version';
 
-// ========== DROPDOWN HELPERS ==========
-function toggleDropdown(e) {
-  e.stopPropagation();
-  const dd = document.getElementById('shareDropdown');
-  dd.classList.toggle('open');
-  closeStockDropdown();
-}
-function closeDropdown() {
-  const dd = document.getElementById('shareDropdown');
-  if (dd) dd.classList.remove('open');
-}
-function toggleStockDropdown(e) {
-  e.stopPropagation();
-  const dd = document.getElementById('stockDropdown');
-  dd.classList.toggle('open');
-  closeDropdown();
-}
-function closeStockDropdown() {
-  const dd = document.getElementById('stockDropdown');
-  if (dd) dd.classList.remove('open');
-}
+function toggleDropdown(e) { e.stopPropagation(); document.getElementById('shareDropdown').classList.toggle('open'); closeStockDropdown(); }
+function closeDropdown() { const dd = document.getElementById('shareDropdown'); if (dd) dd.classList.remove('open'); }
+function toggleStockDropdown(e) { e.stopPropagation(); document.getElementById('stockDropdown').classList.toggle('open'); closeDropdown(); }
+function closeStockDropdown() { const dd = document.getElementById('stockDropdown'); if (dd) dd.classList.remove('open'); }
 document.addEventListener('click', function(e) {
   const sd = document.getElementById('shareDropdown');
   const std = document.getElementById('stockDropdown');
@@ -860,27 +801,6 @@ function extractTagline(profileMd) {
   }
   return '';
 }
-function median(arr) { if (!arr.length) return null; const s = [...arr].sort((a,b) => a-b); const mid = Math.floor(s.length / 2); return s.length % 2 ? s[mid] : (s[mid-1] + s[mid]) / 2; }
-function percentile(arr, p) { if (!arr.length) return null; const s = [...arr].sort((a,b) => a-b); const idx = (s.length - 1) * p; const lo = Math.floor(idx), hi = Math.ceil(idx); if (lo === hi) return s[lo]; return s[lo] + (s[hi] - s[lo]) * (idx - lo); }
-function getSectorPeers(sym) {
-  const sector = CO_INFO[sym]?.sector;
-  const all = Object.keys(S.stocks).filter(k => S.status[k] === 'ok' && k !== sym);
-  if (!sector) return all;
-  const peers = all.filter(k => CO_INFO[k]?.sector === sector);
-  return peers.length >= 3 ? peers : all;
-}
-function fmtYoY(curr, prev) {
-  if (!isOK(curr) || !isOK(prev) || prev === 0) return {text: '—', cls: 'neutral'};
-  const delta = ((curr - prev) / Math.abs(prev)) * 100;
-  const sign = delta >= 0 ? '+' : '';
-  return {text: `${sign}${delta.toFixed(1)}%`, cls: delta >= 0 ? 'positive' : 'negative'};
-}
-function fmtPP(curr, prev) {
-  if (!isOK(curr) || !isOK(prev)) return {text: '—', cls: 'neutral'};
-  const delta = curr - prev;
-  const sign = delta >= 0 ? '+' : '';
-  return {text: `${sign}${delta.toFixed(1)} pp`, cls: delta >= 0 ? 'positive' : 'negative'};
-}
 
 function tabChartHTML(sym, st) {
   const m = calcM(sym);
@@ -890,8 +810,6 @@ function tabChartHTML(sym, st) {
   const sector = CO_INFO[sym]?.sector || 'General';
   const unitLabel = formatCurrencyUnit(st.currency);
   const revLT = latestTwo(m.raw.rv);
-  const gpLT = latestTwo(m.raw.gp);
-  const npLT = latestTwo(m.raw.np);
   const gpmSeries = m.Y.map(y => y.gpm);
   const npmSeries = m.Y.map(y => y.npm);
   const roeSeries = m.Y.map(y => y.roe);
@@ -902,17 +820,8 @@ function tabChartHTML(sym, st) {
   const roeLT = latestTwo(roeSeries);
   const roaLT = latestTwo(roaSeries);
   const deLT  = latestTwo(deSeries);
-  const revYoY = fmtYoY(revLT.latest, revLT.prev);
-  const gpYoY = fmtYoY(gpLT.latest, gpLT.prev);
-  const npYoY = fmtYoY(npLT.latest, npLT.prev);
-  const gpmPP = fmtPP(gpmLT.latest, gpmLT.prev);
-  const npmPP = fmtPP(npmLT.latest, npmLT.prev);
   const latestYearLabel = revLT.latestIdx >= 0 ? YEARS[revLT.latestIdx] : LATEST_YEAR;
   const revCagr = m.cg.rev;
-  const currencySymbolMap = {'B USD': '$', 'B AUD': 'A$', 'T IDR': 'Rp '};
-  const curSym = currencySymbolMap[st.currency] || '$';
-  const curUnitShort = st.currency.startsWith('T') ? 'T' : 'B';
-  const fmtBig = (v) => isOK(v) ? `${curSym}${v.toFixed(1)}${curUnitShort}` : '—';
   return `
     <div class="chart-tab-grid">
       <div class="chart-col">
@@ -949,33 +858,11 @@ function tabChartHTML(sym, st) {
           <div class="chart-info-footer"><span class="info-icon">ℹ</span><span>Revenue, gross profit and net profit are in ${unitLabel.toLowerCase()}. Margin percentages use the right axis. Latest figures (${latestYearLabel}) are highlighted.</span></div>
         </div>
       </div>
-      <div class="chart-col">
-        <div class="financial-results-card">
-          <div class="financial-results-title">Latest Financial Results (FY ${latestYearLabel})</div>
-          <table class="financial-results-table">
-            <tr><td class="label">Revenue</td><td class="value">${fmtBig(revLT.latest)}</td><td class="change ${revYoY.cls}">${revYoY.text}</td></tr>
-            <tr><td class="label">Gross Profit</td><td class="value">${fmtBig(gpLT.latest)}</td><td class="change ${gpYoY.cls}">${gpYoY.text}</td></tr>
-            <tr><td class="label">Net Profit</td><td class="value">${fmtBig(npLT.latest)}</td><td class="change ${npYoY.cls}">${npYoY.text}</td></tr>
-            <tr><td class="label">Gross Profit Margin</td><td class="value">${isOK(gpmLT.latest) ? gpmLT.latest.toFixed(1) + '%' : '—'}</td><td class="change ${gpmPP.cls}">${gpmPP.text}</td></tr>
-            <tr><td class="label">Net Profit Margin</td><td class="value">${isOK(npmLT.latest) ? npmLT.latest.toFixed(1) + '%' : '—'}</td><td class="change ${npmPP.cls}">${npmPP.text}</td></tr>
-          </table>
-        </div>
-        <div class="side-panel">
-          <div class="side-panel-title">Margin Comparison (FY ${latestYearLabel})</div>
-          <div class="margin-comparison-legend">
-            <div class="legend-item"><span class="legend-dot" style="background:#5a9eff;"></span>${sym}</div>
-            <div class="legend-item"><span class="legend-dot" style="background:#94a3b8;"></span>Sector Median</div>
-            <div class="legend-item"><span class="legend-dot" style="background:#cbd5e1;"></span>Top Quartile</div>
-          </div>
-          <div class="margin-comparison-canvas-wrap"><canvas id="marginCompChart"></canvas></div>
-        </div>
-      </div>
     </div>
   `;
 }
 
 let chartInst=null;
-let marginCompInst=null;
 
 function makeChart(symbol){
   const el=document.getElementById('mainC');
@@ -1013,36 +900,6 @@ function makeChart(symbol){
       }
     }
   });
-
-  const compEl = document.getElementById('marginCompChart');
-  if (compEl) {
-    if (marginCompInst) { try { marginCompInst.destroy(); } catch(e) {} marginCompInst = null; }
-    const peers = getSectorPeers(symbol);
-    const peerGPM = peers.map(k => calcM(k)?.av.gpm).filter(isOK);
-    const peerNPM = peers.map(k => calcM(k)?.av.npm).filter(isOK);
-    const sectorGPM = median(peerGPM);
-    const sectorNPM = median(peerNPM);
-    const topGPM = percentile(peerGPM, 0.75);
-    const topNPM = percentile(peerNPM, 0.75);
-    const thisGPM = m.Y.map(y=>y.gpm).filter(isOK).pop() ?? null;
-    const thisNPM = m.Y.map(y=>y.npm).filter(isOK).pop() ?? null;
-    marginCompInst = new Chart(compEl.getContext('2d'), {
-      type: 'bar',
-      data: { labels: ['Gross Profit Margin', 'Net Profit Margin'], datasets: [
-        { label: symbol, data: [thisGPM, thisNPM], backgroundColor: '#5a9eff', borderRadius: 6, barPercentage: 0.7, categoryPercentage: 0.7 },
-        { label: 'Sector Median', data: [sectorGPM, sectorNPM], backgroundColor: '#94a3b8', borderRadius: 6, barPercentage: 0.7, categoryPercentage: 0.7 },
-        { label: 'Top Quartile', data: [topGPM, topNPM], backgroundColor: '#cbd5e1', borderRadius: 6, barPercentage: 0.7, categoryPercentage: 0.7 }
-      ]},
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(8,16,24,0.96)', borderColor: 'rgba(0,228,255,0.4)', borderWidth: 1, titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' }, bodyFont: { family: "'Space Grotesk'", size: 11 }, padding: 10, displayColors: true, callbacks: { label: (ctx) => { const v = ctx.parsed.y; return `${ctx.dataset.label}: ${isOK(v) ? v.toFixed(1) + '%' : '—'}`; } } } },
-        scales: {
-          x: { ticks: { color: '#b8d0ea', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11, weight: '600' }, autoSkip: false, maxRotation: isMobile ? 30 : 0 }, grid: { display: false } },
-          y: { beginAtZero: true, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 10 }, callback: v => v + '%', maxTicksLimit: 5 }, grid: { color: 'rgba(72,110,144,0.12)' } }
-        }
-      }
-    });
-  }
 }
 
 function curSymFor(cur) { const map = {'B USD': '$', 'B AUD': 'A$', 'T IDR': 'Rp '}; return map[cur] || '$'; }
@@ -1247,12 +1104,10 @@ function pickStock(k) {
 function renderSBar(){ /* no-op */ }
 
 function renderTabBtns(){
-  // Desktop tab buttons
   ['data','chart','rankings','insights'].forEach(t=>{
     const e=document.getElementById('t-'+t);
     if(e) e.className='t-btn'+(S.tab===t?' on':'');
   });
-  // Bottom nav buttons
   ['data','chart','rankings','insights'].forEach(t=>{
     const e=document.getElementById('bn-'+t);
     if(e) e.className='bn-btn'+(S.tab===t?' on':'');
@@ -1495,7 +1350,7 @@ let __resizeRaf = null;
 function reflowCharts() {
   if (__resizeRaf) cancelAnimationFrame(__resizeRaf);
   __resizeRaf = requestAnimationFrame(() => {
-    [chartInst, marginCompInst, window.scatterChartInst, window.radarChartInst]
+    [chartInst, window.scatterChartInst, window.radarChartInst]
       .forEach(c => { try { if (c && typeof c.resize === 'function') c.resize(); } catch (e) {} });
   });
 }
