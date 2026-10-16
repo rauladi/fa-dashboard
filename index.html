@@ -38,7 +38,7 @@ body { background: radial-gradient(circle at 10% 20%, #0f1722, #03050b); color: 
 .h-logo { width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, var(--accent-cyan), #0077b3); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; color: #fff; box-shadow: 0 0 12px var(--accent-cyan-glow); flex-shrink: 0; }
 .h-title { font-size: 14px; font-weight: 700; letter-spacing: -0.3px; background: linear-gradient(135deg, #fff, var(--accent-cyan)); background-clip: text; -webkit-background-clip: text; color: transparent; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .h-sub { font-size: 10px; color: var(--text-secondary); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.h-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.h-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; position: relative; }
 
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 40px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; transition: var(--transition-fast); backdrop-filter: blur(4px); font-family: inherit; min-height: 32px; }
 .btn-cyan { background: linear-gradient(105deg, var(--accent-cyan), #0088aa); color: #03050b; }
@@ -48,6 +48,21 @@ body { background: radial-gradient(circle at 10% 20%, #0f1722, #03050b); color: 
 .btn-red { background: rgba(255,90,122,0.15); color: #ff8aab; border: 1px solid rgba(255,90,122,0.3); }
 .btn-sm { padding: 5px 12px; font-size: 11px; }
 .btn-xs { padding: 3px 10px; font-size: 10px; }
+
+/* ================= DROPDOWN MENU ================= */
+.dropdown { position: relative; display: inline-block; }
+.dropdown-toggle { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 40px; border: 1px solid rgba(0,228,255,0.2); background: rgba(255,255,255,0.05); color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; transition: var(--transition-fast); font-family: inherit; min-height: 32px; }
+.dropdown-toggle:hover { background: rgba(0,228,255,0.1); color: var(--accent-cyan); }
+.dropdown-toggle .chevron { font-size: 9px; transition: transform 0.2s ease; margin-left: 2px; }
+.dropdown.open .dropdown-toggle .chevron { transform: rotate(180deg); }
+.dropdown-menu { position: absolute; top: calc(100% + 6px); right: 0; background: rgba(12, 22, 32, 0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-glow); border-radius: 16px; min-width: 220px; padding: 6px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 300; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s; }
+.dropdown.open .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: var(--text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--transition-fast); border: none; background: transparent; width: 100%; text-align: left; font-family: inherit; }
+.dropdown-item:hover { background: rgba(0,228,255,0.1); color: var(--accent-cyan); }
+.dropdown-item .icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
+.dropdown-divider { height: 1px; background: var(--border-light); margin: 5px 8px; }
+.dropdown-item.danger { color: #ff8aab; }
+.dropdown-item.danger:hover { background: rgba(255,90,122,0.12); color: var(--accent-red); }
 
 /* ================= NAV (chips + tabs) ================= */
 #navWrap {
@@ -79,6 +94,8 @@ body { background: radial-gradient(circle at 10% 20%, #0f1722, #03050b); color: 
   .btn .lbl { display: none; }
   .btn { padding: 7px 10px; }
   .s-btn, .t-btn { min-height: 36px; }
+  .dropdown-toggle { padding: 7px 10px; }
+  .dropdown-toggle .lbl { display: none; }
 }
 
 /* ================= CONTENT ================= */
@@ -395,15 +412,38 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
     </div>
   </div>
   <div class="h-actions">
-    <button class="btn btn-ghost btn-sm" onclick="forceRefresh()" title="Force Refresh">
-      <span>🔄</span><span class="lbl"> Refresh</span>
-    </button>
-    <button class="btn btn-ghost btn-sm" onclick="showSync()" title="Sync Between Devices">
-      <span>☁️</span><span class="lbl"> Sync</span>
-    </button>
-    <button class="btn btn-green btn-sm" onclick="showAdd()" title="Add Stock">
-      <span>＋</span><span class="lbl"> Add Stock</span>
-    </button>
+    <!-- DROPDOWN MENU for share actions -->
+    <div class="dropdown" id="shareDropdown">
+      <button class="dropdown-toggle" onclick="toggleDropdown(event)">
+        <span>☁️</span><span class="lbl"> Share</span><span class="chevron">▼</span>
+      </button>
+      <div class="dropdown-menu">
+        <button class="dropdown-item" onclick="forceRefresh(); closeDropdown();">
+          <span class="icon">🔄</span> Refresh Data
+        </button>
+        <button class="dropdown-item" onclick="showSync(); closeDropdown();">
+          <span class="icon">📱</span> Sync Between Devices
+        </button>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item" onclick="showAdd(); closeDropdown();">
+          <span class="icon">＋</span> Add Stock
+        </button>
+        <button class="dropdown-item" onclick="exportJSON(); closeDropdown();">
+          <span class="icon">⬇️</span> Download Portfolio
+        </button>
+        <button class="dropdown-item" onclick="document.getElementById('impFile').click(); closeDropdown();">
+          <span class="icon">⬆️</span> Import Portfolio
+        </button>
+        <button class="dropdown-item" onclick="doGenLink(); closeDropdown();">
+          <span class="icon">🔗</span> Share Link
+        </button>
+        <div class="dropdown-divider"></div>
+        <button class="dropdown-item danger" onclick="resetAndReload(); closeDropdown();">
+          <span class="icon">🗑️</span> Reset All Data
+        </button>
+      </div>
+    </div>
+    <input type="file" accept=".json" id="impFile" style="display:none" onchange="importFile(this.files[0])" />
   </div>
 </div>
 
@@ -411,8 +451,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 <div id="navWrap">
   <div id="sBar"><div class="s-list" id="sList"></div></div>
   <div id="tBar">
-    <button class="t-btn on" id="t-data" onclick="setTab('data')">📋 Data</button>
-    <button class="t-btn" id="t-ratios" onclick="setTab('ratios')">📐 Ratios</button>
+    <button class="t-btn on" id="t-data" onclick="setTab('data')">📋 Financials</button>
     <button class="t-btn" id="t-chart" onclick="setTab('chart')">📈 Chart</button>
     <button class="t-btn" id="t-rankings" onclick="setTab('rankings')">🏆 Rankings</button>
     <button class="t-btn" id="t-insights" onclick="setTab('insights')">💡 Insights</button>
@@ -438,6 +477,21 @@ const N_YEARS = YEARS.length;
 let ANNUALISATION = {};
 const LS_KEY='fa_v5';
 const DATA_VERSION_KEY = 'fa_data_version';
+
+// ========== DROPDOWN HELPERS ==========
+function toggleDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('shareDropdown');
+  dd.classList.toggle('open');
+}
+function closeDropdown() {
+  const dd = document.getElementById('shareDropdown');
+  if (dd) dd.classList.remove('open');
+}
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('shareDropdown');
+  if (dd && !dd.contains(e.target)) closeDropdown();
+});
 
 const DOMAIN_MAP = {
   V:'visa.com', MA:'mastercard.com', GOOG:'abc.xyz', MSFT:'microsoft.com', NVDA:'nvidia.com',
@@ -642,8 +696,78 @@ function calcM(symbol){
 
 function yearColHeader(sym,yr){if(yr!==CURRENT_YEAR)return `<th class="tc" style="white-space:nowrap">${yr}</th>`;const ann=ANNUALISATION[sym]||{label:null};if(!ann.label||ann.label==='FY'){const tag=ann?.label==='FY'?'FY':'Est.';return `<th class="tc" style="white-space:nowrap;color:var(--accent-gold)">${yr}<br><span style="font-size:8px;">${tag}</span></th>`;}const asOf=ann.asOf?` ${ann.asOf.slice(5)}`:'';return `<th class="tc" style="white-space:nowrap;color:#ffaa44">${yr}<br><span style="font-size:8px;">${ann.label}${asOf}</span></th>`;}
 function srcBar(sym,st){const d=S.data[sym];const isCustom=!!S.custom[sym];const ticker=d?.ticker||yahooTicker(sym,st.exchange||'');const src=d?.source||'built-in';let badge,note;if(src==='yfinance'){const gen=d?.generated?new Date(d.generated).toLocaleDateString():'—';badge=`<span>✓ Auto-refreshed</span>`;note=`Live via yfinance · Refreshed: ${gen}`;}else{badge=`<span>📋 Built-in data</span>`;note=`Embedded from annual reports`;}return `<div class="src-bar"><div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px"><div>${badge}<div style="margin-top:4px;font-size:12px"><strong>${st.name}</strong> · ${st.exchange} · ${st.currency} · <code style="background:rgba(0,0,0,.2);padding:0 5px;border-radius:3px;font-size:9px">${ticker}</code><br><span style="font-size:11px;color:var(--text-muted)">${note}</span></div></div><div style="display:flex;gap:6px;"><button class="btn btn-ghost btn-xs" onclick="showManual('${sym}')">✏ Edit</button>${isCustom?`<button class="btn btn-red btn-xs" onclick="delStock('${sym}')">🗑 Remove</button>`:''}</div></div></div>`;}
-function tabData(sym,st){const m=calcM(sym);if(!m)return '<p>No data</p>';const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');const rows=MKEYS.map((r,i)=>{const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}" style="text-align:right">${N2(v,2)}</td>`;}).join('');const a=avg(m.Y.map(y=>y[r.k]));const cg=cagr(m.Y.map(y=>y[r.k]));return `<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04)">${N2(a,2)}</td><td class="tc num ${!isOK(cg)?'':cg>=0?'pos':'neg'}" style="text-align:right;background:rgba(0,217,126,.03)">${isOK(cg)?N2(cg,1)+'%':'N/A'}</td></tr>`;}).join('');return `${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead><tr><th style="min-width:150px">Metric (${st.currency})</th>${yH}<th style="text-align:right;color:var(--accent-cyan);min-width:75px">Avg</th><th style="text-align:right;color:var(--accent-green);min-width:70px">CAGR</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;}
-function tabRatios(sym,st){const m=calcM(sym);if(!m)return `<div class="state-box"><p>Unable to calculate ratios.</p></div>`;const yH=YEARS.map(y=>yearColHeader(sym,y)).join('');const rDefs=[{k:'cashToAsset',l:'Cash / Total Asset %',p:true},{k:'debtToEquity',l:'Debt / Equity %',p:true},{k:'gpm',l:'Gross Profit Margin %',p:true},{k:'npm',l:'Net Profit Margin %',p:true},{k:'roa',l:'Return on Asset %',p:true},{k:'roe',l:'Return on Equity %',p:true},{k:'divPayout',l:'Dividend Payout %',p:true},{k:'valLow',l:'Valuation Low (DPS×10)',p:false},{k:'valHigh',l:'Valuation High (DPS×20)',p:false},{k:'retEps',l:'Retained EPS (EPS−DPS)',p:false}];const rows=rDefs.map((r,i)=>{const cells=m.Y.map(y=>{const v=y[r.k];return`<td class="tc num${isOK(v)&&v<0?' neg':''}" style="text-align:right">${r.p?P1(v):N2(v,2)}</td>`;}).join('');const a=avg(m.Y.map(y=>y[r.k]));return `<tr class="${i%2?'ev':''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04);font-weight:600">${r.p?P1(a):N2(a,2)}</td></tr>`;}).join('');const cards=[{l:'Revenue CAGR',v:P1(m.cg.rev),c:'var(--accent-green)'},{l:'Net Profit CAGR',v:P1(m.cg.np),c:'var(--accent-green)'},{l:'EPS CAGR',v:P1(m.cg.eps),c:'var(--accent-green)'},{l:`EPS Increase (${LATEST_YEAR-YEARS[0]}yr)`,v:N2(m.epsInc,2),c:'var(--accent-cyan)'},{l:'Total Retained EPS',v:N2(m.totRet,2),c:'var(--accent-cyan)'},{l:'Buffett $1 Test',v:P1(m.buff),c:m.buff>=100?'var(--accent-gold)':m.buff>=50?'var(--accent-green)':'var(--accent-red)'},{l:'Avg ROE',v:P1(m.av.roe),c:'var(--accent-purple)'},{l:'Avg NP Margin',v:P1(m.av.npm),c:'var(--accent-blue)'}].map(c=>`<div class="card"><div class="card-l">${c.l}</div><div class="card-v" style="color:${c.c}">${c.v}</div></div>`).join('');return `${srcBar(sym,st)}<div class="sec"><div class="tw"><table><thead><tr><th style="min-width:200px">Ratio</th>${yH}<th class="tc" style="text-align:right;color:var(--accent-cyan);min-width:80px">Average</th></tr></thead><tbody>${rows}</tbody></table></div></div><div class="sec"><div class="sec-t">Key Metrics Summary</div><div class="cards">${cards}</div></div>`;}
+
+// ========== COMBINED FINANCIALS TAB (Data + Ratios) ==========
+function tabFinancials(sym, st) {
+  const m = calcM(sym);
+  if (!m) return '<p>No data</p>';
+  
+  // --- Data table (raw values) ---
+  const yH = YEARS.map(y => yearColHeader(sym, y)).join('');
+  const rawRows = MKEYS.map((r, i) => {
+    const cells = m.Y.map(y => { const v = y[r.k]; return `<td class="tc num${isOK(v) && v < 0 ? ' neg' : ''}" style="text-align:right">${N2(v, 2)}</td>`; }).join('');
+    const a = avg(m.Y.map(y => y[r.k]));
+    const cg = cagr(m.Y.map(y => y[r.k]));
+    return `<tr class="${i % 2 ? 'ev' : ''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04)">${N2(a, 2)}</td><td class="tc num ${!isOK(cg) ? '' : cg >= 0 ? 'pos' : 'neg'}" style="text-align:right;background:rgba(0,217,126,.03)">${isOK(cg) ? N2(cg, 1) + '%' : 'N/A'}</td></tr>`;
+  }).join('');
+
+  // --- Ratio table ---
+  const rDefs = [
+    { k: 'cashToAsset', l: 'Cash / Total Asset %', p: true },
+    { k: 'debtToEquity', l: 'Debt / Equity %', p: true },
+    { k: 'gpm', l: 'Gross Profit Margin %', p: true },
+    { k: 'npm', l: 'Net Profit Margin %', p: true },
+    { k: 'roa', l: 'Return on Asset %', p: true },
+    { k: 'roe', l: 'Return on Equity %', p: true },
+    { k: 'divPayout', l: 'Dividend Payout %', p: true },
+    { k: 'valLow', l: 'Valuation Low (DPS×10)', p: false },
+    { k: 'valHigh', l: 'Valuation High (DPS×20)', p: false },
+    { k: 'retEps', l: 'Retained EPS (EPS−DPS)', p: false }
+  ];
+  const ratioRows = rDefs.map((r, i) => {
+    const cells = m.Y.map(y => { const v = y[r.k]; return `<td class="tc num${isOK(v) && v < 0 ? ' neg' : ''}" style="text-align:right">${r.p ? P1(v) : N2(v, 2)}</td>`; }).join('');
+    const a = avg(m.Y.map(y => y[r.k]));
+    return `<tr class="${i % 2 ? 'ev' : ''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04);font-weight:600">${r.p ? P1(a) : N2(a, 2)}</td></tr>`;
+  }).join('');
+
+  // --- Summary cards ---
+  const cards = [
+    { l: 'Revenue CAGR', v: P1(m.cg.rev), c: 'var(--accent-green)' },
+    { l: 'Net Profit CAGR', v: P1(m.cg.np), c: 'var(--accent-green)' },
+    { l: 'EPS CAGR', v: P1(m.cg.eps), c: 'var(--accent-green)' },
+    { l: `EPS Increase (${LATEST_YEAR - YEARS[0]}yr)`, v: N2(m.epsInc, 2), c: 'var(--accent-cyan)' },
+    { l: 'Total Retained EPS', v: N2(m.totRet, 2), c: 'var(--accent-cyan)' },
+    { l: 'Buffett $1 Test', v: P1(m.buff), c: m.buff >= 100 ? 'var(--accent-gold)' : m.buff >= 50 ? 'var(--accent-green)' : 'var(--accent-red)' },
+    { l: 'Avg ROE', v: P1(m.av.roe), c: 'var(--accent-purple)' },
+    { l: 'Avg NP Margin', v: P1(m.av.npm), c: 'var(--accent-blue)' }
+  ].map(c => `<div class="card"><div class="card-l">${c.l}</div><div class="card-v" style="color:${c.c}">${c.v}</div></div>`).join('');
+
+  return `
+    ${srcBar(sym, st)}
+    <div class="sec">
+      <div class="sec-t">📋 Raw Financial Data (${st.currency})</div>
+      <div class="tw">
+        <table>
+          <thead><tr><th style="min-width:150px">Metric</th>${yH}<th style="text-align:right;color:var(--accent-cyan);min-width:75px">Avg</th><th style="text-align:right;color:var(--accent-green);min-width:70px">CAGR</th></tr></thead>
+          <tbody>${rawRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-t">📐 Financial Ratios</div>
+      <div class="tw">
+        <table>
+          <thead><tr><th style="min-width:200px">Ratio</th>${yH}<th class="tc" style="text-align:right;color:var(--accent-cyan);min-width:80px">Average</th></tr></thead>
+          <tbody>${ratioRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-t">Key Metrics Summary</div>
+      <div class="cards">${cards}</div>
+    </div>
+  `;
+}
 
 // ========== CHART TAB ==========
 function formatCurrencyUnit(cur) {
@@ -724,18 +848,6 @@ function tabChartHTML(sym, st) {
   const sectorNPM = median(peerNPM);
   const topGPM = percentile(peerGPM, 0.75);
   const topNPM = percentile(peerNPM, 0.75);
-
-  const takeaways = [];
-  if (isOK(revCagr)) takeaways.push(`Revenue has grown at a ${revCagr.toFixed(1)}% CAGR over the available period.`);
-  if (isOK(npmLT.latest)) takeaways.push(`Margins remain strong, with NP margin of ${npmLT.latest.toFixed(1)}% in ${latestYearLabel}.`);
-  if (isOK(gpmLT.latest) && isOK(sectorGPM)) {
-    const better = gpmLT.latest >= sectorGPM;
-    takeaways.push(`${better ? 'Outperforms' : 'Underperforms'} sector median on Gross Profit margin (${gpmLT.latest.toFixed(1)}% vs ${sectorGPM.toFixed(1)}%).`);
-  }
-  if (isOK(roeLT.latest)) takeaways.push(`Return on equity at ${roeLT.latest.toFixed(1)}% indicates ${roeLT.latest > 15 ? 'industry-leading' : 'solid'} returns.`);
-  if (isOK(m.buff) && m.buff >= 100) takeaways.push('Passes Buffett $1 test — retained earnings create shareholder value.');
-  else if (isOK(m.buff) && m.buff >= 50) takeaways.push('Moderate value creation from retained earnings (Buffett test).');
-  if (isOK(m.av.debtToEquity) && m.av.debtToEquity < 50) takeaways.push('Low leverage profile with conservative debt usage.');
 
   return `
     <div class="chart-tab-grid">
@@ -843,16 +955,6 @@ function tabChartHTML(sym, st) {
           <div class="margin-comparison-canvas-wrap">
             <canvas id="marginCompChart"></canvas>
           </div>
-        </div>
-
-        <div class="side-panel">
-          <div class="side-panel-title">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00e4ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-            Key Takeaways
-          </div>
-          <ul class="takeaways-list">
-            ${takeaways.map(t => `<li><span class="check">✓</span><span>${t}</span></li>`).join('')}
-          </ul>
         </div>
       </div>
     </div>
@@ -1142,7 +1244,7 @@ function tabRankings(){
 function setTab(t){S.tab=t;render();}
 function selStock(k){S.sel=k;render();}
 function setWt(k,v){const n=parseFloat(v);if(!isNaN(n)&&n>=0){S.wts[k]=n;render();}}
-function showSync(){document.getElementById('syncBody').innerHTML=`<div style="background:rgba(0,228,255,0.08);border:1px solid rgba(0,228,255,0.3);border-radius:16px;padding:14px;margin-bottom:18px"><strong>📱 ↔ 💻 Cross-Device Sync</strong><br><span style="font-size:12px;color:var(--text-muted)">Your portfolio is auto-saved locally. Use one of these methods to sync.</span></div><div class="sec"><div class="sec-t">Method 1 · Download & Import File</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-cyan" onclick="exportJSON()">⬇ Download Portfolio JSON</button><input type="file" accept=".json" id="impFile" style="display:none" onchange="importFile(this.files[0])"/><button class="btn btn-ghost" onclick="document.getElementById('impFile').click()">⬆ Import JSON File</button></div></div><div class="sec" style="margin-top:18px"><div class="sec-t">Method 2 · Share Link</div><button class="btn btn-green" onclick="doGenLink()" style="margin-bottom:10px">🔗 Generate Link</button><div id="linkOut" style="display:none"><textarea id="linkTxt" readonly style="width:100%;background:var(--bg-deep);border:1px solid var(--border-light);border-radius:12px;padding:10px;color:var(--text-muted);font-size:10px;min-height:70px"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="copyLink()">📋 Copy Link</button><span id="cpMsg" style="font-size:11px;color:var(--accent-green);display:none">✓ Copied!</span></div></div></div><div class="sec" style="margin-top:18px;border-top:1px solid var(--border-light);padding-top:16px"><button class="btn btn-red btn-sm" onclick="resetAndReload()">🗑 Reset All Data & Reload</button></div><div style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn btn-ghost" onclick="hideSync()">Close</button></div>`;document.getElementById('syncModal').style.display='flex';}
+function showSync(){document.getElementById('syncBody').innerHTML=`<div style="background:rgba(0,228,255,0.08);border:1px solid rgba(0,228,255,0.3);border-radius:16px;padding:14px;margin-bottom:18px"><strong>📱 ↔ 💻 Cross-Device Sync</strong><br><span style="font-size:12px;color:var(--text-muted)">Your portfolio is auto-saved locally. Use one of these methods to sync.</span></div><div class="sec"><div class="sec-t">Method 1 · Download & Import File</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-cyan" onclick="exportJSON()">⬇ Download Portfolio JSON</button><input type="file" accept=".json" id="impFileModal" style="display:none" onchange="importFile(this.files[0])"/><button class="btn btn-ghost" onclick="document.getElementById('impFileModal').click()">⬆ Import JSON File</button></div></div><div class="sec" style="margin-top:18px"><div class="sec-t">Method 2 · Share Link</div><button class="btn btn-green" onclick="doGenLink()" style="margin-bottom:10px">🔗 Generate Link</button><div id="linkOut" style="display:none"><textarea id="linkTxt" readonly style="width:100%;background:var(--bg-deep);border:1px solid var(--border-light);border-radius:12px;padding:10px;color:var(--text-muted);font-size:10px;min-height:70px"></textarea><div style="display:flex;gap:8px;margin-top:8px"><button class="btn btn-ghost btn-sm" onclick="copyLink()">📋 Copy Link</button><span id="cpMsg" style="font-size:11px;color:var(--accent-green);display:none">✓ Copied!</span></div></div></div><div class="sec" style="margin-top:18px;border-top:1px solid var(--border-light);padding-top:16px"><button class="btn btn-red btn-sm" onclick="resetAndReload()">🗑 Reset All Data & Reload</button></div><div style="display:flex;justify-content:flex-end;margin-top:20px"><button class="btn btn-ghost" onclick="hideSync()">Close</button></div>`;document.getElementById('syncModal').style.display='flex';}
 function hideSync(){document.getElementById('syncModal').style.display='none';}
 function doGenLink(){const u=genLink();document.getElementById('linkOut').style.display='block';document.getElementById('linkTxt').value=u;}
 function copyLink(){const t=document.getElementById('linkTxt');navigator.clipboard.writeText(t.value).then(()=>{const m=document.getElementById('cpMsg');m.style.display='inline';setTimeout(()=>m.style.display='none',3000);}).catch(()=>{t.select();document.execCommand('copy');});}
@@ -1164,7 +1266,7 @@ function showManual(sym){const st=S.stocks[sym];MA.sym=sym;MA.vals=Object.fromEn
 function submitManualData(){const sym=MA.sym;const parsed={};for(const r of MKEYS){parsed[r.k]=MA.vals[r.k].map(v=>v===''||v===null||v===undefined?null:parseFloat(v));if(parsed[r.k].some(v=>v!==null&&isNaN(v))){showAErr(`Invalid in "${r.l}"`);return;}}S.data[sym]={...parsed,fetchedAt:Date.now(),source:'user-edited'};S.status[sym]='ok';saveLS();hideAdd();render();showToast(`✓ ${sym} saved`,'green');}
 function delStock(k){const isBuiltIn=!!BASE_STOCKS[k];let msg;if(isBuiltIn){msg=`Remove ${k} from view?`;}else{msg=`Remove ${k}? Also remove from stocks_config.json on GitHub.`;}if(!confirm(msg))return;if(!S.deleted)S.deleted={};S.deleted[k]=true;delete S.custom[k];delete S.stocks[k];delete S.data[k];delete S.status[k];if(S.sel===k)S.sel=Object.keys(S.stocks)[0]||'BHP';saveLS();render();showToast(`${k} removed`,'cyan');}
 function renderSBar(){const ks=Object.keys(S.stocks);document.getElementById('sList').innerHTML=ks.map(k=>{const st=S.stocks[k];const ex=(st.exchange||'').toUpperCase();const st2=S.status[k];const dot=st2==='ok'?'<span class="s-dot-ok"></span>':st2==='error'?'<span class="s-dot-er"></span>':'';return `<button class="s-btn${S.sel===k?' on':''}" onclick="selStock('${k}')">${dot}${k}<span class="xbadge">${ex}</span></button>`;}).join('');}
-function renderTabBtns(){['data','ratios','chart','rankings','insights'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
+function renderTabBtns(){['data','chart','rankings','insights'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
 
 const quadrantPlugin = {
   id: 'quadrantPlugin',
@@ -1256,8 +1358,7 @@ function renderMain(){
   const st=S.stocks[S.sel];
   if(!st){cont.innerHTML='<div class="state-box">No stock selected</div>';return;}
   if(!S.data[S.sel]){cont.innerHTML=`<div class="state-box"><p>No data for ${S.sel}</p></div>`;return;}
-  if(S.tab==='data')cont.innerHTML=tabData(S.sel,st);
-  else if(S.tab==='ratios')cont.innerHTML=tabRatios(S.sel,st);
+  if(S.tab==='data')cont.innerHTML=tabFinancials(S.sel,st);
   else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}
 }
 function render(){renderSBar();renderTabBtns();renderMain();saveLS();updateDebugInfo();}
