@@ -22,7 +22,7 @@ body { background: radial-gradient(circle at 10% 20%, #0f1722, #03050b); color: 
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--accent-cyan); border-radius: 10px; }
 
-/* ================= HEADER (compact) ================= */
+/* ================= HEADER ================= */
 #hdr {
   background: rgba(8, 16, 24, 0.85);
   backdrop-filter: var(--glass-blur);
@@ -49,22 +49,55 @@ body { background: radial-gradient(circle at 10% 20%, #0f1722, #03050b); color: 
 .btn-sm { padding: 5px 12px; font-size: 11px; }
 .btn-xs { padding: 3px 10px; font-size: 10px; }
 
-/* ================= DROPDOWN MENU ================= */
+/* ================= STOCK SELECTOR DROPDOWN ================= */
+.stock-dropdown-toggle {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px;
+  border-radius: 40px;
+  border: 1px solid rgba(0,228,255,0.25);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: var(--transition-fast);
+  font-family: inherit;
+  min-height: 34px;
+  max-width: 220px;
+}
+.stock-dropdown-toggle:hover { background: rgba(0,228,255,0.1); border-color: var(--accent-cyan); }
+.stock-dropdown-toggle .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.stock-dropdown-toggle .dot.ok { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+.stock-dropdown-toggle .dot.err { background: var(--accent-red); }
+.stock-dropdown-toggle .dot.idle { background: var(--text-muted); }
+.stock-dropdown-toggle .sym { font-weight: 800; letter-spacing: -0.02em; }
+.stock-dropdown-toggle .exch-badge { font-size: 8.5px; padding: 1px 6px; border-radius: 20px; font-weight: 700; background: rgba(0,0,0,0.3); color: var(--text-secondary); }
+.stock-dropdown-toggle .chevron { font-size: 9px; transition: transform 0.2s ease; margin-left: auto; color: var(--accent-cyan); }
+.dropdown.open .stock-dropdown-toggle .chevron { transform: rotate(180deg); }
+
+/* ================= DROPDOWN MENU (shared styles) ================= */
 .dropdown { position: relative; display: inline-block; }
-.dropdown-toggle { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 40px; border: 1px solid rgba(0,228,255,0.2); background: rgba(255,255,255,0.05); color: var(--text-secondary); cursor: pointer; font-size: 12px; font-weight: 600; transition: var(--transition-fast); font-family: inherit; min-height: 32px; }
-.dropdown-toggle:hover { background: rgba(0,228,255,0.1); color: var(--accent-cyan); }
-.dropdown-toggle .chevron { font-size: 9px; transition: transform 0.2s ease; margin-left: 2px; }
-.dropdown.open .dropdown-toggle .chevron { transform: rotate(180deg); }
-.dropdown-menu { position: absolute; top: calc(100% + 6px); right: 0; background: rgba(12, 22, 32, 0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-glow); border-radius: 16px; min-width: 220px; padding: 6px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 300; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s; }
+.dropdown-menu { position: absolute; top: calc(100% + 6px); background: rgba(12, 22, 32, 0.98); backdrop-filter: blur(20px); border: 1px solid var(--border-glow); border-radius: 16px; min-width: 220px; padding: 6px; box-shadow: 0 20px 40px rgba(0,0,0,0.6); z-index: 300; opacity: 0; visibility: hidden; transform: translateY(-6px); transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s; max-height: 70vh; overflow-y: auto; }
 .dropdown.open .dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
-.dropdown-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: var(--text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--transition-fast); border: none; background: transparent; width: 100%; text-align: left; font-family: inherit; }
+.dropdown-menu.right { right: 0; }
+.dropdown-menu.left { left: 0; }
+.dropdown-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; color: var(--text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; transition: var(--transition-fast); border: none; background: transparent; width: 100%; text-align: left; font-family: inherit; }
 .dropdown-item:hover { background: rgba(0,228,255,0.1); color: var(--accent-cyan); }
 .dropdown-item .icon { font-size: 15px; width: 20px; text-align: center; flex-shrink: 0; }
 .dropdown-divider { height: 1px; background: var(--border-light); margin: 5px 8px; }
 .dropdown-item.danger { color: #ff8aab; }
 .dropdown-item.danger:hover { background: rgba(255,90,122,0.12); color: var(--accent-red); }
+.dropdown-item.on { background: rgba(0,228,255,0.14); color: var(--accent-cyan); }
+.dropdown-item .stock-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.dropdown-item .stock-dot.ok { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
+.dropdown-item .stock-dot.err { background: var(--accent-red); }
+.dropdown-item .stock-dot.idle { background: var(--text-muted); }
+.dropdown-item .stock-sym { font-weight: 800; letter-spacing: -0.02em; min-width: 48px; }
+.dropdown-item .stock-name { flex: 1; font-size: 10.5px; color: var(--text-muted); font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dropdown-item .stock-exch { font-size: 8.5px; padding: 1px 6px; border-radius: 20px; font-weight: 700; background: rgba(0,0,0,0.35); color: var(--text-muted); }
+.dropdown-item.on .stock-exch { background: rgba(0,228,255,0.2); color: var(--accent-cyan); }
 
-/* ================= NAV (chips + tabs) ================= */
+/* ================= NAV (tabs) ================= */
 #navWrap {
   position: sticky; top: var(--hdr-h); z-index: 199;
   background: rgba(8, 16, 24, 0.75);
@@ -73,29 +106,20 @@ body { background: radial-gradient(circle at 10% 20%, #0f1722, #03050b); color: 
   display: flex; align-items: center; gap: 10px;
   padding: 6px 16px;
 }
-#sBar { flex: 1; min-width: 0; overflow-x: auto; display: flex; align-items: center; }
-.s-list { display: flex; gap: 6px; min-width: max-content; padding: 2px 0; }
-.s-btn { padding: 5px 12px; border-radius: 40px; border: none; cursor: pointer; font-size: 11.5px; font-weight: 600; background: rgba(20, 32, 45, 0.8); color: var(--text-secondary); display: inline-flex; align-items: center; gap: 5px; font-family: inherit; min-height: 30px; }
-.s-btn:hover { background: rgba(0,228,255,0.15); color: var(--accent-cyan); }
-.s-btn.on { background: linear-gradient(95deg, var(--accent-cyan), #0099bb); color: #03050b; box-shadow: 0 0 12px var(--accent-cyan-glow); }
-.xbadge { font-size: 8.5px; padding: 1px 6px; border-radius: 20px; font-weight: 700; background: rgba(0,0,0,0.3); }
-
-#tBar { display: flex; gap: 2px; flex-shrink: 0; border-left: 1px solid var(--border-light); padding-left: 10px; }
+#tBar { display: flex; gap: 2px; flex: 1; overflow-x: auto; scrollbar-width: none; }
+#tBar::-webkit-scrollbar { display: none; }
 .t-btn { padding: 7px 12px; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; font-family: inherit; min-height: 32px; }
 .t-btn:hover { color: var(--text-secondary); }
 .t-btn.on { border-bottom-color: var(--accent-cyan); color: var(--accent-cyan); }
 
 @media (max-width: 900px) {
-  #navWrap { flex-wrap: wrap; padding: 6px 12px; gap: 4px; }
-  #sBar { flex: 1 1 100%; }
-  #tBar { flex: 1 1 100%; border-left: none; padding-left: 0; padding-top: 4px; margin-top: 2px; border-top: 1px solid var(--border-light); overflow-x: auto; }
+  #navWrap { padding: 6px 12px; }
   .h-sub { display: none; }
   .h-title { font-size: 13px; }
   .btn .lbl { display: none; }
   .btn { padding: 7px 10px; }
   .s-btn, .t-btn { min-height: 36px; }
-  .dropdown-toggle { padding: 7px 10px; }
-  .dropdown-toggle .lbl { display: none; }
+  .stock-dropdown-toggle { max-width: 160px; padding: 6px 10px; }
 }
 
 /* ================= CONTENT ================= */
@@ -108,15 +132,13 @@ body { background: radial-gradient(circle at 10% 20%, #0f1722, #03050b); color: 
 .card-l { font-size: 9.5px; color: var(--text-muted); margin-bottom: 5px; }
 .card-v { font-size: 18px; font-weight: 800; background: linear-gradient(135deg, #fff, var(--accent-cyan)); background-clip: text; -webkit-background-clip: text; color: transparent; }
 
-/* ================= TABLE (dense + sticky first col) ================= */
 .tw { overflow-x: auto; border-radius: 14px; border: 1px solid rgba(0,228,255,0.15); background: rgba(8, 16, 24, 0.5); }
 table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
 thead th { background: rgba(0, 150, 180, 0.22); padding: 8px 10px; text-align: left; font-size: 9.5px; text-transform: uppercase; color: var(--accent-cyan); font-weight: 700; }
 tbody td { padding: 7px 10px; border-bottom: 1px solid rgba(72, 110, 144, 0.2); white-space: nowrap; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
 tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 
-.tw table td:first-child,
-.tw table th:first-child {
+.tw table td:first-child, .tw table th:first-child {
   position: sticky; left: 0; z-index: 2;
   background: rgba(10,12,18,0.96);
   box-shadow: 1px 0 0 rgba(72,110,144,0.25);
@@ -124,7 +146,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 }
 .tw thead th:first-child { background: rgba(0,150,180,0.30) !important; }
 
-.s-dot-ok, .s-dot-ld, .s-dot-er { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+.s-dot-ok, .s-dot-er { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
 .s-dot-ok { background: var(--accent-green); box-shadow: 0 0 6px var(--accent-green); }
 .s-dot-er { background: var(--accent-red); }
 
@@ -235,9 +257,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .sw-icon { font-size: 11px; flex-shrink: 0; }
 #selTabContent { flex: 1; min-height: 260px; }
 #radarWrap { height: 240px; position: relative; }
-.insight-list { display: flex; flex-direction: column; gap: 8px; }
-.insight-item { background: rgba(0, 228, 255, 0.05); border-left: 2px solid var(--accent-cyan); padding: 8px 10px; border-radius: 4px; font-size: 11px; line-height: 1.4; color: var(--text-secondary); }
-.insight-item strong { color: var(--accent-cyan); font-weight: 600; }
 
 .heatmap-section { margin-top: 18px; }
 .heatmap-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 12px; }
@@ -278,7 +297,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .insights-header .header-meta { font-size: 11.5px; color: var(--text-muted); margin-top: 3px; }
 .insights-header .header-badge { font-size: 10px; background: rgba(0,228,255,0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 20px; font-weight: 700; letter-spacing: 0.04em; }
 
-/* ================= CHART TAB (compact) ================= */
+/* ================= CHART TAB ================= */
 .chart-tab-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; align-items: start; }
 @media (max-width: 1200px) { .chart-tab-grid { grid-template-columns: 1fr; } }
 .chart-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
@@ -308,16 +327,10 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .financial-results-table .change.negative { color: var(--accent-red); }
 .financial-results-table .change.neutral { color: var(--text-muted); }
 
-/* KPI STRIP — single-row, condenses gracefully on small screens */
 .kpi-cards-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
 @media (max-width: 1100px) { .kpi-cards-row { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 900px) {
-  .kpi-cards-row {
-    display: flex; overflow-x: auto; gap: 8px;
-    scroll-snap-type: x mandatory;
-    padding-bottom: 6px;
-    -webkit-overflow-scrolling: touch;
-  }
+  .kpi-cards-row { display: flex; overflow-x: auto; gap: 8px; scroll-snap-type: x mandatory; padding-bottom: 6px; -webkit-overflow-scrolling: touch; }
   .kpi-cards-row::-webkit-scrollbar { display: none; }
   .kpi-card { min-width: 148px; flex-shrink: 0; scroll-snap-align: start; }
 }
@@ -350,9 +363,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .takeaways-list li { font-size: 12px; color: var(--text-secondary); line-height: 1.5; display: flex; gap: 10px; align-items: flex-start; }
 .takeaways-list li .check { color: var(--accent-green); font-weight: 800; flex-shrink: 0; margin-top: 1px; font-size: 13px; }
 
-/* ============================================================
-   MOBILE CHART PROPORTIONALITY FIX
-   ============================================================ */
 @media (max-width: 1200px) {
   .chart-canvas-wrap { height: 300px; }
   .margin-comparison-canvas-wrap { height: 200px; }
@@ -362,26 +372,10 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
   .margin-comparison-canvas-wrap { height: 210px; }
 }
 @media (max-width: 640px) {
-  .chart-canvas-wrap {
-    height: auto;
-    aspect-ratio: 4 / 3;
-    min-height: 240px;
-  }
-  .margin-comparison-canvas-wrap {
-    height: auto;
-    aspect-ratio: 4 / 3;
-    min-height: 200px;
-  }
-  .scatter-container {
-    height: auto;
-    aspect-ratio: 1 / 1;
-    min-height: 320px;
-  }
-  #radarWrap {
-    height: auto;
-    aspect-ratio: 1 / 1;
-    min-height: 260px;
-  }
+  .chart-canvas-wrap { height: auto; aspect-ratio: 4 / 3; min-height: 240px; }
+  .margin-comparison-canvas-wrap { height: auto; aspect-ratio: 4 / 3; min-height: 200px; }
+  .scatter-container { height: auto; aspect-ratio: 1 / 1; min-height: 320px; }
+  #radarWrap { height: auto; aspect-ratio: 1 / 1; min-height: 260px; }
 }
 .chart-canvas-wrap canvas,
 .margin-comparison-canvas-wrap canvas,
@@ -412,12 +406,23 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
     </div>
   </div>
   <div class="h-actions">
-    <!-- DROPDOWN MENU for share actions -->
-    <div class="dropdown" id="shareDropdown">
-      <button class="dropdown-toggle" onclick="toggleDropdown(event)">
-        <span>☁️</span><span class="lbl"> Share</span><span class="chevron">▼</span>
+    <!-- STOCK SELECTOR DROPDOWN -->
+    <div class="dropdown" id="stockDropdown">
+      <button class="stock-dropdown-toggle" onclick="toggleStockDropdown(event)">
+        <span class="dot" id="stockDot"></span>
+        <span class="sym" id="stockSym">BHP</span>
+        <span class="exch-badge" id="stockExch">ASX</span>
+        <span class="chevron">▼</span>
       </button>
-      <div class="dropdown-menu">
+      <div class="dropdown-menu right" id="stockMenu"></div>
+    </div>
+
+    <!-- SHARE ACTIONS DROPDOWN -->
+    <div class="dropdown" id="shareDropdown">
+      <button class="dropdown-toggle" onclick="toggleDropdown(event)" style="display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:40px;border:1px solid rgba(0,228,255,0.2);background:rgba(255,255,255,0.05);color:var(--text-secondary);cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;min-height:34px;">
+        <span>☁️</span><span class="lbl"> Share</span><span class="chevron" style="font-size:9px;transition:transform 0.2s ease;">▼</span>
+      </button>
+      <div class="dropdown-menu right">
         <button class="dropdown-item" onclick="forceRefresh(); closeDropdown();">
           <span class="icon">🔄</span> Refresh Data
         </button>
@@ -447,9 +452,8 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
   </div>
 </div>
 
-<!-- ================= COMBINED NAV BAR (chips + tabs) ================= -->
+<!-- ================= NAV (tabs only now) ================= -->
 <div id="navWrap">
-  <div id="sBar"><div class="s-list" id="sList"></div></div>
   <div id="tBar">
     <button class="t-btn on" id="t-data" onclick="setTab('data')">📋 Financials</button>
     <button class="t-btn" id="t-chart" onclick="setTab('chart')">📈 Chart</button>
@@ -483,14 +487,27 @@ function toggleDropdown(e) {
   e.stopPropagation();
   const dd = document.getElementById('shareDropdown');
   dd.classList.toggle('open');
+  closeStockDropdown();
 }
 function closeDropdown() {
   const dd = document.getElementById('shareDropdown');
   if (dd) dd.classList.remove('open');
 }
+function toggleStockDropdown(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('stockDropdown');
+  dd.classList.toggle('open');
+  closeDropdown();
+}
+function closeStockDropdown() {
+  const dd = document.getElementById('stockDropdown');
+  if (dd) dd.classList.remove('open');
+}
 document.addEventListener('click', function(e) {
-  const dd = document.getElementById('shareDropdown');
-  if (dd && !dd.contains(e.target)) closeDropdown();
+  const sd = document.getElementById('shareDropdown');
+  const std = document.getElementById('stockDropdown');
+  if (sd && !sd.contains(e.target)) closeDropdown();
+  if (std && !std.contains(e.target)) closeStockDropdown();
 });
 
 const DOMAIN_MAP = {
@@ -701,8 +718,6 @@ function srcBar(sym,st){const d=S.data[sym];const isCustom=!!S.custom[sym];const
 function tabFinancials(sym, st) {
   const m = calcM(sym);
   if (!m) return '<p>No data</p>';
-  
-  // --- Data table (raw values) ---
   const yH = YEARS.map(y => yearColHeader(sym, y)).join('');
   const rawRows = MKEYS.map((r, i) => {
     const cells = m.Y.map(y => { const v = y[r.k]; return `<td class="tc num${isOK(v) && v < 0 ? ' neg' : ''}" style="text-align:right">${N2(v, 2)}</td>`; }).join('');
@@ -710,8 +725,6 @@ function tabFinancials(sym, st) {
     const cg = cagr(m.Y.map(y => y[r.k]));
     return `<tr class="${i % 2 ? 'ev' : ''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04)">${N2(a, 2)}</td><td class="tc num ${!isOK(cg) ? '' : cg >= 0 ? 'pos' : 'neg'}" style="text-align:right;background:rgba(0,217,126,.03)">${isOK(cg) ? N2(cg, 1) + '%' : 'N/A'}</td></tr>`;
   }).join('');
-
-  // --- Ratio table ---
   const rDefs = [
     { k: 'cashToAsset', l: 'Cash / Total Asset %', p: true },
     { k: 'debtToEquity', l: 'Debt / Equity %', p: true },
@@ -729,8 +742,6 @@ function tabFinancials(sym, st) {
     const a = avg(m.Y.map(y => y[r.k]));
     return `<tr class="${i % 2 ? 'ev' : ''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04);font-weight:600">${r.p ? P1(a) : N2(a, 2)}</td></tr>`;
   }).join('');
-
-  // --- Summary cards ---
   const cards = [
     { l: 'Revenue CAGR', v: P1(m.cg.rev), c: 'var(--accent-green)' },
     { l: 'Net Profit CAGR', v: P1(m.cg.np), c: 'var(--accent-green)' },
@@ -741,7 +752,6 @@ function tabFinancials(sym, st) {
     { l: 'Avg ROE', v: P1(m.av.roe), c: 'var(--accent-purple)' },
     { l: 'Avg NP Margin', v: P1(m.av.npm), c: 'var(--accent-blue)' }
   ].map(c => `<div class="card"><div class="card-l">${c.l}</div><div class="card-v" style="color:${c.c}">${c.v}</div></div>`).join('');
-
   return `
     ${srcBar(sym, st)}
     <div class="sec">
@@ -769,7 +779,6 @@ function tabFinancials(sym, st) {
   `;
 }
 
-// ========== CHART TAB ==========
 function formatCurrencyUnit(cur) {
   const map = {'B USD': 'US$ Billions', 'B AUD': 'A$ Billions', 'T IDR': 'Rp Trillions'};
   return map[cur] || cur;
@@ -813,7 +822,6 @@ function tabChartHTML(sym, st) {
   const tagline = extractTagline(profileMd);
   const sector = CO_INFO[sym]?.sector || 'General';
   const unitLabel = formatCurrencyUnit(st.currency);
-
   const revLT = latestTwo(m.raw.rv);
   const gpLT = latestTwo(m.raw.gp);
   const npLT = latestTwo(m.raw.np);
@@ -827,93 +835,40 @@ function tabChartHTML(sym, st) {
   const roeLT = latestTwo(roeSeries);
   const roaLT = latestTwo(roaSeries);
   const deLT  = latestTwo(deSeries);
-
   const revYoY = fmtYoY(revLT.latest, revLT.prev);
   const gpYoY = fmtYoY(gpLT.latest, gpLT.prev);
   const npYoY = fmtYoY(npLT.latest, npLT.prev);
   const gpmPP = fmtPP(gpmLT.latest, gpmLT.prev);
   const npmPP = fmtPP(npmLT.latest, npmLT.prev);
-
   const latestYearLabel = revLT.latestIdx >= 0 ? YEARS[revLT.latestIdx] : LATEST_YEAR;
   const revCagr = m.cg.rev;
   const currencySymbolMap = {'B USD': '$', 'B AUD': 'A$', 'T IDR': 'Rp '};
   const curSym = currencySymbolMap[st.currency] || '$';
   const curUnitShort = st.currency.startsWith('T') ? 'T' : 'B';
   const fmtBig = (v) => isOK(v) ? `${curSym}${v.toFixed(1)}${curUnitShort}` : '—';
-
-  const peers = getSectorPeers(sym);
-  const peerGPM = peers.map(k => calcM(k)?.av.gpm).filter(isOK);
-  const peerNPM = peers.map(k => calcM(k)?.av.npm).filter(isOK);
-  const sectorGPM = median(peerGPM);
-  const sectorNPM = median(peerNPM);
-  const topGPM = percentile(peerGPM, 0.75);
-  const topNPM = percentile(peerNPM, 0.75);
-
   return `
     <div class="chart-tab-grid">
       <div class="chart-col">
         <div class="chart-header-card">
           <div class="chart-header-logo">${getLogoHtml(sym, 48)}</div>
           <div class="chart-header-info">
-            <div class="chart-header-name">
-              ${st.name} <span class="ticker-paren">(${sym})</span>
-            </div>
+            <div class="chart-header-name">${st.name} <span class="ticker-paren">(${sym})</span></div>
             <div class="chart-header-sectors">
-              <span class="badge">${sector}</span>
-              <span class="divider">|</span>
-              <span class="badge">${st.exchange}</span>
-              <span class="divider">|</span>
+              <span class="badge">${sector}</span><span class="divider">|</span>
+              <span class="badge">${st.exchange}</span><span class="divider">|</span>
               <span class="badge">${st.currency}</span>
             </div>
             ${tagline ? `<div class="chart-header-tagline">${tagline}</div>` : ''}
           </div>
         </div>
-
         <div class="kpi-cards-row">
-          <div class="kpi-card">
-            <div class="kpi-label">Revenue CAGR</div>
-            <div class="kpi-value-row">
-              <div class="kpi-value ${isOK(revCagr) && revCagr >= 0 ? 'positive' : 'neutral'}">${isOK(revCagr) ? (revCagr >= 0 ? '+' : '') + revCagr.toFixed(1) + '%' : 'N/A'}</div>
-              <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="${isOK(revCagr) && revCagr >= 0 ? '#00f5a0' : '#6c8db0'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Gross Profit Margin</div>
-            <div class="kpi-value-row">
-              <div class="kpi-value neutral">${isOK(gpmLT.latest) ? gpmLT.latest.toFixed(1) + '%' : 'N/A'}</div>
-              <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#00f5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Net Profit Margin</div>
-            <div class="kpi-value-row">
-              <div class="kpi-value neutral">${isOK(npmLT.latest) ? npmLT.latest.toFixed(1) + '%' : 'N/A'}</div>
-              <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#00f5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Return on Equity</div>
-            <div class="kpi-value-row">
-              <div class="kpi-value neutral">${isOK(roeLT.latest) ? roeLT.latest.toFixed(1) + '%' : 'N/A'}</div>
-              <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#00f5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Return on Asset</div>
-            <div class="kpi-value-row">
-              <div class="kpi-value neutral">${isOK(roaLT.latest) ? roaLT.latest.toFixed(1) + '%' : 'N/A'}</div>
-              <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#5a9eff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>
-            </div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Debt / Equity</div>
-            <div class="kpi-value-row">
-              <div class="kpi-value neutral">${isOK(deLT.latest) ? deLT.latest.toFixed(1) + '%' : 'N/A'}</div>
-              <svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#00e4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
-            </div>
-          </div>
+          <div class="kpi-card"><div class="kpi-label">Revenue CAGR</div><div class="kpi-value-row"><div class="kpi-value ${isOK(revCagr) && revCagr >= 0 ? 'positive' : 'neutral'}">${isOK(revCagr) ? (revCagr >= 0 ? '+' : '') + revCagr.toFixed(1) + '%' : 'N/A'}</div><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="${isOK(revCagr) && revCagr >= 0 ? '#00f5a0' : '#6c8db0'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div></div>
+          <div class="kpi-card"><div class="kpi-label">Gross Profit Margin</div><div class="kpi-value-row"><div class="kpi-value neutral">${isOK(gpmLT.latest) ? gpmLT.latest.toFixed(1) + '%' : 'N/A'}</div><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#00f5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div></div>
+          <div class="kpi-card"><div class="kpi-label">Net Profit Margin</div><div class="kpi-value-row"><div class="kpi-value neutral">${isOK(npmLT.latest) ? npmLT.latest.toFixed(1) + '%' : 'N/A'}</div><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#00f5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div></div>
+          <div class="kpi-card"><div class="kpi-label">Return on Equity</div><div class="kpi-value-row"><div class="kpi-value neutral">${isOK(roeLT.latest) ? roeLT.latest.toFixed(1) + '%' : 'N/A'}</div><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#00f5a0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div></div>
+          <div class="kpi-card"><div class="kpi-label">Return on Asset</div><div class="kpi-value-row"><div class="kpi-value neutral">${isOK(roaLT.latest) ? roaLT.latest.toFixed(1) + '%' : 'N/A'}</div><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#5a9eff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg></div></div>
+          <div class="kpi-card"><div class="kpi-label">Debt / Equity</div><div class="kpi-value-row"><div class="kpi-value neutral">${isOK(deLT.latest) ? deLT.latest.toFixed(1) + '%' : 'N/A'}</div><svg class="kpi-icon" viewBox="0 0 24 24" fill="none" stroke="#00e4ff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg></div></div>
         </div>
-
         <div class="chart-main-card">
           <div class="chart-main-title">Revenue, Profitability and Margins</div>
           <div class="chart-html-legend">
@@ -923,16 +878,10 @@ function tabChartHTML(sym, st) {
             <div class="legend-item"><span class="legend-marker line-marker" style="background:#f59e0b;"></span>Gross Profit Margin %</div>
             <div class="legend-item"><span class="legend-marker line-marker" style="background:#ef4444;"></span>Net Profit Margin %</div>
           </div>
-          <div class="chart-canvas-wrap" id="chartWrap">
-            <canvas id="mainC"></canvas>
-          </div>
-          <div class="chart-info-footer">
-            <span class="info-icon">ℹ</span>
-            <span>Revenue, gross profit and net profit are in ${unitLabel.toLowerCase()}. Margin percentages use the right axis. Latest figures (${latestYearLabel}) are highlighted.</span>
-          </div>
+          <div class="chart-canvas-wrap" id="chartWrap"><canvas id="mainC"></canvas></div>
+          <div class="chart-info-footer"><span class="info-icon">ℹ</span><span>Revenue, gross profit and net profit are in ${unitLabel.toLowerCase()}. Margin percentages use the right axis. Latest figures (${latestYearLabel}) are highlighted.</span></div>
         </div>
       </div>
-
       <div class="chart-col">
         <div class="financial-results-card">
           <div class="financial-results-title">Latest Financial Results (FY ${latestYearLabel})</div>
@@ -944,7 +893,6 @@ function tabChartHTML(sym, st) {
             <tr><td class="label">Net Profit Margin</td><td class="value">${isOK(npmLT.latest) ? npmLT.latest.toFixed(1) + '%' : '—'}</td><td class="change ${npmPP.cls}">${npmPP.text}</td></tr>
           </table>
         </div>
-
         <div class="side-panel">
           <div class="side-panel-title">Margin Comparison (FY ${latestYearLabel})</div>
           <div class="margin-comparison-legend">
@@ -952,9 +900,7 @@ function tabChartHTML(sym, st) {
             <div class="legend-item"><span class="legend-dot" style="background:#94a3b8;"></span>Sector Median</div>
             <div class="legend-item"><span class="legend-dot" style="background:#cbd5e1;"></span>Top Quartile</div>
           </div>
-          <div class="margin-comparison-canvas-wrap">
-            <canvas id="marginCompChart"></canvas>
-          </div>
+          <div class="margin-comparison-canvas-wrap"><canvas id="marginCompChart"></canvas></div>
         </div>
       </div>
     </div>
@@ -994,49 +940,9 @@ function makeChart(symbol){
       interaction: { mode: 'index', intersect: false },
       plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(8,16,24,0.96)', borderColor: 'rgba(0,228,255,0.4)', borderWidth: 1, titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' }, bodyFont: { family: "'Space Grotesk'", size: 11 }, padding: 12, callbacks: { label: (ctx) => { const v = ctx.parsed.y; const dsLabel = ctx.dataset.label; if (dsLabel.includes('Margin')) return `${dsLabel}: ${v.toFixed(1)}%`; return `${dsLabel}: ${curSymFor(st.currency)}${v.toFixed(1)}${st.currency.startsWith('T')?'T':'B'}`; } } } },
       scales: {
-        x: {
-          ticks: {
-            color: '#8aa4c4',
-            font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 },
-            autoSkip: false,
-            maxRotation: isMobile ? 45 : 0,
-            minRotation: isMobile ? 45 : 0
-          },
-          grid: { display: false }
-        },
-        y: {
-          position: 'left',
-          title: {
-            display: !isMobile,
-            text: `Amount (${unitLabel})`,
-            color: '#8aa4c4',
-            font: { family: "'Space Grotesk'", size: 11, weight: '600' }
-          },
-          ticks: {
-            color: '#8aa4c4',
-            font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 },
-            maxTicksLimit: isMobile ? 5 : 8
-          },
-          grid: { color: 'rgba(72,110,144,0.12)' }
-        },
-        y1: {
-          position: 'right',
-          title: {
-            display: !isMobile,
-            text: 'Margin (%)',
-            color: '#8aa4c4',
-            font: { family: "'Space Grotesk'", size: 11, weight: '600' }
-          },
-          ticks: {
-            color: '#8aa4c4',
-            font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 },
-            callback: v => v + '%',
-            maxTicksLimit: isMobile ? 5 : 8
-          },
-          grid: { drawOnChartArea: false },
-          suggestedMin: 0,
-          suggestedMax: 100
-        }
+        x: { ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, autoSkip: false, maxRotation: isMobile ? 45 : 0, minRotation: isMobile ? 45 : 0 }, grid: { display: false } },
+        y: { position: 'left', title: { display: !isMobile, text: `Amount (${unitLabel})`, color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, maxTicksLimit: isMobile ? 5 : 8 }, grid: { color: 'rgba(72,110,144,0.12)' } },
+        y1: { position: 'right', title: { display: !isMobile, text: 'Margin (%)', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, callback: v => v + '%', maxTicksLimit: isMobile ? 5 : 8 }, grid: { drawOnChartArea: false }, suggestedMin: 0, suggestedMax: 100 }
       }
     }
   });
@@ -1064,25 +970,8 @@ function makeChart(symbol){
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(8,16,24,0.96)', borderColor: 'rgba(0,228,255,0.4)', borderWidth: 1, titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' }, bodyFont: { family: "'Space Grotesk'", size: 11 }, padding: 10, displayColors: true, callbacks: { label: (ctx) => { const v = ctx.parsed.y; return `${ctx.dataset.label}: ${isOK(v) ? v.toFixed(1) + '%' : '—'}`; } } } },
         scales: {
-          x: {
-            ticks: {
-              color: '#b8d0ea',
-              font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11, weight: '600' },
-              autoSkip: false,
-              maxRotation: isMobile ? 30 : 0
-            },
-            grid: { display: false }
-          },
-          y: {
-            beginAtZero: true,
-            ticks: {
-              color: '#8aa4c4',
-              font: { family: "'Space Grotesk'", size: isMobile ? 9 : 10 },
-              callback: v => v + '%',
-              maxTicksLimit: 5
-            },
-            grid: { color: 'rgba(72,110,144,0.12)' }
-          }
+          x: { ticks: { color: '#b8d0ea', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11, weight: '600' }, autoSkip: false, maxRotation: isMobile ? 30 : 0 }, grid: { display: false } },
+          y: { beginAtZero: true, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 10 }, callback: v => v + '%', maxTicksLimit: 5 }, grid: { color: 'rgba(72,110,144,0.12)' } }
         }
       }
     });
@@ -1117,6 +1006,7 @@ function renderWeightsPanel(){
 function catSubtotal(keys){return keys.reduce((s,k)=>s+(S.wts[k]||0),0);}
 
 function renderSelTabContent(){
+  if (S.selTab === 'insights') S.selTab = 'factor';
   const selSym = S.sel;
   const {ranks, scores, fr} = calcRanks(S.wts);
   const rankedKs = Object.keys(fr).sort((a,b)=>fr[a]-fr[b]);
@@ -1140,19 +1030,6 @@ function renderSelTabContent(){
     return `<div>${factorHtml}${legendHtml}${swHtml}</div>`;
   }
   if (S.selTab === 'radar') return `<div id="radarWrap"><canvas id="radarChart"></canvas></div>`;
-  if (S.selTab === 'insights') {
-    const m = calcM(selSym);
-    const rRev = ranks[selSym].revenueCagr, rROE = ranks[selSym].roeAvg, rNPM = ranks[selSym].npmAvg, rEPS = ranks[selSym].epsCagr, rBuff = ranks[selSym].buffettTest;
-    const items = [
-      `<strong>Growth:</strong> Revenue CAGR of ${P1(m.cg.rev)} ranks #${rRev} of ${maxRank}. EPS CAGR of ${P1(m.cg.eps)} ranks #${rEPS}.`,
-      `<strong>Profitability:</strong> Average NP margin of ${P1(m.av.npm)} (rank #${rNPM}), average ROE of ${P1(m.av.roe)} (rank #${rROE}).`,
-      `<strong>Balance Sheet:</strong> Average cash/assets of ${P1(m.av.cashToAsset)}, debt/equity of ${P1(m.av.debtToEquity)}.`,
-      `<strong>Value Creation:</strong> Buffett $1 Test score of ${P1(m.buff)} (rank #${rBuff}). ${m.buff>=100?'Retained earnings create value.':'⚠️ Retained earnings are not creating strong value.'}`,
-      `<strong>Shareholder Return:</strong> Avg payout ratio ${P1(m.av.divPayout)}, DPS CAGR ${P1(m.cg.dps)}.`,
-      `<strong>Peer Context:</strong> Overall rank #${fr[selSym]} of ${maxRank}, score ${scores[selSym].ws.toFixed(2)}. Top performer: ${rankedKs[0]} (${scores[rankedKs[0]].ws.toFixed(2)}).`,
-    ];
-    return `<div class="insight-list">${items.map(i=>`<div class="insight-item">${i}</div>`).join('')}</div>`;
-  }
   return '';
 }
 
@@ -1202,7 +1079,7 @@ function tabRankings(){
   const rowBottom = [4, 5].filter(r => r <= top5.length).map(buildPodiumCard).join('');
   const podiumHtml = `<div class="podium-row">${rowTop}</div>${rowBottom ? `<div class="podium-row">${rowBottom}</div>` : ''}`;
   const selSym = S.sel; const selSt = S.stocks[selSym]; const selRank = fr[selSym] || 'N/A'; const selScore = scores[selSym]?.ws.toFixed(2) || 'N/A';
-  const tabsHtml = `<div class="tabs"><button class="tab ${S.selTab==='factor'?'active':''}" onclick="setSelTab('factor')">Factor Breakdown</button><button class="tab ${S.selTab==='radar'?'active':''}" onclick="setSelTab('radar')">Radar Chart</button><button class="tab ${S.selTab==='insights'?'active':''}" onclick="setSelTab('insights')">Key Insights</button></div><div id="selTabContent">${renderSelTabContent()}</div>`;
+  const tabsHtml = `<div class="tabs"><button class="tab ${S.selTab==='factor'?'active':''}" onclick="setSelTab('factor')">Factor Breakdown</button><button class="tab ${S.selTab==='radar'?'active':''}" onclick="setSelTab('radar')">Radar Chart</button></div><div id="selTabContent">${renderSelTabContent()}</div>`;
   const selectedPanelHtml = `<div class="panel"><div class="panel-header">Selected Stock</div><div class="selected-header">${getLogoHtml(selSym, 42)}<div class="selected-info"><div class="selected-ticker">${selSym}</div><div class="selected-name">${selSt.name}</div></div><div class="selected-score-box"><div class="selected-score">${selScore}</div><div class="selected-rank">Overall Rank #${selRank}</div></div></div>${tabsHtml}</div>`;
   let filteredKs = rankedKs;
   if (S.heatmapFilter.exchange === 'TOP10') filteredKs = rankedKs.slice(0, 10);
@@ -1265,7 +1142,46 @@ let MA={sym:'',vals:{}};
 function showManual(sym){const st=S.stocks[sym];MA.sym=sym;MA.vals=Object.fromEntries(MKEYS.map(m=>[m.k,S.data[sym]?[...S.data[sym][m.k]]:Array(N_YEARS).fill('')]));const yH=YEARS.map(y=>`<th style="text-align:center;min-width:60px">${y}</th>`).join('');const rows=MKEYS.map((r,i)=>{const cells=YEARS.map((_,j)=>`<td style="padding:2px"><input type="number" value="${isOK(MA.vals[r.k][j])?MA.vals[r.k][j]:''}" oninput="MA.vals['${r.k}'][${j}]=this.value" style="width:58px;background:var(--bg-deep);border:1px solid var(--border-light);border-radius:8px;padding:3px 5px;font-size:11px;color:var(--text-primary);text-align:center;font-family:inherit;"/></td>`).join('');return `<tr><td style="padding:5px 10px;font-size:11px">${r.l}</td>${cells}</tr>`;}).join('');document.getElementById('addBody').innerHTML=`<p style="font-size:12px;color:var(--text-muted);margin-bottom:12px"><strong>${sym} — ${st.name}</strong></p><div class="tw"><table><thead><tr><th>Metric</th>${yH}</tr></thead><tbody>${rows}</tbody></table></div><div id="aErr" style="color:var(--accent-red);display:none;margin-top:10px"></div><div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px"><button class="btn btn-ghost" onclick="hideAdd()">Cancel</button><button class="btn btn-cyan" onclick="submitManualData()">✓ Save</button></div>`;document.getElementById('addModal').style.display='flex';}
 function submitManualData(){const sym=MA.sym;const parsed={};for(const r of MKEYS){parsed[r.k]=MA.vals[r.k].map(v=>v===''||v===null||v===undefined?null:parseFloat(v));if(parsed[r.k].some(v=>v!==null&&isNaN(v))){showAErr(`Invalid in "${r.l}"`);return;}}S.data[sym]={...parsed,fetchedAt:Date.now(),source:'user-edited'};S.status[sym]='ok';saveLS();hideAdd();render();showToast(`✓ ${sym} saved`,'green');}
 function delStock(k){const isBuiltIn=!!BASE_STOCKS[k];let msg;if(isBuiltIn){msg=`Remove ${k} from view?`;}else{msg=`Remove ${k}? Also remove from stocks_config.json on GitHub.`;}if(!confirm(msg))return;if(!S.deleted)S.deleted={};S.deleted[k]=true;delete S.custom[k];delete S.stocks[k];delete S.data[k];delete S.status[k];if(S.sel===k)S.sel=Object.keys(S.stocks)[0]||'BHP';saveLS();render();showToast(`${k} removed`,'cyan');}
-function renderSBar(){const ks=Object.keys(S.stocks);document.getElementById('sList').innerHTML=ks.map(k=>{const st=S.stocks[k];const ex=(st.exchange||'').toUpperCase();const st2=S.status[k];const dot=st2==='ok'?'<span class="s-dot-ok"></span>':st2==='error'?'<span class="s-dot-er"></span>':'';return `<button class="s-btn${S.sel===k?' on':''}" onclick="selStock('${k}')">${dot}${k}<span class="xbadge">${ex}</span></button>`;}).join('');}
+
+// ========== STOCK DROPDOWN RENDER ==========
+function renderStockDropdown() {
+  // Update toggle button
+  const sym = S.sel;
+  const st = S.stocks[sym];
+  if (!st) return;
+  const status = S.status[sym];
+  const dotClass = status === 'ok' ? 'ok' : status === 'error' ? 'err' : 'idle';
+  const dotEl = document.getElementById('stockDot');
+  const symEl = document.getElementById('stockSym');
+  const exchEl = document.getElementById('stockExch');
+  if (dotEl) dotEl.className = 'dot ' + dotClass;
+  if (symEl) symEl.textContent = sym;
+  if (exchEl) exchEl.textContent = (st.exchange || '').toUpperCase();
+
+  // Build menu items
+  const menu = document.getElementById('stockMenu');
+  if (!menu) return;
+  const ks = Object.keys(S.stocks);
+  menu.innerHTML = ks.map(k => {
+    const s = S.stocks[k];
+    const st2 = S.status[k];
+    const dotCls = st2 === 'ok' ? 'ok' : st2 === 'error' ? 'err' : 'idle';
+    const isOn = k === sym ? ' on' : '';
+    return `<button class="dropdown-item${isOn}" onclick="pickStock('${k}')">
+      <span class="stock-dot ${dotCls}"></span>
+      <span class="stock-sym">${k}</span>
+      <span class="stock-name">${s.name}</span>
+      <span class="stock-exch">${(s.exchange||'').toUpperCase()}</span>
+    </button>`;
+  }).join('');
+}
+
+function pickStock(k) {
+  selStock(k);
+  closeStockDropdown();
+}
+
+function renderSBar(){ /* no-op — stock chips replaced by dropdown */ }
 function renderTabBtns(){['data','chart','rankings','insights'].forEach(t=>{const e=document.getElementById('t-'+t);if(e)e.className='t-btn'+(S.tab===t?' on':'');});}
 
 const quadrantPlugin = {
@@ -1361,7 +1277,7 @@ function renderMain(){
   if(S.tab==='data')cont.innerHTML=tabFinancials(S.sel,st);
   else if(S.tab==='chart'){cont.innerHTML=tabChartHTML(S.sel,st);setTimeout(()=>makeChart(S.sel),80);}
 }
-function render(){renderSBar();renderTabBtns();renderMain();saveLS();updateDebugInfo();}
+function render(){renderStockDropdown();renderTabBtns();renderMain();saveLS();updateDebugInfo();}
 function forceRefresh(){if(confirm('Clear all cached data and reload?')){S.data={};S.status={};localStorage.removeItem(DATA_VERSION_KEY);saveLS();location.reload();}}
 function updateDebugInfo(){if(!location.search.includes('debug'))return;const panel=document.getElementById('debugPanel');panel.classList.add('visible');const {fr}=calcRanks(S.wts);const ks=Object.keys(fr).sort((a,b)=>fr[a]-fr[b]);const liveCount=Object.values(S.data).filter(d=>d?.source==='yfinance').length;panel.innerHTML=`<strong>🐞</strong> Stocks: ${Object.keys(S.stocks).length} · Ranked: ${ks.length} · Source: ${liveCount>0?'📡 Live':'📋 Built-in'}`;}
 
@@ -1500,10 +1416,6 @@ function tabInsights(sym,st){
   return `<div>${headerHtml}<div class="insights-two-col"><div>${leftHtml||'<div class="ai-content"><p>Business model analysis will appear after data refresh.</p></div>'}</div><div>${rightHtml}</div></div><div style="font-size:10px;color:var(--text-muted);margin-top:12px;">📚 Sources: Company filings · Annual Reports · Yahoo Finance${stockData?.profileDate?`<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}`:''}</div></div>`;
 }
 
-/* ============================================================
-   FIX: ensure all charts reflow proportionally on resize
-   (orientation change, keyboard open, mobile browser chrome)
-   ============================================================ */
 let __resizeRaf = null;
 function reflowCharts() {
   if (__resizeRaf) cancelAnimationFrame(__resizeRaf);
