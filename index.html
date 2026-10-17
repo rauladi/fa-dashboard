@@ -1316,34 +1316,269 @@ function extractKeyTakeaways(profileText,m,sym){
   return takeaways;
 }
 
-function tabInsights(sym,st){
-  const stockData=S.data[sym];const profileMd=stockData?.profile||"";const m=calcM(sym);
-  if(!m)return `<div class="state-box"><p>No data for ${sym}</p></div>`;
-  let leftHtml="",rightHtml="";
-  if(profileMd&&profileMd.length>100){
-    const sections={};const parts=profileMd.split(/(?=^## )/gm);
-    for(const part of parts){const match=part.match(/^## (.+)$/m);if(match)sections[match[1].trim()]=part;}
-    const leftOrder=["Business Model Canvas","SWOT Analysis","PESTLE Analysis","Porter's Five Forces"];
-    const rightOrder=["Management & Decision Making","Future Outlook","Leadership"];
-    for(const title of leftOrder)if(sections[title])leftHtml+=`<div class="ai-content">${markdownToHtml(sections[title])}</div>`;
-    for(const title of rightOrder)if(sections[title])rightHtml+=`<div class="ai-content">${markdownToHtml(sections[title])}</div>`;
+/* ============================================================
+   INSIGHTS TAB — refreshed
+   - Uses AI profile only when fresh (< PROFILE_MAX_AGE_DAYS)
+   - Always renders live-computed narrative sections from calcM()
+   - Shows a "stale" banner when the AI profile is old
+   ============================================================ */
+
+const PROFILE_MAX_AGE_DAYS = 180; // AI profile older than this is considered stale
+
+function isProfileFresh(stockData) {
+  if (!stockData?.profile || stockData.profile.length < 100) return false;
+  if (!stockData.profileDate) return false;
+  const ageMs = Date.now() - new Date(stockData.profileDate).getTime();
+  const ageDays = ageMs / (1000 * 60 * 60 * 24);
+  return ageDays <= PROFILE_MAX_AGE_DAYS;
+}
+
+function profileAgeDays(stockData) {
+  if (!stockData?.profileDate) return null;
+  return Math.floor((Date.now() - new Date(stockData.profileDate).getTime()) / (1000 * 60 * 60 * 24));
+}
+
+// ---------- Live-computed narrative builders ----------
+
+function buildLiveBusinessModel(m, st, sym) {
+  const sector = CO_INFO[sym]?.sector || 'General';
+  const rev = m.cg.rev;
+  const gpm = m.av.gpm;
+  const npm = m.av.npm;
+  const roe = m.av.roe;
+  const de = m.av.debtToEquity;
+
+  const lines = [];
+  lines.push(`**${st.name} (${sym})** operates in the **${sector}** sector and is listed on ${st.exchange}. Financials are reported in ${st.currency.replace('B ', '').replace('T ', '')}.`);
+
+  if (isOK(rev)) {
+    if (rev > 15) lines.push(`Revenue has compounded at **${rev.toFixed(1)}%** — above-average growth that suggests the business is expanding its addressable market or gaining share.`);
+    else if (rev > 5) lines.push(`Revenue has grown at a steady **${rev.toFixed(1)}% CAGR**, in line with typical mature-industry growth.`);
+    else if (rev >= 0) lines.push(`Revenue growth is modest at **${rev.toFixed(1)}% CAGR**, indicating a maturing or cyclical top line.`);
+    else lines.push(`Revenue is **declining at ${rev.toFixed(1)}% CAGR** — a red flag that warrants investigating whether it's cyclical or structural.`);
   }
-  const tornadoVars=generateCustomTornado(sym,st,m);
-  if(tornadoVars.length){rightHtml+=`<div class="ai-content"><h2>🌪️ Sensitivity Analysis</h2>${renderTornadoChart(tornadoVars)}</div>`;}
-  const takeaways=extractKeyTakeaways(profileMd,m,sym);
-  if(takeaways.length){rightHtml+=`<div class="ai-content"><h2>🔑 Key Takeaways</h2><ul>${takeaways.map(t=>`<li>${t}</li>`).join('')}</ul></div>`;}
+
+  if (isOK(gpm)) {
+    if (gpm > 50) lines.push(`Gross margin of **${gpm.toFixed(1)}%** points to strong pricing power or a high-value product/service mix.`);
+    else if (gpm > 25) lines.push(`Gross margin of **${gpm.toFixed(1)}%** is healthy and typical of the sector.`);
+    else lines.push(`Gross margin of **${gpm.toFixed(1)}%** is thin, meaning small changes in input costs can materially hit earnings.`);
+  }
+
+  if (isOK(npm)) {
+    if (npm > 20) lines.push(`Net margin of **${npm.toFixed(1)}%** reflects excellent cost discipline and/or a premium business model.`);
+    else if (npm > 8) lines.push(`Net margin of **${npm.toFixed(1)}%** is solid, leaving room for reinvestment and dividends.`);
+    else lines.push(`Net margin of **${npm.toFixed(1)}%** is low — the business operates on thin profitability, sensitive to cost shocks.`);
+  }
+
+  if (isOK(roe)) {
+    if (roe > 20) lines.push(`Return on equity of **${roe.toFixed(1)}%** indicates the business generates strong returns on shareholder capital.`);
+    else if (roe > 10) lines.push(`ROE of **${roe.toFixed(1)}%** is adequate but not exceptional.`);
+    else if (roe > 0) lines.push(`ROE of **${roe.toFixed(1)}%** is below what most investors would consider attractive.`);
+  }
+
+  if (isOK(de)) {
+    if (de < 30) lines.push(`Debt/equity of **${de.toFixed(1)}%** shows a conservative balance sheet.`);
+    else if (de < 80) lines.push(`Debt/equity of **${de.toFixed(1)}%** is manageable.`);
+    else lines.push(`Debt/equity of **${de.toFixed(1)}%** is elevated — interest rate sensitivity is a real risk.`);
+  }
+
+  return lines;
+}
+
+function buildLiveOutlook(m, st, sym) {
+  const sector = CO_INFO[sym]?.sector || 'General';
+  const risks = generateCustomTornado(sym, st, m) || [];
+  const lines = [];
+
+  const rev = m.cg.rev;
+  const eps = m.cg.eps;
+  const buff = m.buff;
+  const payout = m.av.divPayout;
+
+  if (isOK(rev) && isOK(eps)) {
+    if (eps > rev + 3) lines.push(`Earnings are growing faster than revenue (**EPS ${eps.toFixed(1)}% vs Revenue ${rev.toFixed(1)}% CAGR**), suggesting operating leverage or margin expansion — a positive sign.`);
+    else if (eps < rev - 3) lines.push(`Earnings are growing slower than revenue (**EPS ${eps.toFixed(1)}% vs Revenue ${rev.toFixed(1)}% CAGR**) — margins are being squeezed despite top-line growth.`);
+    else lines.push(`EPS and revenue are growing at similar rates, implying stable margins.`);
+  }
+
+  if (isOK(buff)) {
+    if (buff >= 100) lines.push(`The Buffett $1 Test passes with a score of **${buff.toFixed(1)}%** — every dollar retained has historically produced more than a dollar of market value.`);
+    else if (buff >= 50) lines.push(`The Buffett $1 Test score of **${buff.toFixed(1)}%** suggests moderate value creation from retained earnings.`);
+    else if (buff >= 0) lines.push(`The Buffett $1 Test score of **${buff.toFixed(1)}%** is weak — retained earnings are not creating much incremental value.`);
+    else lines.push(`The Buffett $1 Test score of **${buff.toFixed(1)}%** is negative — retained earnings have historically destroyed value.`);
+  }
+
+  if (isOK(payout)) {
+    if (payout > 80) lines.push(`Dividend payout of **${payout.toFixed(1)}%** is high — sustainable only if earnings are stable; a cut is possible if profits fall.`);
+    else if (payout > 40) lines.push(`Dividend payout of **${payout.toFixed(1)}%** is balanced, leaving room for reinvestment.`);
+    else if (payout > 0) lines.push(`Dividend payout of **${payout.toFixed(1)}%** is conservative — retained cash is being reinvested.`);
+  }
+
+  if (risks.length) {
+    const topRisks = risks.slice(0, 3).map(r => `**${r.name}** (${r.low}% to ${r.high}%)`).join(', ');
+    lines.push(`Key sensitivities for the **${sector}** sector: ${topRisks}.`);
+  }
+
+  return lines;
+}
+
+function buildLiveManagement(m, st, sym) {
+  const lines = [];
+  const roe = m.av.roe;
+  const roa = m.av.roa;
+  const buff = m.buff;
+  const payout = m.av.divPayout;
+  const de = m.av.debtToEquity;
+
+  if (isOK(roe) && isOK(roa)) {
+    if (roe > 15 && roa > 8) lines.push(`Management is generating strong returns on both equity (**${roe.toFixed(1)}%**) and assets (**${roa.toFixed(1)}%**) — a sign of efficient capital allocation.`);
+    else if (roe > 10) lines.push(`Returns on equity (**${roe.toFixed(1)}%**) and assets (**${roa.toFixed(1)}%**) are reasonable but not best-in-class.`);
+    else if (roe > 0) lines.push(`Returns are weak (**ROE ${roe.toFixed(1)}%, ROA ${roa.toFixed(1)}%**), suggesting capital is not being deployed productively.`);
+  }
+
+  if (isOK(buff) && buff >= 100) lines.push(`Passing the Buffett $1 Test (**${buff.toFixed(1)}%**) indicates management has historically reinvested profits profitably.`);
+  else if (isOK(buff) && buff < 0) lines.push(`Failing the Buffett $1 Test (**${buff.toFixed(1)}%**) suggests management has destroyed value with retained earnings.`);
+
+  if (isOK(payout)) {
+    if (payout > 70) lines.push(`High payout (**${payout.toFixed(1)}%**) suggests management prioritises returning cash to shareholders over reinvestment — reasonable for a mature business, questionable for a growth one.`);
+    else if (payout > 30 && payout < 70) lines.push(`Balanced payout (**${payout.toFixed(1)}%**) suggests management is both rewarding shareholders and reinvesting for growth.`);
+    else if (payout > 0) lines.push(`Low payout (**${payout.toFixed(1)}%**) means most profits are being retained — check that retained capital is being deployed well (see Buffett Test).`);
+  }
+
+  if (isOK(de)) {
+    if (de < 30) lines.push(`A conservative debt profile (**D/E ${de.toFixed(1)}%**) suggests a prudent approach to financial risk.`);
+    else if (de > 100) lines.push(`Aggressive use of leverage (**D/E ${de.toFixed(1)}%**) amplifies both returns and risk.`);
+  }
+
+  return lines;
+}
+
+// ---------- Narrative section renderers ----------
+
+function renderNarrativeSection(title, icon, bulletLines) {
+  if (!bulletLines || !bulletLines.length) return '';
+  const html = bulletLines.map(line => {
+    // Minimal markdown: bold **text**
+    const formatted = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    return `<li>${formatted}</li>`;
+  }).join('');
+  return `<div class="ai-content"><h2>${icon} ${title}</h2><ul>${html}</ul></div>`;
+}
+
+// ---------- Main tabInsights ----------
+
+function tabInsights(sym, st) {
+  const stockData = S.data[sym];
+  const m = calcM(sym);
+  if (!m) return `<div class="state-box"><p>No data for ${sym}</p></div>`;
+
+  const profileMd = stockData?.profile || '';
+  const profileFresh = isProfileFresh(stockData);
+  const ageDays = profileAgeDays(stockData);
+
+  // --- LEFT COLUMN: AI narrative (only when fresh) + live business model ---
+  let leftHtml = '';
+
+  // Live-computed business model is always shown
+  leftHtml += renderNarrativeSection('Business Model', '🏢', buildLiveBusinessModel(m, st, sym));
+
+  // Only include AI-generated sections when the profile is fresh
+  if (profileFresh && profileMd && profileMd.length > 100) {
+    const sections = {};
+    const parts = profileMd.split(/(?=^## )/gm);
+    for (const part of parts) {
+      const match = part.match(/^## (.+)$/m);
+      if (match) sections[match[1].trim()] = part;
+    }
+    const leftOrder = ["Business Model Canvas", "SWOT Analysis", "PESTLE Analysis", "Porter's Five Forces"];
+    for (const title of leftOrder) {
+      if (sections[title]) leftHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`;
+    }
+  }
+
+  // --- RIGHT COLUMN: AI (fresh only) + live outlook + management + takeaways + tornado ---
+  let rightHtml = '';
+
+  // Live-computed outlook and management are always shown
+  rightHtml += renderNarrativeSection('Future Outlook', '🔭', buildLiveOutlook(m, st, sym));
+  rightHtml += renderNarrativeSection('Management Effectiveness', '🎯', buildLiveManagement(m, st, sym));
+
+  // AI-generated right-side sections only when fresh
+  if (profileFresh && profileMd && profileMd.length > 100) {
+    const sections = {};
+    const parts = profileMd.split(/(?=^## )/gm);
+    for (const part of parts) {
+      const match = part.match(/^## (.+)$/m);
+      if (match) sections[match[1].trim()] = part;
+    }
+    const rightOrder = ["Management & Decision Making", "Future Outlook", "Leadership"];
+    for (const title of rightOrder) {
+      if (sections[title]) rightHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`;
+    }
+  }
+
+  // Sensitivity Analysis (tornado) — live computed
+  const tornadoVars = generateCustomTornado(sym, st, m);
+  if (tornadoVars.length) {
+    rightHtml += `<div class="ai-content"><h2>🌪️ Sensitivity Analysis</h2>${renderTornadoChart(tornadoVars)}</div>`;
+  }
+
+  // Key Takeaways — live computed
+  const takeaways = extractKeyTakeaways(profileMd, m, sym);
+  if (takeaways.length) {
+    rightHtml += `<div class="ai-content"><h2>🔑 Key Takeaways</h2><ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul></div>`;
+  }
+
+  // --- Header ---
+  const rank = (calcRanks(S.wts).fr[sym]) || '—';
+  const headerBadge = profileFresh ? 'AI INSIGHTS · LIVE'
+                                    : (profileMd ? 'AI PROFILE STALE · LIVE COMPUTED' : 'LIVE COMPUTED');
+
   const headerHtml = `
     <div class="insights-header">
       ${getLogoHtml(sym, 48)}
       <div class="header-info">
         <div class="header-name">${st.name}</div>
-        <div class="header-meta">${sym} · ${st.exchange} · ${st.currency} · Rank #${(calcRanks(S.wts).fr[sym]) || '—'}</div>
+        <div class="header-meta">${sym} · ${st.exchange} · ${st.currency} · Rank #${rank}</div>
       </div>
-      <div class="header-badge">${profileMd ? 'AI INSIGHTS' : 'NO PROFILE DATA'}</div>
+      <div class="header-badge">${headerBadge}</div>
     </div>
   `;
-  if(!leftHtml&&!rightHtml){return `<div>${headerHtml}<div class="state-box"><p>No insights available for ${sym} yet.</p></div></div>`;}
-  return `<div>${headerHtml}<div class="insights-two-col"><div>${leftHtml||'<div class="ai-content"><p>Business model analysis will appear after data refresh.</p></div>'}</div><div>${rightHtml}</div></div><div style="font-size:10px;color:var(--text-muted);margin-top:12px;">📚 Sources: Company filings · Annual Reports · Yahoo Finance${stockData?.profileDate?`<br>Generated: ${new Date(stockData.profileDate).toLocaleString()}`:''}</div></div>`;
+
+  // --- Stale banner (only when profile exists but is old) ---
+  let staleBanner = '';
+  if (profileMd && !profileFresh) {
+    const ageTxt = ageDays !== null ? ` (${ageDays} days old)` : '';
+    staleBanner = `
+      <div style="background:rgba(255,207,74,0.08);border:1px solid rgba(255,207,74,0.4);border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--text-secondary);line-height:1.5;">
+        <span style="font-size:16px;flex-shrink:0;">⚠️</span>
+        <div>
+          <strong style="color:var(--accent-gold);">AI profile is stale${ageTxt}.</strong>
+          The narrative sections below are generated live from the financial data instead of the outdated AI text.
+          To restore the AI-generated analysis, regenerate <code>data.json</code> via your pipeline.
+        </div>
+      </div>
+    `;
+  }
+
+  if (!leftHtml && !rightHtml) {
+    return `<div>${headerHtml}<div class="state-box"><p>No insights available for ${sym} yet.</p></div></div>`;
+  }
+
+  return `
+    <div>
+      ${headerHtml}
+      ${staleBanner}
+      <div class="insights-two-col">
+        <div>${leftHtml}</div>
+        <div>${rightHtml}</div>
+      </div>
+      <div style="font-size:10px;color:var(--text-muted);margin-top:12px;">
+        📚 Sources: Company filings · Annual Reports · Yahoo Finance
+        ${stockData?.profileDate ? `<br>AI profile generated: ${new Date(stockData.profileDate).toLocaleString()}${profileFresh ? '' : ' (stale)'}` : '<br>AI profile: not available — showing live-computed analysis'}
+      </div>
+    </div>
+  `;
 }
 
 let __resizeRaf = null;
