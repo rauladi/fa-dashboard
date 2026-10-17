@@ -272,10 +272,40 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .podium-score { font-size: 17px; font-weight: 700; color: var(--accent-cyan); margin-top: auto; }
 .podium-quote { font-size: 10px; color: var(--text-muted); text-align: center; margin-top: 14px; font-style: italic; letter-spacing: 0.02em; }
 
-.scatter-container { height: 340px; position: relative; flex: 1; }
-.scatter-legend { position: absolute; top: 0; right: 0; display: flex; gap: 12px; font-size: 10px; color: var(--text-muted); z-index: 10; background: rgba(15,25,35,0.6); padding: 4px 8px; border-radius: 8px; backdrop-filter: blur(4px); }
+/* ================= SCATTER CHART (fixed proportional) ================= */
+.scatter-container {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 340px;
+  height: 100%;
+  width: 100%;
+}
+.scatter-container canvas {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+.scatter-legend {
+  position: absolute;
+  top: 4px; right: 4px;
+  display: flex; gap: 10px; font-size: 10px;
+  color: var(--text-muted);
+  z-index: 10;
+  background: rgba(15,25,35,0.7);
+  padding: 4px 8px; border-radius: 8px;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
 .scatter-legend span { display: flex; align-items: center; gap: 4px; }
 .scatter-legend .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+/* Make the scatter panel a proper flex column so canvas fills it */
+.panel.scatter-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+}
+.panel.scatter-panel .scatter-container { flex: 1 1 auto; }
 
 .selected-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border-light); }
 .selected-info { flex: 1; min-width: 0; }
@@ -1039,7 +1069,7 @@ function tabRankings(){
   }).join('');
   const catLeadersHtml = `<div class="cat-leaders-section panel"><div class="panel-header">Category Leaders</div><div class="panel-sub">Best performing stock in each criteria — badge shows rank in that specific criterion</div><div class="cat-cards">${catHtml}</div></div>`;
   const wtToggleBar = `<div class="wt-toggle-bar"><div><div class="panel-header" style="font-size:14px;">🏆 Multi-Criteria Rankings</div><div class="panel-sub" style="margin-bottom:0;">Weighted scoring across ${CRITERIA.length} fundamental criteria</div></div><button class="wt-toggle-btn" onclick="toggleWeights()">${S.wtOpen?'✕ Close Weights':'⚙️ Adjust Scoring Weights'}</button></div>${renderWeightsPanel()}`;
-  return `${wtToggleBar}<div class="rankings-top-grid"><div class="panel"><div class="panel-header">Top 5 Overall</div><div class="panel-sub">Based on ${CRITERIA.length} criteria with weighted scoring</div><div class="podium-cards">${podiumHtml}</div><div class="podium-quote">"Great companies win on multiple dimensions."<br><span style="font-size:9px;">LONG-TERM THINKING. REAL RESULTS.</span></div></div><div class="panel"><div class="panel-header">Profitability vs Growth</div><div class="panel-sub">X = EPS CAGR (Growth) &nbsp;|&nbsp; Y = Net Profit Margin (Profitability) &nbsp;|&nbsp; Bubble size = Total Assets</div><div class="scatter-container"><div class="scatter-legend"><span><span class="legend-dot" style="background:#ffcf4a;"></span> Top 3</span><span><span class="legend-dot" style="background:#00d98e;"></span> Top 10</span><span><span class="legend-dot" style="background:#00e4ff;"></span> Top 20</span><span><span class="legend-dot" style="background:#5a9eff;"></span> Others</span></div><canvas id="scatterChart"></canvas></div></div><div>${selectedPanelHtml}</div></div>${catLeadersHtml}${heatmapHtml}`;
+  return `${wtToggleBar}<div class="rankings-top-grid"><div class="panel"><div class="panel-header">Top 5 Overall</div><div class="panel-sub">Based on ${CRITERIA.length} criteria with weighted scoring</div><div class="podium-cards">${podiumHtml}</div><div class="podium-quote">"Great companies win on multiple dimensions."<br><span style="font-size:9px;">LONG-TERM THINKING. REAL RESULTS.</span></div></div><div class="panel scatter-panel"><div class="panel-header">Profitability vs Growth</div><div class="panel-sub">X = EPS CAGR (Growth) &nbsp;|&nbsp; Y = Net Profit Margin (Profitability) &nbsp;|&nbsp; Bubble size = Total Assets</div><div class="scatter-container"><div class="scatter-legend"><span><span class="legend-dot" style="background:#ffcf4a;"></span> Top 3</span><span><span class="legend-dot" style="background:#00d98e;"></span> Top 10</span><span><span class="legend-dot" style="background:#00e4ff;"></span> Top 20</span><span><span class="legend-dot" style="background:#5a9eff;"></span> Others</span></div><canvas id="scatterChart"></canvas></div></div><div>${selectedPanelHtml}</div></div>${catLeadersHtml}${heatmapHtml}`;
 }
 
 function setTab(t){S.tab=t;render();}
@@ -1323,7 +1353,7 @@ function extractKeyTakeaways(profileText,m,sym){
    - Shows a "stale" banner when the AI profile is old
    ============================================================ */
 
-const PROFILE_MAX_AGE_DAYS = 180; // AI profile older than this is considered stale
+const PROFILE_MAX_AGE_DAYS = 180;
 
 function isProfileFresh(stockData) {
   if (!stockData?.profile || stockData.profile.length < 100) return false;
@@ -1337,8 +1367,6 @@ function profileAgeDays(stockData) {
   if (!stockData?.profileDate) return null;
   return Math.floor((Date.now() - new Date(stockData.profileDate).getTime()) / (1000 * 60 * 60 * 24));
 }
-
-// ---------- Live-computed narrative builders ----------
 
 function buildLiveBusinessModel(m, st, sym) {
   const sector = CO_INFO[sym]?.sector || 'General';
@@ -1357,31 +1385,26 @@ function buildLiveBusinessModel(m, st, sym) {
     else if (rev >= 0) lines.push(`Revenue growth is modest at **${rev.toFixed(1)}% CAGR**, indicating a maturing or cyclical top line.`);
     else lines.push(`Revenue is **declining at ${rev.toFixed(1)}% CAGR** — a red flag that warrants investigating whether it's cyclical or structural.`);
   }
-
   if (isOK(gpm)) {
     if (gpm > 50) lines.push(`Gross margin of **${gpm.toFixed(1)}%** points to strong pricing power or a high-value product/service mix.`);
     else if (gpm > 25) lines.push(`Gross margin of **${gpm.toFixed(1)}%** is healthy and typical of the sector.`);
     else lines.push(`Gross margin of **${gpm.toFixed(1)}%** is thin, meaning small changes in input costs can materially hit earnings.`);
   }
-
   if (isOK(npm)) {
     if (npm > 20) lines.push(`Net margin of **${npm.toFixed(1)}%** reflects excellent cost discipline and/or a premium business model.`);
     else if (npm > 8) lines.push(`Net margin of **${npm.toFixed(1)}%** is solid, leaving room for reinvestment and dividends.`);
     else lines.push(`Net margin of **${npm.toFixed(1)}%** is low — the business operates on thin profitability, sensitive to cost shocks.`);
   }
-
   if (isOK(roe)) {
     if (roe > 20) lines.push(`Return on equity of **${roe.toFixed(1)}%** indicates the business generates strong returns on shareholder capital.`);
     else if (roe > 10) lines.push(`ROE of **${roe.toFixed(1)}%** is adequate but not exceptional.`);
     else if (roe > 0) lines.push(`ROE of **${roe.toFixed(1)}%** is below what most investors would consider attractive.`);
   }
-
   if (isOK(de)) {
     if (de < 30) lines.push(`Debt/equity of **${de.toFixed(1)}%** shows a conservative balance sheet.`);
     else if (de < 80) lines.push(`Debt/equity of **${de.toFixed(1)}%** is manageable.`);
     else lines.push(`Debt/equity of **${de.toFixed(1)}%** is elevated — interest rate sensitivity is a real risk.`);
   }
-
   return lines;
 }
 
@@ -1389,36 +1412,30 @@ function buildLiveOutlook(m, st, sym) {
   const sector = CO_INFO[sym]?.sector || 'General';
   const risks = generateCustomTornado(sym, st, m) || [];
   const lines = [];
-
   const rev = m.cg.rev;
   const eps = m.cg.eps;
   const buff = m.buff;
   const payout = m.av.divPayout;
-
   if (isOK(rev) && isOK(eps)) {
     if (eps > rev + 3) lines.push(`Earnings are growing faster than revenue (**EPS ${eps.toFixed(1)}% vs Revenue ${rev.toFixed(1)}% CAGR**), suggesting operating leverage or margin expansion — a positive sign.`);
     else if (eps < rev - 3) lines.push(`Earnings are growing slower than revenue (**EPS ${eps.toFixed(1)}% vs Revenue ${rev.toFixed(1)}% CAGR**) — margins are being squeezed despite top-line growth.`);
     else lines.push(`EPS and revenue are growing at similar rates, implying stable margins.`);
   }
-
   if (isOK(buff)) {
     if (buff >= 100) lines.push(`The Buffett $1 Test passes with a score of **${buff.toFixed(1)}%** — every dollar retained has historically produced more than a dollar of market value.`);
     else if (buff >= 50) lines.push(`The Buffett $1 Test score of **${buff.toFixed(1)}%** suggests moderate value creation from retained earnings.`);
     else if (buff >= 0) lines.push(`The Buffett $1 Test score of **${buff.toFixed(1)}%** is weak — retained earnings are not creating much incremental value.`);
     else lines.push(`The Buffett $1 Test score of **${buff.toFixed(1)}%** is negative — retained earnings have historically destroyed value.`);
   }
-
   if (isOK(payout)) {
     if (payout > 80) lines.push(`Dividend payout of **${payout.toFixed(1)}%** is high — sustainable only if earnings are stable; a cut is possible if profits fall.`);
     else if (payout > 40) lines.push(`Dividend payout of **${payout.toFixed(1)}%** is balanced, leaving room for reinvestment.`);
     else if (payout > 0) lines.push(`Dividend payout of **${payout.toFixed(1)}%** is conservative — retained cash is being reinvested.`);
   }
-
   if (risks.length) {
     const topRisks = risks.slice(0, 3).map(r => `**${r.name}** (${r.low}% to ${r.high}%)`).join(', ');
     lines.push(`Key sensitivities for the **${sector}** sector: ${topRisks}.`);
   }
-
   return lines;
 }
 
@@ -1429,43 +1446,33 @@ function buildLiveManagement(m, st, sym) {
   const buff = m.buff;
   const payout = m.av.divPayout;
   const de = m.av.debtToEquity;
-
   if (isOK(roe) && isOK(roa)) {
     if (roe > 15 && roa > 8) lines.push(`Management is generating strong returns on both equity (**${roe.toFixed(1)}%**) and assets (**${roa.toFixed(1)}%**) — a sign of efficient capital allocation.`);
     else if (roe > 10) lines.push(`Returns on equity (**${roe.toFixed(1)}%**) and assets (**${roa.toFixed(1)}%**) are reasonable but not best-in-class.`);
     else if (roe > 0) lines.push(`Returns are weak (**ROE ${roe.toFixed(1)}%, ROA ${roa.toFixed(1)}%**), suggesting capital is not being deployed productively.`);
   }
-
   if (isOK(buff) && buff >= 100) lines.push(`Passing the Buffett $1 Test (**${buff.toFixed(1)}%**) indicates management has historically reinvested profits profitably.`);
   else if (isOK(buff) && buff < 0) lines.push(`Failing the Buffett $1 Test (**${buff.toFixed(1)}%**) suggests management has destroyed value with retained earnings.`);
-
   if (isOK(payout)) {
     if (payout > 70) lines.push(`High payout (**${payout.toFixed(1)}%**) suggests management prioritises returning cash to shareholders over reinvestment — reasonable for a mature business, questionable for a growth one.`);
     else if (payout > 30 && payout < 70) lines.push(`Balanced payout (**${payout.toFixed(1)}%**) suggests management is both rewarding shareholders and reinvesting for growth.`);
     else if (payout > 0) lines.push(`Low payout (**${payout.toFixed(1)}%**) means most profits are being retained — check that retained capital is being deployed well (see Buffett Test).`);
   }
-
   if (isOK(de)) {
     if (de < 30) lines.push(`A conservative debt profile (**D/E ${de.toFixed(1)}%**) suggests a prudent approach to financial risk.`);
     else if (de > 100) lines.push(`Aggressive use of leverage (**D/E ${de.toFixed(1)}%**) amplifies both returns and risk.`);
   }
-
   return lines;
 }
-
-// ---------- Narrative section renderers ----------
 
 function renderNarrativeSection(title, icon, bulletLines) {
   if (!bulletLines || !bulletLines.length) return '';
   const html = bulletLines.map(line => {
-    // Minimal markdown: bold **text**
     const formatted = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     return `<li>${formatted}</li>`;
   }).join('');
   return `<div class="ai-content"><h2>${icon} ${title}</h2><ul>${html}</ul></div>`;
 }
-
-// ---------- Main tabInsights ----------
 
 function tabInsights(sym, st) {
   const stockData = S.data[sym];
@@ -1476,13 +1483,9 @@ function tabInsights(sym, st) {
   const profileFresh = isProfileFresh(stockData);
   const ageDays = profileAgeDays(stockData);
 
-  // --- LEFT COLUMN: AI narrative (only when fresh) + live business model ---
   let leftHtml = '';
-
-  // Live-computed business model is always shown
   leftHtml += renderNarrativeSection('Business Model', '🏢', buildLiveBusinessModel(m, st, sym));
 
-  // Only include AI-generated sections when the profile is fresh
   if (profileFresh && profileMd && profileMd.length > 100) {
     const sections = {};
     const parts = profileMd.split(/(?=^## )/gm);
@@ -1496,14 +1499,10 @@ function tabInsights(sym, st) {
     }
   }
 
-  // --- RIGHT COLUMN: AI (fresh only) + live outlook + management + takeaways + tornado ---
   let rightHtml = '';
-
-  // Live-computed outlook and management are always shown
   rightHtml += renderNarrativeSection('Future Outlook', '🔭', buildLiveOutlook(m, st, sym));
   rightHtml += renderNarrativeSection('Management Effectiveness', '🎯', buildLiveManagement(m, st, sym));
 
-  // AI-generated right-side sections only when fresh
   if (profileFresh && profileMd && profileMd.length > 100) {
     const sections = {};
     const parts = profileMd.split(/(?=^## )/gm);
@@ -1517,19 +1516,16 @@ function tabInsights(sym, st) {
     }
   }
 
-  // Sensitivity Analysis (tornado) — live computed
   const tornadoVars = generateCustomTornado(sym, st, m);
   if (tornadoVars.length) {
     rightHtml += `<div class="ai-content"><h2>🌪️ Sensitivity Analysis</h2>${renderTornadoChart(tornadoVars)}</div>`;
   }
 
-  // Key Takeaways — live computed
   const takeaways = extractKeyTakeaways(profileMd, m, sym);
   if (takeaways.length) {
     rightHtml += `<div class="ai-content"><h2>🔑 Key Takeaways</h2><ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul></div>`;
   }
 
-  // --- Header ---
   const rank = (calcRanks(S.wts).fr[sym]) || '—';
   const headerBadge = profileFresh ? 'AI INSIGHTS · LIVE'
                                     : (profileMd ? 'AI PROFILE STALE · LIVE COMPUTED' : 'LIVE COMPUTED');
@@ -1545,7 +1541,6 @@ function tabInsights(sym, st) {
     </div>
   `;
 
-  // --- Stale banner (only when profile exists but is old) ---
   let staleBanner = '';
   if (profileMd && !profileFresh) {
     const ageTxt = ageDays !== null ? ` (${ageDays} days old)` : '';
