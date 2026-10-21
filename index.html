@@ -438,7 +438,8 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .section-source.live { background: rgba(0,228,255,0.18); color: var(--accent-cyan); }
 
 .summary-card { background: linear-gradient(135deg, rgba(0,228,255,0.10), rgba(0,245,160,0.05)); border: 1px solid rgba(0,228,255,0.4); border-radius: 20px; padding: 18px 22px; margin-bottom: 16px; box-shadow: 0 0 30px rgba(0,228,255,0.08); }
-.summary-card h2 { font-size: 15px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border: none; padding: 0; }
+.summary-card h2 { font-size: 15px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; border: none; padding: 0; }
+.summary-card .summary-sub { font-size: 10.5px; color: var(--text-muted); margin-bottom: 12px; }
 .summary-card ul { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
 .summary-card li { font-size: 12px; color: var(--text-secondary); line-height: 1.5; padding-left: 14px; position: relative; margin: 0; }
 .summary-card li::before { content: "▸"; position: absolute; left: 0; color: var(--accent-cyan); }
@@ -1399,9 +1400,9 @@ function extractKeyTakeaways(profileText,m,sym){
    INSIGHTS TAB — simplified
    Sections kept: Key Takeaways (top summary), Business Model
    Canvas, SWOT, PESTLE, Porter's Five Forces, Sensitivity (tornado).
-   - Each section uses fresh AI profile content when available,
-     otherwise a live-computed version derived from the financials
-     (so the analysis is always current).
+   Key Takeaways are derived ONLY from the analyses shown in this
+   tab (BMC / SWOT / PESTLE / Porter / Tornado) — never from raw
+   financial ratios directly.
    ============================================================ */
 const PROFILE_MAX_AGE_DAYS = 180;
 
@@ -1746,28 +1747,91 @@ function buildPorters(m, st, sym) {
   };
 }
 
-function buildComprehensiveTakeaways(m, st, sym, analysis) {
+/* Pull the first bullet (or first substantive sentence) from an AI markdown section. */
+function firstBulletFromMd(mdSection) {
+  if (!mdSection) return null;
+  const lines = mdSection.split('\n').map(l => l.trim()).filter(Boolean);
+  for (const l of lines) {
+    if (l.startsWith('##')) continue;
+    if (l.startsWith('-') || l.startsWith('*')) {
+      return l.replace(/^[-*]\s+/, '').replace(/\*\*/g, '').replace(/^▸\s*/, '');
+    }
+  }
+  for (const l of lines) {
+    if (l.startsWith('##')) continue;
+    if (l.length > 40) {
+      const clean = l.replace(/\*\*/g, '');
+      const m = clean.match(/^(.+?[.!?])\s/);
+      return m ? m[1] : clean;
+    }
+  }
+  return null;
+}
+
+function trimText(s, max = 170) {
+  s = String(s).replace(/\s+/g, ' ').trim();
+  return s.length > max ? s.slice(0, max - 1).trimEnd() + '…' : s;
+}
+
+/* Key Takeaways are derived ONLY from the analysis sections shown in the
+   Insights tab (BMC, SWOT, PESTLE, Porter's, Sensitivity). Each bullet
+   is tagged with the section it came from. */
+function buildInsightsTakeaways({ bmc, swot, porters, pestle, tornadoVars, profileFresh, profileSections }) {
   const out = [];
-  if (isOK(m.av.roe) && m.av.roe > 20) out.push(`✅ Outstanding ROE (${P1(m.av.roe)}) — efficient capital compounding.`);
-  else if (isOK(m.av.roe) && m.av.roe < 8) out.push(`⚠️ Weak ROE (${P1(m.av.roe)}) — returns below an attractive hurdle.`);
-  if (isOK(m.av.gpm) && m.av.gpm > 40) out.push(`💰 Strong gross margin (${P1(m.av.gpm)}) — pricing power.`);
-  else if (isOK(m.av.gpm) && m.av.gpm < 20) out.push(`⚠️ Thin gross margin (${P1(m.av.gpm)}) — cost-sensitive model.`);
-  if (isOK(m.cg.rev) && m.cg.rev > 10) out.push(`📈 Revenue growing ${P1(m.cg.rev)} CAGR.`);
-  else if (isOK(m.cg.rev) && m.cg.rev < 0) out.push(`📉 Revenue declining ${P1(m.cg.rev)} CAGR.`);
-  if (isOK(m.buff) && m.buff >= 100) out.push(`🧠 Passes Buffett $1 Test (${P1(m.buff)}) — retained earnings compound value.`);
-  else if (isOK(m.buff) && m.buff < 0) out.push(`🧠 Fails Buffett $1 Test (${P1(m.buff)}) — retained earnings destroy value.`);
-  if (isOK(m.av.debtToEquity) && m.av.debtToEquity > 100) out.push(`⚠️ High leverage (D/E ${P1(m.av.debtToEquity)}) — rate sensitive.`);
-  else if (isOK(m.av.debtToEquity) && m.av.debtToEquity < 30) out.push(`🛡 Conservative balance sheet (D/E ${P1(m.av.debtToEquity)}).`);
-  if (analysis.tornadoVars.length) {
-    const r = analysis.tornadoVars[0];
-    out.push(`🌪 Largest sensitivity: ${r.name} (${r.low}% to ${r.high}%).`);
+  const aiBullet = (title) => (profileFresh && profileSections[title])
+    ? firstBulletFromMd(profileSections[title])
+    : null;
+
+  // 1. Business Model — core value proposition
+  const bmcAi = aiBullet('Business Model Canvas');
+  const bmcLine = bmcAi || bmc['Value Propositions'];
+  if (bmcLine) out.push(`🧩 Business model: ${trimText(bmcLine)}`);
+
+  // 2. SWOT — top strength & weakness
+  const swotAi = aiBullet('SWOT Analysis');
+  if (swotAi) {
+    out.push(`📊 SWOT: ${trimText(swotAi)}`);
+  } else {
+    if (swot.S.length) out.push(`💪 Strength: ${trimText(swot.S[0])}`);
+    if (swot.W.length) out.push(`⚠️ Weakness: ${trimText(swot.W[0])}`);
   }
-  if (analysis.swotLive.S.length && out.length < 4) out.push(`💪 ${analysis.swotLive.S[0]}`);
-  if (analysis.swotLive.W.length && out.length < 5) out.push(`🔎 Watch: ${analysis.swotLive.W[0]}`);
-  if (out.length < 3) {
-    out.push(`📊 ${st.name} operates in the ${CO_INFO[sym]?.sector || 'General'} sector on ${st.exchange}.`);
-    if (isOK(m.av.npm)) out.push(`Net margin ${P1(m.av.npm)}.`);
+
+  // 3. Porter's — dominant force (headwind or tailwind)
+  const portAi = aiBullet("Porter's Five Forces");
+  if (portAi) {
+    out.push(`⚔️ Porter: ${trimText(portAi)}`);
+  } else {
+    const highs = Object.entries(porters).filter(([, v]) => v.rating === 'High');
+    const lows  = Object.entries(porters).filter(([, v]) => v.rating === 'Low');
+    if (highs.length) {
+      out.push(`⚔️ Porter — ${highs[0][0]} is HIGH, the main competitive headwind.`);
+    } else if (lows.length) {
+      out.push(`🛡 Porter — ${lows[0][0]} is LOW, a structural tailwind.`);
+    }
   }
+
+  // 4. PESTLE — most material external factor
+  const pestAi = aiBullet('PESTLE Analysis');
+  if (pestAi) {
+    out.push(`🌐 PESTLE: ${trimText(pestAi)}`);
+  } else {
+    const pick = ['Economic', 'Political', 'Legal', 'Environmental', 'Technological', 'Social']
+      .find(k => pestle[k]);
+    if (pick) out.push(`🌐 PESTLE — ${pick}: ${trimText(pestle[pick])}`);
+  }
+
+  // 5. Sensitivity — largest swing factor (always live)
+  if (tornadoVars.length) {
+    const top = tornadoVars[0];
+    const range = Math.abs(top.high - top.low);
+    out.push(`🌪 Sensitivity — ${top.name} is the largest swing factor (${top.low}% to ${top.high}%, ${range.toFixed(0)}pp range).`);
+  }
+
+  // 6. SWOT opportunity if room remains
+  if (out.length < 6 && swot.O.length && !profileFresh) {
+    out.push(`🚀 Opportunity: ${trimText(swot.O[0])}`);
+  }
+
   return out.slice(0, 6);
 }
 
@@ -1812,15 +1876,23 @@ function tabInsights(sym, st) {
   const profileFresh = isProfileFresh(stockData);
   const profileSections = extractProfileSections(stockData?.profile || '');
 
-  // Always-computed live analyses (used as fallback + for takeaways)
+  // Always-computed live analyses (used as fallback + as inputs to takeaways)
   const bmcLive = buildBMC(m, st, sym);
   const swotLive = buildSWOT(m, st, sym);
   const pestleLive = buildPESTLE(m, st, sym);
   const portersLive = buildPorters(m, st, sym);
   const tornadoVars = generateCustomTornado(sym, st, m);
 
-  // Key takeaways summarise the live analysis — always current
-  const takeaways = buildComprehensiveTakeaways(m, st, sym, { swotLive, tornadoVars });
+  // Key Takeaways — derived only from the sections shown in this tab
+  const takeaways = buildInsightsTakeaways({
+    bmc: bmcLive,
+    swot: swotLive,
+    porters: portersLive,
+    pestle: pestleLive,
+    tornadoVars,
+    profileFresh,
+    profileSections
+  });
 
   // Section renderer: AI when fresh + section exists, else live
   const section = (title, icon, liveHtml) => {
@@ -1831,7 +1903,11 @@ function tabInsights(sym, st) {
   };
 
   const takeawayCard = takeaways.length
-    ? `<div class="summary-card"><h2>📌 Key Takeaways</h2><ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul></div>`
+    ? `<div class="summary-card">
+        <h2>📌 Key Takeaways</h2>
+        <div class="summary-sub">Synthesised from the analyses below — Business Model · SWOT · PESTLE · Porter's Five Forces · Sensitivity</div>
+        <ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul>
+      </div>`
     : '';
 
   const rank = calcRanks(S.wts).fr[sym] || '—';
