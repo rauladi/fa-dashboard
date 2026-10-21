@@ -211,7 +211,7 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .rc5 { background: var(--accent-blue); color: #03050b; }
 .insights-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
 .ai-content { background: var(--bg-surface-1); backdrop-filter: blur(8px); border-radius: 20px; padding: 16px; border: 1px solid rgba(0,228,255,0.15); margin-bottom: 14px; }
-.ai-content h2 { font-size: 15px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 12px; border-left: 3px solid var(--accent-cyan); padding-left: 10px; }
+.ai-content h2 { font-size: 15px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 12px; border-left: 3px solid var(--accent-cyan); padding-left: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .ai-content ul { list-style: none; padding-left: 0; }
 .ai-content li { font-size: 12px; color: #b8d0ea; line-height: 1.6; padding-left: 14px; position: relative; margin-bottom: 6px; }
 .ai-content li:before { content: "▸"; position: absolute; left: 0; color: var(--accent-cyan); }
@@ -299,7 +299,6 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
 .scatter-legend span { display: flex; align-items: center; gap: 4px; }
 .scatter-legend .legend-dot { width: 9px; height: 9px; border-radius: 50%; }
 
-/* Make the scatter panel a proper flex column so canvas fills it */
 .panel.scatter-panel {
   display: flex;
   flex-direction: column;
@@ -432,6 +431,54 @@ tbody tr:hover td { background: rgba(0, 228, 255, 0.05); }
   .chart-html-legend .legend-item { gap: 5px; }
   .chart-info-footer { font-size: 10.5px; padding: 10px 12px; }
 }
+
+/* ================= INSIGHTS (simplified) ================= */
+.section-source { font-size: 9px; padding: 1px 7px; border-radius: 10px; font-weight: 700; letter-spacing: 0.06em; margin-left: auto; flex-shrink: 0; }
+.section-source.ai { background: rgba(192,165,255,0.18); color: var(--accent-purple); }
+.section-source.live { background: rgba(0,228,255,0.18); color: var(--accent-cyan); }
+
+.summary-card { background: linear-gradient(135deg, rgba(0,228,255,0.10), rgba(0,245,160,0.05)); border: 1px solid rgba(0,228,255,0.4); border-radius: 20px; padding: 18px 22px; margin-bottom: 16px; box-shadow: 0 0 30px rgba(0,228,255,0.08); }
+.summary-card h2 { font-size: 15px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; border: none; padding: 0; }
+.summary-card ul { list-style: none; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
+.summary-card li { font-size: 12px; color: var(--text-secondary); line-height: 1.5; padding-left: 14px; position: relative; margin: 0; }
+.summary-card li::before { content: "▸"; position: absolute; left: 0; color: var(--accent-cyan); }
+@media (max-width: 700px) { .summary-card ul { grid-template-columns: 1fr; } }
+
+.bmc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.bmc-block { background: rgba(0,228,255,0.05); border: 1px solid rgba(0,228,255,0.18); border-radius: 10px; padding: 9px 11px; }
+.bmc-block-title { font-size: 9.5px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.bmc-block-text { font-size: 11px; color: var(--text-secondary); line-height: 1.45; }
+@media (max-width: 900px) { .bmc-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 520px) { .bmc-grid { grid-template-columns: 1fr; } }
+
+.swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.swot-quad { border-radius: 10px; padding: 10px 12px; }
+.swot-S { background: rgba(0,245,160,0.07); border: 1px solid rgba(0,245,160,0.3); }
+.swot-W { background: rgba(255,90,122,0.07); border: 1px solid rgba(255,90,122,0.3); }
+.swot-O { background: rgba(90,158,255,0.07); border: 1px solid rgba(90,158,255,0.3); }
+.swot-T { background: rgba(255,207,74,0.07); border: 1px solid rgba(255,207,74,0.3); }
+.swot-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.swot-S .swot-title { color: var(--accent-green); }
+.swot-W .swot-title { color: var(--accent-red); }
+.swot-O .swot-title { color: var(--accent-blue); }
+.swot-T .swot-title { color: var(--accent-gold); }
+.swot-list { list-style: none; padding: 0; margin: 0; }
+.swot-list li { font-size: 11px; color: var(--text-secondary); line-height: 1.45; padding-left: 11px; position: relative; margin-bottom: 4px; }
+.swot-list li::before { content: "•"; position: absolute; left: 0; color: currentColor; opacity: 0.6; }
+@media (max-width: 520px) { .swot-grid { grid-template-columns: 1fr; } }
+
+.pestle-list .pestle-item { background: rgba(0,228,255,0.05); border-left: 3px solid var(--accent-cyan); border-radius: 6px; padding: 8px 12px; margin-bottom: 6px; }
+.pestle-item .pestle-label { font-size: 9.5px; font-weight: 700; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+.pestle-item .pestle-text { font-size: 11px; color: var(--text-secondary); line-height: 1.45; }
+
+.porter-item { background: rgba(0,228,255,0.05); border: 1px solid rgba(0,228,255,0.18); border-radius: 10px; padding: 9px 12px; margin-bottom: 6px; }
+.porter-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; gap: 8px; }
+.porter-name { font-size: 11px; font-weight: 700; color: var(--text-primary); }
+.porter-rating { font-size: 9px; font-weight: 800; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.05em; flex-shrink: 0; }
+.porter-rating.low { background: rgba(0,245,160,0.18); color: var(--accent-green); }
+.porter-rating.moderate { background: rgba(255,207,74,0.18); color: var(--accent-gold); }
+.porter-rating.high { background: rgba(255,90,122,0.18); color: var(--accent-red); }
+.porter-why { font-size: 11px; color: var(--text-secondary); line-height: 1.45; }
 </style>
 </head>
 <body>
@@ -1325,6 +1372,8 @@ function renderTornadoChart(variables){
   const axis=ticks.map(t=>{const x=mid+(t/maxAbs)*(mid*0.90);return `<line x1="${x}" y1="0" x2="${x}" y2="${h-axisH}" stroke="rgba(72,110,144,0.5)" stroke-width="1"/><text x="${x}" y="${h-axisH+13}" fill="#6c8db0" font-size="8" text-anchor="middle">${t>0?"+":""}${t}%</text>`;}).join("");
   return `<div style="overflow-x:auto;margin:12px 0"><div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;display:flex;gap:14px"><span><span style="color:#ff5a7a">■</span> Downside</span><span><span style="color:#5a9eff">■</span> Upside</span></div><svg viewBox="-${labelW} 0 ${labelW+chartW+60} ${h}" style="width:100%;max-width:${labelW+chartW+60}px;height:${h}px;font-family:Space Grotesk">${axis}${bars}</svg></div>`;
 }
+
+/* used by rankings tab (key strengths/weaknesses) */
 function extractKeyTakeaways(profileText,m,sym){
   const takeaways=[];
   if(m.av.gpm>40)takeaways.push(`✅ High gross margin (${P1(m.av.gpm)}) – strong pricing power.`);
@@ -1347,12 +1396,13 @@ function extractKeyTakeaways(profileText,m,sym){
 }
 
 /* ============================================================
-   INSIGHTS TAB — refreshed
-   - Uses AI profile only when fresh (< PROFILE_MAX_AGE_DAYS)
-   - Always renders live-computed narrative sections from calcM()
-   - Shows a "stale" banner when the AI profile is old
+   INSIGHTS TAB — simplified
+   Sections kept: Key Takeaways (top summary), Business Model
+   Canvas, SWOT, PESTLE, Porter's Five Forces, Sensitivity (tornado).
+   - Each section uses fresh AI profile content when available,
+     otherwise a live-computed version derived from the financials
+     (so the analysis is always current).
    ============================================================ */
-
 const PROFILE_MAX_AGE_DAYS = 180;
 
 function isProfileFresh(stockData) {
@@ -1362,116 +1412,396 @@ function isProfileFresh(stockData) {
   const ageDays = ageMs / (1000 * 60 * 60 * 24);
   return ageDays <= PROFILE_MAX_AGE_DAYS;
 }
-
 function profileAgeDays(stockData) {
   if (!stockData?.profileDate) return null;
   return Math.floor((Date.now() - new Date(stockData.profileDate).getTime()) / (1000 * 60 * 60 * 24));
 }
-
-function buildLiveBusinessModel(m, st, sym) {
-  const sector = CO_INFO[sym]?.sector || 'General';
-  const rev = m.cg.rev;
-  const gpm = m.av.gpm;
-  const npm = m.av.npm;
-  const roe = m.av.roe;
-  const de = m.av.debtToEquity;
-
-  const lines = [];
-  lines.push(`**${st.name} (${sym})** operates in the **${sector}** sector and is listed on ${st.exchange}. Financials are reported in ${st.currency.replace('B ', '').replace('T ', '')}.`);
-
-  if (isOK(rev)) {
-    if (rev > 15) lines.push(`Revenue has compounded at **${rev.toFixed(1)}%** — above-average growth that suggests the business is expanding its addressable market or gaining share.`);
-    else if (rev > 5) lines.push(`Revenue has grown at a steady **${rev.toFixed(1)}% CAGR**, in line with typical mature-industry growth.`);
-    else if (rev >= 0) lines.push(`Revenue growth is modest at **${rev.toFixed(1)}% CAGR**, indicating a maturing or cyclical top line.`);
-    else lines.push(`Revenue is **declining at ${rev.toFixed(1)}% CAGR** — a red flag that warrants investigating whether it's cyclical or structural.`);
+function extractProfileSections(md) {
+  const out = {};
+  if (!md) return out;
+  const parts = md.split(/(?=^## )/gm);
+  for (const part of parts) {
+    const match = part.match(/^## (.+)$/m);
+    if (match) out[match[1].trim()] = part;
   }
-  if (isOK(gpm)) {
-    if (gpm > 50) lines.push(`Gross margin of **${gpm.toFixed(1)}%** points to strong pricing power or a high-value product/service mix.`);
-    else if (gpm > 25) lines.push(`Gross margin of **${gpm.toFixed(1)}%** is healthy and typical of the sector.`);
-    else lines.push(`Gross margin of **${gpm.toFixed(1)}%** is thin, meaning small changes in input costs can materially hit earnings.`);
-  }
-  if (isOK(npm)) {
-    if (npm > 20) lines.push(`Net margin of **${npm.toFixed(1)}%** reflects excellent cost discipline and/or a premium business model.`);
-    else if (npm > 8) lines.push(`Net margin of **${npm.toFixed(1)}%** is solid, leaving room for reinvestment and dividends.`);
-    else lines.push(`Net margin of **${npm.toFixed(1)}%** is low — the business operates on thin profitability, sensitive to cost shocks.`);
-  }
-  if (isOK(roe)) {
-    if (roe > 20) lines.push(`Return on equity of **${roe.toFixed(1)}%** indicates the business generates strong returns on shareholder capital.`);
-    else if (roe > 10) lines.push(`ROE of **${roe.toFixed(1)}%** is adequate but not exceptional.`);
-    else if (roe > 0) lines.push(`ROE of **${roe.toFixed(1)}%** is below what most investors would consider attractive.`);
-  }
-  if (isOK(de)) {
-    if (de < 30) lines.push(`Debt/equity of **${de.toFixed(1)}%** shows a conservative balance sheet.`);
-    else if (de < 80) lines.push(`Debt/equity of **${de.toFixed(1)}%** is manageable.`);
-    else lines.push(`Debt/equity of **${de.toFixed(1)}%** is elevated — interest rate sensitivity is a real risk.`);
-  }
-  return lines;
+  return out;
+}
+function renderAISection(mdSection) {
+  const body = mdSection.replace(/^## .+\n?/, '').trim();
+  return markdownToHtml(body);
+}
+function wrapSection(icon, title, bodyHtml, source) {
+  const badge = source === 'ai'
+    ? '<span class="section-source ai">AI</span>'
+    : '<span class="section-source live">Live</span>';
+  return `<div class="ai-content"><h2><span>${icon} ${title}</span>${badge}</h2>${bodyHtml}</div>`;
 }
 
-function buildLiveOutlook(m, st, sym) {
+// ---- Sector archetypes ----
+const SECTOR_ARCHETYPE = {
+  Mining: 'Resources', 'Oil & Gas': 'Resources', 'Coal Mining': 'Resources',
+  Banking: 'Financials', 'Islamic Banking': 'Financials',
+  'Auto Parts': 'Industrial', 'Heavy Equipment & Mining': 'Industrial',
+  Automotive: 'Industrial', 'Building Materials': 'Industrial', 'Power & Utilities': 'Industrial',
+  'Industrial Real Estate': 'RealEstate',
+  Semiconductors: 'Tech', Technology: 'Tech', 'E-Commerce & Cloud': 'Tech',
+  'Social Media': 'Tech', 'Online Travel': 'Tech',
+  Pharmaceuticals: 'Healthcare',
+  Payments: 'Fintech', General: 'General'
+};
+
+const ARCH_BMC = {
+  Resources: {
+    segments: 'Global industrial buyers — steel mills, smelters, refiners, utilities, traders.',
+    value: 'Scale-advantaged access to long-life resource reserves with low unit costs.',
+    channels: 'Long-term off-take contracts, commodity exchanges, direct B2B sales.',
+    relationships: 'Relationship-driven, contract-based with major industrial counterparties.',
+    revenue: 'Commodity sales (ore, energy, metals), royalties, marketing and logistics.',
+    resources: 'Resource reserves, processing plants, rail/port access, permits, skilled workforce.',
+    activities: 'Exploration, extraction, processing, logistics, marketing, rehabilitation.',
+    partners: 'Rail and port operators, equipment vendors, host governments, JV partners.',
+    costs: 'Energy, labour, maintenance, royalties, freight — largely variable with volume.'
+  },
+  Financials: {
+    segments: 'Retail depositors, SME and corporate borrowers, institutional clients.',
+    value: 'Trusted brand, distribution network and balance sheet that intermediates capital.',
+    channels: 'Branch network, digital banking apps, brokers and relationship managers.',
+    relationships: 'Long-tenure relationships, tiered service by client segment, self-service digital.',
+    revenue: 'Net interest income, fees and commissions, trading, wealth and insurance.',
+    resources: 'Deposit base, loan book, capital, branch network, technology platform.',
+    activities: 'Deposit gathering, lending, risk management, treasury, compliance, payments.',
+    partners: 'Payment networks, regulators, correspondent banks, fintech providers.',
+    costs: 'Funding costs, credit provisions, technology, distribution, compliance — margin-driven.'
+  },
+  Industrial: {
+    segments: 'Industrial manufacturers, mining and construction operators, aftermarket buyers.',
+    value: 'Durable, service-backed equipment and components with dependable after-sales support.',
+    channels: 'Dealer network, direct sales, e-commerce, service centres.',
+    relationships: 'Long-lifecycle relationships; service contracts and parts supply.',
+    revenue: 'Equipment sales, parts and service, rentals, financing and used equipment.',
+    resources: 'Manufacturing footprint, dealer network, product IP, service technicians.',
+    activities: 'Manufacturing, distribution, service, financing, R&D.',
+    partners: 'Component suppliers, dealers, logistics, financing partners.',
+    costs: 'Raw materials, labour, logistics, warranty, dealer commissions — sensitive to input costs.'
+  },
+  RealEstate: {
+    segments: 'Industrial tenants, logistics operators, data-centre and manufacturing occupiers.',
+    value: 'Strategic industrial land bank and ready-built estates in demand corridors.',
+    channels: 'Direct sales, broker network, JV partnerships, land banking.',
+    relationships: 'Long-lease tenant relationships; master-planned estate sales.',
+    revenue: 'Land sales, recurring rental income, estate management services.',
+    resources: 'Land bank, master plans, permits, infrastructure, partner network.',
+    activities: 'Land acquisition, master planning, infrastructure, development, leasing.',
+    partners: 'Construction firms, utility providers, government authorities, JV partners.',
+    costs: 'Land, infrastructure, construction, financing, estate maintenance — capital-intensive.'
+  },
+  Tech: {
+    segments: 'Enterprises, developers, consumers and government digital-service users.',
+    value: 'Scalable software/IP platforms with network effects and high switching costs.',
+    channels: 'Direct sales, cloud marketplaces, developer ecosystems, app stores.',
+    relationships: 'Subscription and usage-based contracts; self-serve for SMBs.',
+    revenue: 'Subscriptions, usage fees, advertising, licensing, transactional fees.',
+    resources: 'IP/patents, engineering talent, data, compute, brand, ecosystem.',
+    activities: 'R&D, product development, infrastructure operations, sales and marketing.',
+    partners: 'Cloud providers, chip suppliers, integrators, content and app partners.',
+    costs: 'R&D, sales and marketing, cloud infrastructure, content, talent — front-loaded with scale economics.'
+  },
+  Healthcare: {
+    segments: 'Patients, prescribers, payers (insurers/governments), hospitals.',
+    value: 'Patented therapies and diagnostics with long development lead times and high barriers.',
+    channels: 'Specialty salesforces, distributors, hospital and pharmacy networks.',
+    relationships: 'KOL and prescriber relationships; payer contracting.',
+    revenue: 'Product sales, licensing, royalties, milestone payments.',
+    resources: 'Patent portfolio, pipeline, manufacturing, regulatory approvals.',
+    activities: 'Discovery, clinical trials, regulatory submissions, manufacturing, commercialisation.',
+    partners: 'CROs, CMOs, academic centres, distributors, JV partners.',
+    costs: 'R&D (front-loaded), manufacturing, marketing, legal — highly concentrated on successful products.'
+  },
+  Fintech: {
+    segments: 'Consumers, merchants, issuers, acquirers, financial institutions.',
+    value: 'Global payment rails with strong network effects and high transaction reliability.',
+    channels: 'Issuer and acquirer partnerships, direct enterprise sales, developer APIs.',
+    relationships: 'Long-term institutional contracts; incentives aligned with volumes.',
+    revenue: 'Service fees, data processing, cross-border, value-added services.',
+    resources: 'Network infrastructure, brand, regulatory licences, technology.',
+    activities: 'Network operations, fraud prevention, product development, partner management.',
+    partners: 'Banks, merchants, processors, regulators, technology providers.',
+    costs: 'Network operations, incentives, technology, marketing, regulatory — high operating leverage.'
+  },
+  General: {
+    segments: 'Diversified customer base across consumer and business segments.',
+    value: 'Established products and services with brand recognition and distribution reach.',
+    channels: 'Mixed direct, wholesale and digital channels.',
+    relationships: 'Transactional to long-term contracts depending on segment.',
+    revenue: 'Product and service revenue, recurring fees.',
+    resources: 'Brand, distribution, operations, working capital, talent.',
+    activities: 'Sourcing, production, marketing, distribution, service.',
+    partners: 'Suppliers, distributors, logistics, technology providers.',
+    costs: 'Input costs, labour, distribution, marketing — varies with business model.'
+  }
+};
+
+const ARCH_PESTLE = {
+  Resources: {
+    political: 'Commodity tax and royalty regimes; resource nationalism; permitting timelines.',
+    economic: 'Cyclical commodity prices; FX (AUD/USD, IDR/USD); capex cycles; China demand.',
+    social: 'Community and indigenous relations; remote-site labour; safety culture.',
+    technological: 'Automation, electrification and decarbonisation of extraction and processing.',
+    legal: 'Mining rights, environmental approvals, ESG disclosure, anti-corruption.',
+    environmental: 'Emissions, water use, tailings, biodiversity, rehabilitation liabilities.'
+  },
+  Financials: {
+    political: 'Prudential regulation, capital and liquidity rules, macro-prudential policy.',
+    economic: 'Interest-rate cycle, credit growth, asset quality, funding costs.',
+    social: 'Digital banking adoption, financial inclusion, trust and reputation.',
+    technological: 'Cloud, AI, real-time payments, open banking, cyber security.',
+    legal: 'Banking licences, AML/KYC, consumer protection, data privacy.',
+    environmental: 'Climate risk in lending book, financed emissions disclosure.'
+  },
+  Industrial: {
+    political: 'Trade policy, tariffs, local-content rules, infrastructure spending.',
+    economic: 'Industrial capex cycle, commodity prices, FX, interest rates.',
+    social: 'Skills shortages, urbanisation, safety and labour relations.',
+    technological: 'Automation, IoT, predictive maintenance, electrification.',
+    legal: 'Product safety, warranty, environmental standards, competition law.',
+    environmental: 'Emissions and waste from manufacturing, energy intensity.'
+  },
+  RealEstate: {
+    political: 'Land-use policy, foreign-investment rules, infrastructure programmes.',
+    economic: 'FDI flows, interest rates, industrial rents, construction costs.',
+    social: 'Urbanisation, logistics growth, industrial workforce mobility.',
+    technological: 'Smart estates, data-centre demand, green buildings.',
+    legal: 'Land titles, zoning, environmental approvals, tax incentives.',
+    environmental: 'Land rehabilitation, water, energy, embodied carbon of construction.'
+  },
+  Tech: {
+    political: 'Antitrust, export controls, data localisation, AI regulation.',
+    economic: 'IT capex cycle, enterprise spending, FX, interest rates.',
+    social: 'Digital adoption, privacy expectations, workforce reskilling.',
+    technological: 'AI, cloud, edge, semis, quantum; rapid obsolescence risk.',
+    legal: 'IP, privacy, competition, content moderation, AI liability.',
+    environmental: 'Data-centre energy and water use, e-waste, supply-chain emissions.'
+  },
+  Healthcare: {
+    political: 'Drug pricing, reimbursement policy, regulatory approvals.',
+    economic: 'Healthcare budgets, payer mix, FX on global sales.',
+    social: 'Ageing population, chronic disease burden, access expectations.',
+    technological: 'Biotech, AI drug discovery, precision medicine, biologics.',
+    legal: 'Patents, regulatory filings, product liability, marketing rules.',
+    environmental: 'Pharma waste, API supply-chain emissions, packaging.'
+  },
+  Fintech: {
+    political: 'Interchange and payment regulation; cross-border rules.',
+    economic: 'Consumer spending, cross-border volumes, FX.',
+    social: 'Cashless adoption, digital wallets, financial inclusion.',
+    technological: 'Tokenisation, real-time payments, AI fraud detection, stablecoins.',
+    legal: 'Licensing, AML, consumer protection, data privacy.',
+    environmental: 'Low direct footprint; vendor and data-centre ESG.'
+  },
+  General: {
+    political: 'Regulatory and policy environment; trade and tax rules.',
+    economic: 'GDP growth, inflation, interest rates, FX.',
+    social: 'Demographics, consumer preferences, labour trends.',
+    technological: 'Digitisation, automation, AI adoption.',
+    legal: 'Contract, competition and consumer-protection law.',
+    environmental: 'Emissions, resource use, disclosure obligations.'
+  }
+};
+
+const ARCH_PORTERS = {
+  Resources:    { rivalry:'Moderate', supplier:'Moderate', buyer:'High',      entrant:'Low',    substitute:'Moderate' },
+  Financials:   { rivalry:'High',     supplier:'Low',      buyer:'Moderate',  entrant:'Low',    substitute:'Moderate' },
+  Industrial:   { rivalry:'Moderate', supplier:'High',     buyer:'Moderate',  entrant:'Moderate', substitute:'Moderate' },
+  RealEstate:   { rivalry:'Moderate', supplier:'Moderate', buyer:'High',      entrant:'Low',    substitute:'Low' },
+  Tech:         { rivalry:'High',     supplier:'Moderate', buyer:'Moderate',  entrant:'High',   substitute:'Moderate' },
+  Healthcare:   { rivalry:'Moderate', supplier:'Low',      buyer:'High',      entrant:'Low',    substitute:'Moderate' },
+  Fintech:      { rivalry:'High',     supplier:'Low',      buyer:'Moderate',  entrant:'Moderate', substitute:'High' },
+  General:      { rivalry:'Moderate', supplier:'Moderate', buyer:'Moderate',  entrant:'Moderate', substitute:'Moderate' }
+};
+
+function buildBMC(m, st, sym) {
   const sector = CO_INFO[sym]?.sector || 'General';
+  const arch = SECTOR_ARCHETYPE[sector] || 'General';
+  const base = ARCH_BMC[arch] || ARCH_BMC.General;
+  const gpm = m.av.gpm, npm = m.av.npm, rev = m.cg.rev;
+  const cost = base.costs + (isOK(gpm) ? ` Gross margin ${gpm.toFixed(1)}% implies COGS ≈ ${(100 - gpm).toFixed(1)}% of revenue.` : '');
+  const revLine = base.revenue + (isOK(rev) ? ` Recent revenue CAGR ${rev.toFixed(1)}%.` : '') + (isOK(npm) ? ` Net margin ${npm.toFixed(1)}%.` : '');
+  return {
+    'Customer Segments': base.segments,
+    'Value Propositions': base.value,
+    'Channels': base.channels,
+    'Customer Relationships': base.relationships,
+    'Revenue Streams': revLine,
+    'Key Resources': base.resources,
+    'Key Activities': base.activities,
+    'Key Partnerships': base.partners,
+    'Cost Structure': cost
+  };
+}
+
+function buildSWOT(m, st, sym) {
+  const S = [], W = [], O = [], T = [];
   const risks = generateCustomTornado(sym, st, m) || [];
-  const lines = [];
-  const rev = m.cg.rev;
-  const eps = m.cg.eps;
-  const buff = m.buff;
-  const payout = m.av.divPayout;
-  if (isOK(rev) && isOK(eps)) {
-    if (eps > rev + 3) lines.push(`Earnings are growing faster than revenue (**EPS ${eps.toFixed(1)}% vs Revenue ${rev.toFixed(1)}% CAGR**), suggesting operating leverage or margin expansion — a positive sign.`);
-    else if (eps < rev - 3) lines.push(`Earnings are growing slower than revenue (**EPS ${eps.toFixed(1)}% vs Revenue ${rev.toFixed(1)}% CAGR**) — margins are being squeezed despite top-line growth.`);
-    else lines.push(`EPS and revenue are growing at similar rates, implying stable margins.`);
+  if (isOK(m.av.gpm)) {
+    if (m.av.gpm > 40) S.push(`High gross margin (${P1(m.av.gpm)}) signals pricing power.`);
+    else if (m.av.gpm < 20) W.push(`Thin gross margin (${P1(m.av.gpm)}) leaves little buffer for cost shocks.`);
   }
-  if (isOK(buff)) {
-    if (buff >= 100) lines.push(`The Buffett $1 Test passes with a score of **${buff.toFixed(1)}%** — every dollar retained has historically produced more than a dollar of market value.`);
-    else if (buff >= 50) lines.push(`The Buffett $1 Test score of **${buff.toFixed(1)}%** suggests moderate value creation from retained earnings.`);
-    else if (buff >= 0) lines.push(`The Buffett $1 Test score of **${buff.toFixed(1)}%** is weak — retained earnings are not creating much incremental value.`);
-    else lines.push(`The Buffett $1 Test score of **${buff.toFixed(1)}%** is negative — retained earnings have historically destroyed value.`);
+  if (isOK(m.av.npm)) {
+    if (m.av.npm > 20) S.push(`Excellent net margin (${P1(m.av.npm)}) reflects strong cost discipline.`);
+    else if (m.av.npm < 8) W.push(`Low net margin (${P1(m.av.npm)}) makes earnings sensitive to input costs.`);
   }
-  if (isOK(payout)) {
-    if (payout > 80) lines.push(`Dividend payout of **${payout.toFixed(1)}%** is high — sustainable only if earnings are stable; a cut is possible if profits fall.`);
-    else if (payout > 40) lines.push(`Dividend payout of **${payout.toFixed(1)}%** is balanced, leaving room for reinvestment.`);
-    else if (payout > 0) lines.push(`Dividend payout of **${payout.toFixed(1)}%** is conservative — retained cash is being reinvested.`);
+  if (isOK(m.av.roe)) {
+    if (m.av.roe > 20) S.push(`Outstanding ROE (${P1(m.av.roe)}) — high returns on shareholder capital.`);
+    else if (m.av.roe < 8) W.push(`Low ROE (${P1(m.av.roe)}) — capital returns below an attractive hurdle.`);
   }
-  if (risks.length) {
-    const topRisks = risks.slice(0, 3).map(r => `**${r.name}** (${r.low}% to ${r.high}%)`).join(', ');
-    lines.push(`Key sensitivities for the **${sector}** sector: ${topRisks}.`);
+  if (isOK(m.av.debtToEquity)) {
+    if (m.av.debtToEquity < 30) S.push(`Conservative leverage (D/E ${P1(m.av.debtToEquity)}) — strong balance sheet.`);
+    else if (m.av.debtToEquity > 100) W.push(`High leverage (D/E ${P1(m.av.debtToEquity)}) — interest-rate and refinancing risk.`);
   }
-  return lines;
+  if (isOK(m.cg.rev)) {
+    if (m.cg.rev > 10) S.push(`Strong top-line growth (${P1(m.cg.rev)} CAGR).`);
+    else if (m.cg.rev < 0) W.push(`Revenue declining (${P1(m.cg.rev)} CAGR).`);
+  }
+  if (isOK(m.cg.eps)) {
+    if (m.cg.eps > 10) S.push(`Earnings compounding quickly (${P1(m.cg.eps)} EPS CAGR).`);
+    else if (m.cg.eps < 0) W.push(`EPS declining (${P1(m.cg.eps)} CAGR).`);
+  }
+  if (isOK(m.buff)) {
+    if (m.buff > 100) S.push(`Buffett $1 Test passes (${P1(m.buff)}) — retained earnings create value.`);
+    else if (m.buff < 0) W.push(`Buffett $1 Test fails (${P1(m.buff)}) — retained earnings destroy value.`);
+  }
+  if (isOK(m.cg.rev) && m.cg.rev > 10) O.push(`Momentum in core markets could compound returns if growth persists.`);
+  if (isOK(m.av.divPayout) && m.av.divPayout > 0 && m.av.divPayout < 40) O.push(`Low payout (${P1(m.av.divPayout)}) leaves cash for reinvestment or acquisitions.`);
+  if (isOK(m.av.debtToEquity) && m.av.debtToEquity < 40) O.push(`Balance-sheet capacity to fund growth, buybacks or bolt-on M&A.`);
+  if (risks.length) risks.slice(0, 4).forEach(r => T.push(`${r.name} (${r.low}% to ${r.high}%) — key sector sensitivity.`));
+  if (S.length < 2) S.push('Established operating track record and sector position.');
+  if (W.length < 2) W.push('Limited public disclosures to identify further weaknesses.');
+  if (O.length < 2) O.push('Sector dynamics and execution could drive future upside.');
+  if (T.length < 2) T.push('Macro-economic conditions and competitive dynamics.');
+  return { S, W, O, T };
 }
 
-function buildLiveManagement(m, st, sym) {
-  const lines = [];
-  const roe = m.av.roe;
-  const roa = m.av.roa;
-  const buff = m.buff;
-  const payout = m.av.divPayout;
-  const de = m.av.debtToEquity;
-  if (isOK(roe) && isOK(roa)) {
-    if (roe > 15 && roa > 8) lines.push(`Management is generating strong returns on both equity (**${roe.toFixed(1)}%**) and assets (**${roa.toFixed(1)}%**) — a sign of efficient capital allocation.`);
-    else if (roe > 10) lines.push(`Returns on equity (**${roe.toFixed(1)}%**) and assets (**${roa.toFixed(1)}%**) are reasonable but not best-in-class.`);
-    else if (roe > 0) lines.push(`Returns are weak (**ROE ${roe.toFixed(1)}%, ROA ${roa.toFixed(1)}%**), suggesting capital is not being deployed productively.`);
-  }
-  if (isOK(buff) && buff >= 100) lines.push(`Passing the Buffett $1 Test (**${buff.toFixed(1)}%**) indicates management has historically reinvested profits profitably.`);
-  else if (isOK(buff) && buff < 0) lines.push(`Failing the Buffett $1 Test (**${buff.toFixed(1)}%**) suggests management has destroyed value with retained earnings.`);
-  if (isOK(payout)) {
-    if (payout > 70) lines.push(`High payout (**${payout.toFixed(1)}%**) suggests management prioritises returning cash to shareholders over reinvestment — reasonable for a mature business, questionable for a growth one.`);
-    else if (payout > 30 && payout < 70) lines.push(`Balanced payout (**${payout.toFixed(1)}%**) suggests management is both rewarding shareholders and reinvesting for growth.`);
-    else if (payout > 0) lines.push(`Low payout (**${payout.toFixed(1)}%**) means most profits are being retained — check that retained capital is being deployed well (see Buffett Test).`);
-  }
-  if (isOK(de)) {
-    if (de < 30) lines.push(`A conservative debt profile (**D/E ${de.toFixed(1)}%**) suggests a prudent approach to financial risk.`);
-    else if (de > 100) lines.push(`Aggressive use of leverage (**D/E ${de.toFixed(1)}%**) amplifies both returns and risk.`);
-  }
-  return lines;
+function buildPESTLE(m, st, sym) {
+  const sector = CO_INFO[sym]?.sector || 'General';
+  const arch = SECTOR_ARCHETYPE[sector] || 'General';
+  const base = ARCH_PESTLE[arch] || ARCH_PESTLE.General;
+  const geo = st.exchange === 'ASX' ? 'Australia' : st.exchange === 'IDX' ? 'Indonesia' : 'the United States';
+  const revNote = isOK(m.cg.rev) ? ` Recent revenue CAGR ${m.cg.rev.toFixed(1)}%.` : '';
+  const deNote = isOK(m.av.debtToEquity) ? ` Current D/E ${m.av.debtToEquity.toFixed(1)}%.` : '';
+  return {
+    Political: base.political + ` Operating jurisdiction: ${geo}.`,
+    Economic: base.economic + revNote,
+    Social: base.social,
+    Technological: base.technological,
+    Legal: base.legal,
+    Environmental: base.environmental + deNote
+  };
 }
 
-function renderNarrativeSection(title, icon, bulletLines) {
-  if (!bulletLines || !bulletLines.length) return '';
-  const html = bulletLines.map(line => {
-    const formatted = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    return `<li>${formatted}</li>`;
+function buildPorters(m, st, sym) {
+  const sector = CO_INFO[sym]?.sector || 'General';
+  const arch = SECTOR_ARCHETYPE[sector] || 'General';
+  const base = ARCH_PORTERS[arch] || ARCH_PORTERS.General;
+  const gpm = m.av.gpm, npm = m.av.npm, de = m.av.debtToEquity;
+
+  let rivalry = base.rivalry;
+  if (isOK(npm) && npm > 20) rivalry = 'Low';
+  else if (isOK(npm) && npm < 5) rivalry = 'High';
+
+  let supplier = base.supplier;
+  if (isOK(gpm) && gpm < 20) supplier = 'High';
+  else if (isOK(gpm) && gpm > 50) supplier = 'Low';
+
+  let buyer = base.buyer;
+  if (isOK(gpm) && gpm > 50) buyer = 'Low';
+  else if (isOK(gpm) && gpm < 15) buyer = 'High';
+
+  let entrant = base.entrant;
+  if (isOK(de) && de > 100) entrant = 'Low';
+  else if (isOK(npm) && npm > 25 && isOK(de) && de < 30) entrant = 'High';
+
+  const substitute = base.substitute;
+
+  return {
+    'Competitive Rivalry': {
+      rating: rivalry,
+      why: `Net margin ${isOK(npm) ? npm.toFixed(1) + '%' : 'n/a'} — ${rivalry === 'High' ? 'intense competition likely compressing margins' : rivalry === 'Low' ? 'few direct competitors, healthy margins' : 'balanced competitive dynamics'}.`
+    },
+    'Supplier Power': {
+      rating: supplier,
+      why: `Gross margin ${isOK(gpm) ? gpm.toFixed(1) + '%' : 'n/a'} — ${supplier === 'High' ? 'input costs can materially squeeze profitability' : supplier === 'Low' ? 'strong bargaining position over suppliers' : 'moderate dependence on suppliers'}.`
+    },
+    'Buyer Power': {
+      rating: buyer,
+      why: `Gross margin ${isOK(gpm) ? gpm.toFixed(1) + '%' : 'n/a'} — ${buyer === 'High' ? 'customers can push back on pricing' : buyer === 'Low' ? 'customers have limited pricing leverage' : 'balanced negotiating dynamics'}.`
+    },
+    'Threat of New Entrants': {
+      rating: entrant,
+      why: `Debt/equity ${isOK(de) ? de.toFixed(1) + '%' : 'n/a'} — ${entrant === 'High' ? 'low capital barriers and attractive margins invite entrants' : entrant === 'Low' ? 'high capital, regulatory or brand barriers deter entrants' : 'moderate entry barriers'}.`
+    },
+    'Threat of Substitutes': {
+      rating: substitute,
+      why: `Sector-specific — ${substitute === 'High' ? 'close substitutes exist and could pressure pricing' : substitute === 'Low' ? 'few credible substitutes for the core offering' : 'substitute pressure is moderate'}.`
+    }
+  };
+}
+
+function buildComprehensiveTakeaways(m, st, sym, analysis) {
+  const out = [];
+  if (isOK(m.av.roe) && m.av.roe > 20) out.push(`✅ Outstanding ROE (${P1(m.av.roe)}) — efficient capital compounding.`);
+  else if (isOK(m.av.roe) && m.av.roe < 8) out.push(`⚠️ Weak ROE (${P1(m.av.roe)}) — returns below an attractive hurdle.`);
+  if (isOK(m.av.gpm) && m.av.gpm > 40) out.push(`💰 Strong gross margin (${P1(m.av.gpm)}) — pricing power.`);
+  else if (isOK(m.av.gpm) && m.av.gpm < 20) out.push(`⚠️ Thin gross margin (${P1(m.av.gpm)}) — cost-sensitive model.`);
+  if (isOK(m.cg.rev) && m.cg.rev > 10) out.push(`📈 Revenue growing ${P1(m.cg.rev)} CAGR.`);
+  else if (isOK(m.cg.rev) && m.cg.rev < 0) out.push(`📉 Revenue declining ${P1(m.cg.rev)} CAGR.`);
+  if (isOK(m.buff) && m.buff >= 100) out.push(`🧠 Passes Buffett $1 Test (${P1(m.buff)}) — retained earnings compound value.`);
+  else if (isOK(m.buff) && m.buff < 0) out.push(`🧠 Fails Buffett $1 Test (${P1(m.buff)}) — retained earnings destroy value.`);
+  if (isOK(m.av.debtToEquity) && m.av.debtToEquity > 100) out.push(`⚠️ High leverage (D/E ${P1(m.av.debtToEquity)}) — rate sensitive.`);
+  else if (isOK(m.av.debtToEquity) && m.av.debtToEquity < 30) out.push(`🛡 Conservative balance sheet (D/E ${P1(m.av.debtToEquity)}).`);
+  if (analysis.tornadoVars.length) {
+    const r = analysis.tornadoVars[0];
+    out.push(`🌪 Largest sensitivity: ${r.name} (${r.low}% to ${r.high}%).`);
+  }
+  if (analysis.swotLive.S.length && out.length < 4) out.push(`💪 ${analysis.swotLive.S[0]}`);
+  if (analysis.swotLive.W.length && out.length < 5) out.push(`🔎 Watch: ${analysis.swotLive.W[0]}`);
+  if (out.length < 3) {
+    out.push(`📊 ${st.name} operates in the ${CO_INFO[sym]?.sector || 'General'} sector on ${st.exchange}.`);
+    if (isOK(m.av.npm)) out.push(`Net margin ${P1(m.av.npm)}.`);
+  }
+  return out.slice(0, 6);
+}
+
+function renderLiveBMC(bmc) {
+  const blocks = Object.entries(bmc).map(([k, v]) =>
+    `<div class="bmc-block"><div class="bmc-block-title">${k}</div><div class="bmc-block-text">${v}</div></div>`
+  ).join('');
+  return `<div class="bmc-grid">${blocks}</div>`;
+}
+
+function renderLiveSWOT(swot) {
+  const q = (title, list, cls) => `<div class="swot-quad ${cls}"><div class="swot-title">${title}</div><ul class="swot-list">${list.map(x => `<li>${x}</li>`).join('')}</ul></div>`;
+  return `<div class="swot-grid">
+    ${q('Strengths', swot.S, 'swot-S')}
+    ${q('Weaknesses', swot.W, 'swot-W')}
+    ${q('Opportunities', swot.O, 'swot-O')}
+    ${q('Threats', swot.T, 'swot-T')}
+  </div>`;
+}
+
+function renderLivePESTLE(p) {
+  return `<div class="pestle-list">${Object.entries(p).map(([k, v]) =>
+    `<div class="pestle-item"><div class="pestle-label">${k}</div><div class="pestle-text">${v}</div></div>`
+  ).join('')}</div>`;
+}
+
+function renderLivePorters(po) {
+  return Object.entries(po).map(([name, obj]) => {
+    const rating = obj.rating.toLowerCase();
+    return `<div class="porter-item">
+      <div class="porter-head"><span class="porter-name">${name}</span><span class="porter-rating ${rating}">${obj.rating}</span></div>
+      <div class="porter-why">${obj.why}</div>
+    </div>`;
   }).join('');
-  return `<div class="ai-content"><h2>${icon} ${title}</h2><ul>${html}</ul></div>`;
 }
 
 function tabInsights(sym, st) {
@@ -1479,57 +1809,32 @@ function tabInsights(sym, st) {
   const m = calcM(sym);
   if (!m) return `<div class="state-box"><p>No data for ${sym}</p></div>`;
 
-  const profileMd = stockData?.profile || '';
   const profileFresh = isProfileFresh(stockData);
-  const ageDays = profileAgeDays(stockData);
+  const profileSections = extractProfileSections(stockData?.profile || '');
 
-  let leftHtml = '';
-  leftHtml += renderNarrativeSection('Business Model', '🏢', buildLiveBusinessModel(m, st, sym));
-
-  if (profileFresh && profileMd && profileMd.length > 100) {
-    const sections = {};
-    const parts = profileMd.split(/(?=^## )/gm);
-    for (const part of parts) {
-      const match = part.match(/^## (.+)$/m);
-      if (match) sections[match[1].trim()] = part;
-    }
-    const leftOrder = ["Business Model Canvas", "SWOT Analysis", "PESTLE Analysis", "Porter's Five Forces"];
-    for (const title of leftOrder) {
-      if (sections[title]) leftHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`;
-    }
-  }
-
-  let rightHtml = '';
-  rightHtml += renderNarrativeSection('Future Outlook', '🔭', buildLiveOutlook(m, st, sym));
-  rightHtml += renderNarrativeSection('Management Effectiveness', '🎯', buildLiveManagement(m, st, sym));
-
-  if (profileFresh && profileMd && profileMd.length > 100) {
-    const sections = {};
-    const parts = profileMd.split(/(?=^## )/gm);
-    for (const part of parts) {
-      const match = part.match(/^## (.+)$/m);
-      if (match) sections[match[1].trim()] = part;
-    }
-    const rightOrder = ["Management & Decision Making", "Future Outlook", "Leadership"];
-    for (const title of rightOrder) {
-      if (sections[title]) rightHtml += `<div class="ai-content">${markdownToHtml(sections[title])}</div>`;
-    }
-  }
-
+  // Always-computed live analyses (used as fallback + for takeaways)
+  const bmcLive = buildBMC(m, st, sym);
+  const swotLive = buildSWOT(m, st, sym);
+  const pestleLive = buildPESTLE(m, st, sym);
+  const portersLive = buildPorters(m, st, sym);
   const tornadoVars = generateCustomTornado(sym, st, m);
-  if (tornadoVars.length) {
-    rightHtml += `<div class="ai-content"><h2>🌪️ Sensitivity Analysis</h2>${renderTornadoChart(tornadoVars)}</div>`;
-  }
 
-  const takeaways = extractKeyTakeaways(profileMd, m, sym);
-  if (takeaways.length) {
-    rightHtml += `<div class="ai-content"><h2>🔑 Key Takeaways</h2><ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul></div>`;
-  }
+  // Key takeaways summarise the live analysis — always current
+  const takeaways = buildComprehensiveTakeaways(m, st, sym, { swotLive, tornadoVars });
 
-  const rank = (calcRanks(S.wts).fr[sym]) || '—';
-  const headerBadge = profileFresh ? 'AI INSIGHTS · LIVE'
-                                    : (profileMd ? 'AI PROFILE STALE · LIVE COMPUTED' : 'LIVE COMPUTED');
+  // Section renderer: AI when fresh + section exists, else live
+  const section = (title, icon, liveHtml) => {
+    if (profileFresh && profileSections[title]) {
+      return wrapSection(icon, title, renderAISection(profileSections[title]), 'ai');
+    }
+    return wrapSection(icon, title, liveHtml, 'live');
+  };
 
+  const takeawayCard = takeaways.length
+    ? `<div class="summary-card"><h2>📌 Key Takeaways</h2><ul>${takeaways.map(t => `<li>${t}</li>`).join('')}</ul></div>`
+    : '';
+
+  const rank = calcRanks(S.wts).fr[sym] || '—';
   const headerHtml = `
     <div class="insights-header">
       ${getLogoHtml(sym, 48)}
@@ -1537,40 +1842,32 @@ function tabInsights(sym, st) {
         <div class="header-name">${st.name}</div>
         <div class="header-meta">${sym} · ${st.exchange} · ${st.currency} · Rank #${rank}</div>
       </div>
-      <div class="header-badge">${headerBadge}</div>
+      <div class="header-badge">${profileFresh ? 'AI + LIVE' : 'LIVE COMPUTED'}</div>
     </div>
   `;
 
-  let staleBanner = '';
-  if (profileMd && !profileFresh) {
-    const ageTxt = ageDays !== null ? ` (${ageDays} days old)` : '';
-    staleBanner = `
-      <div style="background:rgba(255,207,74,0.08);border:1px solid rgba(255,207,74,0.4);border-radius:14px;padding:12px 16px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;font-size:12px;color:var(--text-secondary);line-height:1.5;">
-        <span style="font-size:16px;flex-shrink:0;">⚠️</span>
-        <div>
-          <strong style="color:var(--accent-gold);">AI profile is stale${ageTxt}.</strong>
-          The narrative sections below are generated live from the financial data instead of the outdated AI text.
-          To restore the AI-generated analysis, regenerate <code>data.json</code> via your pipeline.
-        </div>
-      </div>
-    `;
-  }
+  const bmcHtml     = section('Business Model Canvas', '🧩', renderLiveBMC(bmcLive));
+  const swotHtml    = section('SWOT Analysis', '📊', renderLiveSWOT(swotLive));
+  const pestleHtml  = section('PESTLE Analysis', '🌐', renderLivePESTLE(pestleLive));
+  const portersHtml = section("Porter's Five Forces", '⚔️', renderLivePorters(portersLive));
+  const tornadoHtml = wrapSection('🌪️', 'Sensitivity Analysis',
+    tornadoVars.length ? renderTornadoChart(tornadoVars) : '<p style="font-size:11px;color:var(--text-muted);">No sensitivity data available.</p>',
+    'live');
 
-  if (!leftHtml && !rightHtml) {
-    return `<div>${headerHtml}<div class="state-box"><p>No insights available for ${sym} yet.</p></div></div>`;
-  }
+  const sourceNote = profileFresh
+    ? `<br>AI profile: generated ${new Date(stockData.profileDate).toLocaleDateString()}`
+    : '<br>AI profile: not available or stale — showing live-computed analysis';
 
   return `
     <div>
       ${headerHtml}
-      ${staleBanner}
+      ${takeawayCard}
       <div class="insights-two-col">
-        <div>${leftHtml}</div>
-        <div>${rightHtml}</div>
+        <div>${bmcHtml}${swotHtml}</div>
+        <div>${pestleHtml}${portersHtml}${tornadoHtml}</div>
       </div>
       <div style="font-size:10px;color:var(--text-muted);margin-top:12px;">
-        📚 Sources: Company filings · Annual Reports · Yahoo Finance
-        ${stockData?.profileDate ? `<br>AI profile generated: ${new Date(stockData.profileDate).toLocaleString()}${profileFresh ? '' : ' (stale)'}` : '<br>AI profile: not available — showing live-computed analysis'}
+        📚 Sources: Company filings · Annual Reports · Yahoo Finance${sourceNote}
       </div>
     </div>
   `;
