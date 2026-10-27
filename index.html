@@ -697,11 +697,16 @@ const BASE_STOCKS={
 };
 const DEF_WTS={cashToAsset:10,debtToEquity:5,revenueCagr:5,gpmAvg:0,netProfitCagr:5,npmAvg:30,epsCagr:5,dpsCagr:0,roeAvg:25,dividendPayout:0,buffettTest:15};
 const CRITERIA=[
-  {key:"cashToAsset",wKey:"cashToAsset",label:"Cash/Asset",hi:true},{key:"debtToEquity",wKey:"debtToEquity",label:"D/E Ratio",hi:false},
-  {key:"revenueCagr",wKey:"revenueCagr",label:"Rev CAGR",hi:true},{key:"gpmAvg",wKey:"gpmAvg",label:"GP Margin",hi:true},
-  {key:"netProfitCagr",wKey:"netProfitCagr",label:"NP CAGR",hi:true},{key:"npmAvg",wKey:"npmAvg",label:"NP Margin",hi:true},
-  {key:"epsCagr",wKey:"epsCagr",label:"EPS CAGR",hi:true},{key:"dpsCagr",wKey:"dpsCagr",label:"DPS CAGR",hi:true},
-  {key:"roeAvg",wKey:"roeAvg",label:"ROE",hi:true},{key:"dividendPayout",wKey:"dividendPayout",label:"Div Payout",hi:true},
+  {key:"cashToAsset",wKey:"cashToAsset",label:"Cash/Asset",hi:true},
+  {key:"debtToEquity",wKey:"debtToEquity",label:"D/E Ratio",hi:false},
+  {key:"revenueCagr",wKey:"revenueCagr",label:"Rev CAGR",hi:true},
+  {key:"gpmAvg",wKey:"gpmAvg",label:"GP Margin",hi:true},
+  {key:"netProfitCagr",wKey:"netProfitCagr",label:"NP CAGR",hi:true},
+  {key:"npmAvg",wKey:"npmAvg",label:"NP Margin",hi:true},
+  {key:"epsCagr",wKey:"epsCagr",label:"EPS CAGR",hi:true},
+  {key:"dpsCagr",wKey:"dpsCagr",label:"DPS CAGR",hi:true},
+  {key:"roeAvg",wKey:"roeAvg",label:"ROE",hi:true},
+  {key:"dividendPayout",wKey:"dividendPayout",label:"Div Payout",hi:true},
   {key:"buffettTest",wKey:"buffettTest",label:"Buffett $1",hi:true},
 ];
 const CAT_GROUPS=[{id:'risk',label:'🛡 Risk',color:'var(--accent-blue)',bg:'rgba(90,158,255,0.07)',border:'rgba(90,158,255,0.3)',keys:['cashToAsset','debtToEquity']},{id:'profgrow',label:'📈 Profitability & Growth',color:'var(--accent-green)',bg:'rgba(0,245,160,0.06)',border:'rgba(0,245,160,0.25)',keys:['revenueCagr','gpmAvg','netProfitCagr','npmAvg','epsCagr','dpsCagr']},{id:'mgmt',label:'🎯 Management Effectiveness',color:'var(--accent-purple)',bg:'rgba(192,165,255,0.06)',border:'rgba(192,165,255,0.25)',keys:['roeAvg','dividendPayout','buffettTest']}];
@@ -770,22 +775,29 @@ function latestTwo(arr) {
   return {latest: arr[latestIdx], latestIdx, prev: prevIdx>=0 ? arr[prevIdx] : null, prevIdx};
 }
 
+function isBank(sym) {
+    if (!sym) return false;
+    const sector = CO_INFO[sym]?.sector;
+    return sector === 'Banking' || sector === 'Islamic Banking';
+}
+
 function calcM(symbol){
   const data=S.data[symbol];
-  if(!data){return {Y:YEARS.map(yr=>({year:yr,cashToAsset:null,debtToEquity:null,gpm:null,npm:null,roa:null,roe:null,divPayout:null,valLow:null,valHigh:null,retEps:null})),av:{cashToAsset:null,debtToEquity:null,gpm:null,npm:null,roa:null,roe:null,divPayout:null},cg:{rev:null,np:null,eps:null,dps:null},epsInc:null,totRet:null,buff:null,raw:{ta:[],ca:[],td:[],te:[],rv:[],gp:[],np:[],ep:[],dp:[]},rm:{cashToAsset:null,debtToEquity:null,revenueCagr:null,gpmAvg:null,netProfitCagr:null,npmAvg:null,epsCagr:null,dpsCagr:null,roeAvg:null,dividendPayout:null,buffettTest:null}};}
+  if(!data){return {Y:YEARS.map(yr=>({year:yr,cashToAsset:null,debtToEquity:null,equityToAsset:null,gpm:null,npm:null,roa:null,roe:null,divPayout:null,valLow:null,valHigh:null,retEps:null})),av:{cashToAsset:null,debtToEquity:null,equityToAsset:null,gpm:null,npm:null,roa:null,roe:null,divPayout:null},cg:{rev:null,np:null,eps:null,dps:null},epsInc:null,totRet:null,buff:null,raw:{ta:[],ca:[],td:[],te:[],rv:[],gp:[],np:[],ep:[],dp:[]},rm:{cashToAsset:null,debtToEquity:null,equityToAsset:null,revenueCagr:null,gpmAvg:null,netProfitCagr:null,npmAvg:null,epsCagr:null,dpsCagr:null,roeAvg:null,dividendPayout:null,buffettTest:null}};}
   const sl=k=>(data[k]||Array(N_YEARS).fill(null)).slice(0,N_YEARS);
   const ta=sl('totalAsset'),ca=sl('cash'),td=sl('totalDebt'),te=sl('totalEquity');
   const rv2=sl('revenue'),gp=sl('grossProfit'),np=sl('netProfit'),ep=sl('eps'),dp=sl('dps');
   const Y=YEARS.map((yr,i)=>({year:yr,totalAsset:ta[i],cash:ca[i],totalDebt:td[i],totalEquity:te[i],revenue:rv2[i],grossProfit:gp[i],netProfit:np[i],eps:ep[i],dps:dp[i],
     cashToAsset:(isOK(ta[i])&&ta[i]>0&&isOK(ca[i]))?ca[i]/ta[i]*100:null,
     debtToEquity:(isOK(te[i])&&te[i]!==0&&isOK(td[i]))?td[i]/te[i]*100:null,
+    equityToAsset:(isOK(ta[i])&&ta[i]>0&&isOK(te[i]))?te[i]/ta[i]*100:null,
     gpm:(isOK(rv2[i])&&rv2[i]>0&&isOK(gp[i]))?gp[i]/rv2[i]*100:null,
     npm:(isOK(rv2[i])&&rv2[i]>0&&isOK(np[i]))?np[i]/rv2[i]*100:null,
     roa:(isOK(ta[i])&&ta[i]>0&&isOK(np[i]))?np[i]/ta[i]*100:null,
     roe:(isOK(te[i])&&te[i]!==0&&isOK(np[i]))?np[i]/te[i]*100:null,
     divPayout:(isOK(ep[i])&&ep[i]>0&&isOK(dp[i]))?dp[i]/ep[i]*100:null,
     valLow:isOK(dp[i])?dp[i]*10:null,valHigh:isOK(dp[i])?dp[i]*20:null,retEps:null}));
-  const av={cashToAsset:avg(Y.map(y=>y.cashToAsset)),debtToEquity:avg(Y.map(y=>y.debtToEquity)),gpm:avg(Y.map(y=>y.gpm)),npm:avg(Y.map(y=>y.npm)),roa:avg(Y.map(y=>y.roa)),roe:avg(Y.map(y=>y.roe)),divPayout:avg(Y.map(y=>y.divPayout))};
+  const av={cashToAsset:avg(Y.map(y=>y.cashToAsset)),debtToEquity:avg(Y.map(y=>y.debtToEquity)),equityToAsset:avg(Y.map(y=>y.equityToAsset)),gpm:avg(Y.map(y=>y.gpm)),npm:avg(Y.map(y=>y.npm)),roa:avg(Y.map(y=>y.roa)),roe:avg(Y.map(y=>y.roe)),divPayout:avg(Y.map(y=>y.divPayout))};
   const cg={rev:cagr(rv2),np:cagr(np),eps:cagr(ep),dps:cagr(dp)};
   const NC=N_YEARS-1,epCompleted=ep.slice(0,NC),dpCompleted=dp.slice(0,NC);
   const retEpsCompleted=epCompleted.map((e,i)=>{if(!isOK(e))return null;const d=isOK(dpCompleted[i])?dpCompleted[i]:0;return e-d;});
@@ -795,7 +807,7 @@ function calcM(symbol){
   const epsInc=epCompletedOK.length>=2?epCompletedOK[epCompletedOK.length-1]-epCompletedOK[0]:null;
   const buff=(isOK(totRet)&&Math.abs(totRet)>0.001&&isOK(epsInc))?epsInc/totRet*100:null;
   Y.forEach((y,i)=>{if(!isOK(y.eps)){y.retEps=null;return;}const d=isOK(y.dps)?y.dps:0;y.retEps=y.eps-d;});
-  return {Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp},rm:{cashToAsset:av.cashToAsset,debtToEquity:av.debtToEquity,revenueCagr:cg.rev,gpmAvg:av.gpm,netProfitCagr:cg.np,npmAvg:av.npm,epsCagr:cg.eps,dpsCagr:cg.dps,roeAvg:av.roe,dividendPayout:av.divPayout,buffettTest:buff}};
+  return {Y,av,cg,epsInc,totRet,buff,raw:{ta,ca,td,te,rv:rv2,gp,np,ep,dp},rm:{cashToAsset:av.cashToAsset,debtToEquity:av.debtToEquity,equityToAsset:av.equityToAsset,revenueCagr:cg.rev,gpmAvg:av.gpm,netProfitCagr:cg.np,npmAvg:av.npm,epsCagr:cg.eps,dpsCagr:cg.dps,roeAvg:av.roe,dividendPayout:av.divPayout,buffettTest:buff}};
 }
 
 function yearColHeader(sym,yr){if(yr!==CURRENT_YEAR)return `<th class="tc" style="white-space:nowrap">${yr}</th>`;const ann=ANNUALISATION[sym]||{label:null};if(!ann.label||ann.label==='FY'){const tag=ann?.label==='FY'?'FY':'Est.';return `<th class="tc" style="white-space:nowrap;color:var(--accent-gold)">${yr}<br><span style="font-size:8px;">${tag}</span></th>`;}const asOf=ann.asOf?` ${ann.asOf.slice(5)}`:'';return `<th class="tc" style="white-space:nowrap;color:#ffaa44">${yr}<br><span style="font-size:8px;">${ann.label}${asOf}</span></th>`;}
@@ -814,6 +826,7 @@ function tabFinancials(sym, st) {
   const rDefs = [
     { k: 'cashToAsset', l: 'Cash / Total Asset %', p: true },
     { k: 'debtToEquity', l: 'Debt / Equity %', p: true },
+    { k: 'equityToAsset', l: 'Equity / Asset %', p: true },
     { k: 'gpm', l: 'Gross Profit Margin %', p: true },
     { k: 'npm', l: 'Net Profit Margin %', p: true },
     { k: 'roa', l: 'Return on Asset %', p: true },
@@ -982,7 +995,37 @@ function makeChart(symbol){
 
 function curSymFor(cur) { const map = {'B USD': '$', 'B AUD': 'A$', 'T IDR': 'Rp '}; return map[cur] || '$'; }
 
-function calcRanks(wts){const ks=Object.keys(S.stocks).filter(k=>S.status[k]==='ok');const N=ks.length;if(!N)return{ranks:{},scores:{},fr:{}};const allM=Object.fromEntries(ks.map(k=>[k,calcM(k)]));const ranks=Object.fromEntries(ks.map(k=>[k,{}]));CRITERIA.forEach(c=>{const vs=ks.map(k=>({k,v:allM[k]?.rm[c.key]}));vs.sort((a,b)=>{if(!isOK(a.v)&&!isOK(b.v))return 0;if(!isOK(a.v))return 1;if(!isOK(b.v))return-1;return c.hi?b.v-a.v:a.v-b.v;});vs.forEach((x,i)=>{ranks[x.k][c.key]=i+1;});});const scores=Object.fromEntries(ks.map(k=>{const ws=CRITERIA.reduce((s,c)=>s+(ranks[k][c.key]||N)*(wts[c.wKey]||0)/100,0);return[k,{ranks:ranks[k],ws,m:allM[k]}];}));const sorted=[...ks].sort((a,b)=>scores[a].ws-scores[b].ws);const fr=Object.fromEntries(sorted.map((k,i)=>[k,i+1]));return{ranks,scores,fr};}
+function calcRanks(wts){
+  const ks=Object.keys(S.stocks).filter(k=>S.status[k]==='ok');
+  const N=ks.length;
+  if(!N)return{ranks:{},scores:{},fr:{}};
+  const allM=Object.fromEntries(ks.map(k=>[k,calcM(k)]));
+  const ranks=Object.fromEntries(ks.map(k=>[k,{}]));
+  CRITERIA.forEach(c=>{
+    const isBankCrit = (c.key==='debtToEquity');
+    const vs=ks.map(k=>{
+      let val = allM[k]?.rm[c.key];
+      if (isBankCrit && isBank(k)) {
+          val = allM[k]?.rm['equityToAsset'];
+      }
+      return {k,v:val};
+    });
+    vs.sort((a,b)=>{
+      if(!isOK(a.v)&&!isOK(b.v))return 0;
+      if(!isOK(a.v))return 1;
+      if(!isOK(b.v))return-1;
+      return c.hi?b.v-a.v:a.v-b.v;
+    });
+    vs.forEach((x,i)=>{ranks[x.k][c.key]=i+1;});
+  });
+  const scores=Object.fromEntries(ks.map(k=>{
+    const ws=CRITERIA.reduce((s,c)=>s+(ranks[k][c.key]||N)*(wts[c.wKey]||0)/100,0);
+    return[k,{ranks:ranks[k],ws,m:allM[k]}];
+  }));
+  const sorted=[...ks].sort((a,b)=>scores[a].ws-scores[b].ws);
+  const fr=Object.fromEntries(sorted.map((k,i)=>[k,i+1]));
+  return{ranks,scores,fr};
+}
 
 function heatStyle(pct) {
   if (pct >= 75) { const a = 0.45 + (pct - 75) / 25 * 0.4; return `background:rgba(0, 220, 130, ${a});color:#031a10;`; }
@@ -998,7 +1041,13 @@ function setHeatmapFilter(key, val) { S.heatmapFilter[key] = val; render(); }
 function renderWeightsPanel(){
   const wCatBlocks = CAT_GROUPS.map(g => {
     const sub = catSubtotal(g.keys);
-    const cards = g.keys.map(wk => { const c = CRIT_MAP[wk]; const w = S.wts[wk] || 0; const ov = w > 5; return `<div class="wt-card${ov?' ov':''}" style="flex:1;min-width:110px"><div style="font-size:10px;margin-bottom:6px">${c.label}${ov?'<br><span style="font-size:9px;color:var(--accent-gold)">⚠ High</span>':''}</div><div style="display:flex;align-items:center;gap:4px"><input type="number" min="0" max="100" step="1" value="${w}" class="wt-inp" onchange="setWt('${wk}',this.value)"/><span style="font-size:11px">%</span></div></div>`; }).join('');
+    const cards = g.keys.map(wk => {
+      const c = CRIT_MAP[wk];
+      const w = S.wts[wk] || 0;
+      const ov = w > 5;
+      const label = wk === 'debtToEquity' ? 'D/E (Eq/Asset for Banks)' : c.label;
+      return `<div class="wt-card${ov?' ov':''}" style="flex:1;min-width:110px"><div style="font-size:10px;margin-bottom:6px">${label}${ov?'<br><span style="font-size:9px;color:var(--accent-gold)">⚠ High</span>':''}</div><div style="display:flex;align-items:center;gap:4px"><input type="number" min="0" max="100" step="1" value="${w}" class="wt-inp" onchange="setWt('${wk}',this.value)"/><span style="font-size:11px">%</span></div></div>`;
+    }).join('');
     return `<div style="border:1px solid ${g.border};background:${g.bg};border-radius:16px;padding:12px;flex:1;min-width:220px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px"><span style="font-size:11px;font-weight:700;color:${g.color}">${g.label}</span><span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:${g.bg};border:1px solid ${g.border};color:${g.color}">${sub.toFixed(0)}%</span></div><div style="display:flex;flex-wrap:wrap;gap:8px">${cards}</div></div>`;
   }).join('');
   const riskSub=catSubtotal(CAT_GROUPS[0].keys),profSub=catSubtotal(CAT_GROUPS[1].keys),mgmtSub=catSubtotal(CAT_GROUPS[2].keys);const totalW=riskSub+profSub+mgmtSub,tot100=Math.abs(totalW-100)<0.01;
@@ -1020,7 +1069,8 @@ function renderSelTabContent(){
       const pct = Math.max(4, 100 - ((rank - 1) / maxRank) * 100);
       let color;
       if (rank <= 3) color = '#ffcf4a'; else if (rank <= 10) color = '#00d98e'; else if (rank <= 20) color = '#00e4ff'; else color = '#5a9eff';
-      return { label: c.label, rank, pct, color };
+      const displayLabel = (c.key === 'debtToEquity' && isBank(selSym)) ? 'Equity/Asset (Bank)' : c.label;
+      return { label: displayLabel, rank, pct, color };
     });
     const factorHtml = factorBreakdown.map(f => `<div class="factor-row"><div class="factor-label">${f.label}</div><div class="factor-bar-bg"><div class="factor-bar-fill" style="width:${f.pct}%;background:${f.color}"></div></div><div class="factor-value" style="color:${f.color}">${f.rank}</div></div>`).join('');
     const legendHtml = `<div class="factor-legend"><div class="factor-legend-item"><span class="factor-legend-dot" style="background:#ffcf4a"></span>Top 3</div><div class="factor-legend-item"><span class="factor-legend-dot" style="background:#00d98e"></span>Top 10</div><div class="factor-legend-item"><span class="factor-legend-dot" style="background:#00e4ff"></span>Top 20</div><div class="factor-legend-item"><span class="factor-legend-dot" style="background:#5a9eff"></span>Others</div></div>`;
