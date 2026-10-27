@@ -1002,27 +1002,58 @@ function calcRanks(wts){
   const allM=Object.fromEntries(ks.map(k=>[k,calcM(k)]));
   const ranks=Object.fromEntries(ks.map(k=>[k,{}]));
   CRITERIA.forEach(c=>{
-    const isBankCrit = (c.key==='debtToEquity');
-    const vs=ks.map(k=>{
-      let val = allM[k]?.rm[c.key];
-      if (isBankCrit && isBank(k)) {
-          val = allM[k]?.rm['equityToAsset'];
+    const isLeverageCrit = (c.key==='debtToEquity');
+    let vs = [];
+    
+    if (isLeverageCrit) {
+      // Fair ranking: Separate standard D/E (lower is better) and Bank E/A (higher is better)
+      const stdMetrics = [], bankMetrics = [];
+      ks.forEach(k => {
+        if (isBank(k)) {
+          const val = allM[k]?.rm['equityToAsset'];
+          if (isOK(val)) bankMetrics.push({k, v: val});
+        } else {
+          const val = allM[k]?.rm['debtToEquity'];
+          if (isOK(val)) stdMetrics.push({k, v: val});
+        }
+      });
+      
+      // Sort Standard: Ascending (lowest D/E is best)
+      stdMetrics.sort((a,b) => a.v - b.v);
+      // Sort Banks: Descending (highest E/A is best)
+      bankMetrics.sort((a,b) => b.v - a.v);
+      
+      // Merge them back-to-back. 
+      // We interleave them to ensure the best standard companies and best banks both get top ranks.
+      // A standard company with 0% D/E gets rank 1. A bank with 15% E/A also gets a top rank.
+      let allSorted = [];
+      let i = 0, j = 0;
+      while (i < stdMetrics.length || j < bankMetrics.length) {
+        if (i < stdMetrics.length) allSorted.push(stdMetrics[i++]);
+        if (j < bankMetrics.length) allSorted.push(bankMetrics[j++]);
       }
-      return {k,v:val};
-    });
-    vs.sort((a,b)=>{
-      if(!isOK(a.v)&&!isOK(b.v))return 0;
-      if(!isOK(a.v))return 1;
-      if(!isOK(b.v))return-1;
-      // For equity/asset (banks), higher is better. For D/E, lower is better.
-      if (isBankCrit) {
-          // Bank equity/asset - higher is better
-          return b.v - a.v;
+      vs = allSorted;
+    } else {
+      vs = ks.map(k => ({k, v: allM[k]?.rm[c.key]}));
+      vs.sort((a,b)=>{
+        if(!isOK(a.v)&&!isOK(b.v))return 0;
+        if(!isOK(a.v))return 1;
+        if(!isOK(b.v))return-1;
+        return c.hi ? b.v - a.v : a.v - b.v;
+      });
+    }
+    
+    // Assign ranks
+    vs.forEach((x,idx)=>{
+      // Ties: if current val equals previous, give same rank
+      if (idx > 0 && isOK(x.v) && isOK(vs[idx-1].v) && Math.abs(x.v - vs[idx-1].v) < 0.001) {
+        ranks[x.k][c.key] = ranks[vs[idx-1].k][c.key];
+      } else {
+        ranks[x.k][c.key] = idx + 1;
       }
-      return c.hi?b.v-a.v:a.v-b.v;
     });
-    vs.forEach((x,i)=>{ranks[x.k][c.key]=i+1;});
   });
+  
   const scores=Object.fromEntries(ks.map(k=>{
     const ws=CRITERIA.reduce((s,c)=>s+(ranks[k][c.key]||N)*(wts[c.wKey]||0)/100,0);
     return[k,{ranks:ranks[k],ws,m:allM[k]}];
@@ -1145,6 +1176,7 @@ function tabRankings(){
   else if (S.heatmapFilter.exchange === 'IDX') filteredKs = rankedKs.filter(k => S.stocks[k].exchange === 'IDX');
   else if (S.heatmapFilter.exchange === 'BANKS') filteredKs = rankedKs.filter(k => isBank(k));
   if (S.heatmapFilter.search) { const q = S.heatmapFilter.search.toLowerCase(); filteredKs = filteredKs.filter(k => k.toLowerCase().includes(q) || (S.stocks[k].name && S.stocks[k].name.toLowerCase().includes(q))); }
+  
   const heatmapRows = filteredKs.map(k => {
     const r = fr[k]; const st = S.stocks[k];
     const cells = CRITERIA.map(c => { 
