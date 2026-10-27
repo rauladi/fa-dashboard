@@ -1014,6 +1014,11 @@ function calcRanks(wts){
       if(!isOK(a.v)&&!isOK(b.v))return 0;
       if(!isOK(a.v))return 1;
       if(!isOK(b.v))return-1;
+      // For equity/asset (banks), higher is better. For D/E, lower is better.
+      if (isBankCrit) {
+          // Bank equity/asset - higher is better
+          return b.v - a.v;
+      }
       return c.hi?b.v-a.v:a.v-b.v;
     });
     vs.forEach((x,i)=>{ranks[x.k][c.key]=i+1;});
@@ -1427,6 +1432,7 @@ function renderTornadoChart(variables){
 /* used by rankings tab (key strengths/weaknesses) */
 function extractKeyTakeaways(profileText,m,sym){
   const takeaways=[];
+  const bank = isBank(sym);
   if(m.av.gpm>40)takeaways.push(`✅ High gross margin (${P1(m.av.gpm)}) – strong pricing power.`);
   else if(m.av.gpm>20)takeaways.push(`📊 Healthy gross margin of ${P1(m.av.gpm)}.`);
   else takeaways.push(`⚠️ Thin gross margin (${P1(m.av.gpm)}).`);
@@ -1441,8 +1447,19 @@ function extractKeyTakeaways(profileText,m,sym){
   else if(m.buff!==null)takeaways.push(`⚠️ Buffett test ${P1(m.buff)} – destroys value.`);
   if(m.cg.rev>10)takeaways.push(`📈 Strong revenue growth (${P1(m.cg.rev)} CAGR).`);
   else if(m.cg.rev<0)takeaways.push(`📉 Revenue declining (${P1(m.cg.rev)} CAGR).`);
-  if(m.av.debtToEquity>80)takeaways.push(`⚠️ High leverage (D/E ${P1(m.av.debtToEquity)}).`);
-  else if(m.av.debtToEquity<30)takeaways.push(`✅ Low debt (D/E ${P1(m.av.debtToEquity)}).`);
+  
+  if (bank) {
+    if (m.av.equityToAsset >= 8 && m.av.equityToAsset <= 12) {
+      takeaways.push(`✅ Healthy capital buffer (Equity/Asset: ${P1(m.av.equityToAsset)}) – aligned with global banking norms.`);
+    } else if (m.av.equityToAsset > 12) {
+      takeaways.push(`🛡️ Very conservative leverage (Equity/Asset: ${P1(m.av.equityToAsset)}) – lower risk, potentially lower ROE.`);
+    } else {
+      takeaways.push(`⚠️ Thin capital buffer (Equity/Asset: ${P1(m.av.equityToAsset)}) – below the 8% global benchmark.`);
+    }
+  } else {
+    if(m.av.debtToEquity>80)takeaways.push(`⚠️ High leverage (D/E ${P1(m.av.debtToEquity)}).`);
+    else if(m.av.debtToEquity<30)takeaways.push(`✅ Low debt (D/E ${P1(m.av.debtToEquity)}).`);
+  }
   return takeaways;
 }
 
@@ -1705,10 +1722,20 @@ function buildSWOT(m, st, sym) {
     if (m.av.roe > 20) S.push(`Outstanding ROE (${P1(m.av.roe)}) — high returns on shareholder capital.`);
     else if (m.av.roe < 8) W.push(`Low ROE (${P1(m.av.roe)}) — capital returns below an attractive hurdle.`);
   }
-  if (isOK(m.av.debtToEquity)) {
-    if (m.av.debtToEquity < 30) S.push(`Conservative leverage (D/E ${P1(m.av.debtToEquity)}) — strong balance sheet.`);
-    else if (m.av.debtToEquity > 100) W.push(`High leverage (D/E ${P1(m.av.debtToEquity)}) — interest-rate and refinancing risk.`);
+  
+  if (isBank(sym)) {
+    if (isOK(m.av.equityToAsset)) {
+      if (m.av.equityToAsset > 12) S.push(`Strong capital position (Equity/Asset ${P1(m.av.equityToAsset)}) – well above the 8% regulatory minimum.`);
+      else if (m.av.equityToAsset < 8) W.push(`Thin capital buffer (Equity/Asset ${P1(m.av.equityToAsset)}) – below the 8% global benchmark, limiting shock absorption.`);
+      else S.push(`Healthy capital buffer (Equity/Asset ${P1(m.av.equityToAsset)}) – aligned with global banking norms.`);
+    }
+  } else {
+    if (isOK(m.av.debtToEquity)) {
+      if (m.av.debtToEquity < 30) S.push(`Conservative leverage (D/E ${P1(m.av.debtToEquity)}) — strong balance sheet.`);
+      else if (m.av.debtToEquity > 100) W.push(`High leverage (D/E ${P1(m.av.debtToEquity)}) — interest-rate and refinancing risk.`);
+    }
   }
+  
   if (isOK(m.cg.rev)) {
     if (m.cg.rev > 10) S.push(`Strong top-line growth (${P1(m.cg.rev)} CAGR).`);
     else if (m.cg.rev < 0) W.push(`Revenue declining (${P1(m.cg.rev)} CAGR).`);
