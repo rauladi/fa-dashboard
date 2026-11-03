@@ -821,8 +821,20 @@ function tabFinancials(sym, st) {
     const cells = m.Y.map(y => { const v = y[r.k]; return `<td class="tc num${isOK(v) && v < 0 ? ' neg' : ''}" style="text-align:right">${N2(v, 2)}</td>`; }).join('');
     const a = avg(m.Y.map(y => y[r.k]));
     const cg = cagr(m.Y.map(y => y[r.k]));
-    return `<tr class="${i % 2 ? 'ev' : ''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04)">${N2(a, 2)}</td><td class="tc num ${!isOK(cg) ? '' : cg >= 0 ? 'pos' : 'neg'}" style="text-align:right;background:rgba(0,217,126,.03)">${isOK(cg) ? N2(cg, 1) + '%' : 'N/A'}</td></tr>`;
+    
+    // FIX: Debt CAGR should be green if negative (paying down debt is good)
+    let cgClass = '';
+    let cgStyle = 'color:var(--text-muted)';
+    if (isOK(cg)) {
+      const isDebt = r.k === 'totalDebt';
+      const isGood = isDebt ? (cg <= 0) : (cg >= 0);
+      if (isGood) { cgClass = 'pos'; cgStyle = ''; }
+      else { cgClass = 'neg'; cgStyle = ''; }
+    }
+    
+    return `<tr class="${i % 2 ? 'ev' : ''}"><td class="lbl">${r.l}</td>${cells}<td class="tc num cya" style="text-align:right;background:rgba(0,196,224,.04)">${N2(a, 2)}</td><td class="tc num ${cgClass}" style="${cgStyle};text-align:right;background:rgba(0,217,126,.03)">${isOK(cg) ? N2(cg, 1) + '%' : 'N/A'}</td></tr>`;
   }).join('');
+  
   const rDefs = [
     { k: 'cashToAsset', l: 'Cash / Total Asset %', p: true },
     { k: 'debtToEquity', l: 'Debt / Equity %', p: true },
