@@ -959,17 +959,32 @@ function tabChartHTML(sym, st) {
           <div class="chart-canvas-wrap" id="chartWrap"><canvas id="mainC"></canvas></div>
           <div class="chart-info-footer"><span class="info-icon">ℹ</span><span>Revenue, gross profit and net profit are in ${unitLabel.toLowerCase()}. Margin percentages use the right axis. Latest figures (${latestYearLabel}) are highlighted.</span></div>
         </div>
+        <div class="chart-main-card">
+          <div class="chart-main-title">Valuation Range (DPS & Low/High)</div>
+          <div class="chart-html-legend">
+            <div class="legend-item"><span class="legend-marker" style="background:#00e4ff;"></span>DPS</div>
+            <div class="legend-item"><span class="legend-marker line-marker" style="background:#00f5a0;"></span>Valuation Low (DPS × 10)</div>
+            <div class="legend-item"><span class="legend-marker line-marker" style="background:#ffcf4a;"></span>Valuation High (DPS × 20)</div>
+          </div>
+          <div class="chart-canvas-wrap" id="valChartWrap"><canvas id="valC"></canvas></div>
+          <div class="chart-info-footer"><span class="info-icon">ℹ</span><span>Valuation bands are based on DPS multiples (×10 for low, ×20 for high). This visualises the historical dividend yield range.</span></div>
+        </div>
       </div>
     </div>
   `;
 }
 
 let chartInst=null;
+let valChartInst=null;
 
 function makeChart(symbol){
   const el=document.getElementById('mainC');
-  if(!el)return;
+  const valEl=document.getElementById('valC');
+  if(!el||!valEl)return;
+  
   if(chartInst){try{chartInst.destroy();}catch(e){}chartInst=null;}
+  if(valChartInst){try{valChartInst.destroy();}catch(e){}valChartInst=null;}
+  
   const m=calcM(symbol);
   if(!m)return;
   const st=S.stocks[symbol];
@@ -977,6 +992,8 @@ function makeChart(symbol){
   const labels = YEARS.map(y => y.toString());
   const isMobile = window.innerWidth < 640;
   const barColors = (arr, baseRgba, highlightRgba) => { const idxs = arr.map((v,i)=>isOK(v)?i:-1).filter(i=>i!==-1); const lastIdx = idxs.length ? idxs[idxs.length-1] : -1; return arr.map((v, i) => i === lastIdx ? highlightRgba : baseRgba); };
+  
+  // --- Main Chart (Revenue, Profitability, Margins) ---
   const rvColors = barColors(m.raw.rv, 'rgba(90,158,255,0.7)', 'rgba(120,180,255,1)');
   const gpColors = barColors(m.raw.gp, 'rgba(20,184,166,0.7)', 'rgba(45,212,191,1)');
   const npColors = barColors(m.raw.np, 'rgba(34,197,94,0.7)', 'rgba(74,222,128,1)');
@@ -999,6 +1016,29 @@ function makeChart(symbol){
         x: { ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, autoSkip: false, maxRotation: isMobile ? 45 : 0, minRotation: isMobile ? 45 : 0 }, grid: { display: false } },
         y: { position: 'left', title: { display: !isMobile, text: `Amount (${unitLabel})`, color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, maxTicksLimit: isMobile ? 5 : 8 }, grid: { color: 'rgba(72,110,144,0.12)' } },
         y1: { position: 'right', title: { display: !isMobile, text: 'Margin (%)', color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, callback: v => v + '%', maxTicksLimit: isMobile ? 5 : 8 }, grid: { drawOnChartArea: false }, suggestedMin: 0, suggestedMax: 100 }
+      }
+    }
+  });
+
+  // --- Valuation Chart (DPS, Low, High) ---
+  const dpsData = m.raw.dp;
+  const valLowData = m.Y.map(y => y.valLow);
+  const valHighData = m.Y.map(y => y.valHigh);
+  const dpsColors = barColors(dpsData, 'rgba(0, 228, 255, 0.7)', 'rgba(0, 228, 255, 1)');
+
+  valChartInst = new Chart(valEl.getContext('2d'), {
+    data: { labels, datasets: [
+      { type:'bar', label:'DPS', data: dpsData, backgroundColor: dpsColors, borderRadius: 4, yAxisID:'y', order: 2 },
+      { type:'line', label:'Valuation Low', data: valLowData, borderColor:'#00f5a0', backgroundColor:'#00f5a0', borderWidth:2, pointRadius:3, pointBackgroundColor:'#00f5a0', fill:false, yAxisID:'y', tension:0.3, spanGaps:true, borderDash: [5,5], order: 1 },
+      { type:'line', label:'Valuation High', data: valHighData, borderColor:'#ffcf4a', backgroundColor:'#ffcf4a', borderWidth:2, pointRadius:3, pointBackgroundColor:'#ffcf4a', fill:false, yAxisID:'y', tension:0.3, spanGaps:true, borderDash: [5,5], order: 1 }
+    ]},
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(8,16,24,0.96)', borderColor: 'rgba(0,228,255,0.4)', borderWidth: 1, titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' }, bodyFont: { family: "'Space Grotesk'", size: 11 }, padding: 12, callbacks: { label: (ctx) => { const v = ctx.parsed.y; const dsLabel = ctx.dataset.label; return `${dsLabel}: ${curSymFor(st.currency)}${v.toFixed(2)}`; } } } },
+      scales: {
+        x: { ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, autoSkip: false, maxRotation: isMobile ? 45 : 0, minRotation: isMobile ? 45 : 0 }, grid: { display: false } },
+        y: { position: 'left', title: { display: !isMobile, text: `Amount (${curSymFor(st.currency)})`, color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, maxTicksLimit: isMobile ? 5 : 8 }, grid: { color: 'rgba(72,110,144,0.12)' } }
       }
     }
   });
@@ -1035,8 +1075,6 @@ function calcRanks(wts){
       bankMetrics.sort((a,b) => b.v - a.v);
       
       // Merge them back-to-back. 
-      // We interleave them to ensure the best standard companies and best banks both get top ranks.
-      // A standard company with 0% D/E gets rank 1. A bank with 15% E/A also gets a top rank.
       let allSorted = [];
       let i = 0, j = 0;
       while (i < stdMetrics.length || j < bankMetrics.length) {
@@ -2094,7 +2132,7 @@ let __resizeRaf = null;
 function reflowCharts() {
   if (__resizeRaf) cancelAnimationFrame(__resizeRaf);
   __resizeRaf = requestAnimationFrame(() => {
-    [chartInst, window.scatterChartInst, window.radarChartInst]
+    [chartInst, valChartInst, window.scatterChartInst, window.radarChartInst]
       .forEach(c => { try { if (c && typeof c.resize === 'function') c.resize(); } catch (e) {} });
   });
 }
