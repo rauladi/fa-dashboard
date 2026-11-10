@@ -822,7 +822,6 @@ function tabFinancials(sym, st) {
     const a = avg(m.Y.map(y => y[r.k]));
     const cg = cagr(m.Y.map(y => y[r.k]));
     
-    // FIX: Debt CAGR should be green if negative (paying down debt is good)
     let cgClass = '';
     let cgStyle = 'color:var(--text-muted)';
     if (isOK(cg)) {
@@ -1277,8 +1276,16 @@ function renderStockDropdown() {
     const st2 = S.status[k];
     const dotCls = st2 === 'ok' ? 'ok' : st2 === 'error' ? 'err' : 'idle';
     const isOn = k === sym ? ' on' : '';
+    
+    // Check if data is updated with the latest report
+    const data = S.data[k];
+    const latestYear = data?.fetchedAt ? new Date(data.fetchedAt).getFullYear() : null;
+    const isLatest = data?.source === 'yfinance' || (data?.fetchedAt && (Date.now() - data.fetchedAt) < 30 * 24 * 60 * 60 * 1000);
+    const flagCls = isLatest ? 'ok' : 'idle';
+    const flagTitle = isLatest ? `Updated with latest report (${latestYear || 'recent'})` : 'Data may be outdated';
+
     return `<button class="dropdown-item${isOn}" onclick="pickStock('${k}')">
-      <span class="stock-dot ${dotCls}"></span>
+      <span class="stock-dot ${flagCls}" title="${flagTitle}"></span>
       <span class="stock-sym">${k}</span>
       <span class="stock-name">${s.name}</span>
       <span class="stock-exch">${(s.exchange||'').toUpperCase()}</span>
