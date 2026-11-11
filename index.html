@@ -1028,7 +1028,7 @@ function makeChart(symbol){
 
   valChartInst = new Chart(valEl.getContext('2d'), {
     data: { labels, datasets: [
-      { type:'bar', label:'DPS', data: dpsData, backgroundColor: dpsColors, borderRadius: 4, yAxisID:'y', order: 2 },
+      { type:'bar', label:'DPS', data: dpsData, backgroundColor: dpsColors, borderRadius: 4, yAxisID:'y1', order: 2 },
       { type:'line', label:'Valuation Low', data: valLowData, borderColor:'#00f5a0', backgroundColor:'#00f5a0', borderWidth:2, pointRadius:3, pointBackgroundColor:'#00f5a0', fill:false, yAxisID:'y', tension:0.3, spanGaps:true, borderDash: [5,5], order: 1 },
       { type:'line', label:'Valuation High', data: valHighData, borderColor:'#ffcf4a', backgroundColor:'#ffcf4a', borderWidth:2, pointRadius:3, pointBackgroundColor:'#ffcf4a', fill:false, yAxisID:'y', tension:0.3, spanGaps:true, borderDash: [5,5], order: 1 }
     ]},
@@ -1038,7 +1038,8 @@ function makeChart(symbol){
       plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(8,16,24,0.96)', borderColor: 'rgba(0,228,255,0.4)', borderWidth: 1, titleFont: { family: "'Space Grotesk'", size: 12, weight: '700' }, bodyFont: { family: "'Space Grotesk'", size: 11 }, padding: 12, callbacks: { label: (ctx) => { const v = ctx.parsed.y; const dsLabel = ctx.dataset.label; return `${dsLabel}: ${curSymFor(st.currency)}${v.toFixed(2)}`; } } } },
       scales: {
         x: { ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, autoSkip: false, maxRotation: isMobile ? 45 : 0, minRotation: isMobile ? 45 : 0 }, grid: { display: false } },
-        y: { position: 'left', title: { display: !isMobile, text: `Amount (${curSymFor(st.currency)})`, color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, maxTicksLimit: isMobile ? 5 : 8 }, grid: { color: 'rgba(72,110,144,0.12)' } }
+        y: { position: 'left', title: { display: !isMobile, text: `Valuation (${curSymFor(st.currency)})`, color: '#8aa4c4', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#8aa4c4', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, maxTicksLimit: isMobile ? 5 : 8 }, grid: { color: 'rgba(72,110,144,0.12)' } },
+        y1: { position: 'right', title: { display: !isMobile, text: `DPS (${curSymFor(st.currency)})`, color: '#00e4ff', font: { family: "'Space Grotesk'", size: 11, weight: '600' } }, ticks: { color: '#00e4ff', font: { family: "'Space Grotesk'", size: isMobile ? 9 : 11 }, maxTicksLimit: isMobile ? 5 : 8 }, grid: { drawOnChartArea: false } }
       }
     }
   });
